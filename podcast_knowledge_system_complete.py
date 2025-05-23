@@ -824,7 +824,7 @@ def setup_neo4j_schema(neo4j_driver):
             session.run("CREATE INDEX episode_title IF NOT EXISTS FOR (e:Episode) ON (e.title)")
             session.run("CREATE INDEX segment_text IF NOT EXISTS FOR (s:Segment) ON (s.text)")
             session.run("CREATE INDEX entity_name IF NOT EXISTS FOR (e:Entity) ON (e.name)")
-            session.run("CREATE INDEX insight_category IF NOT EXISTS FOR (i:Insight) ON (i.category)")
+            session.run("CREATE INDEX insight_type IF NOT EXISTS FOR (i:Insight) ON (i.insight_type)")
             
             # Create full-text search indexes
             session.run("""
@@ -1390,21 +1390,7 @@ def enrich_metadata(neo4j_driver, episode_id):
             END
             """, {"episode_id": episode_id})
             
-            # Add additional insight categorization with taxonomy
-            session.run("""
-            MATCH (ep:Episode {id: $episode_id})-[:HAS_INSIGHT]->(i:Insight)
-            SET i.topic_area = CASE i.category
-                WHEN 'BusinessStrategy' THEN 'Business'
-                WHEN 'Technology' THEN 'Technology'
-                WHEN 'Psychology' THEN 'Science'
-                WHEN 'ProductDevelopment' THEN 'Technology'
-                WHEN 'Marketing' THEN 'Business'
-                WHEN 'InvestmentInsight' THEN 'Finance'
-                WHEN 'CareerAdvice' THEN 'Professional'
-                WHEN 'ProblemSolutionNarrative' THEN 'Storytelling'
-                ELSE 'General'
-            END
-            """, {"episode_id": episode_id})
+            # Skip domain-specific categorization for schema-less approach
             
             # Add publication date as proper datetime
             session.run("""
@@ -2044,14 +2030,16 @@ def build_insight_extraction_prompt(podcast_name, episode_title, use_large_conte
         Extract 5-15 valuable insights from this episode. For each insight:
         1. Give it a concise, informative title that captures the core idea
         2. Write a brief but clear description (1-3 sentences) that explains the insight
-        3. Assign a category from this list: BusinessStrategy, Technology, Psychology, 
-           ProductDevelopment, Marketing, InvestmentInsight, CareerAdvice, ProblemSolutionNarrative
+        3. Classify the insight_type as one of:
+           - 'actionable' (practical advice, steps to take, recommendations)
+           - 'conceptual' (explanations, theory, background information)
+           - 'experiential' (personal stories, examples, case studies)
         4. Include a confidence score (1-10) indicating how strongly this insight is supported in the transcript
         
         Format your response as a valid JSON array of objects with these fields:
         - title (string): Concise, informative title
         - description (string): Clear, accurate description of the insight
-        - category (string): One of the categories listed above
+        - insight_type (string): One of 'actionable', 'conceptual', or 'experiential'
         - confidence (number): Confidence score from 1-10
         - references (array): Array of brief quotes from the transcript that support this insight
         
@@ -2080,13 +2068,15 @@ def build_insight_extraction_prompt(podcast_name, episode_title, use_large_conte
         Extract 1-3 valuable insights from this segment. For each insight:
         1. Give it a concise, informative title that captures the core idea
         2. Write a brief but clear description (1-3 sentences) that explains the insight
-        3. Assign a category from this list: BusinessStrategy, Technology, Psychology, 
-           ProductDevelopment, Marketing, InvestmentInsight, CareerAdvice, ProblemSolutionNarrative
+        3. Classify the insight_type as one of:
+           - 'actionable' (practical advice, steps to take, recommendations)
+           - 'conceptual' (explanations, theory, background information)
+           - 'experiential' (personal stories, examples, case studies)
         
         Format your response as a valid JSON array of objects with these fields:
         - title (string): Concise, informative title
         - description (string): Clear, accurate description of the insight
-        - category (string): One of the categories listed above
+        - insight_type (string): One of 'actionable', 'conceptual', or 'experiential'
         
         If the segment doesn't contain any valuable insights (e.g., it's an advertisement, 
         introduction, pleasantries, or irrelevant content), return an empty array [].
@@ -2158,7 +2148,7 @@ def validate_and_enhance_insights(insights, use_large_context=True):
     for insight in insights:
         try:
             # Ensure required fields exist
-            if not all(field in insight for field in ["title", "description", "category"]):
+            if not all(field in insight for field in ["title", "description", "insight_type"]):
                 print(f"Warning: Skipping invalid insight missing required fields: {insight}")
                 continue
             
@@ -2169,14 +2159,10 @@ def validate_and_enhance_insights(insights, use_large_context=True):
                 if "references" not in insight:
                     insight["references"] = []
             
-            # Validate category
-            valid_categories = [
-                "BusinessStrategy", "Technology", "Psychology", 
-                "ProductDevelopment", "Marketing", "InvestmentInsight", 
-                "CareerAdvice", "ProblemSolutionNarrative"
-            ]
-            if insight["category"] not in valid_categories:
-                insight["category"] = "ProblemSolutionNarrative"  # Default category
+            # Validate insight_type
+            valid_types = ["actionable", "conceptual", "experiential"]
+            if insight["insight_type"] not in valid_types:
+                insight["insight_type"] = "conceptual"  # Default type
             
             # Ensure strings are not empty
             if not insight["title"].strip() or not insight["description"].strip():
@@ -2954,7 +2940,7 @@ Extract the following in JSON format:
 1. INSIGHTS: Key takeaways and learnings
    - title: Brief 3-5 word title
    - description: One sentence description
-   - category: BusinessStrategy/Technology/Psychology/ProductDevelopment/Marketing/InvestmentInsight/CareerAdvice/ProblemSolutionNarrative
+   - insight_type: actionable (practical advice)/conceptual (theory, explanations)/experiential (stories, examples)
    - confidence: 1-10 score
 
 2. ENTITIES: Important people, companies, concepts
@@ -2985,7 +2971,7 @@ Extract insights, entities, and quotes from this segment.
 SEGMENT:
 {transcript}
 
-Return JSON with insights (title, description, category), entities (name, type, description), and quotes (text, speaker).
+Return JSON with insights (title, description, insight_type), entities (name, type, description), and quotes (text, speaker).
 """
     
     return prompt
@@ -3932,7 +3918,7 @@ def create_insight_nodes(session, insights, podcast_info, episode, embedding_cli
         
         for insight in tqdm(insights, desc="Creating insights"):
             # Generate insight ID
-            insight_text_for_hash = f"{podcast_info['id']}_{episode['id']}_{insight['category']}_{insight['title']}"
+            insight_text_for_hash = f"{podcast_info['id']}_{episode['id']}_{insight.get('insight_type', 'conceptual')}_{insight['title']}"
             insight_id = f"insight_{hashlib.sha256(insight_text_for_hash.encode()).hexdigest()[:28]}"
             
             # Generate embedding
@@ -3949,7 +3935,7 @@ def create_insight_nodes(session, insights, podcast_info, episode, embedding_cli
                 "id": insight_id,
                 "title": insight["title"],
                 "description": insight["description"],
-                "category": insight["category"],
+                "insight_type": insight.get("insight_type", "conceptual"),
                 "podcast_id": podcast_info["id"],
                 "episode_id": episode["id"],
                 "embedding": embedding
@@ -3987,7 +3973,7 @@ def _build_insight_query(use_large_context, insight):
     base_fields = """
         i.title = $title,
         i.description = $description,
-        i.category = $category,
+        i.insight_type = $insight_type,
         i.podcast_id = $podcast_id,
         i.episode_id = $episode_id,
         i.embedding = $embedding,
@@ -5361,13 +5347,13 @@ def visualize_knowledge_graph(neo4j_driver):
             """)
             rel_stats = [dict(record) for record in result]
             
-            # Get category distribution
+            # Get insight type distribution
             result = session.run("""
             MATCH (i:Insight)
-            RETURN i.category as category, count(i) as count
+            RETURN i.insight_type as insight_type, count(i) as count
             ORDER BY count DESC
             """)
-            categories = [dict(record) for record in result]
+            insight_types = [dict(record) for record in result]
             
             # Get entity type distribution
             result = session.run("""
@@ -5390,7 +5376,7 @@ def visualize_knowledge_graph(neo4j_driver):
             visualization_data = {
                 "stats": dict(stats),
                 "relationships": rel_stats,
-                "categories": categories,
+                "insightTypes": insight_types,
                 "entityTypes": entity_types,
                 "topEntities": top_entities
             }
