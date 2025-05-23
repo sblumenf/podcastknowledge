@@ -1,0 +1,337 @@
+Your goal is to extract a concise but detailed framework about a topic given a transcript from a podcast. Below you will get a transcript from a user and you want to literally just repeat what the speaker said but in structured markdown.
+
+Guidelines
+* Remove the fluff - don't pad the text with extra information, only use dense information directly from the transcript
+* Bullet points - Use bullet points to describe the key pieces of information
+* Use a mix of parent bullets that stand on their own and then bullets that have children when needed
+* Start with a mini summary about what the page is about. Keep it short and factual
+* Image you are trying to repeat the speaker said but in a more structured and concise way. Use their wording and style.
+* Don't start with a title like "Elon Musk's hiring process", just get into the topic summary
+
+
+<example>
+<topic>Elon Musk's hiring process</topic>
+<raw_transcript>
+another part that you write about with
+the Three Musketeers and the whole
+engineering the firing and the bringing
+in the engineers to try to sort of go
+hardcore so there's a lot of interesting
+sort of questions to ask there but the
+high level can you just comment about
+that
+part of the Saga which is
+bringing in the engineers and seeing
+like what can we do here right he
+Elon Musks hiring process
+brought in the engineers and figured
+that the amount of people doing Tesla
+full self-driving autopilot and all the
+software there was about one tenth of
+what was doing software for Twitter and
+he said this can't be the case
+and he fired 85 percent in three
+different rounds the first was
+just firing people because they looked
+at the coding and they had a team of
+people from Tesla's autopilot team
+grading the codes of ever of all that
+was written in the past year or so
+then he fired people you know who didn't
+seem to be totally all in or loyal and
+then another round of layoffs so
+uh
+at each step of the way almost everybody
+says that's enough it's going to destroy
+things yeah uh from Alex Sparrow his
+lawyer to Jared virtual he's like whoa
+whoa whoa you know and even Andrew and
+James the young cousins who are tasked
+with making a list and figuring out
+who's good or bad same we've done enough
+we're going to be in real trouble
+and they were partly right I mean there
+was degradation of the service some
+but not as much as half the services I
+use half the time you know and
+I wake up each morning and
+hit the app and okay still there what do
+you think was that too much I think that
+Elons algorithm
+he has an algorithm that we mentioned
+earlier that begins with question every
+requirement what it's up to is delete
+delete delete
+every point and then a corollary to that
+is if you don't end up adding back 20 of
+what you deleted then you didn't delete
+enough in the first round because you
+were too timid well so you asked me did
+he overdo it he probably overdid it by
+20 which is his formula and they're
+probably trying to hire people now to
+keep things going
+but it sends a strong signal
+to people that are hired back or the
+people that are still there the the API
+and what Steve Jobs and many other great
+leaders felt and certainly Bezos and
+certainly
+in the early days of Microsoft Bill
+Gates he was Hardcore only a players
+so how much of Elon success would you
+say elon's and uh Steve Jobs's success
+is the hiring and managing of great
+teams when I asked Steve Jobs at one
+point what was the best product you ever
+created
+I thought he'd say maybe the Macintosh
+or maybe the iPhone
+he said no those products are hard the
+best thing I ever created was the team
+that made those products and that's the
+hard part is creating a team and he did
+you know from Johnny Ive to Tim Cook and
+at EQ and Phil Schiller
+Elons team
+Elon has done a good job bringing in
+people Glenn Shotwell obviously
+Linda yagarino she's you know can
+navigate through the current crises
+uh certainly
+Stellar people at SpaceX like Martin
+Cosa and then at Tesla like Drew
+backlino and Lars maravi and Tom Zhu and
+many others
+Benjamin Franklin
+um he's not as much of a team
+collaborator essay Benjamin Franklin who
+by the way that's the best team ever
+created which is the founders and you
+had to have really smart people like
+Jefferson and Madison and really
+passionate people like John Adams and
+his cousin Samuel and really a guy of
+high rectitude like Washington but you
+also needed a Ben Franklin who could
+bring everybody together and Forge A
+team out of them and make them
+compromise with each other
+musk is a magnet for awesome Talent
+Hiring priorities
+magnet interesting but there's the
+there's like the priorities of hiring of
+um
+based on Excellence trustworthiness and
+drive these are things you've described
+throughout the book I mean there there's
+a pretty
+uh concrete and rigorous
+set of ideas based on which the hiring
+is done oh yeah and he has a very good
+Spidey uh intuitive sense just looking
+at people
+who could maybe not looking at them but
+studying them who could be good one of
+his uh uh
+ways of operating
+is what he calls a skip level meeting
+and let's take a very specific thing
+like the Raptor engine which is powering
+the um Starship and it wasn't going well
+it looked like a spaghetti Bush and it
+was going to be hard to manufacture and
+he got rid of the people
+who were in charge of that team and now
+remember that he spent a couple of
+months doing what he called skip level
+which means instead of meeting with his
+direct reports on the Raptor team he
+would meet with the people one level
+below them and so he would skip a level
+and meet with them and he said this is
+and I just asked him what they're doing
+and I drill them with questions and he
+said this is how I figure out who's
+going to emerge he said it was
+particularly difficult I was sitting in
+those meetings because people were
+wearing masks it was doing the height of
+covid uh and he said it made it a little
+bit harder for him because he has to get
+the input but I watched as a young kid
+dreadlocks named Jacob McKenzie he's in
+the book
+is sitting there and he's a bit like you
+engineering mindset speaks in a bit of a
+monotone musk would ask a question and
+he would give an answer and the answer
+would be very straightforward and he
+didn't you know get rattled he was like
+this
+it must said one day called him up at
+three well I won't say 3 A.M but after
+midnight said you still around yeah Jake
+said yeah I'm still at work and he said
+okay I'm Gonna Make You in charge of the
+team building Raptor
+and that was like a big surprise but
+Jacob McKenzie has now gotten a version
+of raptor and when they're building him
+at least one a week and they're pretty
+awesome and
+um that's where his talent must Talent
+for
+finding the right person and promoting
+them that's where it is and promoting it
+in a way where it's like here's the ball
+here catch yeah yeah and you run with it
+I have I've interacted with quite a few
+uh folks from even just the model X the
+the all throughout where people you know
+on paper don't seem like they would be
+able to run the thing and they run it
+extremely successfully and he does it
+Brian Dow
+wrong sometimes he's had a horrible
+track record with the solo roof division
+wonderful guy named Brian Dow I really
+liked him uh and when they were doing
+the battery Factory surge in Nevada
+uh musk got rid of two or three people
+and there's Brian Dow can do can do can
+do stays up all night and he gets
+promoted and runs it and so finally goes
+uh musk goes through two or three people
+running the solo roof division finally
+calls up Brian down I was sitting in
+Moss house in Boca Chica that little
+tiny two-bedroom he has and he offers
+Brian Dow the job of running solar roof
+and you know buying their okay can do
+can do and two or three times musk
+insisted that they put install a solo
+roof in one of those houses in Boca
+Chica this is this tiny village at the
+south end of Texas
+and late at night I mean I'd have to
+climb up to the top of the roof on these
+ladders and stand on this peaked roof as
+musk is there saying why do we need four
+screws to put in this single leg and and
+Brian was just sweating and doing
+everything but then after a couple of
+months it wasn't going well and boom
+uh musk just fired him
+so I always try to learn what is it that
+makes those who stay thrive
+what's the lesson there what do you
+think well I think it's self-knowledge
+like an Andy Krebs or others they say uh
+I am hardcore I really want to get a
+rocket to Mars and that's more important
+than anything else
+uh one of the people I think it's I
+think it's Tim Zaman I hope uh when he
+hears this I'm getting him the right
+person who you know took time it was
+working for Tesla autopilot and it was
+just so intense he took some time off
+and and then went to another company he
+said I was burned out at Tesla but then
+I was bored at the next place so I
+called I think it was Ashok it I said
+can I come back he said sure he said
+I've learned about myself I'd rather be
+burned out than born that's a good line
+um well can you just uh Linger on one of
+the three that seemed interesting to you
+in in terms of Excellence
+trustworthiness and drive which one do
+you think is is the most important and
+the hardest to get at the
+trustworthiness is an interesting one
+like are you ride or die kind of thing
+The Musketeers
+yeah I think that especially when it
+came to taking over Twitter he thought
+half the people there were disloyal and
+he was wrong about two-thirds were
+disloyal not just that
+and it was how do we weed out those and
+he did something and made um the firing
+squad I call it or the Musketeers I
+think is my nickname for them which is
+you know the young cousins and two or
+three other people he made them look at
+the slack messages these people had post
+everybody at Twitter and posted and they
+went through hundreds of slack messages
+so if anybody
+posted on the internal Slack
+you know that jerk Elon Musk is going to
+take over and I'm afraid that he's a
+maniac or something
+they would be on the list because they
+want all in loyal uh they did not look
+at private slack messages and I guess
+people who are posting on a corporate
+slack board should be aware that your
+company can look at them but that's more
+than I would have done or most people
+would have done
+and so that was to figure out who's
+deeply committed and loyal I think that
+was mainly the case at Twitter he
+doesn't sit around it SpaceX saying
+who's loyal to me at
+um other places
+it's excellent but that's pretty well a
+given everybody is like a mark jankosa
+just whip smart it's all you hardcore
+and all in especially if you have to
+move to this spit of a town in the South
+Tip of Texas called Boca Chica
+you know you got to be all in yeah yeah
+and that's the drive the the last piece
+</raw_transcript>
+<FrameWork>
+Elon has a strict hiring process to filter out the best employees he can. Here's his secret.
+
+## Elon's hiring and team-building philosophy
+
+* Follows a "delete, delete, delete" algorithm for requirements
+* Aims to rehire only 20% of deleted positions
+* Focuses on hiring only "A players"
+* Emphasizes the importance of a "hardcore" work culture
+
+## Key hiring priorities
+
+1. Excellence in skills and abilities
+    * Focuses on exceptional technical skills and problem-solving abilities
+    * Values creative thinking and the ability to challenge conventions
+2. Trustworthiness and loyalty
+    * Employees committed to the company's mission
+    * Emphasizes the importance of being "all in" on projects
+3. Drive and commitment to the mission
+    * Looks for self-motivated individuals who actually care about their work
+    * Prefers those who can handle intense, high-pressure environments
+4. Adaptability and resilience
+    * Values employees who thrive in fast-paced, changing environments
+    * People who can bounce back from setbacks and continue pushing forward
+5. Cultural fit for a "hardcore" work ethic
+    * Prioritizes people who align with Musk's intense work culture
+    * Willing to work long hours and make personal sacrifices for company goals
+
+## How Elon identifies talent
+
+* Uses "skip-level" meetings to evaluate potential leaders
+* Meets with employees one level below direct reports
+* Asks direct questions and observes responses to assess capabilities
+* Relies on intuition and direct questioning to assess candidates
+* Promotes based on demonstrated ability, often unexpectedly
+* Gives challenging assignments to test and develop talent
+* Observes how individuals handle pressure and solve problems in real-time
+* Values direct communication and straightforward answers
+</FrameWork>
+</example>

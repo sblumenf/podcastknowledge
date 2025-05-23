@@ -1,0 +1,95 @@
+Your goal is to extract the start and end timestamps for when a topic is talked about. You want to identify when a topic is first talked about, then when it is done being talked about
+
+Only respond with the timestamps, nothing else.
+
+<examples>
+    <example>
+        <transcript>
+00:59:10 Sam Parr: so I mean you you you definitely do and you definitely can I think that you will eventually for sure
+
+00:59:10 Steph Smith: someone by the way I read the comments and I read one from something one of the episodes I was on ages ago and someone wrote something like wow steph
+00:59:30 Steph Smith: has a really intense case of imposter syndrome and I was like oh true anyway I guess if people wanna find
+
+00:59:30 Sam Parr: by the way I'll tell you this now you do I remember when I was negotiating your salary when you first joined and you asked for a number I don't
+00:59:30 Sam Parr: remember if I did this for you it we in particular women would typically do this they would say a number and I would say a number back or I
+00:59:30 Sam Parr: would just say a number to them and they would just accept it and I'll be like hey you should negotiate with me women in particular were horrible at pushing
+00:59:30 Sam Parr: back on their salary for what they should ask for and you know my company was small we in aggregate probably hired 75 people but I noticed a small trend
+00:59:30 Sam Parr: of women in particular did not push back nearly as hard as the men there were many men that they would push back and it was laughable what they I'm
+00:59:30 Sam Parr: like there's not a chance I'm going to give you this but I guess I'll meet you somewhere in the middle to like adjust this but like this is crazy
+00:59:30 Sam Parr: I offered I was thinking you are a $150,000 a year person dressed for 700,000 like that's just ridiculous but I remember with you steph you were way we gave
+00:59:30 Sam Parr: you a lot of bumps I think over the how long you worked with us but you you started way too low and I would encourage you to maybe not
+00:59:30 Sam Parr: for this product but to definitely elevate what you should be demanding for pay I think you're doing alright now at a 16 c but that I've noticed that with
+01:00:51 Sam Parr: you in particular amongst very very very smart and qualified young women
+
+01:00:51 Steph Smith: yeah it took me around what is it so 21 to 28 when I 28 or 29 when I joined a 16 z so it took me like 7 years
+01:01:05 Steph Smith: or so to actually learn to negotiate so I agree
+
+01:01:05 Shaan Puri: can I tell you of embarrassing version of impostor syndrome that I have which is it's not impostor syndrome but it is what I call michael Scott syndrome where sometimes
+01:01:05 Shaan Puri: then I felt this for like 10 years I always hire people that are like super smart that's great upfront but the downside is sometimes you just feel like michael
+01:01:05 Shaan Puri: Scott you're like oh I'm the idiot in the office and I'm telling these people I'm actually in their way these people are like they're kinda looking at me like
+01:01:05 Shaan Puri: the way that jim halpert looks at you know michael Scott and I'm like oh no it's happening that's the the the michael Scott thing is happening have you ever
+01:01:41 Shaan Puri: felt that
+
+01:01:41 Sam Parr: yes I felt that way all the time and then I realized that's actually I felt that way for a long time and then I realized oh wait no that
+01:01:51 Sam Parr: just means I'm good at hiring so like I should just get out of the way
+
+01:01:57 Shaan Puri: what Scott would do he turned into a compliment for himself
+
+01:01:57 Sam Parr: no I felt that way too I remember hiring people that were a older than me and b smarter and I'm like what the fuck are these people did I
+01:02:11 Sam Parr: really just convince this person did I just trick this person into coming and joining anything I'm doing I feel horrible about that
+        </transcript>
+        <insight>
+        Michael Scott syndrome is when you feel like you're the idiot in the office and you're telling these people you're actually in their way.
+        </insight>
+        <timestamps>
+        <start_time>01:01:05</start_time>
+        <end_time>01:02:11</end_time>
+        </timestamps>
+    </example>
+    <example>
+        <transcript>
+
+00:39:24 Steph Smith: this was forever ago I wonder what it is now but back then it was like early on in the airpod journey and it was like airpods if it was
+00:39:37 Steph Smith: a stand alone company would be in the fortune 50 or something like that and I was like woah woah
+
+00:39:44 Sam Parr: I think your stat was like airpods make more revenue than like spotify snapchat and airbnb combined yeah
+
+00:39:44 Steph Smith: I think twitter was on that too it was yeah and that was again that was in 20 I wanna say 2019 or 2020 and so now there's some crazy
+00:39:44 Steph Smith: stats with airpods which is just like 70% of all us teens have airpods like that is like true penetration and so early on in that trend it's like okay
+00:39:44 Steph Smith: there's like cases there's I'm trying to remember like key chains really simple stuff but I think what is worth just understanding or or what you can take away from
+00:39:44 Steph Smith: this gadget flow website is like okay what are the newest devices that are not gonna have the scale of like 100 or 1000 of people using them but millions
+00:40:30 Steph Smith: or 100 of millions and what are the adjacent accessories or products that I can create
+
+00:40:33 Sam Parr: so how do you how do you use gadget flow
+
+00:40:33 Steph Smith: so gadget flow is not as much of like you know a searchable database like something like jungle scout but it's more so just what I would do if I
+00:40:33 Steph Smith: came to this page is first I would look at the drop down of most popular right so that's where you're gonna see some of those big devices and then
+00:40:33 Steph Smith: the other takeaway is some of the drop down categories I think so the one that caught my eye was pet accessories so remember gadget flow is like all tech
+00:40:33 Steph Smith: devices and so if you go to pet accessories there's a bunch of different things I guess you both have owned dogs I've never owned a owned a dog but
+00:41:20 Steph Smith: I wonder if you're familiar with any of these devices and in particular there was one that I noticed have you guys heard of fluent pet
+
+00:41:21 Sam Parr: no what's that
+
+00:41:22 Shaan Puri: no what is it
+
+00:41:22 Steph Smith: it is this really interesting trend of these buttons fluent pet is a particular brand that I think is going pretty viral because of one account this dog called I
+00:41:22 Steph Smith: am bunny this this account has I think a 1000000 followers on instagram and it's it's basically these buttons where you can I don't know how like how well this
+00:41:52 Steph Smith: works for all dogs but you can kind of teach them to communicate with you by pushing these buttons to indicate what they want
+
+00:41:52 Sam Parr: and I've seen these and and it's and and it is actually really cool so the way it looks is it looks like a so it looks like a imagine
+00:41:52 Sam Parr: like a like a twister pad and each color has a button on it and the one button means bathroom one button means food one button means other thing and
+00:42:15 Sam Parr: you could train your dog to click a button to do what to tell you what they want it it's actually really
+
+00:42:16 Shaan Puri: cool
+
+00:42:16 Sam Parr: yeah it's pretty awesome I've seen these and I
+        </transcript>
+        <insight>
+        Gadget flow website is a website that shows you the newest devices that are not gonna have the scale of like 100 or 1000 of people using them but millions
+        </insight>
+        <timestamps>
+        <start_time>00:39:44</start_time>
+        <end_time>00:41:20</end_time>
+        </timestamps>
+    </example>
+</examples>
