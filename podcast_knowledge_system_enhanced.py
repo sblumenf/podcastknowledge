@@ -73,6 +73,8 @@ import gc
 import logging
 import sys
 import difflib  # Added for fuzzy matching in entity resolution
+from itertools import combinations
+import math
 
 # Core Dependencies
 try:
@@ -91,6 +93,27 @@ try:
 except ImportError:
     print("Warning: python-dotenv not available. Using environment variables directly.")
     load_dotenv = lambda: None
+
+# Scientific Computing Dependencies
+try:
+    import numpy as np
+except ImportError:
+    print("Warning: NumPy not available. Install with: pip install numpy")
+    np = None
+
+try:
+    from scipy.stats import entropy
+except ImportError:
+    print("Warning: SciPy not available. Install with: pip install scipy")
+    entropy = None
+
+try:
+    import networkx as nx
+    from networkx.algorithms import community
+except ImportError:
+    print("Warning: NetworkX not available. Install with: pip install networkx")
+    nx = None
+    community = None
 
 # LLM and AI Dependencies
 try:
@@ -180,6 +203,16 @@ load_dotenv()
 # SECTION 2: CONFIGURATION AND SETTINGS
 # ============================================================================
 
+# Batch mode flag for streamlined processing
+BATCH_MODE = True  # Set to True for unattended knowledge seeding
+
+# Set up logging
+logging.basicConfig(
+    level=logging.INFO if not BATCH_MODE else logging.ERROR,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
+
 # Feature flags for optional functionality
 # These can be modified at runtime to disable specific features
 ENABLE_AUDIO_PROCESSING = True
@@ -187,9 +220,6 @@ ENABLE_KNOWLEDGE_EXTRACTION = True
 ENABLE_GRAPH_ENHANCEMENTS = True
 ENABLE_VISUALIZATION = False  # Disabled for batch seeding
 ENABLE_SPEAKER_DIARIZATION = True
-
-# Batch mode flag for streamlined processing
-BATCH_MODE = True  # Set to True for unattended knowledge seeding
 
 # Quick access to feature flags for easy modification
 FEATURE_FLAGS = {
@@ -967,6 +997,1096 @@ def clean_segment_text_for_embedding(text):
     return cleaned
 
 # ============================================================================
+# SECTION 2.4: KNOWLEDGE ENHANCEMENT UTILITIES
+# ============================================================================
+
+def generate_stable_segment_id(episode_id, segment_text, start_time, speaker=None):
+    """
+    Generate stable segment ID based on content and metadata.
+    
+    Args:
+        episode_id: Episode identifier
+        segment_text: Text content of segment
+        start_time: Start timestamp
+        speaker: Optional speaker identifier
+        
+    Returns:
+        Stable segment ID
+    """
+    # Create a content fingerprint
+    # Use first 100 chars + last 100 chars to handle minor edits
+    text_sample = segment_text[:100] + segment_text[-100:] if len(segment_text) > 200 else segment_text
+    
+    # Include speaker if available for better uniqueness
+    content_string = f"{episode_id}_{start_time}_{text_sample}_{speaker or 'unknown'}"
+    
+    # Generate hash
+    content_hash = hashlib.sha256(content_string.encode('utf-8')).hexdigest()[:12]
+    
+    # Create readable ID
+    return f"seg_{episode_id}_{int(start_time)}_{content_hash}"
+
+def extract_notable_quotes(segment_text, speaker, start_time, end_time, llm_client):
+    """
+    Extract memorable quotes as first-class entities.
+    
+    Args:
+        segment_text: Text to extract quotes from
+        speaker: Speaker name
+        start_time: Segment start timestamp
+        end_time: Segment end timestamp
+        llm_client: LLM client or TaskRouter for extraction
+        
+    Returns:
+        List of quote dictionaries
+    """
+    prompt = f"""
+    Extract 0-3 highly quotable statements from this podcast segment.
+    
+    Criteria for a good quote:
+    - Self-contained and meaningful without context
+    - 10-40 words long
+    - Memorable, insightful, or impactful
+    - Actually said by the speaker (not paraphrased)
+    
+    Segment:
+    Speaker: {speaker}
+    Text: {segment_text}
+    
+    Return JSON with this exact format:
+    {{
+        "quotes": [
+            {{
+                "text": "exact quote from the segment",
+                "impact_score": 7,  // 1-10 score
+                "quote_type": "insight"  // insight, humor, wisdom, controversial, prediction
+            }}
+        ]
+    }}
+    
+    If no quotable content, return {{"quotes": []}}
+    """
+    
+    try:
+        # Handle both llm_client and TaskRouter
+        if hasattr(llm_client, 'route_request'):
+            # It's a TaskRouter
+            result = llm_client.route_request('quotes', prompt)
+            response_content = result['response']
+        else:
+            # It's a regular LLM client
+            response = llm_client.invoke(prompt)
+            response_content = response.content
+        
+        quotes_data = json.loads(response_content)
+        
+        quotes = []
+        for quote in quotes_data.get("quotes", []):
+            # Verify quote actually exists in segment
+            if quote["text"].lower() in segment_text.lower():
+                # Find exact position in segment
+                quote_start = segment_text.lower().find(quote["text"].lower())
+                quote_length = len(quote["text"])
+                
+                # Estimate timestamp within segment
+                segment_length = len(segment_text)
+                time_ratio = quote_start / segment_length if segment_length > 0 else 0
+                quote_timestamp = start_time + (time_ratio * (end_time - start_time))
+                
+                quotes.append({
+                    "text": quote["text"],
+                    "speaker": speaker,
+                    "impact_score": quote.get("impact_score", 5),
+                    "quote_type": quote.get("quote_type", "general"),
+                    "segment_start": start_time,
+                    "segment_end": end_time,
+                    "estimated_timestamp": quote_timestamp,
+                    "word_count": len(quote["text"].split())
+                })
+        
+        return quotes
+        
+    except Exception as e:
+        print(f"Error extracting quotes: {e}")
+        return []
+
+def extract_episode_topics(insights, entities, segments, llm_client=None):
+    """
+    Generate topic tags for an episode based on insights, entities, and content.
+    
+    Args:
+        insights: List of insights extracted from episode
+        entities: List of entities mentioned in episode
+        segments: List of transcript segments
+        llm_client: Optional LLM client for advanced topic generation
+        
+    Returns:
+        List of topic dictionaries with scores
+    """
+    topic_scores = defaultdict(float)
+    topic_evidence = defaultdict(list)
+    
+    # 1. Extract topics from insight categories
+    insight_categories = defaultdict(int)
+    for insight in insights:
+        category = insight.get('insight_type', 'general')
+        insight_categories[category] += 1
+        topic_scores[category] += insight.get('confidence', 5) / 10.0
+        topic_evidence[category].append(f"insight: {insight.get('title', '')[:50]}")
+    
+    # 2. Extract topics from high-importance entities
+    entity_topics = defaultdict(float)
+    for entity in entities:
+        if entity.get('importance', 0) >= 7:
+            entity_type = entity['type'].lower().replace('_', ' ')
+            
+            # Map entity types to topics
+            topic_mappings = {
+                'person': 'personalities',
+                'company': 'business',
+                'technology': 'tech',
+                'framework': 'methodologies',
+                'product': 'products',
+                'book': 'literature',
+                'concept': 'ideas',
+                'medical_device': 'health tech',
+                'medication': 'healthcare',
+                'biological_process': 'science',
+                'investment': 'finance',
+                'startup': 'entrepreneurship'
+            }
+            
+            topic = topic_mappings.get(entity_type, entity_type)
+            entity_topics[topic] += entity.get('importance', 5) / 10.0
+            topic_evidence[topic].append(f"entity: {entity['name']}")
+    
+    # Merge entity topics into main scores
+    for topic, score in entity_topics.items():
+        topic_scores[topic] += score
+    
+    # 3. Extract topics from segment content patterns
+    content_patterns = {
+        'entrepreneurship': [r'\bstartup\b', r'\bfounder\b', r'\bVC\b', r'\bfunding\b', r'\braise\b'],
+        'technology': [r'\bAI\b', r'\bML\b', r'\bsoftware\b', r'\bapp\b', r'\btech\b'],
+        'business': [r'\brevenue\b', r'\bprofit\b', r'\bbusiness model\b', r'\bmarket\b'],
+        'health': [r'\bhealth\b', r'\bwellness\b', r'\bfitness\b', r'\bmedical\b'],
+        'science': [r'\bresearch\b', r'\bstudy\b', r'\bscientific\b', r'\bdata\b'],
+        'psychology': [r'\bmindset\b', r'\bmental\b', r'\bbehavior\b', r'\bhabit\b'],
+        'productivity': [r'\bproductiv\b', r'\befficiency\b', r'\bworkflow\b', r'\btime management\b'],
+        'finance': [r'\binvest\b', r'\bmoney\b', r'\bfinancial\b', r'\bstock\b', r'\bcrypto\b'],
+        'marketing': [r'\bmarketing\b', r'\bgrowth\b', r'\bcustomer\b', r'\bbrand\b'],
+        'leadership': [r'\bleader\b', r'\bmanage\b', r'\bteam\b', r'\bculture\b']
+    }
+    
+    # Analyze first 10 segments for topic patterns
+    sample_text = ' '.join([seg.get('text', '')[:200] for seg in segments[:10]]).lower()
+    
+    for topic, patterns in content_patterns.items():
+        matches = sum(1 for pattern in patterns if re.search(pattern, sample_text, re.IGNORECASE))
+        if matches > 0:
+            topic_scores[topic] += matches * 0.2
+            topic_evidence[topic].append(f"pattern matches: {matches}")
+    
+    # 4. Use LLM for advanced topic extraction (optional)
+    if llm_client and len(segments) > 0:
+        # Sample content for LLM analysis
+        sample_insights = [f"- {i.get('title', '')}" for i in insights[:5]]
+        sample_entities = [f"- {e['name']} ({e['type']})" for e in sorted(entities, key=lambda x: x.get('importance', 0), reverse=True)[:10]]
+        
+        prompt = f"""
+        Based on these insights and entities from a podcast episode, identify 3-5 main topics/themes.
+        
+        Key Insights:
+        {chr(10).join(sample_insights)}
+        
+        Key Entities:
+        {chr(10).join(sample_entities)}
+        
+        Return JSON with exactly this format:
+        {{
+            "topics": [
+                {{"name": "topic name", "confidence": 0.8, "reason": "brief explanation"}}
+            ]
+        }}
+        
+        Focus on broad, searchable topics (e.g., "entrepreneurship", "artificial intelligence", "health optimization")
+        """
+        
+        try:
+            # Handle both llm_client and TaskRouter
+            if hasattr(llm_client, 'route_request'):
+                # It's a TaskRouter
+                result = llm_client.route_request('topics', prompt)
+                response_content = result['response']
+            else:
+                # It's a regular LLM client
+                response = llm_client.invoke(prompt)
+                response_content = response.content
+            
+            llm_topics = json.loads(response_content)
+            
+            for topic_data in llm_topics.get('topics', []):
+                topic_name = topic_data['name'].lower()
+                topic_scores[topic_name] += topic_data['confidence']
+                topic_evidence[topic_name].append(f"LLM: {topic_data['reason'][:50]}")
+                
+        except Exception as e:
+            print(f"LLM topic extraction failed: {e}")
+    
+    # 5. Normalize and rank topics
+    topics = []
+    for topic, score in topic_scores.items():
+        # Skip very generic topics
+        if topic in ['general', 'other', 'unknown']:
+            continue
+            
+        normalized_score = min(score / max(topic_scores.values()) if topic_scores else 0, 1.0)
+        
+        topics.append({
+            'name': topic,
+            'score': normalized_score,
+            'raw_score': score,
+            'evidence': topic_evidence[topic][:3]  # Keep top 3 evidence items
+        })
+    
+    # Sort by score and return top topics
+    topics.sort(key=lambda x: x['score'], reverse=True)
+    
+    return topics[:7]  # Return top 7 topics
+
+# ============================================================================
+# SECTION 2.5: GRAPH ANALYSIS UTILITIES
+# ============================================================================
+
+def extract_weighted_co_occurrences(entities, segments, window_size=50):
+    """
+    Extract weighted co-occurrence relationships between entities based on proximity.
+    
+    Args:
+        entities: List of entities with their positions in the transcript
+        segments: List of transcript segments
+        window_size: Word window for considering co-occurrence
+        
+    Returns:
+        List of co-occurrence relationships with weights
+    """
+    co_occurrences = defaultdict(lambda: {'weight': 0, 'contexts': []})
+    
+    # Build a map of entity positions in the full transcript
+    entity_positions = defaultdict(list)
+    
+    for segment in segments:
+        segment_text = segment['text'].lower()
+        words = segment_text.split()
+        
+        # Find all entity occurrences in this segment
+        for idx, entity in enumerate(entities):
+            entity_name = entity.get('name', '').strip().lower()
+            if not entity_name:  # Skip empty entity names
+                continue
+            entity_words = entity_name.split()
+            if not entity_words:  # Skip if no words after splitting
+                continue
+            
+            # Use entity ID if available, otherwise generate one
+            entity_id = entity.get('id', f"temp_entity_{idx}_{entity['name']}_{entity.get('type', 'unknown')}")
+            
+            # Find positions where entity appears
+            for i in range(len(words) - len(entity_words) + 1):
+                if words[i:i+len(entity_words)] == entity_words:
+                    position = {
+                        'segment_id': segment.get('id', segment.get('start', 0)),
+                        'word_position': i,
+                        'segment_text': segment_text,
+                        'speaker': segment.get('speaker', 'Unknown')
+                    }
+                    entity_positions[entity_id].append(position)
+    
+    # Calculate co-occurrences with proximity weights
+    entity_ids = list(entity_positions.keys())
+    for i, entity1_id in enumerate(entity_ids):
+        for entity2_id in entity_ids[i+1:]:
+            
+            # Check each occurrence pair
+            for pos1 in entity_positions[entity1_id]:
+                for pos2 in entity_positions[entity2_id]:
+                    
+                    # Same segment
+                    if pos1['segment_id'] == pos2['segment_id']:
+                        word_distance = abs(pos1['word_position'] - pos2['word_position'])
+                        
+                        if word_distance <= window_size:
+                            # Calculate weight based on proximity
+                            if word_distance <= 10:  # Same sentence (approximately)
+                                weight = 10
+                                proximity_type = 'sentence'
+                            elif word_distance <= 30:  # Same paragraph (approximately)
+                                weight = 5
+                                proximity_type = 'paragraph'
+                            else:  # Same segment
+                                weight = 1
+                                proximity_type = 'segment'
+                            
+                            key = tuple(sorted([entity1_id, entity2_id]))
+                            co_occurrences[key]['weight'] += weight
+                            co_occurrences[key]['contexts'].append({
+                                'proximity_type': proximity_type,
+                                'distance': word_distance,
+                                'segment_id': pos1['segment_id'],
+                                'speaker': pos1['speaker']
+                            })
+    
+    # Convert to list format
+    result = []
+    for (entity1_id, entity2_id), data in co_occurrences.items():
+        result.append({
+            'entity1_id': entity1_id,
+            'entity2_id': entity2_id,
+            'weight': data['weight'],
+            'occurrence_count': len(data['contexts']),
+            'contexts': data['contexts'][:5]  # Keep top 5 contexts
+        })
+    
+    return result
+
+def calculate_betweenness_centrality(neo4j_session, episode_id):
+    """
+    Calculate betweenness centrality for all nodes in an episode to find bridge concepts.
+    
+    Args:
+        neo4j_session: Neo4j session
+        episode_id: Episode ID to analyze
+        
+    Returns:
+        Dictionary of node IDs to centrality scores
+    """
+    if not nx:
+        logger.warning("NetworkX not available. Skipping centrality calculation.")
+        return {}
+    
+    try:
+        # Build in-memory graph from Neo4j data
+        G = nx.Graph()
+        
+        # Get all nodes and relationships for this episode
+        result = neo4j_session.run("""
+        MATCH (n)-[r]-(m)
+        WHERE (n:Entity OR n:Insight) AND (m:Entity OR m:Insight)
+        AND n.episode_id = $episode_id AND m.episode_id = $episode_id
+        RETURN n.id as source, m.id as target, type(r) as rel_type, r.weight as weight
+        """, episode_id=episode_id)
+        
+        # Add edges to graph
+        for record in result:
+            weight = record['weight'] if record['weight'] else 1
+            G.add_edge(record['source'], record['target'], weight=weight)
+        
+        # Check if graph has nodes
+        if len(G.nodes()) == 0:
+            return {}
+        
+        # Calculate betweenness centrality
+        centrality = nx.betweenness_centrality(G, weight='weight')
+        
+        return centrality
+        
+    except Exception as e:
+        logger.error(f"Failed to calculate centrality: {e}")
+        return {}
+
+def detect_communities_multi_level(neo4j_session, episode_id, resolution_levels=[0.5, 1.0, 2.0]):
+    """
+    Detect communities at multiple resolution levels using Louvain algorithm.
+    
+    Args:
+        neo4j_session: Neo4j session
+        episode_id: Episode ID to analyze
+        resolution_levels: List of resolution parameters for community detection
+        
+    Returns:
+        Dictionary with community assignments at each level
+    """
+    if not nx or not community:
+        logger.warning("NetworkX community detection not available.")
+        return {}
+    
+    try:
+        # Build graph
+        G = nx.Graph()
+        
+        # Get nodes and relationships
+        result = neo4j_session.run("""
+        MATCH (n)-[r]-(m)
+        WHERE (n:Entity OR n:Insight) AND (m:Entity OR m:Insight)
+        AND n.episode_id = $episode_id AND m.episode_id = $episode_id
+        RETURN n.id as source, m.id as target, n.name as source_name, m.name as target_name,
+               type(r) as rel_type, r.weight as weight
+        """, episode_id=episode_id)
+        
+        node_names = {}
+        for record in result:
+            weight = record['weight'] if record['weight'] else 1
+            G.add_edge(record['source'], record['target'], weight=weight)
+            node_names[record['source']] = record['source_name']
+            node_names[record['target']] = record['target_name']
+        
+        # Check if graph has nodes
+        if len(G.nodes()) == 0:
+            return {}, {}
+        
+        # Detect communities at each resolution level
+        community_results = {}
+        for i, resolution in enumerate(resolution_levels):
+            communities = community.louvain_communities(G, resolution=resolution, weight='weight')
+            
+            # Convert to node->community mapping
+            node_communities = {}
+            for comm_id, nodes in enumerate(communities):
+                for node in nodes:
+                    node_communities[node] = comm_id
+            
+            community_results[f'level_{i+1}'] = {
+                'resolution': resolution,
+                'communities': node_communities,
+                'num_communities': len(communities)
+            }
+        
+        return community_results, node_names
+        
+    except Exception as e:
+        logger.error(f"Failed to detect communities: {e}")
+        return {}, {}
+
+def identify_peripheral_concepts(neo4j_session, episode_id):
+    """
+    Identify peripheral concepts that are mentioned but not deeply explored.
+    
+    Args:
+        neo4j_session: Neo4j session
+        episode_id: Episode ID to analyze
+        
+    Returns:
+        List of peripheral concepts with exploration potential
+    """
+    try:
+        # Find entities with low degree but appearing in multiple contexts
+        result = neo4j_session.run("""
+        MATCH (e:Entity {episode_id: $episode_id})
+        OPTIONAL MATCH (e)-[r]-(other)
+        WHERE other.episode_id = $episode_id
+        WITH e, count(DISTINCT other) as degree, count(DISTINCT r) as rel_count
+        WHERE degree < 3 AND degree > 0
+        OPTIONAL MATCH (e)<-[:CONTAINS]-(s:Segment)
+        WITH e, degree, rel_count, count(DISTINCT s) as segment_count
+        WHERE segment_count >= 2
+        RETURN e.id as id, e.name as name, e.type as type, 
+               degree, segment_count,
+               degree * 0.3 + segment_count * 0.7 as exploration_potential
+        ORDER BY exploration_potential DESC
+        LIMIT 20
+        """, episode_id=episode_id)
+        
+        peripheral_concepts = []
+        for record in result:
+            peripheral_concepts.append({
+                'id': record['id'],
+                'name': record['name'],
+                'type': record['type'],
+                'degree': record['degree'],
+                'segment_mentions': record['segment_count'],
+                'exploration_potential': record['exploration_potential']
+            })
+        
+        return peripheral_concepts
+        
+    except Exception as e:
+        logger.error(f"Failed to identify peripheral concepts: {e}")
+        return []
+
+def calculate_discourse_structure(neo4j_session, episode_id, community_data):
+    """
+    Calculate discourse structure classification based on modularity and influence distribution.
+    
+    Args:
+        neo4j_session: Neo4j session
+        episode_id: Episode ID
+        community_data: Community detection results
+        
+    Returns:
+        Discourse structure classification and metrics
+    """
+    try:
+        # Get influence distribution (based on degree centrality)
+        result = neo4j_session.run("""
+        MATCH (n {episode_id: $episode_id})
+        WHERE n:Entity OR n:Insight
+        OPTIONAL MATCH (n)-[r]-(m {episode_id: $episode_id})
+        WHERE m:Entity OR m:Insight
+        WITH n, count(DISTINCT m) as degree
+        ORDER BY degree DESC
+        LIMIT 20
+        RETURN collect(degree) as degrees
+        """, episode_id=episode_id)
+        
+        result_data = result.single()
+        degrees = result_data['degrees'] if result_data else []
+        
+        # Calculate influence distribution entropy
+        if degrees and entropy:
+            total = sum(degrees)
+            probabilities = [d/total for d in degrees]
+            influence_entropy = entropy(probabilities)
+        else:
+            influence_entropy = 0
+        
+        # Get modularity from community data
+        level_1_communities = community_data.get('level_1', {})
+        num_communities = level_1_communities.get('num_communities', 1)
+        
+        # Calculate modularity proxy (simplified)
+        if num_communities > 1:
+            modularity_score = min(num_communities / 10, 0.8)  # Normalize to 0-0.8 range
+        else:
+            modularity_score = 0.1
+        
+        # Classify discourse structure
+        if modularity_score < 0.4 and influence_entropy < 2.0:
+            structure = 'biased'
+            description = 'Single dominant topic'
+        elif modularity_score < 0.65 and influence_entropy < 2.5:
+            structure = 'focused'
+            description = 'Few connected topics forming coherent clusters'
+        elif modularity_score >= 0.65 and influence_entropy >= 2.5:
+            structure = 'dispersed'
+            description = 'Many unrelated ideas'
+        else:
+            structure = 'diversified'
+            description = 'Multiple distinct but interconnected topic clusters'
+        
+        return {
+            'structure': structure,
+            'description': description,
+            'modularity_score': modularity_score,
+            'influence_entropy': influence_entropy,
+            'num_communities': num_communities
+        }
+        
+    except Exception as e:
+        logger.error(f"Failed to calculate discourse structure: {e}")
+        return {
+            'structure': 'unknown',
+            'description': 'Unable to determine discourse structure',
+            'modularity_score': 0,
+            'influence_entropy': 0,
+            'num_communities': 0
+        }
+
+def calculate_diversity_metrics(neo4j_session, episode_id, community_data):
+    """
+    Calculate comprehensive diversity metrics for an episode.
+    
+    Args:
+        neo4j_session: Neo4j session
+        episode_id: Episode ID
+        community_data: Community detection results
+        
+    Returns:
+        Dictionary of diversity metrics
+    """
+    try:
+        # Get basic statistics
+        result = neo4j_session.run("""
+        MATCH (n {episode_id: $episode_id})
+        WHERE n:Entity OR n:Insight
+        WITH count(DISTINCT n) as total_nodes
+        MATCH (e:Entity {episode_id: $episode_id})
+        WITH total_nodes, count(DISTINCT e) as entity_count
+        MATCH (i:Insight {episode_id: $episode_id})
+        WITH total_nodes, entity_count, count(DISTINCT i) as insight_count
+        OPTIONAL MATCH (n {episode_id: $episode_id})-[r]-(m {episode_id: $episode_id})
+        WHERE (n:Entity OR n:Insight) AND (m:Entity OR m:Insight)
+        RETURN total_nodes, entity_count, insight_count, 
+               count(r) as relationship_count
+        """, episode_id=episode_id)
+        
+        stats = result.single()
+        
+        if not stats:
+            return {
+                'topic_diversity': 0,
+                'connection_richness': 0,
+                'concept_density': 0,
+                'entity_count': 0,
+                'insight_count': 0,
+                'community_count': 0
+            }
+        
+        # Calculate topic diversity
+        num_communities = community_data.get('level_1', {}).get('num_communities', 1)
+        topic_diversity = num_communities / max(stats['total_nodes'], 1)
+        
+        # Calculate connection richness
+        connection_richness = stats['relationship_count'] / max(stats['total_nodes'], 1)
+        
+        # Get word count for concept density
+        word_count_result = neo4j_session.run("""
+        MATCH (s:Segment {episode_id: $episode_id})
+        RETURN sum(s.word_count) as total_words
+        """, episode_id=episode_id)
+        
+        word_result = word_count_result.single()
+        total_words = (word_result['total_words'] if word_result and word_result['total_words'] else 1)
+        concept_density = (stats['entity_count'] + stats['insight_count']) / (total_words / 1000)
+        
+        return {
+            'topic_diversity': min(topic_diversity, 1.0),
+            'connection_richness': connection_richness,
+            'concept_density': concept_density,
+            'entity_count': stats['entity_count'],
+            'insight_count': stats['insight_count'],
+            'community_count': num_communities
+        }
+        
+    except Exception as e:
+        logger.error(f"Failed to calculate diversity metrics: {e}")
+        return {
+            'topic_diversity': 0,
+            'connection_richness': 0,
+            'concept_density': 0,
+            'entity_count': 0,
+            'insight_count': 0,
+            'community_count': 0
+        }
+
+def identify_structural_gaps(neo4j_session, episode_id, community_data):
+    """
+    Identify structural gaps between topic clusters that could be bridged.
+    
+    Args:
+        neo4j_session: Neo4j session
+        episode_id: Episode ID
+        community_data: Community detection results with node names
+        
+    Returns:
+        List of structural gaps with potential bridges
+    """
+    try:
+        gaps = []
+        
+        if not community_data or (isinstance(community_data, tuple) and len(community_data) != 2):
+            return gaps
+            
+        communities, node_names = community_data
+        
+        if not communities:
+            return gaps
+            
+        level_1 = communities.get('level_1', {}).get('communities', {})
+        
+        # Get community pairs with few connections
+        result = neo4j_session.run("""
+        MATCH (n {episode_id: $episode_id})-[r]-(m {episode_id: $episode_id})
+        WHERE (n:Entity OR n:Insight) AND (m:Entity OR m:Insight)
+        RETURN n.id as source, m.id as target
+        """, episode_id=episode_id)
+        
+        # Count connections between communities
+        community_connections = defaultdict(int)
+        for record in result:
+            source_comm = level_1.get(record['source'])
+            target_comm = level_1.get(record['target'])
+            
+            if source_comm is not None and target_comm is not None and source_comm != target_comm:
+                key = tuple(sorted([source_comm, target_comm]))
+                community_connections[key] += 1
+        
+        # Find community pairs with few connections
+        all_communities = set(level_1.values())
+        for comm1, comm2 in combinations(all_communities, 2):
+            key = tuple(sorted([comm1, comm2]))
+            connection_count = community_connections.get(key, 0)
+            
+            if connection_count < 3:  # Few connections indicate a gap
+                # Find nodes that could bridge these communities
+                nodes_comm1 = [n for n, c in level_1.items() if c == comm1]
+                nodes_comm2 = [n for n, c in level_1.items() if c == comm2]
+                
+                # Get representative nodes from each community
+                repr_nodes_1 = nodes_comm1[:3]
+                repr_nodes_2 = nodes_comm2[:3]
+                
+                gap = {
+                    'community_1': comm1,
+                    'community_2': comm2,
+                    'connection_count': connection_count,
+                    'representative_concepts_1': [node_names.get(n, n) for n in repr_nodes_1],
+                    'representative_concepts_2': [node_names.get(n, n) for n in repr_nodes_2],
+                    'gap_score': 1 - (connection_count / 3)  # Higher score = bigger gap
+                }
+                
+                gaps.append(gap)
+        
+        # Sort by gap score
+        gaps.sort(key=lambda x: x['gap_score'], reverse=True)
+        
+        return gaps[:10]  # Return top 10 gaps
+        
+    except Exception as e:
+        logger.error(f"Failed to identify structural gaps: {e}")
+        return []
+
+def create_hierarchical_topics(neo4j_session, episode_id, community_data, llm_client=None):
+    """
+    Create hierarchical topic structure based on multi-level community detection.
+    
+    Args:
+        neo4j_session: Neo4j session
+        episode_id: Episode ID
+        community_data: Multi-level community detection results
+        llm_client: Optional LLM client for generating topic names
+        
+    Returns:
+        Created topic hierarchy
+    """
+    try:
+        topics_created = []
+        
+        if not community_data or (isinstance(community_data, tuple) and len(community_data) != 2):
+            return topics_created
+            
+        communities, node_names = community_data
+        
+        if not communities:
+            return topics_created
+        
+        # Process each level
+        for level_name in ['level_1', 'level_2', 'level_3']:
+            level_data = communities.get(level_name, {})
+            level_communities = level_data.get('communities', {})
+            
+            if not level_communities:
+                continue
+            
+            # Group nodes by community
+            community_nodes = defaultdict(list)
+            for node_id, comm_id in level_communities.items():
+                if node_id in node_names:
+                    community_nodes[comm_id].append({
+                        'id': node_id,
+                        'name': node_names[node_id]
+                    })
+            
+            # Create topic for each community
+            for comm_id, nodes in community_nodes.items():
+                # Get top concepts for naming
+                top_concepts = [n['name'] for n in nodes[:5]]
+                
+                # Generate topic name
+                if llm_client and len(top_concepts) >= 2:
+                    try:
+                        prompt = f"""
+                        Create a concise topic name (2-3 words) for these related concepts:
+                        {', '.join(top_concepts)}
+                        
+                        Return only the topic name, nothing else.
+                        """
+                        
+                        if hasattr(llm_client, 'invoke'):
+                            response = llm_client.invoke(prompt)
+                            topic_name = response.content.strip()
+                        else:
+                            topic_name = f"{top_concepts[0]} & Related"
+                    except:
+                        topic_name = f"{top_concepts[0]} & Related"
+                else:
+                    topic_name = top_concepts[0] if top_concepts else f"Topic {comm_id}"
+                
+                # Create topic in Neo4j
+                topic_id = f"{episode_id}-{level_name}-{comm_id}"
+                
+                neo4j_session.run("""
+                MERGE (t:Topic {id: $topic_id})
+                SET t.name = $name,
+                    t.episode_id = $episode_id,
+                    t.hierarchy_level = $level,
+                    t.community_id = $comm_id,
+                    t.member_count = $member_count,
+                    t.top_concepts = $top_concepts
+                """, {
+                    'topic_id': topic_id,
+                    'name': topic_name,
+                    'episode_id': episode_id,
+                    'level': level_name,
+                    'comm_id': comm_id,
+                    'member_count': len(nodes),
+                    'top_concepts': top_concepts
+                })
+                
+                # Link nodes to topic
+                for node in nodes:
+                    neo4j_session.run("""
+                    MATCH (n {id: $node_id, episode_id: $episode_id})
+                    WHERE n:Entity OR n:Insight
+                    MATCH (t:Topic {id: $topic_id})
+                    MERGE (n)-[:BELONGS_TO_TOPIC]->(t)
+                    """, {
+                        'node_id': node['id'],
+                        'episode_id': episode_id,
+                        'topic_id': topic_id
+                    })
+                
+                topics_created.append({
+                    'id': topic_id,
+                    'name': topic_name,
+                    'level': level_name,
+                    'member_count': len(nodes)
+                })
+        
+        # Create hierarchy relationships between topics
+        if len(topics_created) > 1:
+            # Link topics from different levels
+            neo4j_session.run("""
+            MATCH (t1:Topic {episode_id: $episode_id, hierarchy_level: 'level_1'})
+            MATCH (t2:Topic {episode_id: $episode_id, hierarchy_level: 'level_2'})
+            WHERE EXISTS {
+                MATCH (t1)<-[:BELONGS_TO_TOPIC]-(n)-[:BELONGS_TO_TOPIC]->(t2)
+            }
+            MERGE (t1)-[:CONTAINS_TOPIC]->(t2)
+            """, episode_id=episode_id)
+            
+            neo4j_session.run("""
+            MATCH (t2:Topic {episode_id: $episode_id, hierarchy_level: 'level_2'})
+            MATCH (t3:Topic {episode_id: $episode_id, hierarchy_level: 'level_3'})
+            WHERE EXISTS {
+                MATCH (t2)<-[:BELONGS_TO_TOPIC]-(n)-[:BELONGS_TO_TOPIC]->(t3)
+            }
+            MERGE (t2)-[:CONTAINS_TOPIC]->(t3)
+            """, episode_id=episode_id)
+        
+        return topics_created
+        
+    except Exception as e:
+        logger.error(f"Failed to create hierarchical topics: {e}")
+        return []
+
+def identify_bridge_insights(neo4j_session, episode_id, community_data):
+    """
+    Identify insights that bridge multiple topic communities.
+    
+    Args:
+        neo4j_session: Neo4j session
+        episode_id: Episode ID
+        community_data: Community detection results
+        
+    Returns:
+        List of bridge insights
+    """
+    try:
+        if not community_data or (isinstance(community_data, tuple) and not community_data[0]):
+            return []
+            
+        communities, _ = community_data
+        if not communities:
+            return []
+            
+        level_1 = communities.get('level_1', {}).get('communities', {})
+        
+        # Find insights connected to entities in different communities
+        result = neo4j_session.run("""
+        MATCH (i:Insight {episode_id: $episode_id})-[:REFERENCES]-(e:Entity {episode_id: $episode_id})
+        WITH i, collect(DISTINCT e.id) as entity_ids
+        WHERE size(entity_ids) >= 2
+        RETURN i.id as id, i.content as content, i.key_insight as key_insight,
+               entity_ids
+        """, episode_id=episode_id)
+        
+        bridge_insights = []
+        for record in result:
+            # Check which communities these entities belong to
+            communities_touched = set()
+            for entity_id in record['entity_ids']:
+                comm = level_1.get(entity_id)
+                if comm is not None:
+                    communities_touched.add(comm)
+            
+            if len(communities_touched) >= 2:
+                bridge_insights.append({
+                    'id': record['id'],
+                    'content': record['content'],
+                    'key_insight': record['key_insight'],
+                    'communities_bridged': len(communities_touched),
+                    'bridge_score': len(communities_touched) / max(len(record['entity_ids']), 1)
+                })
+        
+        # Sort by bridge score
+        bridge_insights.sort(key=lambda x: x['bridge_score'], reverse=True)
+        
+        # Update insights in Neo4j
+        for insight in bridge_insights[:20]:  # Top 20 bridge insights
+            neo4j_session.run("""
+            MATCH (i:Insight {id: $id})
+            SET i.is_bridge_insight = true,
+                i.bridge_score = $bridge_score,
+                i.communities_bridged = $communities_bridged
+            """, {
+                'id': insight['id'],
+                'bridge_score': insight['bridge_score'],
+                'communities_bridged': insight['communities_bridged']
+            })
+        
+        return bridge_insights
+        
+    except Exception as e:
+        logger.error(f"Failed to identify bridge insights: {e}")
+        return []
+
+def analyze_episode_discourse(neo4j_driver, episode_id, insights, entities, 
+                            transcript_segments, llm_client=None):
+    """
+    Perform comprehensive discourse analysis on an episode after knowledge extraction.
+    
+    Args:
+        neo4j_driver: Neo4j driver
+        episode_id: Episode ID
+        insights: List of insights
+        entities: List of entities
+        transcript_segments: List of transcript segments
+        llm_client: Optional LLM client
+        
+    Returns:
+        Dictionary of discourse analysis results
+    """
+    try:
+        database = PodcastConfig.NEO4J_DATABASE
+        
+        with neo4j_driver.session(database=database) as session:
+            
+            # Step 1: Calculate betweenness centrality
+            logger.info("Calculating betweenness centrality...")
+            centrality_scores = calculate_betweenness_centrality(session, episode_id)
+            
+            # Update nodes with centrality scores
+            for node_id, score in centrality_scores.items():
+                session.run("""
+                MATCH (n {id: $node_id, episode_id: $episode_id})
+                WHERE n:Entity OR n:Insight
+                SET n.bridge_score = $score
+                """, node_id=node_id, episode_id=episode_id, score=score)
+            
+            # Step 2: Multi-level community detection
+            logger.info("Detecting communities at multiple levels...")
+            community_results, node_names = detect_communities_multi_level(session, episode_id)
+            
+            # Step 3: Create hierarchical topics
+            logger.info("Creating hierarchical topic structure...")
+            topics_created = create_hierarchical_topics(session, episode_id, (community_results, node_names), llm_client)
+            
+            # Step 4: Identify peripheral concepts
+            logger.info("Identifying peripheral concepts...")
+            peripheral_concepts = identify_peripheral_concepts(session, episode_id)
+            
+            # Mark peripheral concepts in Neo4j
+            for concept in peripheral_concepts:
+                session.run("""
+                MATCH (e:Entity {id: $id, episode_id: $episode_id})
+                SET e.is_peripheral = true,
+                    e.exploration_potential = $potential
+                """, id=concept['id'], episode_id=episode_id, 
+                    potential=concept['exploration_potential'])
+            
+            # Step 5: Calculate discourse structure
+            logger.info("Analyzing discourse structure...")
+            discourse_structure = calculate_discourse_structure(session, episode_id, community_results)
+            
+            # Step 6: Calculate diversity metrics
+            logger.info("Calculating diversity metrics...")
+            diversity_metrics = calculate_diversity_metrics(session, episode_id, community_results)
+            
+            # Step 7: Identify structural gaps
+            logger.info("Identifying structural gaps...")
+            structural_gaps = identify_structural_gaps(session, episode_id, (community_results, node_names))
+            
+            # Create PotentialConnection nodes for gaps
+            for gap in structural_gaps[:5]:  # Top 5 gaps
+                gap_id = f"{episode_id}-gap-{gap['community_1']}-{gap['community_2']}"
+                session.run("""
+                CREATE (g:PotentialConnection {
+                    id: $id,
+                    episode_id: $episode_id,
+                    community_1: $comm1,
+                    community_2: $comm2,
+                    connection_count: $count,
+                    gap_score: $score,
+                    concepts_1: $concepts1,
+                    concepts_2: $concepts2
+                })
+                """, {
+                    'id': gap_id,
+                    'episode_id': episode_id,
+                    'comm1': gap['community_1'],
+                    'comm2': gap['community_2'],
+                    'count': gap['connection_count'],
+                    'score': gap['gap_score'],
+                    'concepts1': gap['representative_concepts_1'],
+                    'concepts2': gap['representative_concepts_2']
+                })
+            
+            # Step 8: Identify bridge insights
+            logger.info("Identifying bridge insights...")
+            bridge_insights = identify_bridge_insights(session, episode_id, (community_results, node_names))
+            
+            # Update episode with discourse metrics
+            session.run("""
+            MATCH (e:Episode {id: $episode_id})
+            SET e.discourse_structure = $structure,
+                e.discourse_description = $description,
+                e.modularity_score = $modularity,
+                e.influence_entropy = $entropy,
+                e.topic_diversity = $topic_diversity,
+                e.connection_richness = $connection_richness,
+                e.concept_density = $concept_density,
+                e.num_communities = $num_communities,
+                e.num_peripheral_concepts = $num_peripheral,
+                e.num_structural_gaps = $num_gaps,
+                e.num_bridge_insights = $num_bridges
+            """, {
+                'episode_id': episode_id,
+                'structure': discourse_structure['structure'],
+                'description': discourse_structure['description'],
+                'modularity': discourse_structure['modularity_score'],
+                'entropy': discourse_structure['influence_entropy'],
+                'topic_diversity': diversity_metrics['topic_diversity'],
+                'connection_richness': diversity_metrics['connection_richness'],
+                'concept_density': diversity_metrics['concept_density'],
+                'num_communities': diversity_metrics['community_count'],
+                'num_peripheral': len(peripheral_concepts),
+                'num_gaps': len(structural_gaps),
+                'num_bridges': len(bridge_insights)
+            })
+            
+            return {
+                'discourse_structure': discourse_structure,
+                'diversity_metrics': diversity_metrics,
+                'topics_created': len(topics_created),
+                'peripheral_concepts': len(peripheral_concepts),
+                'structural_gaps': len(structural_gaps),
+                'bridge_insights': len(bridge_insights),
+                'nodes_with_centrality': len(centrality_scores)
+            }
+            
+    except Exception as e:
+        logger.error(f"Failed to analyze episode discourse: {e}")
+        return {
+            'discourse_structure': {'structure': 'unknown'},
+            'diversity_metrics': {},
+            'topics_created': 0,
+            'peripheral_concepts': 0,
+            'structural_gaps': 0,
+            'bridge_insights': 0,
+            'nodes_with_centrality': 0
+        }
+
+# ============================================================================
 # SECTION 3: DATABASE OPERATIONS
 # ============================================================================
 
@@ -1031,6 +2151,9 @@ def setup_neo4j_schema(neo4j_driver):
             session.run("CREATE CONSTRAINT segment_id IF NOT EXISTS FOR (s:Segment) REQUIRE s.id IS UNIQUE")
             session.run("CREATE CONSTRAINT insight_id IF NOT EXISTS FOR (i:Insight) REQUIRE i.id IS UNIQUE")
             session.run("CREATE CONSTRAINT entity_id IF NOT EXISTS FOR (e:Entity) REQUIRE e.id IS UNIQUE")
+            session.run("CREATE CONSTRAINT quote_id IF NOT EXISTS FOR (q:Quote) REQUIRE q.id IS UNIQUE")
+            session.run("CREATE CONSTRAINT topic_id IF NOT EXISTS FOR (t:Topic) REQUIRE t.id IS UNIQUE")
+            session.run("CREATE CONSTRAINT potential_connection_id IF NOT EXISTS FOR (p:PotentialConnection) REQUIRE p.id IS UNIQUE")
             
             # Create indexes for common lookups
             session.run("CREATE INDEX podcast_name IF NOT EXISTS FOR (p:Podcast) ON (p.name)")
@@ -1038,6 +2161,18 @@ def setup_neo4j_schema(neo4j_driver):
             session.run("CREATE INDEX segment_text IF NOT EXISTS FOR (s:Segment) ON (s.text)")
             session.run("CREATE INDEX entity_name IF NOT EXISTS FOR (e:Entity) ON (e.name)")
             session.run("CREATE INDEX insight_type IF NOT EXISTS FOR (i:Insight) ON (i.insight_type)")
+            session.run("CREATE INDEX quote_type IF NOT EXISTS FOR (q:Quote) ON (q.quote_type)")
+            session.run("CREATE INDEX quote_speaker IF NOT EXISTS FOR (q:Quote) ON (q.speaker)")
+            session.run("CREATE INDEX topic_name IF NOT EXISTS FOR (t:Topic) ON (t.name)")
+            session.run("CREATE INDEX topic_trend IF NOT EXISTS FOR (t:Topic) ON (t.trend)")
+            
+            # Create indexes for discourse analysis features
+            session.run("CREATE INDEX entity_bridge_score IF NOT EXISTS FOR (e:Entity) ON (e.bridge_score)")
+            session.run("CREATE INDEX entity_peripheral IF NOT EXISTS FOR (e:Entity) ON (e.is_peripheral)")
+            session.run("CREATE INDEX insight_bridge IF NOT EXISTS FOR (i:Insight) ON (i.is_bridge_insight)")
+            session.run("CREATE INDEX episode_discourse IF NOT EXISTS FOR (e:Episode) ON (e.discourse_structure)")
+            session.run("CREATE INDEX topic_hierarchy IF NOT EXISTS FOR (t:Topic) ON (t.hierarchy_level)")
+            session.run("CREATE INDEX potential_connection_id IF NOT EXISTS FOR (p:PotentialConnection) ON (p.id)")
             
             # Create full-text search indexes
             session.run("""
@@ -1048,6 +2183,16 @@ def setup_neo4j_schema(neo4j_driver):
             session.run("""
             CREATE FULLTEXT INDEX entity_fulltext IF NOT EXISTS 
             FOR (e:Entity) ON EACH [e.name, e.description]
+            """)
+            
+            session.run("""
+            CREATE FULLTEXT INDEX quote_fulltext IF NOT EXISTS 
+            FOR (q:Quote) ON EACH [q.text]
+            """)
+            
+            session.run("""
+            CREATE FULLTEXT INDEX topic_fulltext IF NOT EXISTS 
+            FOR (t:Topic) ON EACH [t.name]
             """)
             
             # Create vector index for embeddings (if Neo4j version supports it)
@@ -3244,7 +4389,12 @@ def save_segment_batch_to_neo4j(neo4j_driver, episode, segments, batch_start_idx
             def save_batch(tx):
                 for i, segment in enumerate(segments):
                     segment_idx = batch_start_idx + i
-                    segment_id = f"seg_{episode['id']}_{segment_idx}"
+                    segment_id = generate_stable_segment_id(
+                        episode['id'], 
+                        segment['text'], 
+                        segment['start'],
+                        segment.get('speaker')
+                    )
                     
                     # Generate embedding if available
                     embedding = None
@@ -3263,7 +4413,11 @@ def save_segment_batch_to_neo4j(neo4j_driver, episode, segments, batch_start_idx
                         "speaker": segment.get("speaker", "Unknown"),
                         "episode_id": episode["id"],
                         "index": segment_idx,
-                        "embedding": embedding
+                        "embedding": embedding,
+                        # Additional metadata for stable IDs
+                        "content_hash": segment_id.split('_')[-1],
+                        "word_count": len(segment["text"].split()),
+                        "duration_seconds": segment["end"] - segment["start"]
                     }
                     
                     # Add complexity metrics
@@ -3296,6 +4450,9 @@ def save_segment_batch_to_neo4j(neo4j_driver, episode, segments, batch_start_idx
                         s.episode_id = $episode_id,
                         s.segment_index = $index,
                         s.embedding = $embedding,
+                        s.content_hash = $content_hash,
+                        s.word_count = $word_count,
+                        s.duration_seconds = $duration_seconds,
                         s.complexity_level = $complexity_level,
                         s.complexity_score = $complexity_score,
                         s.technical_density = $technical_density,
@@ -3857,7 +5014,8 @@ extraction_validator = ExtractionValidator()
 def save_episode_knowledge_to_neo4j(podcast_config, episode, insights, entities,
                                    neo4j_driver, embedding_client, 
                                    episode_complexity=None, episode_metrics=None,
-                                   use_large_context=True):
+                                   use_large_context=True, transcript_segments=None, 
+                                   llm_client=None, quotes=None, topics=None):
     """Save episode-level knowledge (insights, entities) after segments are saved."""
     if not neo4j_driver:
         return
@@ -3884,10 +5042,150 @@ def save_episode_knowledge_to_neo4j(podcast_config, episode, insights, entities,
                 # Create cross-references
                 if insights and entities and use_large_context:
                     create_cross_references(tx, entities, insights, podcast_config, episode, use_large_context)
+                
+                # Extract and save quotes if not provided
+                if quotes is None and transcript_segments and llm_client:
+                    all_quotes = []
+                    for i, segment in enumerate(transcript_segments[:20]):  # Limit to first 20 segments for performance
+                        segment_id = generate_stable_segment_id(
+                            episode['id'], 
+                            segment['text'], 
+                            segment['start'],
+                            segment.get('speaker')
+                        )
+                        segment_quotes = extract_notable_quotes(
+                            segment['text'],
+                            segment.get('speaker', 'Unknown'),
+                            segment['start'],
+                            segment['end'],
+                            llm_client
+                        )
+                        if segment_quotes:
+                            create_quote_nodes(tx, segment_quotes, segment_id, episode['id'], embedding_client)
+                            all_quotes.extend(segment_quotes)
+                    logger.info(f"Extracted {len(all_quotes)} quotes")
+                elif quotes:
+                    # Use provided quotes from combined extraction
+                    # Need to match quotes to segments based on content
+                    for quote in quotes:
+                        # Find the segment containing this quote
+                        quote_text_lower = quote.get('text', '').lower()
+                        for segment in transcript_segments:
+                            if quote_text_lower in segment['text'].lower():
+                                segment_id = generate_stable_segment_id(
+                                    episode['id'], 
+                                    segment['text'], 
+                                    segment['start'],
+                                    segment.get('speaker')
+                                )
+                                # Create quote node with proper formatting
+                                formatted_quote = {
+                                    'text': quote.get('text', ''),
+                                    'speaker': quote.get('speaker', segment.get('speaker', 'Unknown')),
+                                    'impact_score': 7,  # Default score for pre-extracted quotes
+                                    'quote_type': 'insight',
+                                    'segment_start': segment['start'],
+                                    'segment_end': segment['end'],
+                                    'estimated_timestamp': segment['start'],  # Use segment start as estimate
+                                    'word_count': len(quote.get('text', '').split())
+                                }
+                                create_quote_nodes(tx, [formatted_quote], segment_id, episode['id'], embedding_client)
+                                break
+                
+                # Extract and save topics if not provided
+                if topics is None and insights and entities:
+                    topics = extract_episode_topics(
+                        insights, 
+                        entities, 
+                        transcript_segments[:10] if transcript_segments else [],
+                        llm_client
+                    )
+                    if topics:
+                        created_topics = create_topic_nodes(tx, topics, episode['id'], podcast_config['id'])
+                        update_episode_with_topics(tx, episode['id'], topics)
+                        logger.info(f"Created {len(created_topics)} topic tags")
+                elif topics:
+                    # Use provided topics
+                    created_topics = create_topic_nodes(tx, topics, episode['id'], podcast_config['id'])
+                    update_episode_with_topics(tx, episode['id'], topics)
                     
             session.execute_write(save_episode_data)
             
         logger.info(f"Saved episode knowledge: {len(insights)} insights, {len(entities)} entities")
+        
+        # Compute similarity relationships as a post-processing step
+        if use_large_context:
+            try:
+                with neo4j_driver.session(database=database) as session:
+                    # Compute similarities for different node types
+                    compute_similarity_relationships(session, 'Insight', 0.7, 5)
+                    compute_similarity_relationships(session, 'Entity', 0.75, 5)
+                    # Only compute segment similarities if we have a small number
+                    if transcript_segments and len(transcript_segments) < 50:
+                        compute_similarity_relationships(session, 'Segment', 0.8, 3)
+                    logger.info("Computed similarity relationships")
+            except Exception as e:
+                logger.warning(f"Failed to compute similarities: {e}")
+                # Don't fail the whole process if similarity computation fails
+        
+        # Create weighted co-occurrence relationships
+        if entities and transcript_segments:
+            try:
+                logger.info("Creating weighted co-occurrence relationships...")
+                co_occurrences = extract_weighted_co_occurrences(entities, transcript_segments)
+                
+                with neo4j_driver.session(database=database) as session:
+                    # Need to map temporary entity IDs to actual entity names
+                    entity_name_map = {}
+                    for idx, entity in enumerate(entities):
+                        temp_id = f"temp_entity_{idx}_{entity['name']}_{entity.get('type', 'unknown')}"
+                        entity_name_map[temp_id] = {
+                            'name': entity['name'],
+                            'type': entity.get('type', 'unknown')
+                        }
+                    
+                    for co_occ in co_occurrences:
+                        # Get entity details from the map
+                        entity1_info = entity_name_map.get(co_occ['entity1_id'], {})
+                        entity2_info = entity_name_map.get(co_occ['entity2_id'], {})
+                        
+                        if entity1_info and entity2_info:
+                            session.run("""
+                            MATCH (e1:Entity {name: $entity1_name, type: $entity1_type, episode_id: $episode_id})
+                            MATCH (e2:Entity {name: $entity2_name, type: $entity2_type, episode_id: $episode_id})
+                            MERGE (e1)-[r:CO_OCCURS_WITH]-(e2)
+                            SET r.weight = $weight,
+                                r.occurrence_count = $count,
+                                r.last_updated = datetime()
+                            """, {
+                                'entity1_name': entity1_info['name'],
+                                'entity1_type': entity1_info['type'],
+                                'entity2_name': entity2_info['name'],
+                                'entity2_type': entity2_info['type'],
+                                'episode_id': episode["id"],
+                                'weight': co_occ['weight'],
+                                'count': co_occ['occurrence_count']
+                            })
+                    logger.info(f"Created {len(co_occurrences)} weighted co-occurrence relationships")
+            except Exception as e:
+                logger.warning(f"Failed to create co-occurrence relationships: {e}")
+        
+        # Perform discourse analysis
+        if ENABLE_GRAPH_ENHANCEMENTS and entities and insights:
+            try:
+                logger.info("Performing discourse analysis...")
+                discourse_results = analyze_episode_discourse(
+                    neo4j_driver, 
+                    episode["id"], 
+                    insights, 
+                    entities, 
+                    transcript_segments,
+                    llm_client
+                )
+                logger.info(f"Discourse analysis complete: {discourse_results}")
+            except Exception as e:
+                logger.warning(f"Failed to perform discourse analysis: {e}")
+                # Don't fail the whole process if discourse analysis fails
         
     except Exception as e:
         logger.error(f"Failed to save episode knowledge: {e}")
@@ -4006,8 +5304,13 @@ def create_segment_nodes(session, transcript_segments, episode, embedding_client
         print(f"Creating {len(transcript_segments)} segment nodes...")
         
         for i, segment in enumerate(tqdm(transcript_segments, desc="Creating segments")):
-            # Generate segment ID
-            segment_id = f"seg_{episode['id']}_{i}"
+            # Generate stable segment ID
+            segment_id = generate_stable_segment_id(
+                episode['id'], 
+                segment['text'], 
+                segment['start'],
+                segment.get('speaker')
+            )
             
             # Check if segment is an advertisement
             is_ad = _detect_advertisement_in_segment(segment["text"])
@@ -4037,7 +5340,11 @@ def create_segment_nodes(session, transcript_segments, episode, embedding_client
                 "is_ad": is_ad,
                 "episode_id": episode["id"],
                 "index": i,
-                "embedding": embedding
+                "embedding": embedding,
+                # Additional metadata for stable IDs
+                "content_hash": segment_id.split('_')[-1],
+                "word_count": len(segment["text"].split()),
+                "duration_seconds": segment["end"] - segment["start"]
             }
             
             # Add all metrics if available
@@ -4097,6 +5404,9 @@ def create_segment_nodes(session, transcript_segments, episode, embedding_client
                 s.episode_id = $episode_id,
                 s.segment_index = $index,
                 s.embedding = $embedding,
+                s.content_hash = $content_hash,
+                s.word_count = $word_count,
+                s.duration_seconds = $duration_seconds,
                 s.created_timestamp = datetime(){metrics_set_clause}
             ON MATCH SET 
                 s.text = $text,
@@ -4107,6 +5417,9 @@ def create_segment_nodes(session, transcript_segments, episode, embedding_client
                 s.episode_id = $episode_id,
                 s.segment_index = $index,
                 s.embedding = $embedding,
+                s.content_hash = $content_hash,
+                s.word_count = $word_count,
+                s.duration_seconds = $duration_seconds,
                 s.updated_timestamp = datetime(){metrics_set_clause}
             WITH s
             MATCH (e:Episode {{id: $episode_id}})
@@ -4251,9 +5564,12 @@ def create_entity_nodes(session, entities, podcast_info, episode, embedding_clie
             else:
                 # Create new entity with enhanced properties
                 # Generate global ID (for future federation)
-                global_entity_id = f"global_entity_{hashlib.sha256(f'{normalized_name}_{entity["type"]}'.encode()).hexdigest()[:28]}"
+                entity_type = entity['type']
+                global_entity_id = f"global_entity_{hashlib.sha256(f'{normalized_name}_{entity_type}'.encode()).hexdigest()[:28]}"
                 # Generate local ID (podcast-specific)
-                entity_id = f"entity_{hashlib.sha256(f'{podcast_info["id"]}_{entity["name"]}_{entity["type"]}'.encode()).hexdigest()[:28]}"
+                podcast_id = podcast_info["id"]
+                entity_name = entity["name"]
+                entity_id = f"entity_{hashlib.sha256(f'{podcast_id}_{entity_name}_{entity_type}'.encode()).hexdigest()[:28]}"
                 entities_created += 1
             
             # Extract aliases from description
@@ -4394,7 +5710,10 @@ def create_cross_references(session, entities, insights, podcast_info, episode, 
                 if entity['name'].lower() in insight_text:
                     # Use the same entity ID generation logic as in create_entity_nodes
                     normalized_name = normalize_entity_name(entity['name'])
-                    entity_id = f"entity_{hashlib.sha256(f'{podcast_info['id']}_{entity['name']}_{entity['type']}'.encode()).hexdigest()[:28]}"
+                    podcast_id = podcast_info['id']
+                    entity_name = entity['name']
+                    entity_type = entity['type']
+                    entity_id = f"entity_{hashlib.sha256(f'{podcast_id}_{entity_name}_{entity_type}'.encode()).hexdigest()[:28]}"
                     insight_text_for_hash = f"{podcast_info['id']}_{episode['id']}_{insight.get('insight_type', 'conceptual')}_{insight['title']}"
                     insight_id = f"insight_{hashlib.sha256(insight_text_for_hash.encode()).hexdigest()[:28]}"
                     
@@ -4419,6 +5738,250 @@ def create_cross_references(session, entities, insights, podcast_info, episode, 
         print("Successfully created cross-references")
     except Exception as e:
         raise DatabaseConnectionError(f"Failed to create cross-references: {e}")
+
+def create_quote_nodes(session, quotes, segment_id, episode_id, embedding_client):
+    """
+    Create Quote nodes in Neo4j.
+    
+    Args:
+        session: Neo4j session
+        quotes: List of quote dictionaries
+        segment_id: Parent segment ID
+        episode_id: Parent episode ID
+        embedding_client: Client for generating embeddings
+    """
+    for quote in quotes:
+        # Generate quote ID
+        quote_hash = hashlib.sha256(f"{quote['text']}_{episode_id}".encode()).hexdigest()[:16]
+        quote_id = f"quote_{quote_hash}"
+        
+        # Generate embedding for the quote
+        embedding = None
+        if embedding_client:
+            quote_context = f"{quote['quote_type']} quote: {quote['text']}"
+            embedding = generate_embeddings(quote_context, embedding_client)
+        
+        # Create quote node
+        session.run("""
+        MERGE (q:Quote {id: $id})
+        SET q.text = $text,
+            q.speaker = $speaker,
+            q.impact_score = $impact_score,
+            q.quote_type = $quote_type,
+            q.estimated_timestamp = $timestamp,
+            q.word_count = $word_count,
+            q.embedding = $embedding,
+            q.episode_id = $episode_id
+        WITH q
+        MATCH (s:Segment {id: $segment_id})
+        MERGE (q)-[:EXTRACTED_FROM]->(s)
+        WITH q, s
+        MATCH (e:Episode {id: $episode_id})
+        MERGE (q)-[:QUOTED_IN]->(e)
+        """, {
+            "id": quote_id,
+            "text": quote["text"],
+            "speaker": quote["speaker"],
+            "impact_score": quote["impact_score"],
+            "quote_type": quote["quote_type"],
+            "timestamp": quote["estimated_timestamp"],
+            "word_count": quote["word_count"],
+            "embedding": embedding,
+            "segment_id": segment_id,
+            "episode_id": episode_id
+        })
+
+def create_topic_nodes(session, topics, episode_id, podcast_id):
+    """
+    Create Topic nodes and relationships in Neo4j.
+    
+    Args:
+        session: Neo4j session
+        topics: List of topic dictionaries
+        episode_id: Episode identifier
+        podcast_id: Podcast identifier
+    """
+    created_topics = []
+    
+    for topic in topics:
+        # Create topic ID (global across podcasts)
+        topic_id = f"topic_{hashlib.sha256(topic['name'].encode()).hexdigest()[:16]}"
+        
+        # Create or update topic node
+        session.run("""
+        MERGE (t:Topic {id: $id})
+        ON CREATE SET 
+            t.name = $name,
+            t.created_at = datetime(),
+            t.episode_count = 0,
+            t.total_score = 0
+        SET t.episode_count = t.episode_count + 1,
+            t.total_score = t.total_score + $score,
+            t.avg_score = t.total_score / t.episode_count,
+            t.last_seen = datetime()
+        """, {
+            "id": topic_id,
+            "name": topic['name'],
+            "score": topic['raw_score']
+        })
+        
+        # Create relationship to episode
+        session.run("""
+        MATCH (e:Episode {id: $episode_id})
+        MATCH (t:Topic {id: $topic_id})
+        MERGE (e)-[r:HAS_TOPIC]->(t)
+        SET r.score = $score,
+            r.evidence = $evidence
+        """, {
+            "episode_id": episode_id,
+            "topic_id": topic_id,
+            "score": topic['score'],
+            "evidence": topic['evidence']
+        })
+        
+        # Create relationship to podcast
+        session.run("""
+        MATCH (p:Podcast {id: $podcast_id})
+        MATCH (t:Topic {id: $topic_id})
+        MERGE (p)-[r:COVERS_TOPIC]->(t)
+        ON CREATE SET r.episode_count = 1, r.total_score = $score
+        ON MATCH SET 
+            r.episode_count = r.episode_count + 1,
+            r.total_score = r.total_score + $score,
+            r.avg_score = r.total_score / r.episode_count
+        """, {
+            "podcast_id": podcast_id,
+            "topic_id": topic_id,
+            "score": topic['raw_score']
+        })
+        
+        created_topics.append(topic['name'])
+    
+    return created_topics
+
+def update_episode_with_topics(session, episode_id, topics):
+    """
+    Update episode node with aggregated topic information.
+    
+    Args:
+        session: Neo4j session
+        episode_id: Episode identifier
+        topics: List of topic dictionaries
+    """
+    # Extract primary topics (score > 0.5)
+    primary_topics = [t['name'] for t in topics if t['score'] > 0.5]
+    all_topic_names = [t['name'] for t in topics]
+    
+    # Update episode with topic metadata
+    session.run("""
+    MATCH (e:Episode {id: $episode_id})
+    SET e.primary_topics = $primary_topics,
+        e.all_topics = $all_topics,
+        e.topic_count = size($all_topics),
+        e.topic_diversity = size($primary_topics) * 1.0 / size($all_topics)
+    """, {
+        "episode_id": episode_id,
+        "primary_topics": primary_topics,
+        "all_topics": all_topic_names
+    })
+
+def compute_similarity_relationships(session, node_type='Insight', similarity_threshold=0.7, top_n=5):
+    """
+    Pre-compute similarity relationships between nodes with embeddings.
+    
+    Args:
+        session: Neo4j session
+        node_type: Type of node to compute similarities for ('Insight', 'Entity', 'Segment')
+        similarity_threshold: Minimum similarity score to create relationship
+        top_n: Maximum number of similar nodes to connect
+    """
+    print(f"Computing similarity relationships for {node_type} nodes...")
+    
+    # Use built-in gds.similarity.cosine if available, otherwise use custom calculation
+    try:
+        # Try using GDS library
+        result = session.run(f"""
+        MATCH (n:{node_type})
+        WHERE n.embedding IS NOT NULL
+        WITH n, count(*) as total
+        MATCH (other:{node_type})
+        WHERE other.embedding IS NOT NULL 
+          AND n.id < other.id
+          AND n.episode_id = other.episode_id
+        WITH n, other, 
+             gds.similarity.cosine(n.embedding, other.embedding) AS similarity
+        WHERE similarity >= $threshold
+        WITH n, other, similarity
+        ORDER BY n.id, similarity DESC
+        WITH n, collect({{id: other.id, similarity: similarity}})[..$top_n] as top_similar
+        UNWIND top_similar as sim_node
+        MATCH (target:{node_type} {{id: sim_node.id}})
+        MERGE (n)-[r:SIMILAR_TO]->(target)
+        SET r.score = sim_node.similarity,
+            r.computed_at = datetime()
+        RETURN count(r) as relationships_created
+        """, {"threshold": similarity_threshold, "top_n": top_n})
+        
+    except:
+        # Fallback to manual calculation
+        print(f"GDS not available, using manual similarity calculation...")
+        
+        # For each node, find similar nodes
+        nodes_result = session.run(f"""
+        MATCH (n:{node_type})
+        WHERE n.embedding IS NOT NULL
+        RETURN n.id as id, n.embedding as embedding, n.episode_id as episode_id
+        """)
+        
+        nodes = list(nodes_result)
+        relationships_created = 0
+        
+        for i, node1 in enumerate(nodes):
+            similar_nodes = []
+            
+            for j, node2 in enumerate(nodes):
+                if i >= j or node1['episode_id'] != node2['episode_id']:
+                    continue
+                    
+                # Calculate cosine similarity
+                embedding1 = node1['embedding']
+                embedding2 = node2['embedding']
+                
+                # Simple cosine similarity calculation
+                dot_product = sum(a * b for a, b in zip(embedding1, embedding2))
+                magnitude1 = sum(a * a for a in embedding1) ** 0.5
+                magnitude2 = sum(a * a for a in embedding2) ** 0.5
+                
+                if magnitude1 * magnitude2 > 0:
+                    similarity = dot_product / (magnitude1 * magnitude2)
+                    
+                    if similarity >= similarity_threshold:
+                        similar_nodes.append({
+                            'id': node2['id'],
+                            'similarity': similarity
+                        })
+            
+            # Sort by similarity and take top N
+            similar_nodes.sort(key=lambda x: x['similarity'], reverse=True)
+            
+            for sim_node in similar_nodes[:top_n]:
+                session.run(f"""
+                MATCH (n:{node_type} {{id: $id1}})
+                MATCH (other:{node_type} {{id: $id2}})
+                MERGE (n)-[r:SIMILAR_TO]->(other)
+                SET r.score = $similarity,
+                    r.computed_at = datetime()
+                """, {
+                    "id1": node1['id'],
+                    "id2": sim_node['id'],
+                    "similarity": sim_node['similarity']
+                })
+                relationships_created += 1
+        
+        result = [{'relationships_created': relationships_created}]
+    
+    rel_count = result[0]["relationships_created"] if result else 0
+    print(f"Created {rel_count} similarity relationships for {node_type} nodes")
 
 def save_knowledge_to_neo4j(podcast_info, episode, transcript_segments, insights, entities, neo4j_driver, embedding_client, use_large_context=True, segments_complexity=None, episode_complexity=None, segments_info_density=None, segments_accessibility=None, episode_metrics=None):
     """
@@ -6028,7 +7591,9 @@ def process_podcast_episode(podcast_config, episode, segmenter_config=None, outp
         save_episode_knowledge_to_neo4j(
             podcast_config, episode, all_insights, episode_level_entities,
             neo4j_driver, embedding_client, episode_complexity, episode_metrics,
-            use_large_context
+            use_large_context, transcript_segments, task_router,
+            quotes if 'quotes' in locals() else None,
+            None  # topics will be extracted inside the function
         )
     
     # Visualization removed for batch seeding
