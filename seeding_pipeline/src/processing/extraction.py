@@ -1,4 +1,15 @@
-"""Knowledge extraction core functionality."""
+"""Knowledge extraction core functionality.
+
+DEPRECATED: This module implements fixed schema extraction and is being replaced
+by schemaless extraction using Neo4j GraphRAG SimpleKGPipeline.
+
+For new code, use:
+- Enable ENABLE_SCHEMALESS_EXTRACTION feature flag
+- Use SimpleKGPipeline for extraction
+- See MIGRATION_PATH.md for migration guide
+
+This module will be removed in version 2.0.0.
+"""
 
 import json
 import logging
@@ -11,6 +22,7 @@ from functools import lru_cache
 from src.core.interfaces import LLMProvider
 from src.core.models import Entity, Insight, Quote, InsightType, QuoteType, EntityType
 from src.core.exceptions import ExtractionError
+from src.utils.deprecation import deprecated, deprecated_class
 
 
 logger = logging.getLogger(__name__)
@@ -26,6 +38,12 @@ class ExtractionResult:
     metadata: Dict[str, Any]
     
 
+@deprecated_class(
+    reason="Fixed schema extraction is being replaced by schemaless extraction",
+    version="1.1.0",
+    removal_version="2.0.0",
+    alternative="SimpleKGPipeline with ENABLE_SCHEMALESS_EXTRACTION=true"
+)
 class KnowledgeExtractor:
     """Main class for extracting knowledge from transcript segments."""
     
@@ -126,6 +144,12 @@ class KnowledgeExtractor:
             metadata=metadata
         )
         
+    @deprecated(
+        reason="Fixed entity extraction is replaced by schemaless extraction",
+        version="1.1.0", 
+        removal_version="2.0.0",
+        alternative="SimpleKGPipeline.extract() for flexible entity discovery"
+    )
     def extract_entities(self, text: str) -> List[Entity]:
         """
         Extract entities from text.
@@ -391,6 +415,12 @@ class KnowledgeExtractor:
         # Default
         return EntityType.CONCEPT
             
+    @deprecated(
+        reason="Fixed insight extraction is replaced by schemaless extraction",
+        version="1.1.0",
+        removal_version="2.0.0", 
+        alternative="SimpleKGPipeline.extract() for flexible knowledge discovery"
+    )
     def extract_insights(
         self,
         text: str,
@@ -428,6 +458,12 @@ class KnowledgeExtractor:
             logger.error(f"Failed to extract insights: {e}")
             raise ExtractionError("insights", f"Insight extraction failed: {e}")
             
+    @deprecated(
+        reason="Fixed quote extraction is replaced by schemaless extraction",
+        version="1.1.0",
+        removal_version="2.0.0",
+        alternative="SimpleKGPipeline.extract() with quote post-processing"
+    )
     def extract_quotes(self, text: str) -> List[Quote]:
         """
         Extract memorable quotes from text.
@@ -460,6 +496,12 @@ class KnowledgeExtractor:
             logger.error(f"Failed to extract quotes: {e}")
             raise ExtractionError("quotes", f"Quote extraction failed: {e}")
             
+    @deprecated(
+        reason="Fixed topic extraction is replaced by schemaless extraction",
+        version="1.1.0",
+        removal_version="2.0.0",
+        alternative="SimpleKGPipeline.extract() discovers topics automatically"
+    )
     def extract_topics(
         self,
         text: str,

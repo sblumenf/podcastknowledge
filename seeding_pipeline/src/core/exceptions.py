@@ -103,6 +103,23 @@ class ConfigurationError(PodcastProcessingError):
         super().__init__(message, ErrorSeverity.CRITICAL, details)
 
 
+class PipelineError(PodcastProcessingError):
+    """
+    Raised when pipeline processing fails.
+    
+    Default severity is CRITICAL as pipeline failures usually
+    prevent further processing.
+    """
+    
+    def __init__(
+        self, 
+        message: str,
+        severity: ErrorSeverity = ErrorSeverity.CRITICAL,
+        details: Optional[dict[str, Any]] = None
+    ):
+        super().__init__(message, severity, details)
+
+
 # Additional specific exceptions for better error handling
 class ValidationError(PodcastProcessingError):
     """
@@ -157,3 +174,7 @@ class CriticalError(PodcastProcessingError):
     
     def __init__(self, message: str, details: Optional[dict[str, Any]] = None):
         super().__init__(message, ErrorSeverity.CRITICAL, details)
+
+
+# Alias for backward compatibility
+ConnectionError = DatabaseConnectionError

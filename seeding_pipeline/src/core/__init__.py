@@ -61,6 +61,16 @@ from .config import (
     get_llm_config,
 )
 
+from .feature_flags import (
+    FeatureFlag,
+    FeatureFlagManager,
+    get_feature_flag_manager,
+    is_enabled,
+    set_flag,
+    get_all_flags,
+    requires_flag,
+)
+
 from . import constants
 
 __all__ = [
@@ -116,6 +126,14 @@ __all__ = [
     "load_config",
     "get_neo4j_config",
     "get_llm_config",
+    # Feature flags
+    "FeatureFlag",
+    "FeatureFlagManager",
+    "get_feature_flag_manager",
+    "is_enabled",
+    "set_flag",
+    "get_all_flags",
+    "requires_flag",
     # Constants module
     "constants",
 ]

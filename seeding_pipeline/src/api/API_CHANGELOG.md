@@ -27,9 +27,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Neo4j >= 5.14.0
 - See requirements.txt for full list
 
+## [1.1.0] - 2024-01-15
+
+### Added
+- Schemaless extraction mode support via `extraction_mode` parameter
+- New `get_schema_evolution()` method for tracking schema changes
+- Schema discovery statistics in API responses
+- Flexible result types for schemaless extraction
+- Backward compatible with v1.0.0 (defaults to fixed mode)
+
+### Changed
+- `seed_podcast()` and `seed_podcasts()` now accept `extraction_mode` parameter
+- API responses include schemaless-specific fields when using schemaless mode
+
 ## [Unreleased]
 
-### Planned for v1.1
+### Planned for v1.2
 - Async/await support for pipeline operations
 - Streaming API for real-time processing
 - Enhanced progress callbacks

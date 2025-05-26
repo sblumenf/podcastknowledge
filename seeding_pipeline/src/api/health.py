@@ -165,6 +165,58 @@ class HealthChecker:
                 
         return results
     
+    def _check_schemaless_extraction(self) -> ComponentHealth:
+        """Check schemaless extraction availability."""
+        try:
+            # Check if schemaless extraction is enabled
+            schemaless_enabled = getattr(self.config, 'use_schemaless_extraction', False)
+            
+            if not schemaless_enabled:
+                return ComponentHealth(
+                    name="schemaless_extraction",
+                    status=HealthStatus.HEALTHY,
+                    message="Schemaless extraction not enabled",
+                    details={
+                        "enabled": False,
+                        "mode": "fixed"
+                    }
+                )
+            
+            # Check SimpleKGPipeline connectivity
+            try:
+                from neo4j_graphrag import SimpleKGPipeline
+                # Just verify the import works
+                return ComponentHealth(
+                    name="schemaless_extraction",
+                    status=HealthStatus.HEALTHY,
+                    message="Schemaless extraction available",
+                    details={
+                        "enabled": True,
+                        "mode": "schemaless",
+                        "simple_kg_pipeline": "available"
+                    }
+                )
+            except ImportError:
+                return ComponentHealth(
+                    name="schemaless_extraction",
+                    status=HealthStatus.DEGRADED,
+                    message="SimpleKGPipeline not available",
+                    details={
+                        "enabled": True,
+                        "mode": "schemaless",
+                        "simple_kg_pipeline": "not_installed",
+                        "impact": "Schemaless extraction will fail"
+                    }
+                )
+                
+        except Exception as e:
+            return ComponentHealth(
+                name="schemaless_extraction",
+                status=HealthStatus.DEGRADED,
+                message=f"Schemaless check failed: {str(e)}",
+                details={"error": str(e)}
+            )
+    
     def _check_system_resources(self) -> ComponentHealth:
         """Check system resource usage."""
         try:
@@ -213,6 +265,7 @@ class HealthChecker:
             loop.run_in_executor(None, self._check_neo4j),
             loop.run_in_executor(None, self._check_redis),
             loop.run_in_executor(None, self._check_system_resources),
+            loop.run_in_executor(None, self._check_schemaless_extraction),
         ]
         
         # Add provider checks
@@ -248,6 +301,7 @@ class HealthChecker:
         components.append(self._check_neo4j())
         components.append(self._check_redis())
         components.append(self._check_system_resources())
+        components.append(self._check_schemaless_extraction())
         
         # Check providers
         components.extend(self._check_providers())

@@ -134,6 +134,28 @@ podcast_kg_pipeline/
 
 ## Advanced Features
 
+### Schemaless Mode (Experimental)
+
+The pipeline supports a schemaless knowledge graph extraction mode using Neo4j GraphRAG's SimpleKGPipeline. This mode automatically discovers entities and relationships without predefined schemas:
+
+```yaml
+# config/config.yml
+use_schemaless_extraction: true
+schemaless_confidence_threshold: 0.7
+entity_resolution_threshold: 0.85
+max_properties_per_node: 50
+relationship_normalization: true
+```
+
+Features:
+- **Automatic Discovery**: Entities and relationships are discovered from content
+- **Confidence Filtering**: Filter out low-confidence extractions
+- **Entity Resolution**: Automatically merge duplicate entities
+- **Property Limits**: Control the number of properties per node
+- **Relationship Normalization**: Standardize relationship types
+
+See [docs/migration/to_schemaless.md](docs/migration/to_schemaless.md) for migration guide.
+
 ### Custom Providers
 
 Extend the system with your own providers:

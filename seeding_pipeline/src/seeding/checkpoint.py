@@ -38,6 +38,8 @@ class CheckpointMetadata:
     compressed: bool = False
     size_bytes: int = 0
     checksum: Optional[str] = None
+    extraction_mode: str = "fixed"  # "fixed" or "schemaless"
+    schema_info: Optional[Dict[str, Any]] = None  # For schemaless mode
     
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary."""
@@ -49,7 +51,9 @@ class CheckpointMetadata:
             'stage': self.stage,
             'compressed': self.compressed,
             'size_bytes': self.size_bytes,
-            'checksum': self.checksum
+            'checksum': self.checksum,
+            'extraction_mode': self.extraction_mode,
+            'schema_info': self.schema_info
         }
 
 
@@ -61,7 +65,9 @@ class ProgressCheckpoint(BaseProgressCheckpoint):
                  version: CheckpointVersion = CheckpointVersion.V3,
                  enable_compression: bool = True,
                  max_checkpoint_age_days: int = 30,
-                 enable_distributed: bool = False):
+                 enable_distributed: bool = False,
+                 extraction_mode: str = "fixed",
+                 config: Optional[Dict[str, Any]] = None):
         """Initialize enhanced checkpoint manager.
         
         Args:
@@ -70,12 +76,16 @@ class ProgressCheckpoint(BaseProgressCheckpoint):
             enable_compression: Whether to compress checkpoints
             max_checkpoint_age_days: Maximum age for checkpoints before cleanup
             enable_distributed: Enable distributed checkpoint support
+            extraction_mode: "fixed" or "schemaless"
+            config: Optional configuration dictionary
         """
         super().__init__(checkpoint_dir)
         self.version = version
         self.enable_compression = enable_compression
         self.max_checkpoint_age_days = max_checkpoint_age_days
         self.enable_distributed = enable_distributed
+        self.extraction_mode = extraction_mode
+        self.config = config or {}
         
         # Thread safety for distributed mode
         self._lock = Lock() if enable_distributed else None
@@ -84,11 +94,17 @@ class ProgressCheckpoint(BaseProgressCheckpoint):
         self.episodes_dir = os.path.join(self.checkpoint_dir, 'episodes')
         self.segments_dir = os.path.join(self.checkpoint_dir, 'segments')
         self.metadata_dir = os.path.join(self.checkpoint_dir, 'metadata')
+        self.schema_dir = os.path.join(self.checkpoint_dir, 'schema')  # For schemaless mode
         
-        for dir_path in [self.episodes_dir, self.segments_dir, self.metadata_dir]:
+        for dir_path in [self.episodes_dir, self.segments_dir, self.metadata_dir, self.schema_dir]:
             os.makedirs(dir_path, exist_ok=True)
         
-        logger.info(f"Initialized enhanced checkpoint manager at: {self.checkpoint_dir}")
+        # Schema evolution tracking for schemaless mode
+        self._discovered_types = set()
+        self._schema_evolution_history = []
+        
+        logger.info(f"Initialized enhanced checkpoint manager at: {self.checkpoint_dir} "
+                   f"(mode: {self.extraction_mode})")
     
     def save_episode_progress(self, 
                             episode_id: str, 
@@ -156,6 +172,18 @@ class ProgressCheckpoint(BaseProgressCheckpoint):
             with open(checkpoint_file, 'wb') as f:
                 f.write(serialized_data)
             
+            # Extract schema info for schemaless mode
+            schema_info = None
+            if self.extraction_mode == "schemaless" and isinstance(data, dict):
+                if 'discovered_types' in data:
+                    self._discovered_types.update(data['discovered_types'])
+                schema_info = {
+                    'discovered_types': data.get('discovered_types', []),
+                    'entity_count': data.get('entities', 0),
+                    'relationship_count': data.get('relationships', 0),
+                    'extraction_metrics': data.get('metrics', {})
+                }
+            
             # Save metadata
             metadata = CheckpointMetadata(
                 version=self.version.value,
@@ -165,7 +193,9 @@ class ProgressCheckpoint(BaseProgressCheckpoint):
                 stage=stage,
                 compressed=self.enable_compression,
                 size_bytes=len(serialized_data),
-                checksum=checksum
+                checksum=checksum,
+                extraction_mode=self.extraction_mode,
+                schema_info=schema_info
             )
             
             self._save_metadata(episode_id, stage, metadata, segment_index)
@@ -546,3 +576,141 @@ class ProgressCheckpoint(BaseProgressCheckpoint):
         
         logger.info(f"Imported {imported_count} checkpoints")
         return imported_count
+    
+    # Schemaless mode support methods
+    
+    def save_schema_evolution(self, episode_id: str, discovered_types: List[str], 
+                            timestamp: Optional[str] = None):
+        """Save schema evolution information for schemaless mode.
+        
+        Args:
+            episode_id: Episode where types were discovered
+            discovered_types: List of newly discovered entity types
+            timestamp: Optional timestamp (uses current time if None)
+        """
+        if self.extraction_mode != "schemaless":
+            return
+        
+        timestamp = timestamp or datetime.now().isoformat()
+        
+        # Update discovered types
+        new_types = set(discovered_types) - self._discovered_types
+        if new_types:
+            self._discovered_types.update(new_types)
+            
+            # Record evolution history
+            evolution_entry = {
+                'timestamp': timestamp,
+                'episode_id': episode_id,
+                'new_types': list(new_types),
+                'total_types': len(self._discovered_types)
+            }
+            self._schema_evolution_history.append(evolution_entry)
+            
+            # Save to file
+            schema_file = os.path.join(self.schema_dir, 'evolution_history.json')
+            with open(schema_file, 'w') as f:
+                json.dump({
+                    'current_types': sorted(list(self._discovered_types)),
+                    'history': self._schema_evolution_history
+                }, f, indent=2)
+            
+            logger.info(f"Discovered {len(new_types)} new entity types in episode {episode_id}")
+    
+    def load_schema_evolution(self) -> Dict[str, Any]:
+        """Load schema evolution history for schemaless mode.
+        
+        Returns:
+            Schema evolution data
+        """
+        schema_file = os.path.join(self.schema_dir, 'evolution_history.json')
+        if os.path.exists(schema_file):
+            with open(schema_file, 'r') as f:
+                data = json.load(f)
+                self._discovered_types = set(data.get('current_types', []))
+                self._schema_evolution_history = data.get('history', [])
+                return data
+        return {'current_types': [], 'history': []}
+    
+    def migrate_checkpoint_format(self, episode_id: str, stage: str, 
+                                from_version: str = "fixed", to_version: str = "schemaless") -> bool:
+        """Migrate checkpoint between formats.
+        
+        Args:
+            episode_id: Episode ID to migrate
+            stage: Processing stage
+            from_version: Source format ("fixed" or "schemaless")
+            to_version: Target format ("fixed" or "schemaless")
+            
+        Returns:
+            True if migration successful
+        """
+        try:
+            # Load existing checkpoint
+            data = self.load_episode_progress(episode_id, stage)
+            if not data:
+                logger.warning(f"No checkpoint found for {episode_id} at stage {stage}")
+                return False
+            
+            # Perform migration based on direction
+            if from_version == "fixed" and to_version == "schemaless":
+                # Add schemaless metadata
+                if isinstance(data, dict):
+                    data['mode'] = 'schemaless'
+                    data['discovered_types'] = []  # Will be populated during reprocessing
+            elif from_version == "schemaless" and to_version == "fixed":
+                # Remove schemaless-specific fields
+                if isinstance(data, dict):
+                    data.pop('mode', None)
+                    data.pop('discovered_types', None)
+                    data.pop('metrics', None)
+            
+            # Save migrated checkpoint
+            old_mode = self.extraction_mode
+            self.extraction_mode = to_version
+            success = self.save_episode_progress(episode_id, stage, data)
+            self.extraction_mode = old_mode
+            
+            if success:
+                logger.info(f"Successfully migrated checkpoint for {episode_id} from {from_version} to {to_version}")
+            
+            return success
+            
+        except Exception as e:
+            logger.error(f"Failed to migrate checkpoint: {e}")
+            return False
+    
+    def get_schema_statistics(self) -> Dict[str, Any]:
+        """Get statistics about discovered schema in schemaless mode.
+        
+        Returns:
+            Schema statistics
+        """
+        if self.extraction_mode != "schemaless":
+            return {'message': 'Schema statistics only available in schemaless mode'}
+        
+        # Load latest schema evolution data
+        self.load_schema_evolution()
+        
+        stats = {
+            'total_types_discovered': len(self._discovered_types),
+            'entity_types': sorted(list(self._discovered_types)),
+            'evolution_entries': len(self._schema_evolution_history),
+            'first_discovery': self._schema_evolution_history[0]['timestamp'] if self._schema_evolution_history else None,
+            'latest_discovery': self._schema_evolution_history[-1]['timestamp'] if self._schema_evolution_history else None,
+            'discovery_timeline': self._get_discovery_timeline()
+        }
+        
+        return stats
+    
+    def _get_discovery_timeline(self) -> List[Dict[str, Any]]:
+        """Get timeline of type discoveries."""
+        timeline = []
+        for entry in self._schema_evolution_history[-10:]:  # Last 10 entries
+            timeline.append({
+                'date': entry['timestamp'][:10],  # Just date part
+                'episode': entry['episode_id'],
+                'new_types': entry['new_types'],
+                'count': len(entry['new_types'])
+            })
+        return timeline

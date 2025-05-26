@@ -45,7 +45,8 @@ class BatchProcessor:
                  batch_size: int = 10,
                  use_processes: bool = False,
                  memory_limit_mb: Optional[int] = None,
-                 progress_callback: Optional[Callable[[int, int], None]] = None):
+                 progress_callback: Optional[Callable[[int, int], None]] = None,
+                 config: Optional[Dict[str, Any]] = None):
         """Initialize batch processor.
         
         Args:
@@ -54,12 +55,14 @@ class BatchProcessor:
             use_processes: Use processes instead of threads
             memory_limit_mb: Memory limit in MB
             progress_callback: Callback for progress updates (current, total)
+            config: Optional configuration dictionary
         """
         self.max_workers = max_workers or mp.cpu_count()
         self.batch_size = batch_size
         self.use_processes = use_processes
         self.memory_limit_mb = memory_limit_mb
         self.progress_callback = progress_callback
+        self.config = config or {}
         
         # Batch size optimization
         self._optimal_batch_size = batch_size
@@ -71,7 +74,14 @@ class BatchProcessor:
         self._start_time = None
         self._lock = threading.Lock()
         
-        logger.info(f"Initialized BatchProcessor with {self.max_workers} workers, "
+        # Schema evolution tracking for schemaless mode
+        self._discovered_types = set()
+        self._type_frequencies = {}
+        self._relationship_types = set()
+        self.is_schemaless = self.config.get('use_schemaless_extraction', False)
+        
+        mode = "SCHEMALESS" if self.is_schemaless else "FIXED SCHEMA"
+        logger.info(f"Initialized BatchProcessor in {mode} mode with {self.max_workers} workers, "
                    f"batch_size={batch_size}, use_processes={use_processes}")
     
     def process_items(self,
@@ -183,6 +193,10 @@ class BatchProcessor:
                 
                 # Update progress
                 self._update_progress()
+                
+                # Track schema discovery for schemaless mode
+                if self.is_schemaless:
+                    self.track_schema_discovery(result)
         
         return results
     
@@ -290,8 +304,14 @@ class BatchProcessor:
             rate = current / elapsed if elapsed > 0 else 0
             eta = (total - current) / rate if rate > 0 else 0
             
-            logger.info(f"Progress: {current}/{total} ({current/total*100:.1f}%) "
-                       f"Rate: {rate:.1f} items/s, ETA: {eta:.1f}s")
+            progress_msg = f"Progress: {current}/{total} ({current/total*100:.1f}%) " \
+                          f"Rate: {rate:.1f} items/s, ETA: {eta:.1f}s"
+            
+            # Add schema discovery info for schemaless mode
+            if self.is_schemaless and self._discovered_types:
+                progress_msg += f" | Discovered {len(self._discovered_types)} entity types"
+            
+            logger.info(progress_msg)
     
     def _record_batch_performance(self, batch_size: int, processing_time: float):
         """Record batch performance for optimization."""
@@ -346,13 +366,79 @@ class BatchProcessor:
         
         elapsed = time.time() - self._start_time
         
-        return {
+        stats = {
             'items_processed': self._items_processed,
             'total_items': self._total_items,
             'elapsed_time': elapsed,
             'average_rate': self._items_processed / elapsed if elapsed > 0 else 0,
             'optimal_batch_size': self._optimal_batch_size,
             'worker_count': self.max_workers
+        }
+        
+        # Add schemaless-specific statistics
+        if self.is_schemaless:
+            stats['schema_discovery'] = {
+                'discovered_types': sorted(list(self._discovered_types)),
+                'type_count': len(self._discovered_types),
+                'relationship_types': sorted(list(self._relationship_types)),
+                'relationship_type_count': len(self._relationship_types),
+                'type_frequencies': dict(sorted(self._type_frequencies.items(), 
+                                              key=lambda x: x[1], reverse=True)[:10])  # Top 10
+            }
+        
+        return stats
+    
+    def track_schema_discovery(self, result: BatchResult):
+        """Track discovered schema from schemaless extraction results.
+        
+        Args:
+            result: Processing result containing extraction data
+        """
+        if not self.is_schemaless or not result.success:
+            return
+        
+        # Extract schema information from result metadata
+        if result.metadata:
+            # Track entity types
+            if 'discovered_types' in result.metadata:
+                for entity_type in result.metadata['discovered_types']:
+                    self._discovered_types.add(entity_type)
+                    self._type_frequencies[entity_type] = \
+                        self._type_frequencies.get(entity_type, 0) + 1
+            
+            # Track relationship types
+            if 'relationship_types' in result.metadata:
+                self._relationship_types.update(result.metadata['relationship_types'])
+    
+    def get_schema_evolution_report(self) -> Dict[str, Any]:
+        """Generate a report on schema evolution during processing.
+        
+        Returns:
+            Schema evolution statistics and patterns
+        """
+        if not self.is_schemaless:
+            return {'message': 'Schema evolution tracking only available in schemaless mode'}
+        
+        return {
+            'total_types_discovered': len(self._discovered_types),
+            'entity_types': sorted(list(self._discovered_types)),
+            'relationship_types': sorted(list(self._relationship_types)),
+            'most_common_types': dict(sorted(self._type_frequencies.items(), 
+                                            key=lambda x: x[1], reverse=True)[:20]),
+            'type_distribution': self._calculate_type_distribution(),
+            'items_processed': self._items_processed
+        }
+    
+    def _calculate_type_distribution(self) -> Dict[str, float]:
+        """Calculate percentage distribution of entity types."""
+        total = sum(self._type_frequencies.values())
+        if total == 0:
+            return {}
+        
+        return {
+            entity_type: (count / total) * 100
+            for entity_type, count in sorted(self._type_frequencies.items(), 
+                                           key=lambda x: x[1], reverse=True)[:10]
         }
 
 

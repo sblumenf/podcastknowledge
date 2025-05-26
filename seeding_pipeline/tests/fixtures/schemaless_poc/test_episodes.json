@@ -1,0 +1,127 @@
+[
+  {
+    "id": "tech_001",
+    "domain": "Technology",
+    "title": "The Future of AI and Machine Learning",
+    "description": "Discussion about emerging AI technologies and their impact",
+    "speakers": [
+      "Dr. Sarah Chen",
+      "Mike Johnson"
+    ],
+    "transcript_sample": "\n        Dr. Sarah Chen: Welcome to Tech Talks. Today we're exploring how artificial intelligence \n        is revolutionizing healthcare. Machine learning algorithms can now detect cancer earlier \n        than traditional methods.\n        \n        Mike Johnson: That's fascinating, Sarah. I recently read that Google's DeepMind has made \n        significant breakthroughs in protein folding prediction. This could accelerate drug discovery.\n        \n        Dr. Sarah Chen: Absolutely. The AlphaFold system has solved a 50-year-old biology challenge. \n        It predicts 3D protein structures with remarkable accuracy. This opens doors for treating \n        diseases like Alzheimer's and Parkinson's.\n        \n        Mike Johnson: What about the ethical considerations? How do we ensure AI in healthcare \n        remains transparent and unbiased?\n        \n        Dr. Sarah Chen: Great question. We need robust governance frameworks. The EU's AI Act \n        is a step in the right direction, classifying medical AI as high-risk systems requiring \n        strict oversight.\n        ",
+    "expected_entities": [
+      "Person",
+      "Organization",
+      "Technology",
+      "Disease",
+      "Regulation"
+    ],
+    "expected_relations": [
+      "DISCUSSES",
+      "WORKS_ON",
+      "TREATS",
+      "REGULATES"
+    ]
+  },
+  {
+    "id": "business_001",
+    "domain": "Business",
+    "title": "Startup Strategies in Post-Pandemic Economy",
+    "description": "Entrepreneurs discuss adaptation and growth strategies",
+    "speakers": [
+      "Lisa Wang",
+      "John Davis"
+    ],
+    "transcript_sample": "\n        Lisa Wang: Welcome back to Startup Stories. I'm here with John Davis, CEO of CloudScale, \n        a company that pivoted during the pandemic from office software to remote collaboration tools.\n        \n        John Davis: Thanks for having me, Lisa. Yes, when COVID-19 hit, we saw our enterprise \n        clients struggling with remote work. We quickly pivoted our product roadmap.\n        \n        Lisa Wang: Your revenue grew 300% in 2021. What was the key to this growth?\n        \n        John Davis: Customer feedback drove everything. We implemented daily standups with our \n        top 10 clients. This helped us ship features they actually needed, not what we thought \n        they needed.\n        \n        Lisa Wang: You also raised a $50 million Series B from Sequoia Capital last quarter. \n        How are you planning to use this funding?\n        \n        John Davis: We're focusing on three areas: expanding to Asian markets, particularly \n        Singapore and Japan, hiring 100 engineers, and acquiring smaller competitors to \n        consolidate the market.\n        ",
+    "expected_entities": [
+      "Person",
+      "Company",
+      "Product",
+      "Location",
+      "Money",
+      "Event"
+    ],
+    "expected_relations": [
+      "CEO_OF",
+      "RAISED_FUNDING",
+      "EXPANDED_TO",
+      "ACQUIRED"
+    ]
+  },
+  {
+    "id": "health_001",
+    "domain": "Health & Wellness",
+    "title": "Mental Health in the Digital Age",
+    "description": "Psychologists discuss impact of social media on mental health",
+    "speakers": [
+      "Dr. Emily Rodriguez",
+      "Dr. James Park"
+    ],
+    "transcript_sample": "\n        Dr. Emily Rodriguez: Today on Mind Matters, we're discussing how social media affects \n        teenage mental health. Dr. Park, your recent study at Stanford University showed some \n        alarming trends.\n        \n        Dr. James Park: Yes, Emily. We studied 5,000 teenagers over three years. Those spending \n        more than 4 hours daily on platforms like Instagram and TikTok showed 40% higher rates \n        of anxiety and depression.\n        \n        Dr. Emily Rodriguez: What mechanisms drive this correlation?\n        \n        Dr. James Park: Three main factors: social comparison, fear of missing out (FOMO), and \n        disrupted sleep patterns. The constant stream of curated content creates unrealistic \n        expectations.\n        \n        Dr. Emily Rodriguez: Are there any positive aspects? Some argue these platforms provide \n        community and support.\n        \n        Dr. James Park: Absolutely. We found that teenagers using social media for creative \n        expression or connecting with support groups showed improved mental health outcomes. \n        It's about intentional, mindful usage rather than passive scrolling.\n        ",
+    "expected_entities": [
+      "Person",
+      "University",
+      "Study",
+      "Platform",
+      "Condition",
+      "Behavior"
+    ],
+    "expected_relations": [
+      "CONDUCTED_STUDY",
+      "AFFECTS",
+      "CAUSES",
+      "IMPROVES"
+    ]
+  },
+  {
+    "id": "arts_001",
+    "domain": "Arts & Culture",
+    "title": "Renaissance Art in Modern Context",
+    "description": "Art historians discuss influence of Renaissance on contemporary art",
+    "speakers": [
+      "Prof. Maria Gonzalez",
+      "Tom Mitchell"
+    ],
+    "transcript_sample": "\n        Prof. Maria Gonzalez: Welcome to Art History Today. I'm speaking with Tom Mitchell, \n        curator at the Metropolitan Museum of Art, about their new exhibition \"Digital Renaissance.\"\n        \n        Tom Mitchell: Thank you, Maria. This exhibition explores how contemporary digital artists \n        are reinterpreting Renaissance masterpieces. For example, Refik Anadol's AI installation \n        reimagines Botticelli's \"Birth of Venus\" using machine learning algorithms.\n        \n        Prof. Maria Gonzalez: How does this connect to the original Renaissance ideals of humanism \n        and scientific inquiry?\n        \n        Tom Mitchell: The Renaissance masters like Leonardo da Vinci merged art with science. \n        Today's digital artists continue this tradition, using code as their canvas. Casey Reas, \n        co-creator of Processing programming language, creates generative art inspired by \n        Renaissance mathematical principles.\n        \n        Prof. Maria Gonzalez: The exhibition also features NFT artworks. How does blockchain \n        technology relate to Renaissance patronage systems?\n        \n        Tom Mitchell: It's fascinating. Just as the Medici family commissioned works from \n        Michelangelo, today's crypto collectors are the new patrons, supporting digital artists \n        through NFT purchases.\n        ",
+    "expected_entities": [
+      "Person",
+      "Museum",
+      "Artwork",
+      "Artist",
+      "Technology",
+      "Movement"
+    ],
+    "expected_relations": [
+      "CURATOR_AT",
+      "CREATED",
+      "INSPIRED_BY",
+      "PATRONIZES"
+    ]
+  },
+  {
+    "id": "science_001",
+    "domain": "Science",
+    "title": "Climate Change and Ocean Ecosystems",
+    "description": "Marine biologists discuss impact of warming oceans",
+    "speakers": [
+      "Dr. Alan Foster",
+      "Dr. Nina Patel"
+    ],
+    "transcript_sample": "\n        Dr. Alan Foster: On today's Ocean Science podcast, we're discussing our expedition to \n        the Great Barrier Reef with Dr. Nina Patel from the Marine Biology Institute.\n        \n        Dr. Nina Patel: Thanks, Alan. Our team documented the most severe coral bleaching event \n        in recorded history. Water temperatures reached 32\u00b0C, causing 75% of surveyed corals to \n        expel their symbiotic algae.\n        \n        Dr. Alan Foster: What are the cascading effects on the ecosystem?\n        \n        Dr. Nina Patel: The impacts are devastating. We're seeing population crashes in \n        parrotfish and butterflyfish species that depend on coral. This affects the entire \n        food web, from small invertebrates to apex predators like reef sharks.\n        \n        Dr. Alan Foster: Your team is testing coral restoration techniques. Can you elaborate?\n        \n        Dr. Nina Patel: We're developing heat-resistant coral strains through selective breeding. \n        Our lab at James Cook University has created hybrids that survive 2\u00b0C higher temperatures. \n        We're also experimenting with 3D-printed calcium carbonate structures to provide new \n        coral habitats.\n        \n        Dr. Alan Foster: How long before we see results?\n        \n        Dr. Nina Patel: Coral growth is slow. We estimate 10-15 years before restored reefs \n        become self-sustaining. But without immediate action on carbon emissions, even these \n        efforts may not be enough.\n        ",
+    "expected_entities": [
+      "Person",
+      "Location",
+      "Species",
+      "Institution",
+      "Phenomenon",
+      "Technology"
+    ],
+    "expected_relations": [
+      "STUDIES",
+      "LOCATED_AT",
+      "AFFECTS",
+      "DEVELOPS",
+      "THREATENS"
+    ]
+  }
+]

@@ -37,6 +37,8 @@ class ProviderFactory:
         },
         'graph': {
             'neo4j': 'src.providers.graph.neo4j.Neo4jProvider',
+            'schemaless': 'src.providers.graph.schemaless_neo4j.SchemalessNeo4jProvider',
+            'compatible': 'src.providers.graph.compatible_neo4j.CompatibleNeo4jProvider',
             'memory': 'src.providers.graph.memory.InMemoryGraphProvider'
         },
         'embedding': {
@@ -130,6 +132,12 @@ class ProviderFactory:
     @classmethod
     def create_graph_provider(cls, provider_name: str, config: Dict[str, Any]) -> GraphProvider:
         """Create a graph database provider."""
+        # Override provider_name based on config
+        if config.get('use_schemaless_extraction', False):
+            if provider_name == 'neo4j':
+                provider_name = 'schemaless'
+                logger.info("Config has use_schemaless_extraction=True, using schemaless provider")
+        
         return cls.create_provider('graph', provider_name, config)
         
     @classmethod

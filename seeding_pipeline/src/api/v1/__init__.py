@@ -21,5 +21,5 @@ __all__ = [
 ]
 
 # API version information
-API_VERSION = "1.0.0"
-API_VERSION_INFO = (1, 0, 0)
+API_VERSION = "1.1.0"
+API_VERSION_INFO = (1, 1, 0)

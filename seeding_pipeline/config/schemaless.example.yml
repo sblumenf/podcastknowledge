@@ -1,0 +1,146 @@
+# Schemaless Extraction Configuration Example
+# This file demonstrates how to configure the podcast knowledge pipeline
+# for schemaless (flexible schema) extraction mode
+
+# Basic Pipeline Settings
+pipeline:
+  # Enable schemaless extraction mode
+  use_schemaless_extraction: true
+  
+  # Audio processing settings remain the same
+  min_segment_tokens: 150
+  max_segment_tokens: 800
+  whisper_model_size: "large-v3"
+  use_faster_whisper: true
+
+# Schemaless-Specific Settings
+schemaless:
+  # Confidence threshold for entity extraction (0.0-1.0)
+  # Higher values mean stricter filtering of extracted entities
+  confidence_threshold: 0.7
+  
+  # Threshold for entity resolution/merging (0.0-1.0)
+  # Higher values require more similarity for entities to be merged
+  entity_resolution_threshold: 0.85
+  
+  # Maximum number of properties allowed per node
+  # Prevents unbounded property growth
+  max_properties_per_node: 50
+  
+  # Whether to normalize relationship types
+  # e.g., "works at" -> "WORKS_AT"
+  relationship_normalization: true
+
+# Component-Specific Configuration
+components:
+  # Preprocessing configuration
+  preprocessing:
+    inject_timestamps: true
+    inject_speakers: true
+    inject_episode_metadata: true
+    dry_run: false  # Set to true to preview changes without applying
+  
+  # Entity resolution configuration
+  entity_resolution:
+    use_fuzzy_matching: true
+    case_sensitive: false
+    merge_strategy: "confidence_weighted"  # or "most_recent"
+  
+  # Metadata enrichment
+  metadata_enrichment:
+    add_embeddings: true
+    add_extraction_timestamp: true
+    add_confidence_scores: true
+  
+  # Quote extraction
+  quote_extraction:
+    min_quote_length: 50
+    max_quote_length: 500
+    importance_threshold: 0.6
+
+# SimpleKGPipeline Configuration
+simple_kg_pipeline:
+  # Entity extraction settings
+  entities:
+    perform_entity_resolution: false  # We handle this in post-processing
+    extract_types: true
+    extract_properties: true
+  
+  # Relationship extraction
+  relationships:
+    create_relationships: true
+    extract_properties: true
+    bidirectional: false
+
+# Provider Configuration
+providers:
+  # LLM provider for extraction
+  llm:
+    provider: "gemini"  # or "openai"
+    model: "gemini-pro"
+    temperature: 0.1  # Lower for more consistent extraction
+    max_tokens: 4096
+  
+  # Embedding provider
+  embeddings:
+    provider: "sentence_transformer"
+    model: "all-MiniLM-L6-v2"
+    dimension: 384
+  
+  # Graph database
+  graph:
+    provider: "neo4j"
+    # Connection details from environment variables
+
+# Migration Settings (for gradual adoption)
+migration:
+  # Run both fixed and schemaless extraction for comparison
+  dual_extraction_mode: false
+  
+  # Log schema evolution
+  track_schema_changes: true
+  
+  # Compatibility mode for queries
+  enable_query_translation: true
+
+# Performance Tuning
+performance:
+  # Batch size for processing segments
+  batch_size: 10
+  
+  # Maximum concurrent workers
+  max_workers: 4
+  
+  # Cache settings
+  enable_caching: true
+  cache_ttl: 3600  # seconds
+
+# Monitoring and Debugging
+monitoring:
+  # Component impact tracking
+  enable_component_tracking: false
+  tracking_detail_level: "standard"  # minimal, standard, verbose
+  
+  # Schema discovery logging
+  log_discovered_types: true
+  log_property_usage: true
+  
+  # Performance monitoring
+  log_extraction_times: true
+  log_memory_usage: true
+
+# Environment Variable Mappings
+# These can be overridden by environment variables
+environment_mappings:
+  NEO4J_URI: "${NEO4J_URI:-bolt://localhost:7687}"
+  NEO4J_USERNAME: "${NEO4J_USERNAME:-neo4j}"
+  NEO4J_PASSWORD: "${NEO4J_PASSWORD}"
+  NEO4J_DATABASE: "${NEO4J_DATABASE:-neo4j}"
+  GOOGLE_API_KEY: "${GOOGLE_API_KEY}"
+  LOG_LEVEL: "${LOG_LEVEL:-INFO}"
+  
+# Example Usage:
+# 1. Copy this file to config/schemaless.yml
+# 2. Update settings as needed
+# 3. Set required environment variables
+# 4. Run: python cli.py seed --config config/schemaless.yml --extraction-mode schemaless

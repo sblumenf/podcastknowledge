@@ -84,6 +84,7 @@ class PodcastKnowledgePipeline(_PipelineImpl):
                     podcast_config: Dict[str, Any],
                     max_episodes: int = 1,
                     use_large_context: bool = True,
+                    extraction_mode: str = "fixed",
                     **kwargs: Any) -> Dict[str, Any]:
         """Seed knowledge graph with a single podcast (v1 API).
         
@@ -91,11 +92,18 @@ class PodcastKnowledgePipeline(_PipelineImpl):
             podcast_config: Podcast configuration
             max_episodes: Maximum episodes to process
             use_large_context: Whether to use large context models
+            extraction_mode: "fixed" or "schemaless" (default: "fixed")
             **kwargs: Additional arguments for forward compatibility
             
         Returns:
             Processing summary with v1 schema guarantee
         """
+        # Apply extraction mode to config
+        if extraction_mode == "schemaless":
+            self._config.use_schemaless_extraction = True
+        else:
+            self._config.use_schemaless_extraction = False
+            
         # Handle any v1-specific transformations
         result = super().seed_podcast(
             podcast_config=podcast_config,
@@ -111,6 +119,7 @@ class PodcastKnowledgePipeline(_PipelineImpl):
                      podcast_configs: Union[Dict[str, Any], List[Dict[str, Any]]],
                      max_episodes_each: int = 10,
                      use_large_context: bool = True,
+                     extraction_mode: str = "fixed",
                      **kwargs: Any) -> Dict[str, Any]:
         """Seed knowledge graph with multiple podcasts (v1 API).
         
@@ -118,11 +127,18 @@ class PodcastKnowledgePipeline(_PipelineImpl):
             podcast_configs: List of podcast configurations
             max_episodes_each: Episodes to process per podcast
             use_large_context: Whether to use large context models
+            extraction_mode: "fixed" or "schemaless" (default: "fixed")
             **kwargs: Additional arguments for forward compatibility
             
         Returns:
             Summary dict with v1 schema guarantee
         """
+        # Apply extraction mode to config
+        if extraction_mode == "schemaless":
+            self._config.use_schemaless_extraction = True
+        else:
+            self._config.use_schemaless_extraction = False
+            
         # Handle any v1-specific transformations
         result = super().seed_podcasts(
             podcast_configs=podcast_configs,
@@ -138,6 +154,14 @@ class PodcastKnowledgePipeline(_PipelineImpl):
         
         This provides backward compatibility if internal schema changes.
         """
+        # Calculate processing time if not provided
+        processing_time = result.get('processing_time_seconds', 0.0)
+        if processing_time == 0.0 and result.get('start_time') and result.get('end_time'):
+            from datetime import datetime
+            start = datetime.fromisoformat(result['start_time'])
+            end = datetime.fromisoformat(result['end_time'])
+            processing_time = (end - start).total_seconds()
+        
         # v1 guaranteed fields
         v1_result = {
             'start_time': result.get('start_time'),
@@ -145,9 +169,16 @@ class PodcastKnowledgePipeline(_PipelineImpl):
             'podcasts_processed': result.get('podcasts_processed', 0),
             'episodes_processed': result.get('episodes_processed', 0),
             'episodes_failed': result.get('episodes_failed', 0),
-            'processing_time_seconds': result.get('processing_time_seconds', 0.0),
+            'processing_time_seconds': processing_time,
             'api_version': '1.0',
+            'extraction_mode': result.get('extraction_mode', 'fixed'),
         }
+        
+        # Include schemaless-specific fields if present
+        if result.get('extraction_mode') == 'schemaless':
+            v1_result['total_entities'] = result.get('total_entities', 0)
+            v1_result['total_relationships'] = result.get('total_relationships', 0)
+            v1_result['discovered_types'] = result.get('discovered_types', [])
         
         # Include any additional fields that exist
         for key, value in result.items():
@@ -155,6 +186,42 @@ class PodcastKnowledgePipeline(_PipelineImpl):
                 v1_result[key] = value
         
         return v1_result
+    
+    @api_version_check("1.0")
+    def get_schema_evolution(self, 
+                           checkpoint_dir: Optional[str] = None,
+                           **kwargs: Any) -> Dict[str, Any]:
+        """Get schema evolution statistics from schemaless extraction.
+        
+        Args:
+            checkpoint_dir: Directory containing checkpoint files
+            **kwargs: Additional arguments for forward compatibility
+            
+        Returns:
+            Schema evolution statistics
+        """
+        from ...seeding.checkpoint import ProgressCheckpoint
+        
+        # Use checkpoint dir from config if not provided
+        if checkpoint_dir is None:
+            checkpoint_dir = getattr(self._config, 'checkpoint_dir', 'checkpoints')
+        
+        # Initialize checkpoint reader
+        checkpoint = ProgressCheckpoint(
+            checkpoint_dir=checkpoint_dir,
+            extraction_mode='schemaless'
+        )
+        
+        # Get schema statistics
+        stats = checkpoint.get_schema_statistics()
+        
+        # Ensure v1 response format
+        return {
+            'api_version': '1.0',
+            'checkpoint_dir': checkpoint_dir,
+            'schema_stats': stats,
+            'timestamp': datetime.now().isoformat()
+        }
     
     # Deprecated methods for demonstration (not actually deprecated yet)
     @deprecated("2.0", "seed_podcast")
@@ -168,6 +235,7 @@ class PodcastKnowledgePipeline(_PipelineImpl):
 def seed_podcast(podcast_config: Dict[str, Any],
                 max_episodes: int = 1,
                 use_large_context: bool = True,
+                extraction_mode: str = "fixed",
                 config: Optional[Config] = None,
                 **kwargs: Any) -> Dict[str, Any]:
     """Seed knowledge graph with a single podcast (v1 API).
@@ -178,6 +246,7 @@ def seed_podcast(podcast_config: Dict[str, Any],
         podcast_config: Podcast configuration with RSS URL
         max_episodes: Maximum episodes to process
         use_large_context: Whether to use large context models
+        extraction_mode: "fixed" or "schemaless" (default: "fixed")
         config: Optional configuration object
         **kwargs: Additional arguments for forward compatibility
     
@@ -193,6 +262,7 @@ def seed_podcast(podcast_config: Dict[str, Any],
             podcast_config=podcast_config,
             max_episodes=max_episodes,
             use_large_context=use_large_context,
+            extraction_mode=extraction_mode,
             **kwargs
         )
     finally:
@@ -203,6 +273,7 @@ def seed_podcast(podcast_config: Dict[str, Any],
 def seed_podcasts(podcast_configs: Union[Dict[str, Any], List[Dict[str, Any]]],
                  max_episodes_each: int = 10,
                  use_large_context: bool = True,
+                 extraction_mode: str = "fixed",
                  config: Optional[Config] = None,
                  **kwargs: Any) -> Dict[str, Any]:
     """Seed knowledge graph with multiple podcasts (v1 API).
@@ -213,6 +284,7 @@ def seed_podcasts(podcast_configs: Union[Dict[str, Any], List[Dict[str, Any]]],
         podcast_configs: List of podcast configurations
         max_episodes_each: Episodes to process per podcast
         use_large_context: Whether to use large context models
+        extraction_mode: "fixed" or "schemaless" (default: "fixed")
         config: Optional configuration object
         **kwargs: Additional arguments for forward compatibility
     
@@ -228,6 +300,7 @@ def seed_podcasts(podcast_configs: Union[Dict[str, Any], List[Dict[str, Any]]],
             podcast_configs=podcast_configs,
             max_episodes_each=max_episodes_each,
             use_large_context=use_large_context,
+            extraction_mode=extraction_mode,
             **kwargs
         )
     finally:

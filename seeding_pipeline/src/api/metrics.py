@@ -266,6 +266,30 @@ class MetricsCollector:
             buckets=[0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0, 10.0]
         )
         
+        # Schemaless extraction metrics
+        self.discovered_entity_types = Counter(
+            "podcast_kg_discovered_entity_types_total",
+            "Total discovered entity types in schemaless mode",
+            labels=["entity_type"]
+        )
+        self.discovered_relationship_types = Counter(
+            "podcast_kg_discovered_relationship_types_total",
+            "Total discovered relationship types in schemaless mode",
+            labels=["relationship_type"]
+        )
+        self.entity_resolution_matches = Counter(
+            "podcast_kg_entity_resolution_matches_total",
+            "Total entity resolution matches"
+        )
+        self.schema_evolution_rate = Gauge(
+            "podcast_kg_schema_evolution_rate",
+            "Rate of schema evolution (new types per episode)"
+        )
+        self.extraction_mode = Gauge(
+            "podcast_kg_extraction_mode",
+            "Current extraction mode (0=fixed, 1=schemaless)"
+        )
+        
         # Start resource monitoring
         self._start_resource_monitoring()
     
@@ -305,7 +329,9 @@ class MetricsCollector:
         for metric in [self.episodes_processed, self.episodes_failed, 
                       self.provider_calls, self.provider_errors,
                       self.nodes_created, self.relationships_created,
-                      self.entities_extracted_total, self.http_requests_total]:
+                      self.entities_extracted_total, self.http_requests_total,
+                      self.discovered_entity_types, self.discovered_relationship_types,
+                      self.entity_resolution_matches]:
             lines.append(f"# HELP {metric.name} {metric.description}")
             lines.append(f"# TYPE {metric.name} counter")
             for key, value in metric._values.items():
@@ -317,7 +343,8 @@ class MetricsCollector:
         
         # Export gauges
         for metric in [self.memory_usage, self.cpu_usage, self.queue_size,
-                      self.last_processed_timestamp, self.last_checkpoint_timestamp]:
+                      self.last_processed_timestamp, self.last_checkpoint_timestamp,
+                      self.schema_evolution_rate, self.extraction_mode]:
             lines.append(f"# HELP {metric.name} {metric.description}")
             lines.append(f"# TYPE {metric.name} gauge")
             for key, value in metric._values.items():
@@ -507,3 +534,7 @@ def create_metrics_endpoint(app):
         pass
     
     raise ValueError("App must be either FastAPI or Flask instance")
+
+
+# Alias for compatibility
+setup_metrics = create_metrics_endpoint

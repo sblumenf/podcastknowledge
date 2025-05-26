@@ -153,6 +153,17 @@ class PodcastKnowledgePipeline:
         try:
             logger.info("Initializing pipeline components...")
             
+            # Check extraction mode and log it
+            use_schemaless = getattr(self.config, 'use_schemaless_extraction', False)
+            if use_schemaless:
+                logger.info("🔄 Initializing in SCHEMALESS extraction mode")
+                logger.info(f"  - Confidence threshold: {getattr(self.config, 'schemaless_confidence_threshold', 0.7)}")
+                logger.info(f"  - Entity resolution threshold: {getattr(self.config, 'entity_resolution_threshold', 0.85)}")
+                logger.info(f"  - Max properties per node: {getattr(self.config, 'max_properties_per_node', 50)}")
+                logger.info(f"  - Relationship normalization: {getattr(self.config, 'relationship_normalization', True)}")
+            else:
+                logger.info("📊 Initializing in FIXED SCHEMA extraction mode")
+            
             # Initialize providers using factory
             self.audio_provider = self.factory.create_provider(
                 'audio',
@@ -167,6 +178,7 @@ class PodcastKnowledgePipeline:
                 use_large_context=use_large_context
             )
             
+            # Graph provider will automatically use schemaless if configured
             self.graph_provider = self.factory.create_provider(
                 'graph',
                 getattr(self.config, 'graph_provider', 'neo4j'),
@@ -201,7 +213,12 @@ class PodcastKnowledgePipeline:
             
             # Initialize checkpoint manager
             checkpoint_dir = getattr(self.config, 'checkpoint_dir', 'checkpoints')
-            self.checkpoint = ProgressCheckpoint(checkpoint_dir)
+            extraction_mode = 'schemaless' if use_schemaless else 'fixed'
+            self.checkpoint = ProgressCheckpoint(
+                checkpoint_dir,
+                extraction_mode=extraction_mode,
+                config=self.config.__dict__ if hasattr(self.config, '__dict__') else {}
+            )
             
             # Verify all components are healthy
             if not self._verify_components_health():
@@ -320,6 +337,9 @@ class PodcastKnowledgePipeline:
             'total_segments': 0,
             'total_insights': 0,
             'total_entities': 0,
+            'total_relationships': 0,
+            'discovered_types': set(),
+            'extraction_mode': 'schemaless' if getattr(self.config, 'use_schemaless_extraction', False) else 'fixed',
             'errors': []
         }
         
@@ -344,6 +364,12 @@ class PodcastKnowledgePipeline:
                     summary['total_insights'] += result['total_insights']
                     summary['total_entities'] += result['total_entities']
                     
+                    # Add schemaless-specific metrics
+                    if result.get('extraction_mode') == 'schemaless':
+                        summary['total_relationships'] += result.get('total_relationships', 0)
+                        if 'discovered_types' in result and isinstance(result['discovered_types'], list):
+                            summary['discovered_types'].update(result['discovered_types'])
+                    
                 except Exception as e:
                     logger.error(f"Failed to process podcast: {e}")
                     summary['errors'].append({
@@ -353,6 +379,14 @@ class PodcastKnowledgePipeline:
             
             summary['end_time'] = datetime.now().isoformat()
             summary['success'] = len(summary['errors']) == 0
+            
+            # Convert discovered types set to sorted list for JSON serialization
+            if isinstance(summary['discovered_types'], set):
+                summary['discovered_types'] = sorted(list(summary['discovered_types']))
+            
+            # Log final schema discovery summary if in schemaless mode
+            if summary['extraction_mode'] == 'schemaless' and summary['discovered_types']:
+                logger.info(f"Overall Schema Discovery - Found {len(summary['discovered_types'])} unique entity types across all podcasts")
             
             return summary
             
@@ -384,7 +418,10 @@ class PodcastKnowledgePipeline:
             'episodes_failed': 0,
             'total_segments': 0,
             'total_insights': 0,
-            'total_entities': 0
+            'total_entities': 0,
+            'total_relationships': 0,
+            'discovered_types': set(),
+            'extraction_mode': 'schemaless' if getattr(self.config, 'use_schemaless_extraction', False) else 'fixed'
         }
         
         # Process each episode
@@ -404,9 +441,23 @@ class PodcastKnowledgePipeline:
                 result['total_insights'] += episode_result.get('insights', 0)
                 result['total_entities'] += episode_result.get('entities', 0)
                 
+                # Add schemaless-specific metrics
+                if episode_result.get('mode') == 'schemaless':
+                    result['total_relationships'] += episode_result.get('relationships', 0)
+                    if 'discovered_types' in episode_result:
+                        result['discovered_types'].update(episode_result['discovered_types'])
+                
             except Exception as e:
                 logger.error(f"Failed to process episode '{episode['title']}': {e}")
                 result['episodes_failed'] += 1
+        
+        # Convert discovered types set to sorted list for JSON serialization
+        if isinstance(result['discovered_types'], set):
+            result['discovered_types'] = sorted(list(result['discovered_types']))
+        
+        # Log schema discovery summary if in schemaless mode
+        if result['extraction_mode'] == 'schemaless' and result['discovered_types']:
+            logger.info(f"Schema Discovery Summary - Found {len(result['discovered_types'])} unique entity types: {result['discovered_types']}")
         
         return result
     
@@ -462,40 +513,175 @@ class PodcastKnowledgePipeline:
             # Save segments checkpoint
             self.checkpoint.save_episode_progress(episode_id, 'segments', segments)
             
-            # Extract knowledge
-            with create_span("knowledge_extraction", attributes={"segments.count": len(segments)}):
-                logger.info("Extracting knowledge...")
-                extraction_result = self.knowledge_extractor.extract_from_segments(
-                    segments,
-                    podcast_name=podcast_config.get('name'),
-                    episode_title=episode['title']
-                )
-                add_span_attributes({
-                    "insights.count": len(extraction_result.get('insights', [])),
-                    "entities.count": len(extraction_result.get('entities', [])),
-                })
+            # Check if using schemaless extraction
+            use_schemaless = getattr(self.config, 'use_schemaless_extraction', False)
             
-            # Save extraction checkpoint
-            self.checkpoint.save_episode_progress(episode_id, 'extraction', extraction_result)
+            if use_schemaless:
+                # Schemaless extraction path
+                logger.info("Using SCHEMALESS extraction pipeline")
+                with create_span("schemaless_extraction", attributes={
+                    "segments.count": len(segments),
+                    "extraction.mode": "schemaless"
+                }):
+                    # Check if graph provider supports schemaless
+                    if hasattr(self.graph_provider, 'process_segment_schemaless'):
+                        # Implement graceful degradation flags
+                        degradation_flags = {
+                            'disable_entity_resolution': False,
+                            'disable_metadata_enrichment': False,
+                            'disable_quote_extraction': False,
+                            'fallback_to_simple_extraction': False
+                        }
+                        # Process through schemaless pipeline
+                        extraction_results = []
+                        discovered_types = set()
+                        
+                        from src.core.models import Podcast, Episode, Segment
+                        # Convert to model objects
+                        podcast_obj = Podcast(
+                            id=podcast_config['id'],
+                            title=podcast_config.get('name', podcast_config['id']),
+                            description=podcast_config.get('description', ''),
+                            rss_url=podcast_config.get('rss_url', '')
+                        )
+                        episode_obj = Episode(
+                            id=episode['id'],
+                            title=episode['title'],
+                            description=episode.get('description', ''),
+                            published_date=episode.get('published_date', ''),
+                            audio_url=episode.get('audio_url', '')
+                        )
+                        
+                        for i, segment_data in enumerate(segments):
+                            segment_obj = Segment(
+                                id=f"{episode_id}_segment_{i}",
+                                text=segment_data.get('text', ''),
+                                start_time=segment_data.get('start_time', 0),
+                                end_time=segment_data.get('end_time', 0),
+                                speaker=segment_data.get('speaker', 'Unknown')
+                            )
+                            
+                            try:
+                                result = self.graph_provider.process_segment_schemaless(
+                                    segment_obj, episode_obj, podcast_obj
+                                )
+                                extraction_results.append(result)
+                                
+                                # Track discovered entity types
+                                for entity in result.get('entities_extracted', []):
+                                    if isinstance(entity, dict) and 'type' in entity:
+                                        discovered_types.add(entity['type'])
+                                        
+                            except AttributeError as e:
+                                logger.error(f"SimpleKGPipeline not properly initialized: {e}")
+                                raise PipelineError(f"Schemaless extraction failed - SimpleKGPipeline error: {e}")
+                            except ImportError as e:
+                                logger.error(f"Missing dependency for schemaless extraction: {e}")
+                                raise PipelineError(f"Schemaless extraction failed - Missing dependency: {e}")
+                            except ValueError as e:
+                                logger.error(f"Property validation error in segment {i}: {e}")
+                                # Continue with next segment instead of failing
+                                extraction_results.append({
+                                    'segment_id': segment_obj.id,
+                                    'status': 'error',
+                                    'error': str(e),
+                                    'entities_extracted': 0,
+                                    'relationships_extracted': 0
+                                })
+                            except Exception as e:
+                                logger.error(f"Unexpected error in schemaless extraction for segment {i}: {e}")
+                                # Try to continue with partial results
+                                extraction_results.append({
+                                    'segment_id': segment_obj.id,
+                                    'status': 'error',
+                                    'error': str(e),
+                                    'entities_extracted': 0,
+                                    'relationships_extracted': 0
+                                })
+                        
+                        # Log schema discovery
+                        if discovered_types:
+                            logger.info(f"Discovered entity types: {sorted(discovered_types)}")
+                            add_span_attributes({
+                                "schema.discovered_types": list(discovered_types),
+                                "schema.types_count": len(discovered_types)
+                            })
+                        
+                        # Aggregate results for checkpoint
+                        total_entities = sum(r.get('entities_extracted', 0) for r in extraction_results)
+                        total_relationships = sum(r.get('relationships_extracted', 0) for r in extraction_results)
+                        
+                        # Count errors
+                        error_count = sum(1 for r in extraction_results if r.get('status') == 'error')
+                        if error_count > 0:
+                            logger.warning(f"Encountered {error_count} errors during schemaless extraction")
+                            
+                            # Log degradation status if any features were disabled
+                            if any(degradation_flags.values()):
+                                logger.info(f"Graceful degradation applied: {degradation_flags}")
+                        
+                        extraction_result = {
+                            'mode': 'schemaless',
+                            'segments_processed': len(extraction_results),
+                            'entities': total_entities,
+                            'relationships': total_relationships,
+                            'discovered_types': list(discovered_types)
+                        }
+                        
+                        add_span_attributes({
+                            "entities.total": total_entities,
+                            "relationships.total": total_relationships
+                        })
+                        
+                        # Save extraction checkpoint for schemaless mode
+                        self.checkpoint.save_episode_progress(episode_id, 'extraction', extraction_result)
+                        
+                        # Track schema evolution
+                        if discovered_types:
+                            self.checkpoint.save_schema_evolution(episode_id, list(discovered_types))
+                    else:
+                        logger.warning("Graph provider does not support schemaless extraction, falling back to fixed schema")
+                        use_schemaless = False
             
-            # Resolve entities
-            with create_span("entity_resolution", attributes={"entities.input_count": len(extraction_result['entities'])}):
-                logger.info("Resolving entities...")
-                resolved_entities = self.entity_resolver.resolve_entities(
-                    extraction_result['entities']
-                )
-                add_span_attributes({"entities.resolved_count": len(resolved_entities)})
-            
-            # Save to graph
-            with create_span("graph_storage"):
-                logger.info("Saving to knowledge graph...")
-                self._save_to_graph(
-                    podcast_config,
-                    episode,
-                    segments,
-                    extraction_result,
-                    resolved_entities
-                )
+            if not use_schemaless:
+                # Fixed schema extraction path (original code)
+                logger.info("Using FIXED SCHEMA extraction pipeline")
+                with create_span("knowledge_extraction", attributes={
+                    "segments.count": len(segments),
+                    "extraction.mode": "fixed"
+                }):
+                    logger.info("Extracting knowledge...")
+                    extraction_result = self.knowledge_extractor.extract_from_segments(
+                        segments,
+                        podcast_name=podcast_config.get('name'),
+                        episode_title=episode['title']
+                    )
+                    add_span_attributes({
+                        "insights.count": len(extraction_result.get('insights', [])),
+                        "entities.count": len(extraction_result.get('entities', [])),
+                    })
+                
+                # Save extraction checkpoint
+                self.checkpoint.save_episode_progress(episode_id, 'extraction', extraction_result)
+                
+                # Resolve entities
+                with create_span("entity_resolution", attributes={"entities.input_count": len(extraction_result.get('entities', []))}):
+                    logger.info("Resolving entities...")
+                    resolved_entities = self.entity_resolver.resolve_entities(
+                        extraction_result.get('entities', [])
+                    )
+                    add_span_attributes({"entities.resolved_count": len(resolved_entities)})
+                
+                # Save to graph
+                with create_span("graph_storage"):
+                    logger.info("Saving to knowledge graph...")
+                    self._save_to_graph(
+                        podcast_config,
+                        episode,
+                        segments,
+                        extraction_result,
+                        resolved_entities
+                    )
             
             # Mark episode as complete
             self.checkpoint.save_episode_progress(episode_id, 'complete', True)
@@ -503,17 +689,30 @@ class PodcastKnowledgePipeline:
             # Clean up memory
             cleanup_memory()
             
-            result = {
-                'segments': len(segments),
-                'insights': len(extraction_result.get('insights', [])),
-                'entities': len(resolved_entities)
-            }
+            # Build result based on extraction mode
+            if extraction_result.get('mode') == 'schemaless':
+                result = {
+                    'segments': len(segments),
+                    'insights': 0,  # Schemaless mode doesn't track insights separately
+                    'entities': extraction_result.get('entities', 0),
+                    'relationships': extraction_result.get('relationships', 0),
+                    'discovered_types': extraction_result.get('discovered_types', []),
+                    'mode': 'schemaless'
+                }
+            else:
+                result = {
+                    'segments': len(segments),
+                    'insights': len(extraction_result.get('insights', [])),
+                    'entities': len(resolved_entities) if 'resolved_entities' in locals() else 0,
+                    'mode': 'fixed'
+                }
             
             # Add result metrics to span
             add_span_attributes({
                 "result.segments": result['segments'],
                 "result.insights": result['insights'],
                 "result.entities": result['entities'],
+                "result.mode": result['mode']
             })
             
             return result

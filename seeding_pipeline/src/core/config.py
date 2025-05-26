@@ -83,6 +83,13 @@ class PipelineConfig:
     # Logging
     log_level: str = field(default_factory=lambda: os.environ.get("LOG_LEVEL", "INFO"))
     
+    # Schemaless Extraction Settings
+    use_schemaless_extraction: bool = field(default_factory=lambda: os.environ.get("USE_SCHEMALESS_EXTRACTION", "false").lower() == "true")
+    schemaless_confidence_threshold: float = field(default_factory=lambda: float(os.environ.get("SCHEMALESS_CONFIDENCE_THRESHOLD", "0.7")))
+    entity_resolution_threshold: float = field(default_factory=lambda: float(os.environ.get("ENTITY_RESOLUTION_THRESHOLD", "0.85")))
+    max_properties_per_node: int = field(default_factory=lambda: int(os.environ.get("MAX_PROPERTIES_PER_NODE", "50")))
+    relationship_normalization: bool = field(default_factory=lambda: os.environ.get("RELATIONSHIP_NORMALIZATION", "true").lower() == "true")
+    
     def __post_init__(self):
         """Convert string paths to Path objects and validate configuration."""
         # Convert paths
@@ -119,6 +126,14 @@ class PipelineConfig:
             errors.append("min_speakers must be less than or equal to max_speakers")
         if not 0 < self.gpu_memory_fraction <= 1:
             errors.append("gpu_memory_fraction must be between 0 and 1")
+            
+        # Validate schemaless settings
+        if not 0 <= self.schemaless_confidence_threshold <= 1:
+            errors.append("schemaless_confidence_threshold must be between 0 and 1")
+        if not 0 <= self.entity_resolution_threshold <= 1:
+            errors.append("entity_resolution_threshold must be between 0 and 1")
+        if self.max_properties_per_node < 1:
+            errors.append("max_properties_per_node must be at least 1")
             
         # Validate paths exist or can be created
         for path_name, path_value in [

@@ -1,0 +1,155 @@
+# Schemaless Property Mapping Configuration
+# This file defines how fixed schema properties map to flexible schemaless properties
+
+# Entity property mappings
+entity_mappings:
+  # Core properties
+  confidence: "confidence"
+  importance: "importance_score"
+  description: "description"
+  
+  # Type mapping - in schemaless, type is a property not a label
+  type: "_entity_type"
+  
+  # Temporal properties
+  first_mentioned: "first_mentioned_at"
+  mention_count: "total_mentions"
+  
+  # Graph analysis properties
+  bridge_score: "bridge_score"
+  is_peripheral: "is_peripheral_node"
+  
+  # Embedding property
+  embedding: "vector_embedding"
+
+# Segment property mappings  
+segment_mappings:
+  start_time: "start_time"
+  end_time: "end_time"
+  duration: "duration_seconds"
+  speaker: "speaker_name"
+  confidence: "transcription_confidence"
+  sentiment: "sentiment_score"
+  complexity_score: "text_complexity"
+  is_advertisement: "is_ad_content"
+  embedding: "segment_embedding"
+
+# Quote property mappings
+quote_mappings:
+  text: "quote_text"
+  speaker: "attributed_to"
+  context: "surrounding_context"
+  timestamp: "spoken_at"
+  quote_type: "quote_category"
+  importance_score: "quote_importance"
+  segment_id: "source_segment"
+
+# Relationship property mappings
+relationship_mappings:
+  confidence: "relationship_confidence"
+  source_segment: "extracted_from_segment"
+  timestamp: "created_at"
+  strength: "connection_strength"
+  
+# Relationship type normalization rules
+relationship_type_rules:
+  # Common variations to normalize
+  "works at": "WORKS_AT"
+  "works for": "WORKS_FOR"
+  "employed by": "EMPLOYED_BY"
+  "is a": "IS_A"
+  "is an": "IS_A"
+  "part of": "PART_OF"
+  "belongs to": "BELONGS_TO"
+  "related to": "RELATED_TO"
+  "talks about": "DISCUSSES"
+  "mentions": "MENTIONS"
+  "refers to": "REFERENCES"
+  "connected to": "CONNECTED_TO"
+  "knows": "KNOWS"
+  "met": "MET"
+  "interviewed": "INTERVIEWED"
+  "hosted by": "HOSTED_BY"
+  
+# Property validation rules
+validation_rules:
+  # Required properties for each type
+  required_properties:
+    Entity:
+      - id
+      - name
+    Segment:
+      - id
+      - text
+      - start_time
+      - end_time
+    Quote:
+      - id
+      - text
+      - speaker
+    Relationship:
+      - source
+      - target
+      - type
+      
+  # Property type constraints (loose validation)
+  property_types:
+    # Numeric properties
+    numeric:
+      - confidence
+      - importance_score
+      - start_time
+      - end_time
+      - duration_seconds
+      - bridge_score
+      - sentiment_score
+      - complexity_score
+      
+    # Boolean properties
+    boolean:
+      - is_peripheral_node
+      - is_ad_content
+      
+    # String properties
+    string:
+      - id
+      - name
+      - description
+      - speaker_name
+      - quote_text
+      - attributed_to
+      
+    # Array properties
+    array:
+      - vector_embedding
+      - segment_embedding
+      - categories
+      - topics
+      
+    # Datetime properties
+    datetime:
+      - first_mentioned_at
+      - created_at
+      - spoken_at
+      - publication_date
+
+# Default values for optional properties
+default_values:
+  confidence: 1.0
+  importance_score: 0.5
+  is_peripheral_node: false
+  is_ad_content: false
+  quote_category: "general"
+  relationship_confidence: 1.0
+
+# Property documentation
+property_docs:
+  confidence: "Confidence score between 0 and 1 indicating extraction certainty"
+  importance_score: "Relative importance of entity/quote in the context (0-1)"
+  bridge_score: "Graph centrality score indicating bridging importance"
+  is_peripheral_node: "Whether the entity is on the periphery of the knowledge graph"
+  vector_embedding: "High-dimensional vector representation for semantic search"
+  sentiment_score: "Sentiment analysis score (-1 to 1, negative to positive)"
+  text_complexity: "Readability/complexity score of the text segment"
+  first_mentioned_at: "Timestamp when entity was first mentioned in episode"
+  total_mentions: "Number of times entity appears across all segments"

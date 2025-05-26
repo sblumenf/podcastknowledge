@@ -83,6 +83,17 @@ def seed_podcasts(args: argparse.Namespace) -> int:
         else:
             config = Config()
         
+        # Apply extraction mode from CLI
+        if args.extraction_mode == 'schemaless':
+            config.use_schemaless_extraction = True
+        else:
+            config.use_schemaless_extraction = False
+            
+        # Apply migration mode
+        if args.migration_mode:
+            config.migration_mode = True
+            print("Migration mode enabled: will process with both fixed and schemaless extraction")
+        
         # Initialize pipeline
         pipeline = PodcastKnowledgePipeline(config)
         
@@ -112,10 +123,30 @@ def seed_podcasts(args: argparse.Namespace) -> int:
         print("\nSeeding Summary:")
         print(f"  Start time: {result['start_time']}")
         print(f"  End time: {result['end_time']}")
+        print(f"  Extraction mode: {result.get('extraction_mode', 'fixed')}")
         print(f"  Podcasts processed: {result['podcasts_processed']}")
         print(f"  Episodes processed: {result['episodes_processed']}")
         print(f"  Episodes failed: {result['episodes_failed']}")
-        print(f"  Processing time: {result['processing_time_seconds']:.2f} seconds")
+        
+        # Add schemaless-specific metrics if available
+        if result.get('extraction_mode') == 'schemaless':
+            print(f"  Total entities: {result.get('total_entities', 0)}")
+            print(f"  Total relationships: {result.get('total_relationships', 0)}")
+            if result.get('discovered_types'):
+                print(f"  Discovered entity types: {len(result['discovered_types'])}")
+        
+        # Calculate processing time
+        from datetime import datetime
+        start = datetime.fromisoformat(result['start_time'])
+        end = datetime.fromisoformat(result['end_time'])
+        processing_time = (end - start).total_seconds()
+        print(f"  Processing time: {processing_time:.2f} seconds")
+        
+        # Show discovered schema if requested
+        if args.schema_discovery and result.get('discovered_types'):
+            print("\nDiscovered Entity Types:")
+            for entity_type in sorted(result['discovered_types']):
+                print(f"  - {entity_type}")
         
         # Check for failures
         if result['episodes_failed'] > 0:
@@ -201,6 +232,59 @@ def validate_config(args: argparse.Namespace) -> int:
         return 1
 
 
+def schema_stats(args: argparse.Namespace) -> int:
+    """Show schema statistics from schemaless extraction.
+    
+    Returns:
+        Exit code (0 for success, 1 for failure)
+    """
+    try:
+        from src.seeding.checkpoint import ProgressCheckpoint
+        
+        # Initialize checkpoint reader
+        checkpoint = ProgressCheckpoint(
+            checkpoint_dir=args.checkpoint_dir,
+            extraction_mode='schemaless'
+        )
+        
+        # Get schema statistics
+        stats = checkpoint.get_schema_statistics()
+        
+        if stats.get('message'):
+            print(stats['message'])
+            return 1
+        
+        print("Schema Discovery Statistics:")
+        print(f"  Total entity types discovered: {stats['total_types_discovered']}")
+        print(f"  Evolution entries: {stats['evolution_entries']}")
+        
+        if stats['first_discovery']:
+            print(f"  First discovery: {stats['first_discovery']}")
+        if stats['latest_discovery']:
+            print(f"  Latest discovery: {stats['latest_discovery']}")
+        
+        if stats['entity_types']:
+            print("\nEntity Types:")
+            for entity_type in stats['entity_types']:
+                print(f"  - {entity_type}")
+        
+        if stats['discovery_timeline']:
+            print("\nRecent Discoveries:")
+            for entry in stats['discovery_timeline']:
+                print(f"  {entry['date']} - Episode {entry['episode']} - {entry['count']} new types")
+                for new_type in entry['new_types']:
+                    print(f"    - {new_type}")
+        
+        return 0
+        
+    except Exception as e:
+        print(f"Failed to get schema statistics: {e}", file=sys.stderr)
+        if args.verbose:
+            import traceback
+            traceback.print_exc()
+        return 1
+
+
 def main() -> int:
     """Main CLI entry point."""
     parser = argparse.ArgumentParser(
@@ -208,11 +292,17 @@ def main() -> int:
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  # Seed a single podcast
+  # Seed a single podcast with fixed schema
   %(prog)s seed --rss-url https://example.com/feed.xml --max-episodes 5
+  
+  # Seed with schemaless extraction
+  %(prog)s seed --rss-url https://example.com/feed.xml --extraction-mode schemaless --schema-discovery
   
   # Seed multiple podcasts from config file
   %(prog)s seed --podcast-config podcasts.json --max-episodes 10
+  
+  # Migration mode - process with both fixed and schemaless
+  %(prog)s seed --podcast-config podcasts.json --migration-mode
   
   # Use custom configuration
   %(prog)s seed --config config/prod.yml --podcast-config podcasts.json
@@ -222,6 +312,9 @@ Examples:
   
   # Validate configuration
   %(prog)s validate-config --config config/prod.yml
+  
+  # View schema discovery statistics
+  %(prog)s schema-stats --checkpoint-dir checkpoints
         """
     )
     
@@ -288,6 +381,25 @@ Examples:
         help='Use large context models (more accurate but slower)'
     )
     
+    # Schemaless extraction options
+    seed_parser.add_argument(
+        '--extraction-mode',
+        type=str,
+        choices=['fixed', 'schemaless'],
+        default='fixed',
+        help='Extraction mode: fixed schema or schemaless (default: fixed)'
+    )
+    seed_parser.add_argument(
+        '--schema-discovery',
+        action='store_true',
+        help='Show discovered entity types after processing (schemaless mode only)'
+    )
+    seed_parser.add_argument(
+        '--migration-mode',
+        action='store_true',
+        help='Enable dual processing mode for migration (processes with both fixed and schemaless)'
+    )
+    
     # Health command
     health_parser = subparsers.add_parser(
         'health',
@@ -311,8 +423,29 @@ Examples:
         help='Path to configuration file to validate'
     )
     
+    # Schema statistics command
+    schema_parser = subparsers.add_parser(
+        'schema-stats',
+        help='Show schema statistics from schemaless extraction'
+    )
+    schema_parser.add_argument(
+        '--checkpoint-dir',
+        type=str,
+        default='checkpoints',
+        help='Directory containing checkpoint files (default: checkpoints)'
+    )
+    
     # Parse arguments
     args = parser.parse_args()
+    
+    # Validate flag combinations
+    if hasattr(args, 'migration_mode') and hasattr(args, 'extraction_mode'):
+        if args.migration_mode and args.extraction_mode != 'fixed':
+            parser.error("--migration-mode requires --extraction-mode to be 'fixed' or omitted")
+    
+    if hasattr(args, 'schema_discovery') and hasattr(args, 'extraction_mode'):
+        if args.schema_discovery and args.extraction_mode == 'fixed':
+            parser.error("--schema-discovery only works with --extraction-mode schemaless")
     
     # Set up logging
     setup_logging(args.verbose)
@@ -324,6 +457,8 @@ Examples:
         return health_check(args)
     elif args.command == 'validate-config':
         return validate_config(args)
+    elif args.command == 'schema-stats':
+        return schema_stats(args)
     else:
         parser.print_help()
         return 1
