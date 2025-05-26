@@ -1,0 +1,1 @@
+"""Performance tests for podcast knowledge graph pipeline."""

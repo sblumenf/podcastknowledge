@@ -1,0 +1,98 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: podcast-kg-config
+  namespace: podcast-kg
+  labels:
+    app.kubernetes.io/name: podcast-kg-pipeline
+    app.kubernetes.io/component: configuration
+data:
+  config.yml: |
+    pipeline:
+      batch_size: 10
+      max_workers: 4
+      checkpoint_interval: 10
+      
+    providers:
+      audio:
+        type: whisper
+        config:
+          model_size: large-v3
+          device: cuda
+          compute_type: float16
+          
+      llm:
+        type: gemini
+        config:
+          model: gemini-1.5-pro
+          temperature: 0.7
+          max_retries: 3
+          timeout: 300
+          
+      graph:
+        type: neo4j
+        config:
+          uri: ${NEO4J_URI}
+          user: ${NEO4J_USER}
+          password: ${NEO4J_PASSWORD}
+          connection_pool_size: 50
+          max_connection_lifetime: 3600
+          
+      embeddings:
+        type: sentence_transformer
+        config:
+          model_name: all-MiniLM-L6-v2
+          batch_size: 32
+          
+    processing:
+      segment_length: 1500
+      overlap: 100
+      min_segment_length: 100
+      max_segment_length: 3000
+      
+    extraction:
+      prompts_version: "1.0"
+      cache_enabled: true
+      cache_ttl: 3600
+      max_entities_per_segment: 20
+      max_insights_per_segment: 10
+      
+    logging:
+      level: INFO
+      format: json
+      
+  logging.conf: |
+    [loggers]
+    keys=root,podcast_kg
+    
+    [handlers]
+    keys=console,file
+    
+    [formatters]
+    keys=json
+    
+    [logger_root]
+    level=INFO
+    handlers=console
+    
+    [logger_podcast_kg]
+    level=INFO
+    handlers=console,file
+    qualname=podcast_kg
+    propagate=0
+    
+    [handler_console]
+    class=StreamHandler
+    level=INFO
+    formatter=json
+    args=(sys.stdout,)
+    
+    [handler_file]
+    class=handlers.RotatingFileHandler
+    level=INFO
+    formatter=json
+    args=('/app/logs/podcast-kg.log', 'a', 10485760, 5)
+    
+    [formatter_json]
+    class=pythonjsonlogger.jsonlogger.JsonFormatter
+    format=%(asctime)s %(name)s %(levelname)s %(message)s

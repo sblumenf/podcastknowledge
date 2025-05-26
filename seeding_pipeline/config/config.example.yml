@@ -1,0 +1,105 @@
+# Podcast Knowledge Pipeline Configuration
+# This file contains all non-secret configuration settings
+# Copy to config.yml and customize as needed
+
+# Audio Processing Settings
+min_segment_tokens: 150
+max_segment_tokens: 800
+whisper_model_size: "large-v3"
+use_faster_whisper: true
+
+# Speaker Diarization
+min_speakers: 1
+max_speakers: 10
+
+# Embedding Settings
+embedding_dimensions: 1536
+embedding_similarity: "cosine"
+embedding_model: "text-embedding-ada-002"
+
+# File Paths (relative to working directory)
+base_dir: "."
+audio_dir: "podcast_audio"
+output_dir: "processed_podcasts"
+checkpoint_dir: "checkpoints"
+
+# Processing Settings
+max_episodes: 1
+use_large_context: true
+enable_graph_enhancements: true
+
+# GPU and Memory Settings
+use_gpu: true
+enable_ad_detection: true
+use_semantic_boundaries: true
+gpu_memory_fraction: 0.8
+
+# Progress and Monitoring
+checkpoint_interval: 1  # Save after N episodes
+memory_cleanup_interval: 1  # Cleanup after N episodes
+
+# Batch Processing (for SeedingConfig)
+batch_size: 10
+embedding_batch_size: 50
+save_checkpoints: true
+checkpoint_every_n: 5
+
+# Progress Settings
+enable_progress_bar: true
+show_memory_usage: true
+
+# Interactive Features (disabled for batch mode)
+interactive_mode: false
+save_visualizations: false
+generate_reports: false
+verbose_logging: false
+
+# Rate Limiting
+llm_requests_per_minute: 60
+llm_tokens_per_minute: 150000
+embedding_requests_per_minute: 500
+
+# Retry Settings
+max_retries: 3
+retry_delay: 1.0
+exponential_backoff: true
+
+# Resource Limits
+max_concurrent_audio_jobs: 2
+max_concurrent_llm_jobs: 4
+max_memory_gb: 4.0
+
+# Model Selection
+models:
+  primary_llm: "gemini-2.5-flash"
+  fallback_llm: "gemini-2.0-flash"
+  embedding_provider: "openai"
+
+# Task Routing
+task_routing:
+  insights:
+    - "gemini-2.5-flash"
+    - "gemini-2.0-flash"
+  entities:
+    - "gemini-2.5-flash"
+    - "gemini-2.0-flash"
+  quotes:
+    - "gemini-2.5-flash"
+    - "gemini-2.0-flash"
+  complexity:
+    - "gemini-2.0-flash"
+  density:
+    - "gemini-2.0-flash"
+
+# Advanced Settings
+enable_experimental_features: false
+enable_debug_mode: false
+enable_profiling: false
+
+# Cache Settings
+cache_ttl: 900  # seconds
+max_cache_size: 1000  # entries
+
+# Health Check Settings
+health_check_interval: 60  # seconds
+provider_timeout: 30  # seconds

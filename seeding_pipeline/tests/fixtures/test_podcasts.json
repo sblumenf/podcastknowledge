@@ -1,0 +1,41 @@
+[
+  {
+    "name": "Public Domain Test Podcast 1",
+    "rss_url": "https://archive.org/download/librivox_podcast/librivox_podcast_rss.xml",
+    "category": "Literature",
+    "description": "LibriVox recordings (public domain)",
+    "max_episodes": 5
+  },
+  {
+    "name": "NASA Podcast",
+    "rss_url": "https://www.nasa.gov/feeds/podcasts/houston-we-have-a-podcast/",
+    "category": "Science",
+    "description": "NASA's official podcast (public domain)",
+    "max_episodes": 3
+  },
+  {
+    "name": "Test Audio Samples",
+    "category": "Test",
+    "description": "Synthetic test audio for unit tests",
+    "episodes": [
+      {
+        "title": "Short Technical Discussion",
+        "audio_file": "fixtures/audio/test_technical_short.mp3",
+        "transcript": "Hello, today we're discussing artificial intelligence and machine learning. These technologies are transforming how we process data and make decisions.",
+        "duration": 30
+      },
+      {
+        "title": "Empty Audio Test",
+        "audio_file": "fixtures/audio/test_silence.mp3",
+        "transcript": "",
+        "duration": 10
+      },
+      {
+        "title": "Multi-Speaker Conversation",
+        "audio_file": "fixtures/audio/test_multispeaker.mp3",
+        "transcript": "Speaker 1: Welcome to our podcast. Speaker 2: Thank you for having me. Speaker 1: Let's discuss technology trends. Speaker 2: I think AI is the most important trend right now.",
+        "duration": 45
+      }
+    ]
+  }
+]

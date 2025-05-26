@@ -1,0 +1,125 @@
+{
+  "transcripts": [
+    {
+      "id": "test_normal_conversation",
+      "title": "Normal Tech Podcast Conversation",
+      "description": "A typical technology podcast discussion",
+      "speakers": ["Alice", "Bob"],
+      "segments": [
+        {
+          "speaker": "Alice",
+          "start_time": 0.0,
+          "end_time": 15.5,
+          "text": "Welcome to Tech Talk! I'm Alice, and today we're discussing the latest developments in artificial intelligence with my guest, Bob Johnson from TechCorp."
+        },
+        {
+          "speaker": "Bob",
+          "start_time": 15.5,
+          "end_time": 45.2,
+          "text": "Thanks for having me, Alice. It's exciting to be here. You know, the progress we've seen in large language models over the past year has been absolutely remarkable. Companies like OpenAI and Anthropic are pushing boundaries we didn't think were possible just two years ago."
+        },
+        {
+          "speaker": "Alice",
+          "start_time": 45.2,
+          "end_time": 72.8,
+          "text": "Absolutely! And it's not just about the models getting bigger. The efficiency improvements are equally impressive. Can you tell our listeners about some practical applications you're seeing in the industry?"
+        },
+        {
+          "speaker": "Bob",
+          "start_time": 72.8,
+          "end_time": 120.0,
+          "text": "Certainly. We're seeing AI assistants being integrated into everything from customer service to software development. At TechCorp, we've implemented AI code review systems that catch bugs before they make it to production. The return on investment has been phenomenal - we've reduced our bug rate by forty percent in just six months."
+        },
+        {
+          "speaker": "Alice",
+          "start_time": 120.0,
+          "end_time": 145.0,
+          "text": "That's incredible! Now, I know some of our listeners are concerned about job displacement. What's your take on the human-AI collaboration aspect?"
+        }
+      ],
+      "expected_entities": ["Alice", "Bob Johnson", "TechCorp", "OpenAI", "Anthropic", "Tech Talk"],
+      "expected_insights": ["AI progress in language models", "Bug reduction through AI code review", "ROI of AI implementation"],
+      "word_count": 245
+    },
+    {
+      "id": "test_technical_jargon",
+      "title": "Deep Technical Discussion",
+      "description": "Heavy technical jargon and complex concepts",
+      "speakers": ["Dr. Chen"],
+      "segments": [
+        {
+          "speaker": "Dr. Chen",
+          "start_time": 0.0,
+          "end_time": 60.0,
+          "text": "Today's lecture covers transformer architectures and their applications in natural language processing. The self-attention mechanism, represented by the formula Attention(Q,K,V) equals softmax of Q times K transpose divided by square root of d_k, times V, enables the model to weigh the importance of different positions in the input sequence. When we implement multi-head attention with eight heads and a dimensionality of five twelve, we're essentially creating multiple representation subspaces. The positional encoding uses sine and cosine functions of different frequencies, allowing the model to leverage sequence order information. Recent optimizations like FlashAttention reduce the quadratic memory complexity to linear through clever tiling strategies."
+        }
+      ],
+      "expected_entities": ["Dr. Chen", "FlashAttention"],
+      "expected_insights": ["Transformer architecture explanation", "Self-attention mechanism", "Memory optimization techniques"],
+      "word_count": 112
+    },
+    {
+      "id": "test_empty_transcript",
+      "title": "Empty/Silent Recording",
+      "description": "Edge case: recording with no speech",
+      "speakers": [],
+      "segments": [],
+      "expected_entities": [],
+      "expected_insights": [],
+      "word_count": 0
+    },
+    {
+      "id": "test_foreign_language",
+      "title": "Mixed Language Content",
+      "description": "Edge case: multiple languages mixed",
+      "speakers": ["Maria"],
+      "segments": [
+        {
+          "speaker": "Maria",
+          "start_time": 0.0,
+          "end_time": 30.0,
+          "text": "Bonjour! Welcome to our polyglot podcast. Today we'll discuss comment les entreprises utilisent l'intelligence artificielle. As we say in Spanish, la tecnología está cambiando todo. Machine learning, oder wie wir auf Deutsch sagen, maschinelles Lernen, is transforming industries worldwide."
+        }
+      ],
+      "expected_entities": ["Maria"],
+      "expected_insights": ["Multilingual AI adoption", "Global technology transformation"],
+      "word_count": 48
+    },
+    {
+      "id": "test_advertisement",
+      "title": "Podcast with Advertisement",
+      "description": "Contains advertisement segment to test filtering",
+      "speakers": ["Host", "Ad Voice"],
+      "segments": [
+        {
+          "speaker": "Host",
+          "start_time": 0.0,
+          "end_time": 20.0,
+          "text": "Welcome back to Science Today. Before we continue our discussion on quantum computing, let's hear from our sponsor."
+        },
+        {
+          "speaker": "Ad Voice",
+          "start_time": 20.0,
+          "end_time": 50.0,
+          "text": "This episode is brought to you by NordVPN. Are you tired of hackers stealing your data? With NordVPN, you can browse securely from anywhere. Use code SCIENCE for seventy percent off your first month. That's NordVPN dot com slash science."
+        },
+        {
+          "speaker": "Host",
+          "start_time": 50.0,
+          "end_time": 80.0,
+          "text": "Thanks to NordVPN for supporting the show. Now, back to quantum computing. The latest breakthrough from IBM's quantum research lab shows that we're closer than ever to achieving quantum supremacy in practical applications."
+        }
+      ],
+      "expected_entities": ["Science Today", "NordVPN", "IBM"],
+      "expected_insights": ["Quantum computing breakthroughs", "Quantum supremacy progress"],
+      "word_count": 108,
+      "has_advertisement": true
+    }
+  ],
+  "metadata": {
+    "version": "1.0.0",
+    "created": "2024-01-24",
+    "purpose": "Test fixtures for podcast knowledge pipeline",
+    "notes": "These are synthetic transcripts for testing various edge cases and normal operation"
+  }
+}

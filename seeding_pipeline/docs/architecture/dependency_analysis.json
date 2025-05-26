@@ -1,0 +1,1161 @@
+{
+  "summary": {
+    "total_classes": 20,
+    "total_functions": 94,
+    "external_dependencies": 34,
+    "internal_dependencies": 13
+  },
+  "external_dependencies": [
+    "argparse",
+    "collections",
+    "datetime",
+    "dateutil",
+    "difflib",
+    "dotenv",
+    "faster_whisper",
+    "feedparser",
+    "gc",
+    "glob",
+    "hashlib",
+    "itertools",
+    "json",
+    "langchain",
+    "langchain_google_genai",
+    "logging",
+    "math",
+    "matplotlib",
+    "neo4j",
+    "networkx",
+    "numpy",
+    "openai",
+    "os",
+    "pickle",
+    "psutil",
+    "pyannote",
+    "re",
+    "scipy",
+    "sys",
+    "time",
+    "torch",
+    "tqdm",
+    "urllib",
+    "whisper"
+  ],
+  "classes": {
+    "PodcastConfig": {
+      "line": 233,
+      "methods": [],
+      "bases": []
+    },
+    "SeedingConfig": {
+      "line": 276,
+      "methods": [
+        "get_segmenter_config",
+        "validate_dependencies",
+        "setup_directories"
+      ],
+      "bases": [
+        "PodcastConfig"
+      ]
+    },
+    "PodcastProcessingError": {
+      "line": 336,
+      "methods": [],
+      "bases": [
+        "Exception"
+      ]
+    },
+    "DatabaseConnectionError": {
+      "line": 340,
+      "methods": [],
+      "bases": [
+        "PodcastProcessingError"
+      ]
+    },
+    "AudioProcessingError": {
+      "line": 344,
+      "methods": [],
+      "bases": [
+        "PodcastProcessingError"
+      ]
+    },
+    "LLMProcessingError": {
+      "line": 348,
+      "methods": [],
+      "bases": [
+        "PodcastProcessingError"
+      ]
+    },
+    "ConfigurationError": {
+      "line": 352,
+      "methods": [],
+      "bases": [
+        "PodcastProcessingError"
+      ]
+    },
+    "Neo4jManager": {
+      "line": 360,
+      "methods": [
+        "__init__",
+        "__enter__",
+        "__exit__"
+      ],
+      "bases": []
+    },
+    "HybridRateLimiter": {
+      "line": 429,
+      "methods": [
+        "__init__",
+        "can_use_model",
+        "_clean_old_entries",
+        "record_request",
+        "record_error",
+        "record_fallback",
+        "get_status",
+        "wait_time_for_model"
+      ],
+      "bases": []
+    },
+    "TaskRouter": {
+      "line": 579,
+      "methods": [
+        "__init__",
+        "_initialize_clients",
+        "route_request",
+        "_call_model",
+        "_build_insight_prompt",
+        "_build_entity_prompt",
+        "_build_quote_prompt",
+        "_build_complexity_prompt",
+        "get_usage_report"
+      ],
+      "bases": []
+    },
+    "AudioProcessor": {
+      "line": 2238,
+      "methods": [
+        "__init__",
+        "transcribe_audio",
+        "diarize_speakers",
+        "align_transcript_with_diarization"
+      ],
+      "bases": []
+    },
+    "EnhancedPodcastSegmenter": {
+      "line": 2268,
+      "methods": [
+        "__init__",
+        "process_audio",
+        "_post_process_segments",
+        "_detect_advertisement",
+        "_analyze_segment_sentiment"
+      ],
+      "bases": []
+    },
+    "GraphOperations": {
+      "line": 2453,
+      "methods": [
+        "__init__",
+        "add_sentiment_to_knowledge_graph",
+        "enhance_speaker_information",
+        "improve_embeddings",
+        "enrich_metadata",
+        "establish_entity_relationships"
+      ],
+      "bases": []
+    },
+    "ProgressCheckpoint": {
+      "line": 4566,
+      "methods": [
+        "__init__",
+        "save_episode_progress",
+        "load_episode_progress",
+        "get_completed_episodes",
+        "clean_episode_checkpoints"
+      ],
+      "bases": []
+    },
+    "OptimizedPatternMatcher": {
+      "line": 4637,
+      "methods": [
+        "__init__",
+        "count_technical_terms",
+        "count_facts",
+        "get_quotability_matches"
+      ],
+      "bases": []
+    },
+    "VectorEntityMatcher": {
+      "line": 4715,
+      "methods": [
+        "__init__",
+        "build_entity_index",
+        "find_entities_in_segment",
+        "_string_match_fallback"
+      ],
+      "bases": []
+    },
+    "ExtractionValidator": {
+      "line": 4875,
+      "methods": [
+        "__init__",
+        "validate_entities",
+        "validate_insights",
+        "validate_metrics",
+        "get_validation_report"
+      ],
+      "bases": []
+    },
+    "RelationshipExtractor": {
+      "line": 6066,
+      "methods": [
+        "__init__",
+        "extract_relationships",
+        "_build_relationship_extraction_prompt",
+        "_parse_relationship_response",
+        "save_relationships_to_neo4j",
+        "process_episode_relationships"
+      ],
+      "bases": []
+    },
+    "PodcastKnowledgePipeline": {
+      "line": 7245,
+      "methods": [
+        "__init__",
+        "initialize_components",
+        "cleanup",
+        "process_episode",
+        "run_pipeline"
+      ],
+      "bases": []
+    },
+    "tqdm": {
+      "line": 180,
+      "methods": [
+        "__init__",
+        "__iter__",
+        "update"
+      ],
+      "bases": []
+    }
+  },
+  "functions": {
+    "cleanup_memory": {
+      "line": 393,
+      "args": []
+    },
+    "monitor_memory": {
+      "line": 407,
+      "args": []
+    },
+    "normalize_entity_name": {
+      "line": 791,
+      "args": [
+        "name"
+      ]
+    },
+    "calculate_name_similarity": {
+      "line": 842,
+      "args": [
+        "name1",
+        "name2"
+      ]
+    },
+    "extract_entity_aliases": {
+      "line": 860,
+      "args": [
+        "entity_name",
+        "entity_description"
+      ]
+    },
+    "find_existing_entity": {
+      "line": 900,
+      "args": [
+        "session",
+        "new_entity_name",
+        "new_entity_type",
+        "similarity_threshold"
+      ]
+    },
+    "clean_segment_text_for_embedding": {
+      "line": 965,
+      "args": [
+        "text"
+      ]
+    },
+    "generate_stable_segment_id": {
+      "line": 1003,
+      "args": [
+        "episode_id",
+        "segment_text",
+        "start_time",
+        "speaker"
+      ]
+    },
+    "extract_notable_quotes": {
+      "line": 1029,
+      "args": [
+        "segment_text",
+        "speaker",
+        "start_time",
+        "end_time",
+        "llm_client"
+      ]
+    },
+    "extract_episode_topics": {
+      "line": 1113,
+      "args": [
+        "insights",
+        "entities",
+        "segments",
+        "llm_client"
+      ]
+    },
+    "extract_weighted_co_occurrences": {
+      "line": 1261,
+      "args": [
+        "entities",
+        "segments",
+        "window_size"
+      ]
+    },
+    "calculate_betweenness_centrality": {
+      "line": 1352,
+      "args": [
+        "neo4j_session",
+        "episode_id"
+      ]
+    },
+    "detect_communities_multi_level": {
+      "line": 1397,
+      "args": [
+        "neo4j_session",
+        "episode_id",
+        "resolution_levels"
+      ]
+    },
+    "identify_peripheral_concepts": {
+      "line": 1460,
+      "args": [
+        "neo4j_session",
+        "episode_id"
+      ]
+    },
+    "calculate_discourse_structure": {
+      "line": 1506,
+      "args": [
+        "neo4j_session",
+        "episode_id",
+        "community_data"
+      ]
+    },
+    "calculate_diversity_metrics": {
+      "line": 1584,
+      "args": [
+        "neo4j_session",
+        "episode_id",
+        "community_data"
+      ]
+    },
+    "identify_structural_gaps": {
+      "line": 1661,
+      "args": [
+        "neo4j_session",
+        "episode_id",
+        "community_data"
+      ]
+    },
+    "create_hierarchical_topics": {
+      "line": 1738,
+      "args": [
+        "neo4j_session",
+        "episode_id",
+        "community_data",
+        "llm_client"
+      ]
+    },
+    "identify_bridge_insights": {
+      "line": 1872,
+      "args": [
+        "neo4j_session",
+        "episode_id",
+        "community_data"
+      ]
+    },
+    "analyze_episode_discourse": {
+      "line": 1943,
+      "args": [
+        "neo4j_driver",
+        "episode_id",
+        "insights",
+        "entities",
+        "transcript_segments",
+        "llm_client"
+      ]
+    },
+    "connect_to_neo4j": {
+      "line": 2097,
+      "args": [
+        "config"
+      ]
+    },
+    "setup_neo4j_schema": {
+      "line": 2132,
+      "args": [
+        "neo4j_driver"
+      ]
+    },
+    "add_sentiment_to_knowledge_graph": {
+      "line": 2503,
+      "args": [
+        "neo4j_driver",
+        "episode_id"
+      ]
+    },
+    "enhance_speaker_information": {
+      "line": 2557,
+      "args": [
+        "neo4j_driver",
+        "episode_id"
+      ]
+    },
+    "improve_embeddings": {
+      "line": 2628,
+      "args": [
+        "neo4j_driver",
+        "episode_id",
+        "embedding_client"
+      ]
+    },
+    "enrich_metadata": {
+      "line": 2717,
+      "args": [
+        "neo4j_driver",
+        "episode_id"
+      ]
+    },
+    "establish_entity_relationships": {
+      "line": 2765,
+      "args": [
+        "neo4j_driver",
+        "episode_id"
+      ]
+    },
+    "enhance_episode_knowledge": {
+      "line": 2830,
+      "args": [
+        "podcast_info",
+        "episode",
+        "neo4j_driver",
+        "embedding_client"
+      ]
+    },
+    "enhance_graph_all_episodes": {
+      "line": 2870,
+      "args": [
+        "neo4j_driver",
+        "llm_client",
+        "embedding_client"
+      ]
+    },
+    "initialize_gemini_client": {
+      "line": 2921,
+      "args": [
+        "enable_large_context"
+      ]
+    },
+    "initialize_embedding_model": {
+      "line": 2956,
+      "args": []
+    },
+    "generate_embeddings": {
+      "line": 2979,
+      "args": [
+        "text",
+        "openai_client"
+      ]
+    },
+    "fetch_podcast_feed": {
+      "line": 3013,
+      "args": [
+        "podcast_config",
+        "max_episodes"
+      ]
+    },
+    "download_episode_audio": {
+      "line": 3104,
+      "args": [
+        "episode",
+        "podcast_id",
+        "output_dir"
+      ]
+    },
+    "transcribe_audio": {
+      "line": 3154,
+      "args": [
+        "audio_path",
+        "use_faster_whisper",
+        "whisper_model_size"
+      ]
+    },
+    "diarize_speakers": {
+      "line": 3227,
+      "args": [
+        "audio_path",
+        "min_speakers",
+        "max_speakers"
+      ]
+    },
+    "align_transcript_with_diarization": {
+      "line": 3289,
+      "args": [
+        "transcript_segments",
+        "speaker_map"
+      ]
+    },
+    "convert_transcript_for_llm": {
+      "line": 3334,
+      "args": [
+        "transcript_segments"
+      ]
+    },
+    "build_insight_extraction_prompt": {
+      "line": 3366,
+      "args": [
+        "podcast_name",
+        "episode_title",
+        "use_large_context"
+      ]
+    },
+    "call_llm_for_insights": {
+      "line": 3451,
+      "args": [
+        "prompt",
+        "llm_client",
+        "podcast_name",
+        "episode_title",
+        "segment_text"
+      ]
+    },
+    "parse_insight_response": {
+      "line": 3468,
+      "args": [
+        "response_text"
+      ]
+    },
+    "validate_and_enhance_insights": {
+      "line": 3502,
+      "args": [
+        "insights",
+        "use_large_context"
+      ]
+    },
+    "extract_structured_insights": {
+      "line": 3538,
+      "args": [
+        "transcript_text",
+        "segment_text",
+        "llm_client",
+        "podcast_name",
+        "episode_title",
+        "use_large_context"
+      ]
+    },
+    "detect_entities_with_gemini": {
+      "line": 3583,
+      "args": [
+        "text",
+        "llm_client",
+        "use_large_context"
+      ]
+    },
+    "analyze_vocabulary_complexity": {
+      "line": 3729,
+      "args": [
+        "text"
+      ]
+    },
+    "classify_segment_complexity": {
+      "line": 3780,
+      "args": [
+        "text",
+        "entities"
+      ]
+    },
+    "calculate_episode_complexity": {
+      "line": 3843,
+      "args": [
+        "segments_complexity"
+      ]
+    },
+    "calculate_information_density": {
+      "line": 3902,
+      "args": [
+        "text",
+        "insights",
+        "entities"
+      ]
+    },
+    "calculate_accessibility_score": {
+      "line": 3960,
+      "args": [
+        "text",
+        "complexity_score"
+      ]
+    },
+    "aggregate_episode_metrics": {
+      "line": 4037,
+      "args": [
+        "segments_info_density",
+        "segments_accessibility"
+      ]
+    },
+    "calculate_quotability_score": {
+      "line": 4091,
+      "args": [
+        "text",
+        "speaker"
+      ]
+    },
+    "detect_best_of_markers": {
+      "line": 4162,
+      "args": [
+        "text",
+        "insights"
+      ]
+    },
+    "extract_key_quotes": {
+      "line": 4243,
+      "args": [
+        "segments",
+        "quotability_scores"
+      ]
+    },
+    "build_combined_extraction_prompt": {
+      "line": 4281,
+      "args": [
+        "podcast_name",
+        "episode_title",
+        "transcript",
+        "use_large_context"
+      ]
+    },
+    "parse_combined_llm_response": {
+      "line": 4337,
+      "args": [
+        "response_text"
+      ]
+    },
+    "save_segment_batch_to_neo4j": {
+      "line": 4381,
+      "args": [
+        "neo4j_driver",
+        "episode",
+        "segments",
+        "batch_start_idx",
+        "batch_complexity",
+        "batch_info_density",
+        "batch_accessibility",
+        "batch_quotability",
+        "batch_best_of",
+        "embedding_client"
+      ]
+    },
+    "validate_text_input": {
+      "line": 4484,
+      "args": [
+        "text",
+        "field_name"
+      ]
+    },
+    "validate_date_format": {
+      "line": 4494,
+      "args": [
+        "date_str"
+      ]
+    },
+    "sanitize_file_path": {
+      "line": 4526,
+      "args": [
+        "path"
+      ]
+    },
+    "with_retry": {
+      "line": 4539,
+      "args": [
+        "func",
+        "max_retries",
+        "backoff_factor"
+      ]
+    },
+    "calculate_episode_metrics_from_db": {
+      "line": 4795,
+      "args": [
+        "neo4j_driver",
+        "episode_id"
+      ]
+    },
+    "save_episode_knowledge_to_neo4j": {
+      "line": 5014,
+      "args": [
+        "podcast_config",
+        "episode",
+        "insights",
+        "entities",
+        "neo4j_driver",
+        "embedding_client",
+        "episode_complexity",
+        "episode_metrics",
+        "use_large_context",
+        "transcript_segments",
+        "llm_client",
+        "quotes",
+        "topics"
+      ]
+    },
+    "create_podcast_nodes": {
+      "line": 5198,
+      "args": [
+        "session",
+        "podcast_info"
+      ]
+    },
+    "create_episode_nodes": {
+      "line": 5223,
+      "args": [
+        "session",
+        "episode",
+        "podcast_info",
+        "episode_complexity",
+        "episode_metrics"
+      ]
+    },
+    "create_segment_nodes": {
+      "line": 5301,
+      "args": [
+        "session",
+        "transcript_segments",
+        "episode",
+        "embedding_client",
+        "segments_complexity",
+        "segments_info_density",
+        "segments_accessibility"
+      ]
+    },
+    "_detect_advertisement_in_segment": {
+      "line": 5433,
+      "args": [
+        "text"
+      ]
+    },
+    "create_insight_nodes": {
+      "line": 5442,
+      "args": [
+        "session",
+        "insights",
+        "podcast_info",
+        "episode",
+        "embedding_client",
+        "use_large_context"
+      ]
+    },
+    "_build_insight_query": {
+      "line": 5501,
+      "args": [
+        "use_large_context",
+        "insight"
+      ]
+    },
+    "create_entity_nodes": {
+      "line": 5530,
+      "args": [
+        "session",
+        "entities",
+        "podcast_info",
+        "episode",
+        "embedding_client",
+        "use_large_context"
+      ]
+    },
+    "_build_entity_query": {
+      "line": 5634,
+      "args": [
+        "use_large_context",
+        "entity"
+      ]
+    },
+    "create_cross_references": {
+      "line": 5698,
+      "args": [
+        "session",
+        "entities",
+        "insights",
+        "podcast_info",
+        "episode",
+        "use_large_context"
+      ]
+    },
+    "create_quote_nodes": {
+      "line": 5742,
+      "args": [
+        "session",
+        "quotes",
+        "segment_id",
+        "episode_id",
+        "embedding_client"
+      ]
+    },
+    "create_topic_nodes": {
+      "line": 5794,
+      "args": [
+        "session",
+        "topics",
+        "episode_id",
+        "podcast_id"
+      ]
+    },
+    "update_episode_with_topics": {
+      "line": 5862,
+      "args": [
+        "session",
+        "episode_id",
+        "topics"
+      ]
+    },
+    "compute_similarity_relationships": {
+      "line": 5888,
+      "args": [
+        "session",
+        "node_type",
+        "similarity_threshold",
+        "top_n"
+      ]
+    },
+    "save_knowledge_to_neo4j": {
+      "line": 5986,
+      "args": [
+        "podcast_info",
+        "episode",
+        "transcript_segments",
+        "insights",
+        "entities",
+        "neo4j_driver",
+        "embedding_client",
+        "use_large_context",
+        "segments_complexity",
+        "episode_complexity",
+        "segments_info_density",
+        "segments_accessibility",
+        "episode_metrics"
+      ]
+    },
+    "extract_relationship_network": {
+      "line": 6400,
+      "args": [
+        "neo4j_driver",
+        "llm_client",
+        "podcast_id"
+      ]
+    },
+    "enhance_knowledge_relationships": {
+      "line": 6453,
+      "args": [
+        "neo4j_driver",
+        "llm_client"
+      ]
+    },
+    "expand_knowledge_graph": {
+      "line": 6541,
+      "args": [
+        "neo4j_driver",
+        "llm_client",
+        "embedding_client"
+      ]
+    },
+    "build_cross_episode_relationships": {
+      "line": 6635,
+      "args": [
+        "neo4j_driver",
+        "llm_client"
+      ]
+    },
+    "apply_graph_algorithms": {
+      "line": 6747,
+      "args": [
+        "neo4j_driver"
+      ]
+    },
+    "implement_semantic_clustering": {
+      "line": 6849,
+      "args": [
+        "neo4j_driver",
+        "llm_client"
+      ]
+    },
+    "collect_knowledge_graph_stats": {
+      "line": 6971,
+      "args": [
+        "neo4j_driver"
+      ]
+    },
+    "enhance_knowledge_graph": {
+      "line": 7083,
+      "args": [
+        "podcast_info",
+        "results",
+        "neo4j_driver",
+        "llm_client",
+        "embedding_client"
+      ]
+    },
+    "visualize_knowledge_graph": {
+      "line": 7158,
+      "args": [
+        "neo4j_driver"
+      ]
+    },
+    "process_podcast_episode": {
+      "line": 7315,
+      "args": [
+        "podcast_config",
+        "episode",
+        "segmenter_config",
+        "output_dir",
+        "use_large_context"
+      ]
+    },
+    "setup_pipeline_infrastructure": {
+      "line": 7646,
+      "args": [
+        "config"
+      ]
+    },
+    "process_episodes_batch": {
+      "line": 7670,
+      "args": [
+        "podcast_info",
+        "podcast_config",
+        "segmenter_config",
+        "use_large_context"
+      ]
+    },
+    "apply_graph_enhancements": {
+      "line": 7705,
+      "args": [
+        "podcast_info",
+        "results",
+        "neo4j_driver",
+        "use_large_context"
+      ]
+    },
+    "run_knowledge_graph_pipeline": {
+      "line": 7740,
+      "args": [
+        "podcast_config",
+        "max_episodes",
+        "segmenter_config",
+        "use_large_context",
+        "enhance_graph"
+      ]
+    },
+    "seed_single_podcast": {
+      "line": 7942,
+      "args": [
+        "podcast_name",
+        "max_episodes"
+      ]
+    },
+    "seed_podcasts": {
+      "line": 8029,
+      "args": [
+        "podcast_configs",
+        "max_episodes_each",
+        "neo4j_config"
+      ]
+    },
+    "seed_knowledge_graph_batch": {
+      "line": 8113,
+      "args": [
+        "rss_urls",
+        "max_episodes_each"
+      ]
+    },
+    "checkpoint_recovery": {
+      "line": 8148,
+      "args": [
+        "checkpoint_dir"
+      ]
+    }
+  },
+  "class_dependencies": {
+    "SeedingConfig": [
+      "PodcastConfig"
+    ],
+    "DatabaseConnectionError": [
+      "PodcastProcessingError"
+    ],
+    "AudioProcessingError": [
+      "PodcastProcessingError"
+    ],
+    "LLMProcessingError": [
+      "PodcastProcessingError"
+    ],
+    "ConfigurationError": [
+      "PodcastProcessingError"
+    ],
+    "Neo4jManager": [
+      "DatabaseConnectionError",
+      "PodcastConfig"
+    ],
+    "TaskRouter": [
+      "HybridRateLimiter"
+    ],
+    "AudioProcessor": [
+      "PodcastConfig"
+    ],
+    "ProgressCheckpoint": [
+      "PodcastConfig"
+    ],
+    "PodcastKnowledgePipeline": [
+      "AudioProcessor",
+      "GraphOperations",
+      "PodcastConfig"
+    ]
+  },
+  "proposed_modules": {
+    "core": {
+      "description": "Core interfaces and models",
+      "classes": [
+        "PodcastConfig",
+        "SeedingConfig"
+      ],
+      "reasons": [
+        "Configuration classes",
+        "No external dependencies"
+      ]
+    },
+    "exceptions": {
+      "description": "Custom exception hierarchy",
+      "classes": [
+        "PodcastProcessingError",
+        "DatabaseConnectionError",
+        "AudioProcessingError",
+        "LLMProcessingError",
+        "ConfigurationError"
+      ],
+      "reasons": [
+        "Exception classes",
+        "Independent of other classes"
+      ]
+    },
+    "providers": {
+      "audio": {
+        "description": "Audio processing providers",
+        "classes": [
+          "AudioProcessor"
+        ],
+        "reasons": [
+          "Handles transcription and diarization",
+          "Uses Whisper/PyAnnote"
+        ]
+      },
+      "graph": {
+        "description": "Graph database providers",
+        "classes": [
+          "Neo4jManager",
+          "GraphOperations"
+        ],
+        "reasons": [
+          "Database operations",
+          "Neo4j specific"
+        ]
+      },
+      "llm": {
+        "description": "LLM providers",
+        "classes": [
+          "TaskRouter"
+        ],
+        "reasons": [
+          "LLM routing and management"
+        ]
+      }
+    },
+    "processing": {
+      "segmentation": {
+        "description": "Text segmentation",
+        "classes": [
+          "EnhancedPodcastSegmenter"
+        ],
+        "reasons": [
+          "Segment management",
+          "Text processing"
+        ]
+      },
+      "extraction": {
+        "description": "Knowledge extraction",
+        "classes": [
+          "RelationshipExtractor",
+          "ExtractionValidator"
+        ],
+        "reasons": [
+          "Extract insights and entities",
+          "LLM-based processing"
+        ]
+      },
+      "entity_resolution": {
+        "description": "Entity matching and resolution",
+        "classes": [
+          "VectorEntityMatcher"
+        ],
+        "reasons": [
+          "Entity deduplication",
+          "Vector similarity"
+        ]
+      }
+    },
+    "utils": {
+      "patterns": {
+        "description": "Pattern matching utilities",
+        "classes": [
+          "OptimizedPatternMatcher"
+        ],
+        "reasons": [
+          "Regex optimization",
+          "Pattern caching"
+        ]
+      },
+      "rate_limiting": {
+        "description": "Rate limiting utilities",
+        "classes": [
+          "HybridRateLimiter"
+        ],
+        "reasons": [
+          "API rate management",
+          "Token counting"
+        ]
+      }
+    },
+    "seeding": {
+      "checkpoint": {
+        "description": "Checkpoint management",
+        "classes": [
+          "ProgressCheckpoint"
+        ],
+        "reasons": [
+          "Progress tracking",
+          "Recovery support"
+        ]
+      },
+      "orchestrator": {
+        "description": "Pipeline orchestration",
+        "classes": [
+          "PodcastKnowledgePipeline"
+        ],
+        "reasons": [
+          "Main orchestrator",
+          "Coordinates all components"
+        ]
+      }
+    }
+  }
+}

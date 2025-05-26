@@ -1,0 +1,250 @@
+# Service Level Objectives (SLO) Configuration
+# Defines the service level indicators and objectives for the Podcast Knowledge Pipeline
+
+# Global configuration
+global:
+  evaluation_window: 30d  # Default evaluation window for SLOs
+  error_budget_burn_alerting:
+    enabled: true
+    fast_burn_threshold: 0.02  # 2% in 1 hour
+    slow_burn_threshold: 0.05  # 5% in 6 hours
+
+# Service Level Indicators (SLIs) and Objectives (SLOs)
+slos:
+  # Availability SLO
+  - name: availability
+    description: "Percentage of successfully processed episodes"
+    sli:
+      metric_type: ratio
+      good_events_query: |
+        sum(rate(podcast_kg_episodes_processed_total[5m]))
+      total_events_query: |
+        sum(rate(podcast_kg_episodes_processed_total[5m])) + sum(rate(podcast_kg_episodes_failed_total[5m]))
+    objective: 99.5  # 99.5% availability target
+    windows:
+      - duration: 1h
+        name: hourly
+      - duration: 24h
+        name: daily
+      - duration: 7d
+        name: weekly
+      - duration: 30d
+        name: monthly
+    error_budget:
+      monthly_budget_minutes: 216  # 0.5% of 30 days = 216 minutes
+      alert_on_exhaustion: 80  # Alert when 80% of error budget is consumed
+
+  # Latency SLO - Episode Processing
+  - name: episode_processing_latency
+    description: "95th percentile processing time for episodes"
+    sli:
+      metric_type: latency
+      latency_query: |
+        histogram_quantile(0.95, 
+          sum(rate(podcast_kg_processing_duration_seconds_bucket{stage="full_episode"}[5m])) 
+          by (le)
+        )
+      threshold_seconds: 300  # 5 minutes threshold
+    objective: 95  # 95% of episodes processed within 5 minutes
+    windows:
+      - duration: 1h
+        name: hourly
+      - duration: 24h
+        name: daily
+      - duration: 7d
+        name: weekly
+
+  # Latency SLO - API Response Time
+  - name: api_latency
+    description: "99th percentile API response time"
+    sli:
+      metric_type: latency
+      latency_query: |
+        histogram_quantile(0.99,
+          sum(rate(http_request_duration_seconds_bucket{job="podcast-kg-pipeline"}[5m]))
+          by (le)
+        )
+      threshold_seconds: 1  # 1 second threshold
+    objective: 99  # 99% of API requests respond within 1 second
+    windows:
+      - duration: 1h
+        name: hourly
+      - duration: 24h
+        name: daily
+
+  # Throughput SLO
+  - name: throughput
+    description: "Episodes processed per hour"
+    sli:
+      metric_type: throughput
+      throughput_query: |
+        sum(rate(podcast_kg_episodes_processed_total[1h])) * 3600
+      minimum_threshold: 50  # Minimum 50 episodes per hour
+    objective: 95  # Meet throughput target 95% of the time
+    windows:
+      - duration: 6h
+        name: six_hourly
+      - duration: 24h
+        name: daily
+      - duration: 7d
+        name: weekly
+
+  # Error Rate SLO
+  - name: error_rate
+    description: "Percentage of API requests that succeed"
+    sli:
+      metric_type: ratio
+      good_events_query: |
+        sum(rate(http_requests_total{job="podcast-kg-pipeline",status!~"5.."}[5m]))
+      total_events_query: |
+        sum(rate(http_requests_total{job="podcast-kg-pipeline"}[5m]))
+    objective: 99.9  # 99.9% success rate
+    windows:
+      - duration: 1h
+        name: hourly
+      - duration: 24h
+        name: daily
+      - duration: 30d
+        name: monthly
+
+  # Transcription Quality SLO
+  - name: transcription_quality
+    description: "Transcription accuracy score"
+    sli:
+      metric_type: quality
+      quality_query: |
+        histogram_quantile(0.5,
+          sum(rate(podcast_kg_extraction_quality_score_bucket{type="transcription"}[1h]))
+          by (le)
+        )
+      minimum_score: 0.85  # Minimum 85% accuracy
+    objective: 95  # 95% of transcriptions meet quality threshold
+    windows:
+      - duration: 24h
+        name: daily
+      - duration: 7d
+        name: weekly
+
+  # Entity Extraction Quality SLO
+  - name: entity_extraction_quality
+    description: "Entity extraction success rate"
+    sli:
+      metric_type: ratio
+      good_events_query: |
+        sum(rate(podcast_kg_entities_extracted_total[5m]))
+      total_events_query: |
+        sum(rate(podcast_kg_episodes_processed_total[5m]))
+      minimum_entities_per_episode: 5  # At least 5 entities per episode
+    objective: 90  # 90% of episodes have adequate entity extraction
+    windows:
+      - duration: 24h
+        name: daily
+      - duration: 7d
+        name: weekly
+
+  # Provider Reliability SLO
+  - name: provider_reliability
+    description: "External provider call success rate"
+    sli:
+      metric_type: ratio
+      good_events_query: |
+        sum(rate(podcast_kg_provider_calls_total[5m])) - sum(rate(podcast_kg_provider_errors_total[5m]))
+      total_events_query: |
+        sum(rate(podcast_kg_provider_calls_total[5m]))
+    objective: 98  # 98% provider call success rate
+    windows:
+      - duration: 1h
+        name: hourly
+      - duration: 24h
+        name: daily
+    providers:  # Provider-specific objectives
+      - name: whisper
+        objective: 99
+      - name: gemini
+        objective: 97
+      - name: neo4j
+        objective: 99.5
+
+  # Data Freshness SLO
+  - name: data_freshness
+    description: "Time from episode publication to processing completion"
+    sli:
+      metric_type: freshness
+      freshness_query: |
+        max(time() - podcast_kg_last_processed_timestamp)
+      maximum_lag_hours: 24  # Process within 24 hours
+    objective: 95  # 95% of episodes processed within freshness target
+    windows:
+      - duration: 24h
+        name: daily
+      - duration: 7d
+        name: weekly
+
+# Error Budget Policies
+error_budget_policies:
+  - name: freeze_non_critical_changes
+    description: "Freeze non-critical changes when error budget is low"
+    condition:
+      budget_remaining_percent: 20
+    actions:
+      - type: alert
+        severity: warning
+      - type: policy
+        action: freeze_non_critical_deployments
+
+  - name: incident_response
+    description: "Trigger incident response when error budget is exhausted"
+    condition:
+      budget_remaining_percent: 0
+    actions:
+      - type: alert
+        severity: critical
+      - type: page
+        team: on-call
+      - type: policy
+        action: freeze_all_changes
+
+# Composite SLOs (combine multiple SLIs)
+composite_slos:
+  - name: overall_reliability
+    description: "Overall service reliability combining availability and latency"
+    components:
+      - slo: availability
+        weight: 0.6
+      - slo: episode_processing_latency
+        weight: 0.3
+      - slo: api_latency
+        weight: 0.1
+    objective: 99  # 99% overall reliability
+
+  - name: data_quality
+    description: "Overall data quality combining transcription and extraction"
+    components:
+      - slo: transcription_quality
+        weight: 0.5
+      - slo: entity_extraction_quality
+        weight: 0.5
+    objective: 92.5  # 92.5% overall quality
+
+# Reporting Configuration
+reporting:
+  weekly_report:
+    enabled: true
+    recipients:
+      - team-data@example.com
+    include:
+      - slo_summary
+      - error_budget_status
+      - incident_summary
+      
+  monthly_report:
+    enabled: true
+    recipients:
+      - team-data@example.com
+      - management@example.com
+    include:
+      - slo_summary
+      - error_budget_trends
+      - reliability_trends
+      - quality_metrics
+      - recommendations

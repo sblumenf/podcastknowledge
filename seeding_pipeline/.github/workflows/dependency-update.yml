@@ -1,0 +1,128 @@
+name: Dependency Update
+
+on:
+  schedule:
+    - cron: '0 0 * * MON'  # Weekly on Monday
+  workflow_dispatch:
+
+jobs:
+  update-dependencies:
+    name: Update Python Dependencies
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+    
+    - name: Install pip-tools
+      run: |
+        python -m pip install --upgrade pip
+        pip install pip-tools
+    
+    - name: Update requirements
+      run: |
+        # Update main requirements
+        pip-compile requirements.in --upgrade
+        
+        # Update dev requirements
+        pip-compile requirements-dev.in --upgrade
+        
+        # Update test requirements
+        pip-compile requirements-test.in --upgrade
+    
+    - name: Create Pull Request
+      uses: peter-evans/create-pull-request@v5
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        commit-message: 'chore: Update Python dependencies'
+        title: 'chore: Weekly dependency update'
+        body: |
+          ## Weekly Dependency Update
+          
+          This PR updates all Python dependencies to their latest compatible versions.
+          
+          ### Checklist
+          - [ ] All tests pass
+          - [ ] No breaking changes identified
+          - [ ] Security vulnerabilities addressed
+          
+          Please review the changes and merge if all checks pass.
+        branch: chore/dependency-update
+        delete-branch: true
+        labels: |
+          dependencies
+          automated
+
+  security-audit:
+    name: Security Audit
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install safety bandit
+    
+    - name: Run safety check
+      run: |
+        pip install -r requirements.txt
+        safety check --json > safety-report.json || true
+    
+    - name: Run bandit
+      run: |
+        bandit -r src/ -f json -o bandit-report.json || true
+    
+    - name: Upload security reports
+      uses: actions/upload-artifact@v3
+      with:
+        name: security-reports
+        path: |
+          safety-report.json
+          bandit-report.json
+    
+    - name: Comment PR with results
+      if: failure()
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const fs = require('fs');
+          const safetyReport = JSON.parse(fs.readFileSync('safety-report.json', 'utf8'));
+          const banditReport = JSON.parse(fs.readFileSync('bandit-report.json', 'utf8'));
+          
+          let comment = '## 🔒 Security Audit Results\n\n';
+          
+          if (safetyReport.vulnerabilities && safetyReport.vulnerabilities.length > 0) {
+            comment += '### Dependency Vulnerabilities Found:\n';
+            safetyReport.vulnerabilities.forEach(vuln => {
+              comment += `- **${vuln.package}**: ${vuln.vulnerability}\n`;
+            });
+          } else {
+            comment += '✅ No dependency vulnerabilities found\n';
+          }
+          
+          if (banditReport.results && banditReport.results.length > 0) {
+            comment += '\n### Code Security Issues:\n';
+            banditReport.results.forEach(issue => {
+              comment += `- **${issue.test_name}** in ${issue.filename}:${issue.line_number}\n`;
+            });
+          } else {
+            comment += '\n✅ No code security issues found\n';
+          }
+          
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: comment
+          });

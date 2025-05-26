@@ -1,0 +1,132 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  
+  # External labels to add to all metrics
+  external_labels:
+    environment: '${ENVIRONMENT}'
+    region: '${AWS_REGION}'
+    cluster: 'podcast-kg'
+
+# Alertmanager configuration
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+            - alertmanager:9093
+      # Timeout for alerting requests
+      timeout: 10s
+
+# Load alert rules
+rule_files:
+  - "prometheus-alerts.yml"
+  - "sli-queries.yml"
+  - "slo-alerts.yml"
+
+# Scrape configurations
+scrape_configs:
+  # Scrape Prometheus itself
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # Scrape podcast KG pipeline
+  - job_name: 'podcast-kg-pipeline'
+    scrape_interval: 30s
+    scrape_timeout: 10s
+    metrics_path: '/metrics'
+    scheme: 'http'
+    
+    # Service discovery for Kubernetes
+    kubernetes_sd_configs:
+      - role: pod
+        namespaces:
+          names:
+            - podcast-kg
+    
+    # Relabel configs to filter and modify labels
+    relabel_configs:
+      # Only scrape pods with annotation prometheus.io/scrape=true
+      - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+        action: keep
+        regex: true
+        
+      # Use custom metrics path if specified
+      - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_path]
+        action: replace
+        target_label: __metrics_path__
+        regex: (.+)
+        
+      # Use custom port if specified
+      - source_labels: [__address__, __meta_kubernetes_pod_annotation_prometheus_io_port]
+        action: replace
+        regex: ([^:]+)(?::\d+)?;(\d+)
+        replacement: $1:$2
+        target_label: __address__
+        
+      # Add pod labels
+      - action: labelmap
+        regex: __meta_kubernetes_pod_label_(.+)
+        
+      # Add pod name
+      - source_labels: [__meta_kubernetes_pod_name]
+        action: replace
+        target_label: pod
+        
+      # Add namespace
+      - source_labels: [__meta_kubernetes_namespace]
+        action: replace
+        target_label: namespace
+
+  # Scrape Node Exporter for system metrics
+  - job_name: 'node-exporter'
+    kubernetes_sd_configs:
+      - role: node
+    
+    relabel_configs:
+      - source_labels: [__address__]
+        regex: '(.*):10250'
+        replacement: '${1}:9100'
+        target_label: __address__
+      - source_labels: [__meta_kubernetes_node_name]
+        action: replace
+        target_label: node
+
+  # Scrape kube-state-metrics for Kubernetes metrics
+  - job_name: 'kube-state-metrics'
+    static_configs:
+      - targets: ['kube-state-metrics:8080']
+
+  # Scrape Neo4j metrics
+  - job_name: 'neo4j'
+    static_configs:
+      - targets: ['neo4j:2004']
+    metrics_path: '/metrics'
+
+  # Scrape Redis exporter
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['redis-exporter:9121']
+
+# Remote storage for long-term retention (optional)
+remote_write:
+  - url: '${REMOTE_WRITE_URL}'
+    basic_auth:
+      username: '${REMOTE_WRITE_USERNAME}'
+      password: '${REMOTE_WRITE_PASSWORD}'
+    write_relabel_configs:
+      # Drop high-cardinality metrics
+      - source_labels: [__name__]
+        regex: 'go_.*'
+        action: drop
+    queue_config:
+      max_samples_per_send: 10000
+      batch_send_deadline: 5s
+      max_retries: 3
+
+# Storage configuration
+storage:
+  tsdb:
+    retention:
+      time: 15d
+      size: 50GB
