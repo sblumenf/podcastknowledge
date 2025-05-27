@@ -1,0 +1,82 @@
+providers:
+  audio:
+    default: whisper
+    available:
+      whisper:
+        module: src.providers.audio.whisper
+        class: WhisperAudioProvider
+        version: "1.0.0"
+        author: "OpenAI"
+        description: "Audio transcription using OpenAI Whisper"
+      mock:
+        module: src.providers.audio.mock
+        class: MockAudioProvider
+        version: "1.0.0"
+        author: "Test"
+        description: "Mock audio provider for testing"
+        
+  llm:
+    default: gemini
+    available:
+      gemini:
+        module: src.providers.llm.gemini
+        class: GeminiProvider
+        version: "1.0.0"
+        author: "Google"
+        description: "LLM provider using Google Gemini"
+      mock:
+        module: src.providers.llm.mock
+        class: MockLLMProvider
+        version: "1.0.0"
+        author: "Test"
+        description: "Mock LLM provider for testing"
+        
+  graph:
+    default: neo4j
+    available:
+      neo4j:
+        module: src.providers.graph.neo4j
+        class: Neo4jProvider
+        version: "1.0.0"
+        author: "Neo4j"
+        description: "Neo4j graph database provider"
+      schemaless:
+        module: src.providers.graph.schemaless_neo4j
+        class: SchemalessNeo4jProvider
+        version: "1.0.0"
+        author: "Neo4j"
+        description: "Schemaless Neo4j provider for dynamic schemas"
+      compatible:
+        module: src.providers.graph.compatible_neo4j
+        class: CompatibleNeo4jProvider
+        version: "1.0.0"
+        author: "Neo4j"
+        description: "Compatible Neo4j provider for mixed mode"
+      memory:
+        module: src.providers.graph.memory
+        class: InMemoryGraphProvider
+        version: "1.0.0"
+        author: "Test"
+        description: "In-memory graph provider for testing"
+        
+  embedding:
+    default: sentence_transformer
+    available:
+      sentence_transformer:
+        module: src.providers.embeddings.sentence_transformer
+        class: SentenceTransformerProvider
+        version: "1.0.0"
+        author: "HuggingFace"
+        description: "Embeddings using Sentence Transformers"
+      openai:
+        module: src.providers.embeddings.sentence_transformer
+        class: OpenAIEmbeddingProvider
+        version: "1.0.0"
+        author: "OpenAI"
+        description: "Embeddings using OpenAI API"
+      mock:
+        module: src.providers.embeddings.mock
+        class: MockEmbeddingProvider
+        version: "1.0.0"
+        author: "Test"
+        description: "Mock embedding provider for testing"

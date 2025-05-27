@@ -1,144 +1,84 @@
 """
-System constants for the podcast knowledge pipeline.
+Central constants for the Podcast Knowledge Graph Pipeline.
 
-This module defines constants used throughout the system that should not be
-configurable by users.
+This module consolidates all hardcoded values from across the codebase
+to improve maintainability and configurability.
 """
 
-# Version information
-VERSION = "0.1.0"
-API_VERSION = "v1"
+# Timeout Constants (in seconds)
+DEFAULT_REQUEST_TIMEOUT = 300  # 5 minutes - used for HTTP requests
+NEO4J_CONNECTION_TIMEOUT = 30.0  # Neo4j connection acquisition timeout
+THREAD_JOIN_TIMEOUT = 5.0  # Thread join timeout for graceful shutdown
+RETRY_TIMEOUT = 30.0  # Default retry timeout
+QUEUE_GET_TIMEOUT = 1.0  # Queue get operation timeout
+BATCH_QUEUE_TIMEOUT = 0.1  # Batch processor queue timeout
 
-# Model identifiers
-WHISPER_MODELS = ["tiny", "base", "small", "medium", "large", "large-v2", "large-v3"]
-DEFAULT_WHISPER_MODEL = "large-v3"
+# Batch Size Constants
+DEFAULT_BATCH_SIZE = 10  # Default processing batch size
+EMBEDDING_BATCH_SIZE = 50  # Batch size for embedding operations
+MEMORY_BATCH_SIZE = 100  # Batch size for memory-intensive operations
+MIGRATION_BATCH_SIZE = 100  # Batch size for data migration
+VALIDATION_BATCH_SIZE = 1000  # Batch size for validation operations
+TRACING_EXPORT_BATCH_SIZE = 512  # Max export batch size for tracing
 
-GEMINI_MODELS = {
-    "gemini-2.5-flash": "gemini-2.5-flash-preview-04-17",
-    "gemini-2.0-flash": "gemini-2.0-flash-exp",
-    "gemini-1.5-pro": "gemini-1.5-pro-latest",
-}
+# Confidence Thresholds
+HIGH_CONFIDENCE_THRESHOLD = 0.9  # High confidence threshold
+MEDIUM_CONFIDENCE_THRESHOLD = 0.7  # Medium confidence threshold
+DEFAULT_RELATIONSHIP_CONFIDENCE = 0.75  # Default confidence for relationships
+BASE_ENRICHMENT_CONFIDENCE = 0.8  # Base confidence for enrichment
+DEFAULT_ENTITY_CONFIDENCE = 0.8  # Default confidence for entities
 
-# Embedding models
-EMBEDDING_MODELS = {
-    "openai": "text-embedding-ada-002",
-    "sentence-transformers": "all-MiniLM-L6-v2",
-}
+# Model Parameters
+DEFAULT_TEMPERATURE = 0.3  # Default temperature for LLM generation
+DEFAULT_MAX_TOKENS = 2000  # Default max tokens for LLM response
 
-# Processing limits
-MAX_TRANSCRIPT_LENGTH = 500000  # characters
-MAX_SEGMENT_LENGTH = 10000  # characters
-MAX_ENTITIES_PER_EPISODE = 1000
-MAX_INSIGHTS_PER_EPISODE = 500
-MAX_QUOTES_PER_EPISODE = 200
+# Connection Pool Sizes
+DEFAULT_CONNECTION_POOL_SIZE = 10  # Default connection pool size
+MAX_CONNECTION_POOL_SIZE = 50  # Maximum connection pool size
 
-# Batch processing
-DEFAULT_BATCH_SIZE = 10
-MAX_BATCH_SIZE = 100
-DEFAULT_EMBEDDING_BATCH_SIZE = 50
+# Memory and Resource Limits
+MAX_MEMORY_USAGE_MB = 1024  # Maximum memory usage in MB
+MEMORY_WARNING_THRESHOLD_MB = 768  # Memory warning threshold in MB
+CLEANUP_INTERVAL_SECONDS = 300  # Cleanup interval for resources
 
-# Token limits by model
-TOKEN_LIMITS = {
-    "gemini-2.5-flash": 1000000,  # 1M context window
-    "gemini-2.0-flash": 1000000,  # 1M context window
-    "gemini-1.5-pro": 2000000,    # 2M context window
-    "gpt-4": 128000,              # 128k context window
-    "gpt-3.5-turbo": 16385,       # 16k context window
-}
+# Retry Configuration
+MAX_RETRY_ATTEMPTS = 3  # Maximum number of retry attempts
+RETRY_BACKOFF_FACTOR = 2.0  # Exponential backoff factor
+INITIAL_RETRY_DELAY = 1.0  # Initial retry delay in seconds
 
-# Task token estimates
-TASK_TOKEN_ESTIMATES = {
-    "insights": 150000,      # Full transcript analysis
-    "entities": 150000,      # Full transcript analysis
-    "key_quotes": 100000,    # Quote extraction
-    "complexity": 5000,      # Per segment
-    "density": 5000,         # Per segment
-    "best_of": 5000,         # Per segment
-}
+# Processing Limits
+MAX_SEGMENT_LENGTH = 1000  # Maximum segment length in characters
+MIN_SEGMENT_LENGTH = 50  # Minimum segment length in characters
+MAX_ENTITIES_PER_SEGMENT = 20  # Maximum entities to extract per segment
+MAX_RELATIONSHIPS_PER_SEGMENT = 15  # Maximum relationships per segment
 
-# Rate limits (requests per minute)
-DEFAULT_RATE_LIMITS = {
-    "gemini": 60,
-    "openai": 60,
-    "embeddings": 500,
-}
+# Audio Processing
+DEFAULT_AUDIO_SAMPLE_RATE = 16000  # Default audio sample rate
+AUDIO_CHUNK_DURATION = 30  # Audio chunk duration in seconds
 
-# Checkpoint settings
-CHECKPOINT_VERSION = "1.0"
-CHECKPOINT_COMPRESSION = "gzip"
+# Graph Database
+NEO4J_MAX_TRANSACTION_RETRY_TIME = 30.0  # Max transaction retry time
+NEO4J_CONNECTION_ACQUISITION_TIMEOUT = 30.0  # Connection acquisition timeout
+NEO4J_MAX_CONNECTION_LIFETIME = 3600  # Max connection lifetime in seconds
 
-# Neo4j schema version
-SCHEMA_VERSION = "1.0.0"
+# Logging and Monitoring
+LOG_ROTATION_SIZE_MB = 100  # Log file rotation size
+LOG_RETENTION_DAYS = 30  # Log retention period
+METRICS_COLLECTION_INTERVAL = 60  # Metrics collection interval in seconds
 
-# File extensions
-AUDIO_EXTENSIONS = [".mp3", ".wav", ".m4a", ".flac", ".ogg", ".wma"]
-TRANSCRIPT_EXTENSIONS = [".txt", ".vtt", ".srt", ".json"]
+# API Rate Limiting
+DEFAULT_RATE_LIMIT_REQUESTS = 60  # Requests per minute
+DEFAULT_RATE_LIMIT_WINDOW = 60  # Rate limit window in seconds
+BURST_RATE_LIMIT_REQUESTS = 100  # Burst rate limit
 
-# Advertisement detection markers
-AD_MARKERS = [
-    "sponsor", "sponsored by", "brought to you by", "discount code",
-    "promo code", "offer code", "special offer", "limited time offer",
-    "visit", "click the link", "check out", "use code", "percent off",
-    "slash", "dot com", "www", "http",
-]
+# File Processing
+MAX_FILE_SIZE_MB = 500  # Maximum file size for processing
+CHUNK_SIZE_BYTES = 8192  # File read chunk size
 
-# Complexity thresholds
-COMPLEXITY_THRESHOLDS = {
-    "layperson": (0.0, 0.33),
-    "intermediate": (0.33, 0.67),
-    "expert": (0.67, 1.0),
-}
+# Checkpoint Configuration
+CHECKPOINT_SAVE_INTERVAL = 300  # Checkpoint save interval in seconds
+CHECKPOINT_RETENTION_DAYS = 7  # Checkpoint retention period
 
-# Sentiment thresholds
-SENTIMENT_THRESHOLDS = {
-    "positive": 0.2,
-    "negative": -0.2,
-    "neutral": (-0.2, 0.2),
-}
-
-# Graph analysis thresholds
-BRIDGE_SCORE_THRESHOLD = 0.7
-PERIPHERAL_SCORE_THRESHOLD = 0.3
-CO_OCCURRENCE_MIN_WEIGHT = 2
-
-# Memory thresholds (in GB)
-MEMORY_WARNING_THRESHOLD = 3.5
-MEMORY_CRITICAL_THRESHOLD = 4.0
-
-# Retry settings
-DEFAULT_MAX_RETRIES = 3
-DEFAULT_RETRY_DELAY = 1.0
-DEFAULT_BACKOFF_FACTOR = 2.0
-
-# Logging formats
-LOG_FORMAT = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-LOG_DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
-
-# Progress bar settings
-PROGRESS_BAR_WIDTH = 80
-PROGRESS_UPDATE_INTERVAL = 0.1  # seconds
-
-# Health check intervals (seconds)
-HEALTH_CHECK_INTERVAL = 60
-PROVIDER_TIMEOUT = 30
-
-# Cache settings
-CACHE_TTL = 900  # 15 minutes
-MAX_CACHE_SIZE = 1000  # entries
-
-# Validation patterns
-URL_PATTERN = r"^https?://[^\s]+$"
-EMAIL_PATTERN = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
-EPISODE_ID_PATTERN = r"^episode_[a-f0-9]{32}$"
-ENTITY_ID_PATTERN = r"^entity_[a-f0-9]{28}$"
-
-# Default directories (relative to base_dir)
-DEFAULT_AUDIO_DIR = "podcast_audio"
-DEFAULT_OUTPUT_DIR = "processed_podcasts"
-DEFAULT_CHECKPOINT_DIR = "checkpoints"
-DEFAULT_CACHE_DIR = "cache"
-
-# Feature flags (compile-time constants)
-ENABLE_EXPERIMENTAL_FEATURES = False
-ENABLE_DEBUG_MODE = False
-ENABLE_PROFILING = False
+# Performance Thresholds
+SLOW_QUERY_THRESHOLD_MS = 100  # Slow query threshold in milliseconds
+MEMORY_LEAK_THRESHOLD_MB = 50  # Memory leak detection threshold

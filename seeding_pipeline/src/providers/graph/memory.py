@@ -9,11 +9,14 @@ from collections import defaultdict
 
 from src.providers.graph.base import BaseGraphProvider
 from src.core.exceptions import ProviderError
+from src.core.plugin_discovery import provider_plugin
 
 
 logger = logging.getLogger(__name__)
 
 
+@provider_plugin('graph', 'memory', version='1.0.0', author='Test', 
+                description='In-memory graph provider for testing')
 class InMemoryGraphProvider(BaseGraphProvider):
     """In-memory graph database provider for testing and development."""
     

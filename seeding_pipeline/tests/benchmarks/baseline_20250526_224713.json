@@ -1,0 +1,24 @@
+{
+  "timestamp": "2025-05-26T22:47:13.883014",
+  "extraction_times": {
+    "mean": 1.2,
+    "median": 1.1,
+    "p95": 1.8,
+    "p99": 2.2
+  },
+  "memory_usage": {
+    "baseline_mb": 150,
+    "peak_mb": 350,
+    "increase_mb": 200
+  },
+  "neo4j_queries": {
+    "create_node_ms": 15,
+    "create_relationship_ms": 20,
+    "find_node_ms": 8,
+    "complex_query_ms": 45
+  },
+  "throughput": {
+    "episodes_per_minute": 2.5,
+    "segments_per_second": 1.2
+  }
+}

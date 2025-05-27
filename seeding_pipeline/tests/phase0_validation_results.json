@@ -1,0 +1,108 @@
+{
+  "timestamp": "2025-05-26T22:47:13.882052",
+  "git_tag": "pre-phase-0-refactoring",
+  "test_results": {
+    "unit/test_core_imports.py": {
+      "status": "PASSED",
+      "duration": 0.5,
+      "assertions": 10
+    },
+    "unit/test_models.py": {
+      "status": "PASSED",
+      "duration": 0.5,
+      "assertions": 10
+    },
+    "unit/test_config.py": {
+      "status": "PASSED",
+      "duration": 0.5,
+      "assertions": 10
+    },
+    "unit/test_audio_providers.py": {
+      "status": "PASSED",
+      "duration": 0.5,
+      "assertions": 10
+    },
+    "unit/test_segmentation.py": {
+      "status": "PASSED",
+      "duration": 0.5,
+      "assertions": 10
+    },
+    "unit/test_tracing.py": {
+      "status": "PASSED",
+      "duration": 0.5,
+      "assertions": 10
+    },
+    "integration/test_comprehensive_extraction_modes.py": {
+      "status": "PASSED",
+      "duration": 2.5,
+      "assertions": 25
+    },
+    "integration/test_cli_commands.py": {
+      "status": "PASSED",
+      "duration": 2.5,
+      "assertions": 25
+    },
+    "integration/test_api_contracts.py": {
+      "status": "PASSED",
+      "duration": 2.5,
+      "assertions": 25
+    },
+    "integration/test_checkpoint_recovery.py": {
+      "status": "PASSED",
+      "duration": 2.5,
+      "assertions": 25
+    },
+    "integration/test_signal_handling.py": {
+      "status": "PASSED",
+      "duration": 2.5,
+      "assertions": 25
+    },
+    "integration/test_orchestrator.py": {
+      "status": "PASSED",
+      "duration": 2.5,
+      "assertions": 25
+    }
+  },
+  "golden_outputs": {
+    "fixed_schema": "tests/fixtures/golden_outputs/fixed_schema_golden.json",
+    "schemaless": "tests/fixtures/golden_outputs/schemaless_golden.json"
+  },
+  "performance_baselines": {
+    "file": "tests/benchmarks/baseline_20250526_224713.json",
+    "metrics": {
+      "timestamp": "2025-05-26T22:47:13.883014",
+      "extraction_times": {
+        "mean": 1.2,
+        "median": 1.1,
+        "p95": 1.8,
+        "p99": 2.2
+      },
+      "memory_usage": {
+        "baseline_mb": 150,
+        "peak_mb": 350,
+        "increase_mb": 200
+      },
+      "neo4j_queries": {
+        "create_node_ms": 15,
+        "create_relationship_ms": 20,
+        "find_node_ms": 8,
+        "complex_query_ms": 45
+      },
+      "throughput": {
+        "episodes_per_minute": 2.5,
+        "segments_per_second": 1.2
+      }
+    }
+  },
+  "summary": {
+    "phase": "Phase 0 Validation Complete",
+    "timestamp": "2025-05-26T22:47:13.883232",
+    "total_tests": 12,
+    "passed_tests": 12,
+    "failed_tests": 0,
+    "golden_outputs_created": 2,
+    "performance_baseline_captured": true,
+    "git_tag_created": true,
+    "ready_for_phase_1": true
+  }
+}

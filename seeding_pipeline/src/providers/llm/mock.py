@@ -5,8 +5,11 @@ import json
 import hashlib
 
 from src.providers.llm.base import BaseLLMProvider
+from src.core.plugin_discovery import provider_plugin
 
 
+@provider_plugin('llm', 'mock', version='1.0.0', author='Test', 
+                description='Mock LLM provider for testing')
 class MockLLMProvider(BaseLLMProvider):
     """Mock LLM provider that returns predefined responses for testing."""
     

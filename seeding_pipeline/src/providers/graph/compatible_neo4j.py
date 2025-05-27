@@ -7,6 +7,7 @@ from contextlib import contextmanager
 from src.providers.graph.base import BaseGraphProvider
 from src.providers.graph.neo4j import Neo4jProvider
 from src.providers.graph.schemaless_neo4j import SchemalessNeo4jProvider
+from src.core.plugin_discovery import provider_plugin
 from src.migration.query_translator import QueryTranslator
 from src.migration.result_standardizer import ResultStandardizer
 from src.core.models import Podcast, Episode, Segment
@@ -14,6 +15,8 @@ from src.core.models import Podcast, Episode, Segment
 logger = logging.getLogger(__name__)
 
 
+@provider_plugin('graph', 'compatible', version='1.0.0', author='Neo4j', 
+                description='Compatible Neo4j provider for mixed mode')
 class CompatibleNeo4jProvider(BaseGraphProvider):
     """
     Backwards compatible graph provider that supports both fixed and schemaless schemas.

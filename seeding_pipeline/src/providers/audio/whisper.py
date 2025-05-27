@@ -18,12 +18,15 @@ from ...core import (
     ErrorSeverity,
     constants,
 )
+from ...core.plugin_discovery import provider_plugin
 from ...tracing import trace_method, add_span_attributes
 
 
 logger = logging.getLogger(__name__)
 
 
+@provider_plugin('audio', 'whisper', version='1.0.0', author='OpenAI', 
+                description='Audio transcription using OpenAI Whisper')
 class WhisperAudioProvider(BaseAudioProvider):
     """
     Audio provider using Whisper for transcription and pyannote for diarization.

@@ -8,12 +8,15 @@ from queue import Queue
 
 from src.providers.graph.base import BaseGraphProvider
 from src.core.exceptions import ProviderError, ConnectionError
+from src.core.plugin_discovery import provider_plugin
 from src.tracing import trace_method, add_span_attributes, trace_database
 
 
 logger = logging.getLogger(__name__)
 
 
+@provider_plugin('graph', 'neo4j', version='1.0.0', author='Neo4j', 
+                description='Neo4j graph database provider')
 class Neo4jProvider(BaseGraphProvider):
     """Neo4j graph database provider with connection pooling and thread safety."""
     

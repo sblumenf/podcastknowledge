@@ -34,6 +34,15 @@ from src.tracing import (
 )
 from src.tracing.config import TracingConfig
 
+# Import new components
+from src.seeding.components import (
+    SignalManager,
+    ProviderCoordinator,
+    CheckpointManager,
+    PipelineExecutor,
+    StorageCoordinator
+)
+
 logger = get_logger(__name__)
 
 
@@ -53,13 +62,22 @@ class PodcastKnowledgePipeline:
         self.config = config or SeedingConfig()
         self.factory = ProviderFactory()
         
-        # Provider instances
+        # Initialize components
+        self.signal_manager = SignalManager()
+        self.provider_coordinator = ProviderCoordinator(self.factory, self.config)
+        self.checkpoint_manager = CheckpointManager(self.config)
+        
+        # The pipeline executor and storage coordinator will be initialized after providers
+        self.pipeline_executor = None
+        self.storage_coordinator = None
+        
+        # Provider instances - maintain references for backward compatibility
         self.audio_provider: Optional[AudioProvider] = None
         self.llm_provider: Optional[LLMProvider] = None
         self.graph_provider: Optional[GraphProvider] = None
         self.embedding_provider: Optional[EmbeddingProvider] = None
         
-        # Processing components
+        # Processing components - maintain references for backward compatibility
         self.segmenter: Optional[EnhancedPodcastSegmenter] = None
         self.knowledge_extractor: Optional[KnowledgeExtractor] = None
         self.entity_resolver: Optional[EntityResolver] = None
@@ -69,12 +87,12 @@ class PodcastKnowledgePipeline:
         self.emergent_theme_detector: Optional[EmergentThemeDetector] = None
         self.episode_flow_analyzer: Optional[EpisodeFlowAnalyzer] = None
         
-        # Checkpoint manager
+        # Checkpoint manager - maintain reference for backward compatibility
         self.checkpoint: Optional[ProgressCheckpoint] = None
         
-        # Shutdown handling
+        # Shutdown handling - now managed by signal_manager
         self._shutdown_requested = False
-        self._setup_signal_handlers()
+        self.signal_manager.setup(cleanup_callback=self.cleanup)
         
         # Initialize logging
         self._setup_logging()
@@ -98,17 +116,6 @@ class PodcastKnowledgePipeline:
             file_handler = logging.FileHandler(self.config.log_file)
             file_handler.setFormatter(logging.Formatter(log_format))
             logging.getLogger().addHandler(file_handler)
-    
-    def _setup_signal_handlers(self):
-        """Set up graceful shutdown handling."""
-        def signal_handler(signum, frame):
-            logger.info(f"Received signal {signum}, initiating graceful shutdown...")
-            self._shutdown_requested = True
-            self.cleanup()
-            sys.exit(0)
-        
-        signal.signal(signal.SIGINT, signal_handler)
-        signal.signal(signal.SIGTERM, signal_handler)
     
     def _setup_tracing(self):
         """Initialize distributed tracing."""
@@ -157,79 +164,42 @@ class PodcastKnowledgePipeline:
             True if initialization successful
         """
         try:
-            logger.info("Initializing pipeline components...")
+            # Delegate to provider coordinator
+            success = self.provider_coordinator.initialize_providers(use_large_context)
+            if not success:
+                return False
             
-            # Check extraction mode and log it
-            use_schemaless = getattr(self.config, 'use_schemaless_extraction', False)
-            if use_schemaless:
-                logger.info("🔄 Initializing in SCHEMALESS extraction mode")
-                logger.info(f"  - Confidence threshold: {getattr(self.config, 'schemaless_confidence_threshold', 0.7)}")
-                logger.info(f"  - Entity resolution threshold: {getattr(self.config, 'entity_resolution_threshold', 0.85)}")
-                logger.info(f"  - Max properties per node: {getattr(self.config, 'max_properties_per_node', 50)}")
-                logger.info(f"  - Relationship normalization: {getattr(self.config, 'relationship_normalization', True)}")
-            else:
-                logger.info("📊 Initializing in FIXED SCHEMA extraction mode")
+            # Set up backward compatibility references
+            self.audio_provider = self.provider_coordinator.audio_provider
+            self.llm_provider = self.provider_coordinator.llm_provider
+            self.graph_provider = self.provider_coordinator.graph_provider
+            self.embedding_provider = self.provider_coordinator.embedding_provider
             
-            # Initialize providers using factory
-            self.audio_provider = self.factory.create_provider(
-                'audio',
-                getattr(self.config, 'audio_provider', 'whisper'),
-                self.config
-            )
+            self.segmenter = self.provider_coordinator.segmenter
+            self.knowledge_extractor = self.provider_coordinator.knowledge_extractor
+            self.entity_resolver = self.provider_coordinator.entity_resolver
+            self.graph_analyzer = self.provider_coordinator.graph_analyzer
+            self.graph_enhancer = self.provider_coordinator.graph_enhancer
+            self.discourse_flow_tracker = self.provider_coordinator.discourse_flow_tracker
+            self.emergent_theme_detector = self.provider_coordinator.emergent_theme_detector
+            self.episode_flow_analyzer = self.provider_coordinator.episode_flow_analyzer
             
-            self.llm_provider = self.factory.create_provider(
-                'llm',
-                getattr(self.config, 'llm_provider', 'gemini'),
-                self.config,
-                use_large_context=use_large_context
-            )
+            # Set up checkpoint reference for backward compatibility
+            self.checkpoint = self.checkpoint_manager.checkpoint
             
-            # Graph provider will automatically use schemaless if configured
-            self.graph_provider = self.factory.create_provider(
-                'graph',
-                getattr(self.config, 'graph_provider', 'neo4j'),
-                self.config
-            )
-            
-            self.embedding_provider = self.factory.create_provider(
-                'embeddings',
-                getattr(self.config, 'embedding_provider', 'sentence_transformer'),
-                self.config
-            )
-            
-            # Initialize processing components
-            segmenter_config = getattr(self.config, 'segmenter_config', {})
-            self.segmenter = EnhancedPodcastSegmenter(
-                self.audio_provider,
-                config=segmenter_config
-            )
-            
-            self.knowledge_extractor = KnowledgeExtractor(
-                self.llm_provider,
-                self.embedding_provider
-            )
-            
-            self.entity_resolver = EntityResolver(
+            # Initialize storage coordinator first
+            self.storage_coordinator = StorageCoordinator(
                 self.graph_provider,
-                self.embedding_provider
+                self.graph_enhancer,
+                self.config
             )
             
-            self.graph_analyzer = GraphAnalyzer(self.graph_provider)
-            self.graph_enhancer = GraphEnhancer(self.graph_provider)
-            self.discourse_flow_tracker = DiscourseFlowTracker(self.embedding_provider)
-            self.emergent_theme_detector = EmergentThemeDetector(
-                self.embedding_provider,
-                self.llm_provider
-            )
-            self.episode_flow_analyzer = EpisodeFlowAnalyzer(self.embedding_provider)
-            
-            # Initialize checkpoint manager
-            checkpoint_dir = getattr(self.config, 'checkpoint_dir', 'checkpoints')
-            extraction_mode = 'schemaless' if use_schemaless else 'fixed'
-            self.checkpoint = ProgressCheckpoint(
-                checkpoint_dir,
-                extraction_mode=extraction_mode,
-                config=self.config.__dict__ if hasattr(self.config, '__dict__') else {}
+            # Initialize pipeline executor with storage coordinator
+            self.pipeline_executor = PipelineExecutor(
+                self.config, 
+                self.provider_coordinator,
+                self.checkpoint_manager,
+                self.storage_coordinator
             )
             
             # Verify all components are healthy
@@ -246,51 +216,15 @@ class PodcastKnowledgePipeline:
     @trace_method(name="pipeline.verify_components_health")
     def _verify_components_health(self) -> bool:
         """Verify all components are healthy."""
-        components = [
-            ('Audio Provider', self.audio_provider),
-            ('LLM Provider', self.llm_provider),
-            ('Graph Provider', self.graph_provider),
-            ('Embedding Provider', self.embedding_provider)
-        ]
-        
-        all_healthy = True
-        for name, component in components:
-            if component is None:
-                logger.error(f"{name} not initialized")
-                all_healthy = False
-                continue
-                
-            try:
-                health = component.health_check()
-                if health.get('status') != 'healthy':
-                    logger.error(f"{name} unhealthy: {health}")
-                    all_healthy = False
-                else:
-                    logger.info(f"{name} healthy")
-            except Exception as e:
-                logger.error(f"{name} health check failed: {e}")
-                all_healthy = False
-        
-        return all_healthy
+        # Delegate to provider coordinator
+        return self.provider_coordinator.check_health()
     
     def cleanup(self):
         """Clean up resources and close connections."""
         logger.info("Cleaning up pipeline resources...")
         
-        # Close providers
-        providers = [
-            self.audio_provider,
-            self.llm_provider,
-            self.graph_provider,
-            self.embedding_provider
-        ]
-        
-        for provider in providers:
-            if provider:
-                try:
-                    provider.close()
-                except Exception as e:
-                    logger.warning(f"Error closing provider: {e}")
+        # Delegate to provider coordinator
+        self.provider_coordinator.cleanup()
         
         # Clean up memory
         cleanup_memory()
@@ -488,584 +422,12 @@ class PodcastKnowledgePipeline:
         Returns:
             Episode processing results
         """
-        episode_id = episode['id']
-        logger.info(f"Processing episode: {episode['title']} (ID: {episode_id})")
-        
-        # Check if already completed
-        completed_episodes = self.checkpoint.get_completed_episodes()
-        if episode_id in completed_episodes:
-            logger.info(f"Episode {episode_id} already completed, skipping")
-            return {'segments': 0, 'insights': 0, 'entities': 0}
-        
-        # Download audio
-        audio_path = download_episode_audio(
+        # Delegate to pipeline executor
+        return self.pipeline_executor.process_episode(
+            podcast_config,
             episode,
-            podcast_config['id'],
-            output_dir=getattr(self.config, 'audio_dir', 'audio_files')
+            use_large_context
         )
-        
-        if not audio_path:
-            raise PipelineError(f"Failed to download audio for episode {episode_id}")
-        
-        try:
-            # Add episode context to current span
-            add_span_attributes({
-                "episode.id": episode_id,
-                "episode.title": episode['title'],
-                "podcast.id": podcast_config['id'],
-                "podcast.name": podcast_config.get('name', ''),
-            })
-            
-            # Process audio through segmentation
-            with create_span("segmentation", attributes={"audio.path": audio_path}):
-                logger.info("Segmenting audio...")
-                segments = self.segmenter.process_audio(audio_path)
-                add_span_attributes({"segments.count": len(segments)})
-            
-            # Save segments checkpoint
-            self.checkpoint.save_episode_progress(episode_id, 'segments', segments)
-            
-            # Check if using schemaless extraction
-            use_schemaless = getattr(self.config, 'use_schemaless_extraction', False)
-            
-            if use_schemaless:
-                # Schemaless extraction path
-                logger.info("Using SCHEMALESS extraction pipeline")
-                with create_span("schemaless_extraction", attributes={
-                    "segments.count": len(segments),
-                    "extraction.mode": "schemaless"
-                }):
-                    # Check if graph provider supports schemaless
-                    if hasattr(self.graph_provider, 'process_segment_schemaless'):
-                        # Implement graceful degradation flags
-                        degradation_flags = {
-                            'disable_entity_resolution': False,
-                            'disable_metadata_enrichment': False,
-                            'disable_quote_extraction': False,
-                            'fallback_to_simple_extraction': False
-                        }
-                        # Process through schemaless pipeline
-                        extraction_results = []
-                        discovered_types = set()
-                        
-                        from src.core.models import Podcast, Episode, Segment
-                        # Convert to model objects
-                        podcast_obj = Podcast(
-                            id=podcast_config['id'],
-                            title=podcast_config.get('name', podcast_config['id']),
-                            description=podcast_config.get('description', ''),
-                            rss_url=podcast_config.get('rss_url', '')
-                        )
-                        episode_obj = Episode(
-                            id=episode['id'],
-                            title=episode['title'],
-                            description=episode.get('description', ''),
-                            published_date=episode.get('published_date', ''),
-                            audio_url=episode.get('audio_url', '')
-                        )
-                        
-                        for i, segment_data in enumerate(segments):
-                            segment_obj = Segment(
-                                id=f"{episode_id}_segment_{i}",
-                                text=segment_data.get('text', ''),
-                                start_time=segment_data.get('start_time', 0),
-                                end_time=segment_data.get('end_time', 0),
-                                speaker=segment_data.get('speaker', 'Unknown')
-                            )
-                            
-                            try:
-                                result = self.graph_provider.process_segment_schemaless(
-                                    segment_obj, episode_obj, podcast_obj
-                                )
-                                extraction_results.append(result)
-                                
-                                # Track discovered entity types
-                                for entity in result.get('entities_extracted', []):
-                                    if isinstance(entity, dict) and 'type' in entity:
-                                        discovered_types.add(entity['type'])
-                                        
-                            except AttributeError as e:
-                                logger.error(f"SimpleKGPipeline not properly initialized: {e}")
-                                raise PipelineError(f"Schemaless extraction failed - SimpleKGPipeline error: {e}")
-                            except ImportError as e:
-                                logger.error(f"Missing dependency for schemaless extraction: {e}")
-                                raise PipelineError(f"Schemaless extraction failed - Missing dependency: {e}")
-                            except ValueError as e:
-                                logger.error(f"Property validation error in segment {i}: {e}")
-                                # Continue with next segment instead of failing
-                                extraction_results.append({
-                                    'segment_id': segment_obj.id,
-                                    'status': 'error',
-                                    'error': str(e),
-                                    'entities_extracted': 0,
-                                    'relationships_extracted': 0
-                                })
-                            except Exception as e:
-                                logger.error(f"Unexpected error in schemaless extraction for segment {i}: {e}")
-                                # Try to continue with partial results
-                                extraction_results.append({
-                                    'segment_id': segment_obj.id,
-                                    'status': 'error',
-                                    'error': str(e),
-                                    'entities_extracted': 0,
-                                    'relationships_extracted': 0
-                                })
-                        
-                        # Log schema discovery
-                        if discovered_types:
-                            logger.info(f"Discovered entity types: {sorted(discovered_types)}")
-                            add_span_attributes({
-                                "schema.discovered_types": list(discovered_types),
-                                "schema.types_count": len(discovered_types)
-                            })
-                        
-                        # Aggregate results for checkpoint
-                        total_entities = sum(r.get('entities_extracted', 0) for r in extraction_results)
-                        total_relationships = sum(r.get('relationships_extracted', 0) for r in extraction_results)
-                        
-                        # Count errors
-                        error_count = sum(1 for r in extraction_results if r.get('status') == 'error')
-                        if error_count > 0:
-                            logger.warning(f"Encountered {error_count} errors during schemaless extraction")
-                            
-                            # Log degradation status if any features were disabled
-                            if any(degradation_flags.values()):
-                                logger.info(f"Graceful degradation applied: {degradation_flags}")
-                        
-                        extraction_result = {
-                            'mode': 'schemaless',
-                            'segments_processed': len(extraction_results),
-                            'entities': total_entities,
-                            'relationships': total_relationships,
-                            'discovered_types': list(discovered_types)
-                        }
-                        
-                        add_span_attributes({
-                            "entities.total": total_entities,
-                            "relationships.total": total_relationships
-                        })
-                        
-                        # Save extraction checkpoint for schemaless mode
-                        self.checkpoint.save_episode_progress(episode_id, 'extraction', extraction_result)
-                        
-                        # Track schema evolution
-                        if discovered_types:
-                            self.checkpoint.save_schema_evolution(episode_id, list(discovered_types))
-                    else:
-                        logger.warning("Graph provider does not support schemaless extraction, falling back to fixed schema")
-                        use_schemaless = False
-            
-            if not use_schemaless:
-                # Fixed schema extraction path (original code)
-                logger.info("Using FIXED SCHEMA extraction pipeline")
-                with create_span("knowledge_extraction", attributes={
-                    "segments.count": len(segments),
-                    "extraction.mode": "fixed"
-                }):
-                    logger.info("Extracting knowledge...")
-                    extraction_result = self.knowledge_extractor.extract_from_segments(
-                        segments,
-                        podcast_name=podcast_config.get('name'),
-                        episode_title=episode['title']
-                    )
-                    add_span_attributes({
-                        "insights.count": len(extraction_result.get('insights', [])),
-                        "entities.count": len(extraction_result.get('entities', [])),
-                    })
-                
-                # Save extraction checkpoint
-                self.checkpoint.save_episode_progress(episode_id, 'extraction', extraction_result)
-                
-                # Resolve entities
-                with create_span("entity_resolution", attributes={"entities.input_count": len(extraction_result.get('entities', []))}):
-                    logger.info("Resolving entities...")
-                    resolved_entities = self.entity_resolver.resolve_entities(
-                        extraction_result.get('entities', [])
-                    )
-                    add_span_attributes({"entities.resolved_count": len(resolved_entities)})
-                
-                # Analyze discourse flow
-                with create_span("discourse_flow_analysis", attributes={"entities.count": len(resolved_entities)}):
-                    logger.info("Analyzing discourse flow...")
-                    
-                    # Convert segment dictionaries to Segment objects for discourse flow
-                    from src.core.models import Segment
-                    segment_objects = []
-                    for i, segment_data in enumerate(segments):
-                        segment_obj = Segment(
-                            id=f"{episode_id}_segment_{i}",
-                            text=segment_data.get('text', ''),
-                            start_time=segment_data.get('start', 0),
-                            end_time=segment_data.get('end', 0),
-                            speaker=segment_data.get('speaker', 'Unknown'),
-                            segment_index=i
-                        )
-                        segment_objects.append(segment_obj)
-                    
-                    flow_results = self.discourse_flow_tracker.analyze_episode_flow(
-                        segment_objects,
-                        resolved_entities,
-                        extraction_result.get('insights', [])
-                    )
-                    add_span_attributes({
-                        "flow.patterns_detected": len(flow_results.get('discourse_patterns', [])),
-                        "flow.narrative_arcs": len(flow_results.get('narrative_arcs', [])),
-                        "flow.concept_lifecycles": len(flow_results.get('concept_lifecycles', {}))
-                    })
-                    
-                    # Store flow results in extraction_result for graph storage
-                    extraction_result['discourse_flow'] = flow_results
-                
-                # Detect emergent themes
-                with create_span("emergent_theme_detection", attributes={"entities.count": len(resolved_entities)}):
-                    logger.info("Detecting emergent themes...")
-                    
-                    # Build co-occurrence data from segments
-                    co_occurrences = self._build_co_occurrence_data(segment_objects, resolved_entities)
-                    
-                    # Extract explicit topics from the extraction results
-                    explicit_topics = extraction_result.get('topics', [])
-                    explicit_topic_names = [topic.get('name', '') for topic in explicit_topics if isinstance(topic, dict)]
-                    
-                    # Detect emergent themes
-                    theme_results = self.emergent_theme_detector.detect_themes(
-                        entities=resolved_entities,
-                        insights=extraction_result.get('insights', []),
-                        segments=segment_objects,
-                        co_occurrences=co_occurrences,
-                        explicit_topics=explicit_topic_names
-                    )
-                    
-                    add_span_attributes({
-                        "themes.detected": len(theme_results.get('themes', [])),
-                        "themes.meta": len(theme_results.get('hierarchy', {}).get('meta_themes', [])),
-                        "themes.primary": len(theme_results.get('hierarchy', {}).get('primary_themes', [])),
-                        "themes.implicit_messages": len(theme_results.get('implicit_messages', []))
-                    })
-                    
-                    # Store theme results in extraction_result for graph storage
-                    extraction_result['emergent_themes'] = theme_results
-                
-                # Analyze episode flow
-                with create_span("episode_flow_analysis", attributes={"segments.count": len(segment_objects)}):
-                    logger.info("Analyzing episode flow...")
-                    
-                    # Build concept timeline for flow analysis
-                    concept_timeline = {}
-                    entity_mentions = self.episode_flow_analyzer._find_entity_mentions(
-                        segment_objects, 
-                        resolved_entities
-                    )
-                    for entity_id, mentions in entity_mentions.items():
-                        concept_timeline[entity_id] = mentions
-                    
-                    # Run comprehensive flow analysis
-                    episode_flow = {
-                        "transitions": self.episode_flow_analyzer.classify_segment_transitions(segment_objects),
-                        "concept_introductions": self.episode_flow_analyzer.track_concept_introductions(
-                            segment_objects, resolved_entities
-                        ),
-                        "momentum": self.episode_flow_analyzer.analyze_conversation_momentum(segment_objects),
-                        "topic_depths": self.episode_flow_analyzer.track_topic_depth(
-                            segment_objects, resolved_entities
-                        ),
-                        "circular_references": self.episode_flow_analyzer.detect_circular_references(
-                            concept_timeline
-                        ),
-                        "resolutions": self.episode_flow_analyzer.analyze_concept_resolution(
-                            concept_timeline, segment_objects[-5:]  # Last 5 segments as final
-                        ),
-                        "speaker_contributions": self.episode_flow_analyzer.analyze_speaker_contribution_flow(
-                            segment_objects
-                        )
-                    }
-                    
-                    # Generate flow summary
-                    flow_summary = self.episode_flow_analyzer.generate_episode_flow_summary(episode_flow)
-                    episode_flow["summary"] = flow_summary
-                    
-                    # Add flow data to entities
-                    for entity in resolved_entities:
-                        if entity.id in episode_flow["concept_introductions"]:
-                            intro_data = episode_flow["concept_introductions"][entity.id]
-                            development = self.episode_flow_analyzer.map_concept_development(
-                                entity, segment_objects
-                            )
-                            
-                            # Calculate flow position metrics
-                            total_segments = len(segment_objects)
-                            intro_position = intro_data["introduction_segment"] / total_segments if total_segments > 0 else 0
-                            
-                            # Find peak discussion segment
-                            peak_segment = 0
-                            if development.get("phases"):
-                                elaboration_phases = [p for p in development["phases"] if p["phase"] == "elaboration"]
-                                if elaboration_phases:
-                                    peak_segment = elaboration_phases[len(elaboration_phases)//2]["segment_index"]
-                            peak_position = peak_segment / total_segments if total_segments > 0 else intro_position
-                            
-                            # Determine resolution status
-                            resolution_status = "unknown"
-                            if entity.id in episode_flow["resolutions"]:
-                                resolution_status = episode_flow["resolutions"][entity.id]["resolution_type"]
-                            
-                            # Add flow data to entity
-                            entity.flow_data = {
-                                "introduction_point": intro_position,
-                                "development_duration": len(development.get("phases", [])) * 10.0,  # Approximate seconds
-                                "peak_discussion": peak_position,
-                                "resolution_status": resolution_status
-                            }
-                    
-                    # Store episode flow data
-                    extraction_result['episode_flow'] = {
-                        "pattern": flow_summary.get("flow_pattern", "unknown"),
-                        "key_transitions": flow_summary.get("key_transitions", []),
-                        "flow_quality": flow_summary.get("narrative_coherence", 0.5)
-                    }
-                    
-                    add_span_attributes({
-                        "flow.pattern": flow_summary.get("flow_pattern"),
-                        "flow.coherence": flow_summary.get("narrative_coherence"),
-                        "flow.transitions": len(episode_flow.get("transitions", [])),
-                        "flow.circular_refs": len(episode_flow.get("circular_references", []))
-                    })
-                
-                # Save to graph
-                with create_span("graph_storage"):
-                    logger.info("Saving to knowledge graph...")
-                    self._save_to_graph(
-                        podcast_config,
-                        episode,
-                        segments,
-                        extraction_result,
-                        resolved_entities
-                    )
-            
-            # Mark episode as complete
-            self.checkpoint.save_episode_progress(episode_id, 'complete', True)
-            
-            # Clean up memory
-            cleanup_memory()
-            
-            # Build result based on extraction mode
-            if extraction_result.get('mode') == 'schemaless':
-                result = {
-                    'segments': len(segments),
-                    'insights': 0,  # Schemaless mode doesn't track insights separately
-                    'entities': extraction_result.get('entities', 0),
-                    'relationships': extraction_result.get('relationships', 0),
-                    'discovered_types': extraction_result.get('discovered_types', []),
-                    'mode': 'schemaless'
-                }
-            else:
-                result = {
-                    'segments': len(segments),
-                    'insights': len(extraction_result.get('insights', [])),
-                    'entities': len(resolved_entities) if 'resolved_entities' in locals() else 0,
-                    'mode': 'fixed'
-                }
-            
-            # Add result metrics to span
-            add_span_attributes({
-                "result.segments": result['segments'],
-                "result.insights": result['insights'],
-                "result.entities": result['entities'],
-                "result.mode": result['mode']
-            })
-            
-            return result
-            
-        finally:
-            # Clean up audio file if configured
-            if getattr(self.config, 'delete_audio_after_processing', True):
-                try:
-                    os.remove(audio_path)
-                except:
-                    pass
-    
-    @trace_method(name="pipeline.save_to_graph")
-    def _save_to_graph(self,
-                      podcast_config: Dict[str, Any],
-                      episode: Dict[str, Any],
-                      segments: List[Dict[str, Any]],
-                      extraction_result: Dict[str, Any],
-                      resolved_entities: List[Dict[str, Any]]):
-        """Save all data to the knowledge graph.
-        
-        Args:
-            podcast_config: Podcast configuration
-            episode: Episode information
-            segments: Processed segments
-            extraction_result: Extraction results
-            resolved_entities: Resolved entities
-        """
-        # Create podcast node
-        self.graph_provider.create_node(
-            'Podcast',
-            {
-                'id': podcast_config['id'],
-                'name': podcast_config.get('name', podcast_config['id']),
-                'description': podcast_config.get('description', ''),
-                'rss_url': podcast_config.get('rss_url', '')
-            }
-        )
-        
-        # Create episode node with flow data
-        episode_data = {
-            'id': episode['id'],
-            'title': episode['title'],
-            'description': episode.get('description', ''),
-            'published_date': episode.get('published_date', ''),
-            'duration': episode.get('duration', ''),
-            'audio_url': episode.get('audio_url', '')
-        }
-        
-        # Add episode flow data if available
-        if 'episode_flow' in extraction_result:
-            episode_flow_data = extraction_result['episode_flow']
-            episode_data['discourse_flow_pattern'] = episode_flow_data.get('pattern', 'unknown')
-            episode_data['flow_quality'] = episode_flow_data.get('flow_quality', 0.5)
-            episode_data['key_transitions_count'] = len(episode_flow_data.get('key_transitions', []))
-        
-        self.graph_provider.create_node('Episode', episode_data)
-        
-        # Create relationship
-        self.graph_provider.create_relationship(
-            ('Podcast', {'id': podcast_config['id']}),
-            'HAS_EPISODE',
-            ('Episode', {'id': episode['id']}),
-            {}
-        )
-        
-        # Save segments
-        for i, segment in enumerate(segments):
-            segment_data = {
-                'id': f"{episode['id']}_segment_{i}",
-                'segment_index': i,
-                'text': segment['text'],
-                'start_time': segment['start'],
-                'end_time': segment['end'],
-                'speaker': segment.get('speaker', 'Unknown'),
-                'sentiment': segment.get('sentiment', 'neutral')
-            }
-            
-            self.graph_provider.create_node('Segment', segment_data)
-            
-            self.graph_provider.create_relationship(
-                ('Episode', {'id': episode['id']}),
-                'HAS_SEGMENT',
-                ('Segment', {'id': segment_data['id']}),
-                {'sequence': i}
-            )
-        
-        # Save insights
-        for insight in extraction_result.get('insights', []):
-            self.graph_provider.create_node('Insight', insight)
-            
-            self.graph_provider.create_relationship(
-                ('Episode', {'id': episode['id']}),
-                'HAS_INSIGHT',
-                ('Insight', {'id': insight['id']}),
-                {}
-            )
-        
-        # Save entities with flow data
-        for entity in resolved_entities:
-            # Convert entity to dictionary to ensure flow_data is included
-            entity_data = {
-                'id': entity.id,
-                'name': entity.name,
-                'type': entity.type,
-                'description': entity.description,
-                'confidence': getattr(entity, 'confidence', 1.0),
-                'importance_score': getattr(entity, 'importance_score', 0.5),
-                'importance_factors': getattr(entity, 'importance_factors', {}),
-                'discourse_roles': getattr(entity, 'discourse_roles', {})
-            }
-            
-            # Add flow data if present
-            if hasattr(entity, 'flow_data') and entity.flow_data:
-                entity_data.update({
-                    'flow_introduction_point': entity.flow_data.get('introduction_point', 0),
-                    'flow_development_duration': entity.flow_data.get('development_duration', 0),
-                    'flow_peak_discussion': entity.flow_data.get('peak_discussion', 0),
-                    'flow_resolution_status': entity.flow_data.get('resolution_status', 'unknown')
-                })
-            
-            # Add embedding if present
-            if hasattr(entity, 'embedding') and entity.embedding:
-                entity_data['embedding'] = entity.embedding
-            
-            # Create or update entity
-            self.graph_provider.create_node('Entity', entity_data)
-            
-            # Create relationship to episode
-            self.graph_provider.create_relationship(
-                ('Episode', {'id': episode['id']}),
-                'MENTIONS',
-                ('Entity', {'id': entity.id}),
-                {'confidence': entity_data['confidence']}
-            )
-        
-        # Save quotes
-        for quote in extraction_result.get('quotes', []):
-            quote['id'] = f"{episode['id']}_quote_{hash(quote['text'])}"
-            self.graph_provider.create_node('Quote', quote)
-            
-            self.graph_provider.create_relationship(
-                ('Episode', {'id': episode['id']}),
-                'CONTAINS_QUOTE',
-                ('Quote', {'id': quote['id']}),
-                {}
-            )
-        
-        # Save emergent themes
-        emergent_themes_data = extraction_result.get('emergent_themes', {})
-        if emergent_themes_data and emergent_themes_data.get('themes'):
-            logger.info(f"Saving {len(emergent_themes_data['themes'])} emergent themes...")
-            
-            for theme in emergent_themes_data['themes']:
-                # Create theme node
-                theme_data = {
-                    'id': f"{episode['id']}_theme_{theme.get('theme_id', hash(theme['semantic_field']))}",
-                    'semantic_field': theme.get('semantic_field', 'Unknown'),
-                    'emergence_score': theme.get('emergence_score', 0.5),
-                    'confidence': theme.get('confidence', 0.5),
-                    'validation_score': theme.get('validation_score', 0.5),
-                    'theme_source': theme.get('theme_source', 'unknown'),
-                    'evolution_pattern': theme.get('evolution_pattern', 'unknown')
-                }
-                
-                self.graph_provider.create_node('EmergentTheme', theme_data)
-                
-                # Create relationship to episode
-                self.graph_provider.create_relationship(
-                    ('Episode', {'id': episode['id']}),
-                    'HAS_EMERGENT_THEME',
-                    ('EmergentTheme', {'id': theme_data['id']}),
-                    {'strength': theme.get('confidence', 0.5)}
-                )
-                
-                # Link theme to its key concepts
-                for concept_name in theme.get('key_concepts', [])[:5]:  # Top 5 concepts
-                    # Find matching entity
-                    matching_entity = next(
-                        (e for e in resolved_entities if e.name.lower() == concept_name.lower()),
-                        None
-                    )
-                    if matching_entity:
-                        self.graph_provider.create_relationship(
-                            ('EmergentTheme', {'id': theme_data['id']}),
-                            'COMPOSED_OF',
-                            ('Entity', {'id': matching_entity.id}),
-                            {'role': 'key_concept'}
-                        )
-        
-        # Enhance graph if configured
-        if getattr(self.config, 'enhance_graph', True):
-            logger.info("Enhancing knowledge graph...")
-            self.graph_enhancer.enhance_episode(episode['id'])
     
     def resume_from_checkpoints(self) -> Dict[str, Any]:
         """Resume processing from checkpoints after interruption.
@@ -1084,45 +446,3 @@ class PodcastKnowledgePipeline:
             'resumed_episodes': 0,
             'message': 'Checkpoint recovery not fully implemented'
         }
-    
-    def _build_co_occurrence_data(self, segments: List[Segment], entities: List[Entity]) -> List[Dict]:
-        """
-        Build co-occurrence data for entities appearing in the same segments.
-        
-        Args:
-            segments: List of segment objects
-            entities: List of entity objects
-            
-        Returns:
-            List of co-occurrence relationships
-        """
-        from collections import defaultdict
-        
-        # Map entities to segments they appear in
-        entity_segments = defaultdict(set)
-        
-        for entity in entities:
-            entity_name_lower = entity.name.lower()
-            
-            for i, segment in enumerate(segments):
-                if entity_name_lower in segment.text.lower():
-                    entity_segments[entity.id].add(i)
-        
-        # Build co-occurrence relationships
-        co_occurrences = []
-        entities_list = list(entities)
-        
-        for i, entity1 in enumerate(entities_list):
-            for j, entity2 in enumerate(entities_list[i+1:], start=i+1):
-                # Find shared segments
-                shared_segments = entity_segments[entity1.id] & entity_segments[entity2.id]
-                
-                if shared_segments:
-                    co_occurrences.append({
-                        "entity1_id": entity1.id,
-                        "entity2_id": entity2.id,
-                        "weight": len(shared_segments),
-                        "shared_segments": list(shared_segments)
-                    })
-        
-        return co_occurrences

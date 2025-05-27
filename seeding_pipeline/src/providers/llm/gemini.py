@@ -5,12 +5,15 @@ from typing import Dict, Any, Optional, List
 
 from src.providers.llm.base import BaseLLMProvider, LLMResponse
 from src.core.exceptions import ProviderError, RateLimitError
+from src.core.plugin_discovery import provider_plugin
 from src.utils.rate_limiting import WindowedRateLimiter
 
 
 logger = logging.getLogger(__name__)
 
 
+@provider_plugin('llm', 'gemini', version='1.0.0', author='Google', 
+                description='LLM provider using Google Gemini')
 class GeminiProvider(BaseLLMProvider):
     """Gemini LLM provider using langchain_google_genai."""
     

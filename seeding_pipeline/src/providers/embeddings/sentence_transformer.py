@@ -5,11 +5,14 @@ from typing import List, Dict, Any, Optional
 
 from src.providers.embeddings.base import BaseEmbeddingProvider
 from src.core.exceptions import ProviderError
+from src.core.plugin_discovery import provider_plugin
 
 
 logger = logging.getLogger(__name__)
 
 
+@provider_plugin('embedding', 'sentence_transformer', version='1.0.0', author='HuggingFace', 
+                description='Embeddings using Sentence Transformers')
 class SentenceTransformerProvider(BaseEmbeddingProvider):
     """Embedding provider using sentence-transformers library."""
     
@@ -180,6 +183,8 @@ class SentenceTransformerProvider(BaseEmbeddingProvider):
             raise ProviderError(f"Encoding failed: {e}")
 
 
+@provider_plugin('embedding', 'openai', version='1.0.0', author='OpenAI', 
+                description='Embeddings using OpenAI API')
 class OpenAIEmbeddingProvider(BaseEmbeddingProvider):
     """Embedding provider using OpenAI's text-embedding models."""
     

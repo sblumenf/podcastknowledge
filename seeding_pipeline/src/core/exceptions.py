@@ -176,5 +176,143 @@ class CriticalError(PodcastProcessingError):
         super().__init__(message, ErrorSeverity.CRITICAL, details)
 
 
+class ExtractionError(PodcastProcessingError):
+    """
+    Raised when knowledge extraction fails.
+    
+    Use this for failures in entity extraction, insight generation,
+    or quote extraction. Default severity is WARNING as extraction
+    can often continue with partial results.
+    """
+    
+    def __init__(
+        self,
+        message: str,
+        severity: ErrorSeverity = ErrorSeverity.WARNING,
+        details: Optional[dict[str, Any]] = None
+    ):
+        super().__init__(message, severity, details)
+
+
+class RateLimitError(ProviderError):
+    """
+    Raised when API rate limits are exceeded.
+    
+    This should trigger exponential backoff and retry logic.
+    Default severity is WARNING as the operation can be retried.
+    """
+    
+    def __init__(
+        self,
+        provider_name: str,
+        message: str,
+        retry_after: Optional[float] = None,
+        details: Optional[dict[str, Any]] = None
+    ):
+        if details is None:
+            details = {}
+        if retry_after is not None:
+            details["retry_after"] = retry_after
+        super().__init__(provider_name, message, ErrorSeverity.WARNING, details)
+
+
+class TimeoutError(PodcastProcessingError):
+    """
+    Raised when an operation exceeds its time limit.
+    
+    Default severity is WARNING as timeouts can often be retried
+    with adjusted parameters.
+    """
+    
+    def __init__(
+        self,
+        message: str,
+        operation: Optional[str] = None,
+        timeout_seconds: Optional[float] = None,
+        details: Optional[dict[str, Any]] = None
+    ):
+        if details is None:
+            details = {}
+        if operation:
+            details["operation"] = operation
+        if timeout_seconds is not None:
+            details["timeout_seconds"] = timeout_seconds
+        super().__init__(message, ErrorSeverity.WARNING, details)
+
+
+class ResourceError(PodcastProcessingError):
+    """
+    Raised when system resources are exhausted.
+    
+    Use this for memory, disk space, or other resource limitations.
+    Default severity is CRITICAL as resource exhaustion usually
+    requires intervention.
+    """
+    
+    def __init__(
+        self,
+        message: str,
+        resource_type: Optional[str] = None,
+        details: Optional[dict[str, Any]] = None
+    ):
+        if details is None:
+            details = {}
+        if resource_type:
+            details["resource_type"] = resource_type
+        super().__init__(message, ErrorSeverity.CRITICAL, details)
+
+
+class DataIntegrityError(PodcastProcessingError):
+    """
+    Raised when data consistency or integrity issues are detected.
+    
+    Use this for corrupted data, missing required fields, or
+    inconsistent state. Default severity is CRITICAL.
+    """
+    
+    def __init__(
+        self,
+        message: str,
+        entity_type: Optional[str] = None,
+        entity_id: Optional[str] = None,
+        details: Optional[dict[str, Any]] = None
+    ):
+        if details is None:
+            details = {}
+        if entity_type:
+            details["entity_type"] = entity_type
+        if entity_id:
+            details["entity_id"] = entity_id
+        super().__init__(message, ErrorSeverity.CRITICAL, details)
+
+
 # Alias for backward compatibility
 ConnectionError = DatabaseConnectionError
+
+
+# Exception Usage Guidelines
+"""
+Exception Usage Guidelines:
+
+1. PodcastProcessingError - Base exception, rarely used directly
+2. ConfigurationError - Invalid config, missing required settings
+3. ValidationError - Invalid input data, failed validation rules
+4. DatabaseConnectionError - Neo4j connection failures
+5. AudioProcessingError - Transcription, diarization failures
+6. LLMProcessingError - LLM API failures, response parsing errors
+7. ExtractionError - Entity/insight/quote extraction failures
+8. ProviderError - Generic provider failures, use specific types when possible
+9. RateLimitError - API rate limit exceeded (subclass of ProviderError)
+10. TimeoutError - Operation timeout exceeded
+11. ResourceError - Memory, disk, or other resource exhaustion
+12. DataIntegrityError - Data consistency or corruption issues
+13. PipelineError - Overall pipeline processing failures
+14. CriticalError - Unrecoverable errors requiring shutdown
+
+Severity Guidelines:
+- CRITICAL: System must stop, requires intervention
+- WARNING: Can continue with degraded functionality or retry
+- INFO: Informational only, no action needed
+
+Always include relevant details in the exception for debugging.
+"""

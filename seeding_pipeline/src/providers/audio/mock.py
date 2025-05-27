@@ -6,8 +6,11 @@ import uuid
 
 from src.providers.audio.base import BaseAudioProvider
 from src.core.interfaces import TranscriptSegment, DiarizationSegment
+from src.core.plugin_discovery import provider_plugin
 
 
+@provider_plugin('audio', 'mock', version='1.0.0', author='Test', 
+                description='Mock audio provider for testing')
 class MockAudioProvider(BaseAudioProvider):
     """Mock audio provider that returns predefined responses for testing."""
     

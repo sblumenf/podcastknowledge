@@ -6,8 +6,11 @@ import random
 from typing import List, Dict, Any
 
 from src.providers.embeddings.base import BaseEmbeddingProvider
+from src.core.plugin_discovery import provider_plugin
 
 
+@provider_plugin('embedding', 'mock', version='1.0.0', author='Test', 
+                description='Mock embedding provider for testing')
 class MockEmbeddingProvider(BaseEmbeddingProvider):
     """Mock embedding provider that generates deterministic embeddings for testing."""
     

@@ -1,0 +1,40 @@
+{
+  "extraction_mode": "fixed",
+  "created_at": "2025-05-26T22:47:13.882174",
+  "sample_output": {
+    "entities": [
+      {
+        "name": "Dr. Jane Smith",
+        "type": "Person",
+        "description": "AI Researcher"
+      },
+      {
+        "name": "MIT",
+        "type": "Organization",
+        "description": "Research Institution"
+      }
+    ],
+    "relationships": [
+      {
+        "source": "Dr. Jane Smith",
+        "target": "MIT",
+        "type": "WORKS_AT"
+      }
+    ],
+    "insights": [
+      {
+        "content": "AI is transforming healthcare",
+        "speaker": "Dr. Jane Smith",
+        "confidence": 0.9
+      }
+    ],
+    "themes": [
+      "artificial intelligence",
+      "healthcare"
+    ],
+    "topics": [
+      "machine learning",
+      "medical diagnostics"
+    ]
+  }
+}

@@ -10,6 +10,7 @@ from datetime import datetime
 
 from src.providers.graph.base import BaseGraphProvider
 from src.core.exceptions import ProviderError, ConnectionError
+from src.core.plugin_discovery import provider_plugin
 from src.providers.llm.gemini_adapter import create_gemini_adapter
 from src.providers.embeddings.sentence_transformer_adapter import create_sentence_transformer_adapter
 from src.processing.schemaless_preprocessor import SegmentPreprocessor
@@ -21,6 +22,8 @@ from src.core.models import Podcast, Episode, Segment
 logger = logging.getLogger(__name__)
 
 
+@provider_plugin('graph', 'schemaless', version='1.0.0', author='Neo4j', 
+                description='Schemaless Neo4j provider for dynamic schemas')
 class SchemalessNeo4jProvider(BaseGraphProvider):
     """
     Schemaless graph provider using neo4j-graphrag's SimpleKGPipeline.

@@ -12,6 +12,31 @@ from enum import Enum
 logger = logging.getLogger(__name__)
 
 
+class ExponentialBackoff:
+    """Exponential backoff calculator for retry logic."""
+    
+    def __init__(self, base: float = 2.0, max_delay: float = 60.0):
+        """Initialize exponential backoff.
+        
+        Args:
+            base: Base for exponential calculation
+            max_delay: Maximum delay in seconds
+        """
+        self.base = base
+        self.max_delay = max_delay
+        self.attempt = 0
+        
+    def get_next_delay(self) -> float:
+        """Get the next delay value."""
+        delay = min(self.base ** self.attempt, self.max_delay)
+        self.attempt += 1
+        return delay
+        
+    def reset(self):
+        """Reset the backoff counter."""
+        self.attempt = 0
+
+
 class RetryStrategy(Enum):
     """Retry strategies for different backoff patterns."""
     EXPONENTIAL = "exponential"
