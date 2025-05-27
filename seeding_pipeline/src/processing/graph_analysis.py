@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from enum import Enum
 from collections import defaultdict
 from itertools import combinations
+import numpy as np
 
 from src.core.models import Entity, Insight
 from src.core.interfaces import LLMProvider
@@ -123,12 +124,554 @@ class BridgeInsight:
 class GraphAnalyzer:
     """Handles graph analysis and enhancement operations"""
     
-    def __init__(self):
-        """Initialize graph analyzer"""
+    def __init__(self, graph_provider=None):
+        """Initialize graph analyzer
+        
+        Args:
+            graph_provider: Optional graph provider instance (for compatibility)
+        """
+        self.graph_provider = graph_provider
         if not NETWORKX_AVAILABLE:
             logger.warning("NetworkX not available. Graph analysis features will be limited.")
         if not SCIPY_AVAILABLE:
             logger.warning("SciPy not available. Some analysis features will be limited.")
+    
+    class EnhancedGapAnalyzer:
+        """Inner class for enhanced structural gap analysis.
+        
+        Extends basic gap detection with semantic analysis, bridge identification,
+        and actionable suggestions for knowledge exploration.
+        """
+        
+        def __init__(self, graph_analyzer: 'GraphAnalyzer'):
+            """Initialize enhanced gap analyzer.
+            
+            Args:
+                graph_analyzer: Parent GraphAnalyzer instance
+            """
+            self.graph_analyzer = graph_analyzer
+            
+        def calculate_semantic_distance(
+            self,
+            community1_entities: List[Entity],
+            community2_entities: List[Entity]
+        ) -> Dict[str, float]:
+            """Measure semantic distance between two disconnected communities.
+            
+            Args:
+                community1_entities: Entities in first community
+                community2_entities: Entities in second community
+                
+            Returns:
+                Dictionary with distance metrics
+            """
+            if not community1_entities or not community2_entities:
+                return {
+                    "centroid_distance": 1.0,
+                    "min_pairwise_distance": 1.0,
+                    "max_pairwise_distance": 1.0,
+                    "avg_pairwise_distance": 1.0
+                }
+            
+            # Get embeddings for each community
+            embeddings1 = []
+            embeddings2 = []
+            
+            for entity in community1_entities:
+                if hasattr(entity, 'embedding') and entity.embedding:
+                    embeddings1.append(np.array(entity.embedding))
+                    
+            for entity in community2_entities:
+                if hasattr(entity, 'embedding') and entity.embedding:
+                    embeddings2.append(np.array(entity.embedding))
+            
+            # If no embeddings available, return default distances
+            if not embeddings1 or not embeddings2:
+                return {
+                    "centroid_distance": 0.5,  # Unknown distance
+                    "min_pairwise_distance": 0.5,
+                    "max_pairwise_distance": 0.5,
+                    "avg_pairwise_distance": 0.5
+                }
+            
+            # Calculate centroid for each community
+            centroid1 = np.mean(embeddings1, axis=0)
+            centroid2 = np.mean(embeddings2, axis=0)
+            
+            # Normalize centroids
+            centroid1 = centroid1 / (np.linalg.norm(centroid1) + 1e-8)
+            centroid2 = centroid2 / (np.linalg.norm(centroid2) + 1e-8)
+            
+            # Calculate centroid distance (1 - cosine similarity)
+            centroid_distance = 1 - np.dot(centroid1, centroid2)
+            
+            # Calculate pairwise distances
+            pairwise_distances = []
+            for emb1 in embeddings1:
+                emb1_norm = emb1 / (np.linalg.norm(emb1) + 1e-8)
+                for emb2 in embeddings2:
+                    emb2_norm = emb2 / (np.linalg.norm(emb2) + 1e-8)
+                    distance = 1 - np.dot(emb1_norm, emb2_norm)
+                    pairwise_distances.append(distance)
+            
+            return {
+                "centroid_distance": float(centroid_distance),
+                "min_pairwise_distance": float(min(pairwise_distances)),
+                "max_pairwise_distance": float(max(pairwise_distances)),
+                "avg_pairwise_distance": float(np.mean(pairwise_distances))
+            }
+        
+        def find_potential_bridges(
+            self,
+            gap: Dict[str, Any],
+            all_entities: List[Entity],
+            top_n: int = 5
+        ) -> List[Dict[str, Any]]:
+            """Identify concepts that could connect disconnected communities.
+            
+            Args:
+                gap: Gap information dictionary
+                all_entities: All entities in the graph
+                top_n: Number of top bridge candidates to return
+                
+            Returns:
+                List of potential bridge concepts with scores
+            """
+            # Get entities in each community
+            comm1_entity_ids = set(gap.get('community1_entities', []))
+            comm2_entity_ids = set(gap.get('community2_entities', []))
+            
+            # Find entities not in either community
+            bridge_candidates = []
+            
+            for entity in all_entities:
+                if entity.id not in comm1_entity_ids and entity.id not in comm2_entity_ids:
+                    if hasattr(entity, 'embedding') and entity.embedding:
+                        # Calculate similarity to both communities
+                        comm1_entities = [e for e in all_entities if e.id in comm1_entity_ids]
+                        comm2_entities = [e for e in all_entities if e.id in comm2_entity_ids]
+                        
+                        # Get embeddings
+                        comm1_embeddings = []
+                        comm2_embeddings = []
+                        
+                        for e in comm1_entities:
+                            if hasattr(e, 'embedding') and e.embedding:
+                                comm1_embeddings.append(np.array(e.embedding))
+                        
+                        for e in comm2_entities:
+                            if hasattr(e, 'embedding') and e.embedding:
+                                comm2_embeddings.append(np.array(e.embedding))
+                        
+                        if comm1_embeddings and comm2_embeddings:
+                            # Calculate centroids
+                            centroid1 = np.mean(comm1_embeddings, axis=0)
+                            centroid2 = np.mean(comm2_embeddings, axis=0)
+                            
+                            # Normalize
+                            entity_emb = np.array(entity.embedding)
+                            entity_emb_norm = entity_emb / (np.linalg.norm(entity_emb) + 1e-8)
+                            centroid1_norm = centroid1 / (np.linalg.norm(centroid1) + 1e-8)
+                            centroid2_norm = centroid2 / (np.linalg.norm(centroid2) + 1e-8)
+                            
+                            # Calculate similarities
+                            sim_to_comm1 = np.dot(entity_emb_norm, centroid1_norm)
+                            sim_to_comm2 = np.dot(entity_emb_norm, centroid2_norm)
+                            
+                            # Bridge score: minimum similarity to both communities
+                            bridge_score = min(sim_to_comm1, sim_to_comm2) * 2
+                            
+                            bridge_candidates.append({
+                                "entity": entity,
+                                "bridge_score": float(bridge_score),
+                                "similarity_to_community1": float(sim_to_comm1),
+                                "similarity_to_community2": float(sim_to_comm2),
+                                "explanation": f"This concept relates to both communities with balanced similarity"
+                            })
+            
+            # Sort by bridge score
+            bridge_candidates.sort(key=lambda x: x['bridge_score'], reverse=True)
+            
+            return bridge_candidates[:top_n]
+        
+        def calculate_gap_bridgeability(
+            self,
+            gap: Dict[str, Any],
+            semantic_distance: Dict[str, float],
+            potential_bridges: List[Dict[str, Any]]
+        ) -> float:
+            """Score how easily a gap could be bridged.
+            
+            Args:
+                gap: Gap information
+                semantic_distance: Semantic distance metrics
+                potential_bridges: List of potential bridge concepts
+                
+            Returns:
+                Bridgeability score between 0 and 1
+            """
+            # Factor 1: Semantic distance (closer = more bridgeable)
+            distance_factor = 1 - semantic_distance.get('centroid_distance', 0.5)
+            
+            # Factor 2: Number and quality of bridge candidates
+            if potential_bridges:
+                # Average score of top 3 bridges
+                top_bridge_scores = [b['bridge_score'] for b in potential_bridges[:3]]
+                bridge_quality = np.mean(top_bridge_scores) if top_bridge_scores else 0
+            else:
+                bridge_quality = 0
+            
+            # Factor 3: Size balance between communities
+            comm1_size = len(gap.get('community1_entities', []))
+            comm2_size = len(gap.get('community2_entities', []))
+            total_size = comm1_size + comm2_size
+            if total_size > 0:
+                size_balance = 1 - abs(comm1_size - comm2_size) / total_size
+            else:
+                size_balance = 0
+            
+            # Factor 4: Conceptual coherence (simplified - based on existing connections)
+            connection_count = gap.get('connection_count', 0)
+            coherence_factor = min(1.0, connection_count / 3.0)
+            
+            # Combine factors
+            bridgeability = (
+                0.3 * distance_factor +
+                0.4 * bridge_quality +
+                0.2 * size_balance +
+                0.1 * coherence_factor
+            )
+            
+            return float(bridgeability)
+        
+        def find_conceptual_paths(
+            self,
+            entity1: Entity,
+            entity2: Entity,
+            all_entities: List[Entity],
+            max_hops: int = 3
+        ) -> List[List[Entity]]:
+            """Find potential conceptual paths between disconnected entities.
+            
+            Args:
+                entity1: Starting entity
+                entity2: Target entity
+                all_entities: All available entities
+                max_hops: Maximum path length
+                
+            Returns:
+                List of paths (each path is a list of entities)
+            """
+            if not (hasattr(entity1, 'embedding') and entity1.embedding and
+                    hasattr(entity2, 'embedding') and entity2.embedding):
+                return []
+            
+            # Use embedding space to find intermediate concepts
+            start_emb = np.array(entity1.embedding)
+            end_emb = np.array(entity2.embedding)
+            
+            # Normalize
+            start_emb = start_emb / (np.linalg.norm(start_emb) + 1e-8)
+            end_emb = end_emb / (np.linalg.norm(end_emb) + 1e-8)
+            
+            paths = []
+            
+            # Simple approach: find entities that are similar to both
+            for intermediate in all_entities:
+                if (intermediate.id != entity1.id and 
+                    intermediate.id != entity2.id and
+                    hasattr(intermediate, 'embedding') and 
+                    intermediate.embedding):
+                    
+                    inter_emb = np.array(intermediate.embedding)
+                    inter_emb = inter_emb / (np.linalg.norm(inter_emb) + 1e-8)
+                    
+                    # Check similarity to both start and end
+                    sim_to_start = np.dot(start_emb, inter_emb)
+                    sim_to_end = np.dot(end_emb, inter_emb)
+                    
+                    # If reasonably similar to both, it's a good bridge
+                    if sim_to_start > 0.5 and sim_to_end > 0.5:
+                        path = [entity1, intermediate, entity2]
+                        paths.append(path)
+            
+            # Sort paths by average similarity
+            def path_score(path):
+                if len(path) < 2:
+                    return 0
+                scores = []
+                for i in range(len(path) - 1):
+                    if (hasattr(path[i], 'embedding') and path[i].embedding and
+                        hasattr(path[i+1], 'embedding') and path[i+1].embedding):
+                        emb1 = np.array(path[i].embedding)
+                        emb2 = np.array(path[i+1].embedding)
+                        emb1 = emb1 / (np.linalg.norm(emb1) + 1e-8)
+                        emb2 = emb2 / (np.linalg.norm(emb2) + 1e-8)
+                        scores.append(np.dot(emb1, emb2))
+                return np.mean(scores) if scores else 0
+            
+            paths.sort(key=path_score, reverse=True)
+            
+            # Return top 3 paths
+            return paths[:3]
+        
+        def generate_enhanced_gap_report(self, gap: Dict[str, Any]) -> Dict[str, Any]:
+            """Create comprehensive gap analysis report.
+            
+            Args:
+                gap: Basic gap information
+                
+            Returns:
+                Enhanced gap report with analysis and suggestions
+            """
+            # Get entities for semantic analysis
+            all_entities = gap.get('all_entities', [])
+            comm1_entity_ids = gap.get('community1_entities', [])
+            comm2_entity_ids = gap.get('community2_entities', [])
+            
+            comm1_entities = [e for e in all_entities if e.id in comm1_entity_ids]
+            comm2_entities = [e for e in all_entities if e.id in comm2_entity_ids]
+            
+            # Calculate semantic distance
+            semantic_distance = self.calculate_semantic_distance(comm1_entities, comm2_entities)
+            
+            # Find potential bridges
+            potential_bridges = self.find_potential_bridges(gap, all_entities, top_n=5)
+            
+            # Calculate bridgeability
+            bridgeability_score = self.calculate_gap_bridgeability(
+                gap, semantic_distance, potential_bridges
+            )
+            
+            # Generate exploration suggestions
+            exploration_suggestions = []
+            
+            if potential_bridges:
+                top_bridge = potential_bridges[0]['entity']
+                exploration_suggestions.append(
+                    f"Consider exploring how {top_bridge.name} relates to both topic areas"
+                )
+            
+            if semantic_distance['centroid_distance'] < 0.5:
+                exploration_suggestions.append(
+                    "These topics are semantically close - look for implicit connections"
+                )
+            else:
+                exploration_suggestions.append(
+                    "These topics are semantically distant - bridging may reveal novel insights"
+                )
+            
+            # Create report
+            report = {
+                "gap_id": f"community_{gap.get('community_1', 0)}_to_{gap.get('community_2', 0)}",
+                "semantic_analysis": {
+                    "distance_metrics": semantic_distance,
+                    "interpretation": self._interpret_semantic_distance(semantic_distance)
+                },
+                "bridge_analysis": {
+                    "potential_bridges": potential_bridges,
+                    "bridgeability_score": bridgeability_score,
+                    "recommended_connections": [b['entity'].name for b in potential_bridges[:3]]
+                },
+                "exploration_suggestions": exploration_suggestions
+            }
+            
+            return report
+        
+        def _interpret_semantic_distance(self, distance_metrics: Dict[str, float]) -> str:
+            """Interpret semantic distance metrics.
+            
+            Args:
+                distance_metrics: Distance metrics dictionary
+                
+            Returns:
+                Human-readable interpretation
+            """
+            centroid_dist = distance_metrics.get('centroid_distance', 0.5)
+            
+            if centroid_dist < 0.3:
+                return "These communities are semantically very close"
+            elif centroid_dist < 0.5:
+                return "These communities are moderately distant"
+            elif centroid_dist < 0.7:
+                return "These communities are quite distant"
+            else:
+                return "These communities are very distant semantically"
+        
+        def track_gap_evolution(
+            self,
+            current_gaps: List[Dict[str, Any]],
+            previous_gaps: List[Dict[str, Any]]
+        ) -> Dict[str, Any]:
+            """Track how gaps change as more content is processed.
+            
+            Args:
+                current_gaps: Current gap analysis
+                previous_gaps: Previous gap analysis
+                
+            Returns:
+                Gap evolution analysis
+            """
+            evolution = {
+                "new_gaps": [],
+                "bridged_gaps": [],
+                "widened_gaps": [],
+                "stable_gaps": []
+            }
+            
+            # Create gap identifiers for comparison
+            def gap_id(gap):
+                return f"{gap.get('community_1', 0)}_{gap.get('community_2', 0)}"
+            
+            current_gap_ids = {gap_id(g): g for g in current_gaps}
+            previous_gap_ids = {gap_id(g): g for g in previous_gaps}
+            
+            # Find new gaps
+            for gid, gap in current_gap_ids.items():
+                if gid not in previous_gap_ids:
+                    evolution["new_gaps"].append(gap)
+            
+            # Find bridged gaps
+            for gid, gap in previous_gap_ids.items():
+                if gid not in current_gap_ids:
+                    evolution["bridged_gaps"].append(gap)
+            
+            # Compare stable gaps
+            for gid in set(current_gap_ids.keys()) & set(previous_gap_ids.keys()):
+                current = current_gap_ids[gid]
+                previous = previous_gap_ids[gid]
+                
+                # Compare gap scores or connection counts
+                current_score = current.get('gap_score', 0)
+                previous_score = previous.get('gap_score', 0)
+                
+                if current_score > previous_score + 0.1:
+                    evolution["widened_gaps"].append(current)
+                else:
+                    evolution["stable_gaps"].append(current)
+            
+            return evolution
+        
+        def prioritize_gaps(self, gaps: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+            """Rank gaps by importance and exploration value.
+            
+            Args:
+                gaps: List of gap dictionaries
+                
+            Returns:
+                Prioritized list of gaps
+            """
+            prioritized_gaps = []
+            
+            for gap in gaps:
+                # Calculate priority factors
+                
+                # Size of disconnected communities
+                comm1_size = len(gap.get('community1_entities', []))
+                comm2_size = len(gap.get('community2_entities', []))
+                size_factor = (comm1_size + comm2_size) / 20.0  # Normalize
+                
+                # Importance of entities (if available)
+                importance_factor = 0.5  # Default
+                all_entities = gap.get('all_entities', [])
+                if all_entities:
+                    comm1_entities = [e for e in all_entities 
+                                     if e.id in gap.get('community1_entities', [])]
+                    comm2_entities = [e for e in all_entities 
+                                     if e.id in gap.get('community2_entities', [])]
+                    
+                    importances = []
+                    for e in comm1_entities + comm2_entities:
+                        if hasattr(e, 'importance_score'):
+                            importances.append(e.importance_score)
+                    
+                    if importances:
+                        importance_factor = np.mean(importances)
+                
+                # Bridgeability (if calculated)
+                bridgeability = gap.get('bridgeability_score', 0.5)
+                
+                # Novelty factor (gaps with fewer connections are more novel)
+                connection_count = gap.get('connection_count', 0)
+                novelty_factor = 1 - min(1.0, connection_count / 5.0)
+                
+                # Calculate priority score
+                priority_score = (
+                    0.25 * size_factor +
+                    0.35 * importance_factor +
+                    0.25 * bridgeability +
+                    0.15 * novelty_factor
+                )
+                
+                gap['priority_score'] = float(priority_score)
+                prioritized_gaps.append(gap)
+            
+            # Sort by priority
+            prioritized_gaps.sort(key=lambda x: x['priority_score'], reverse=True)
+            
+            return prioritized_gaps
+        
+        def prepare_gap_visualization_data(
+            self,
+            enhanced_gaps: List[Dict[str, Any]]
+        ) -> Dict[str, Any]:
+            """Structure data for gap visualization.
+            
+            Args:
+                enhanced_gaps: List of enhanced gap analyses
+                
+            Returns:
+                Visualization-ready data structure
+            """
+            viz_data = {
+                "communities": {},
+                "gaps": [],
+                "bridges": [],
+                "semantic_map": {}
+            }
+            
+            for gap in enhanced_gaps:
+                gap_id = gap.get('gap_id', '')
+                
+                # Add community info
+                comm1_id = gap.get('community_1', 0)
+                comm2_id = gap.get('community_2', 0)
+                
+                if comm1_id not in viz_data["communities"]:
+                    viz_data["communities"][comm1_id] = {
+                        "id": comm1_id,
+                        "entities": gap.get('representative_concepts_1', []),
+                        "size": len(gap.get('community1_entities', []))
+                    }
+                
+                if comm2_id not in viz_data["communities"]:
+                    viz_data["communities"][comm2_id] = {
+                        "id": comm2_id,
+                        "entities": gap.get('representative_concepts_2', []),
+                        "size": len(gap.get('community2_entities', []))
+                    }
+                
+                # Add gap info
+                gap_viz = {
+                    "id": gap_id,
+                    "source": comm1_id,
+                    "target": comm2_id,
+                    "distance": gap.get('semantic_analysis', {}).get('distance_metrics', {}).get('centroid_distance', 0.5),
+                    "bridgeability": gap.get('bridge_analysis', {}).get('bridgeability_score', 0.5),
+                    "priority": gap.get('priority_score', 0.5)
+                }
+                viz_data["gaps"].append(gap_viz)
+                
+                # Add bridge candidates
+                for bridge in gap.get('bridge_analysis', {}).get('potential_bridges', [])[:3]:
+                    bridge_viz = {
+                        "entity": bridge['entity'].name,
+                        "score": bridge['bridge_score'],
+                        "connects": [comm1_id, comm2_id]
+                    }
+                    viz_data["bridges"].append(bridge_viz)
+            
+            return viz_data
     
     def extract_weighted_co_occurrences(
         self, 
@@ -672,6 +1215,61 @@ class GraphAnalyzer:
         
         return gaps[:10]  # Return top 10 gaps
     
+    def enhance_gap_analysis(self, gap: StructuralGap, all_entities: List[Entity]) -> Dict[str, Any]:
+        """Enhance a structural gap with semantic analysis and bridge identification.
+        
+        Args:
+            gap: Basic structural gap
+            all_entities: All entities in the graph
+            
+        Returns:
+            Enhanced gap analysis dictionary
+        """
+        # Create enhanced analyzer instance
+        enhanced_analyzer = self.EnhancedGapAnalyzer(self)
+        
+        # Build gap dictionary with all needed information
+        gap_dict = {
+            'community_1': gap.community_1,
+            'community_2': gap.community_2,
+            'connection_count': gap.connection_count,
+            'representative_concepts_1': gap.representative_concepts_1,
+            'representative_concepts_2': gap.representative_concepts_2,
+            'gap_score': gap.gap_score,
+            'community1_entities': [],  # Will be populated below
+            'community2_entities': [],  # Will be populated below
+            'all_entities': all_entities
+        }
+        
+        # Get entity IDs for each community from node names
+        # Note: This is a simplified approach - in production, you'd have proper entity ID mapping
+        comm1_entity_ids = []
+        comm2_entity_ids = []
+        
+        for entity in all_entities:
+            if entity.name in gap.representative_concepts_1:
+                comm1_entity_ids.append(entity.id)
+            elif entity.name in gap.representative_concepts_2:
+                comm2_entity_ids.append(entity.id)
+        
+        gap_dict['community1_entities'] = comm1_entity_ids
+        gap_dict['community2_entities'] = comm2_entity_ids
+        
+        # Generate enhanced report
+        enhanced_report = enhanced_analyzer.generate_enhanced_gap_report(gap_dict)
+        
+        # Add original gap information
+        enhanced_report.update({
+            'community_1': gap.community_1,
+            'community_2': gap.community_2,
+            'connection_count': gap.connection_count,
+            'representative_concepts_1': gap.representative_concepts_1,
+            'representative_concepts_2': gap.representative_concepts_2,
+            'gap_score': gap.gap_score
+        })
+        
+        return enhanced_report
+    
     def create_hierarchical_topics(
         self,
         community_data: List[CommunityResult],
@@ -884,6 +1482,30 @@ Return only the topic name, nothing else."""
                 community_results, edges, node_names
             )
             
+            # Step 9a: Enhance gap analysis
+            logger.info("Enhancing structural gap analysis...")
+            enhanced_gaps = []
+            enhanced_analyzer = self.EnhancedGapAnalyzer(self)
+            for gap in structural_gaps:
+                try:
+                    enhanced_gap = self.enhance_gap_analysis(gap, entities)
+                    enhanced_gaps.append(enhanced_gap)
+                except Exception as e:
+                    logger.warning(f"Failed to enhance gap analysis: {e}")
+                    # Fall back to basic gap info
+                    enhanced_gaps.append({
+                        'gap_id': f"community_{gap.community_1}_to_{gap.community_2}",
+                        'community_1': gap.community_1,
+                        'community_2': gap.community_2,
+                        'connection_count': gap.connection_count,
+                        'representative_concepts_1': gap.representative_concepts_1,
+                        'representative_concepts_2': gap.representative_concepts_2,
+                        'gap_score': gap.gap_score
+                    })
+            
+            # Prioritize enhanced gaps
+            prioritized_gaps = enhanced_analyzer.prioritize_gaps(enhanced_gaps)
+            
             # Step 10: Identify bridge insights
             logger.info("Identifying bridge insights...")
             bridge_insights = self.identify_bridge_insights(
@@ -930,6 +1552,7 @@ Return only the topic name, nothing else."""
                     for pc in peripheral_concepts[:5]  # Top 5
                 ],
                 'structural_gaps': len(structural_gaps),
+                'enhanced_structural_gaps': prioritized_gaps[:3],  # Top 3 prioritized enhanced gaps
                 'gap_samples': [
                     {
                         'concepts_1': sg.representative_concepts_1,
@@ -972,6 +1595,7 @@ Return only the topic name, nothing else."""
                 'topics_created': 0,
                 'peripheral_concepts': 0,
                 'structural_gaps': 0,
+                'enhanced_structural_gaps': [],
                 'bridge_insights': 0,
                 'nodes_with_centrality': 0,
                 'error': str(e)

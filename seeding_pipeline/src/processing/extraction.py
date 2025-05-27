@@ -20,9 +20,10 @@ from datetime import datetime
 from functools import lru_cache
 
 from src.core.interfaces import LLMProvider
-from src.core.models import Entity, Insight, Quote, InsightType, QuoteType, EntityType
+from src.core.models import Entity, Insight, Quote, InsightType, QuoteType, EntityType, Segment
 from src.core.exceptions import ExtractionError
 from src.utils.deprecation import deprecated, deprecated_class
+from src.processing.importance_scoring import ImportanceScorer
 
 
 logger = logging.getLogger(__name__)
@@ -305,15 +306,15 @@ class KnowledgeExtractor:
         entities = []
         for item in entity_data:
             try:
+                entity_type = self._map_entity_type(item.get('type', 'OTHER'))
                 entity = Entity(
+                    id=f"entity_{len(entities)}_{item['name'].lower().replace(' ', '_')}",
                     name=item.get('name', ''),
-                    type=self._map_entity_type(item.get('type', 'CONCEPT')),
-                    confidence=min(1.0, item.get('importance', 5) / 10),
+                    entity_type=entity_type,
                     description=item.get('description', ''),
-                    metadata={
-                        'frequency': item.get('frequency', 1),
-                        'has_citation': item.get('has_citation', False)
-                    }
+                    confidence_score=min(1.0, item.get('importance', 5) / 10),
+                    mention_count=item.get('frequency', 1),
+                    aliases=[]
                 )
                 entities.append(entity)
             except Exception as e:
@@ -326,19 +327,26 @@ class KnowledgeExtractor:
         for item in insight_data:
             try:
                 # Map insight type
-                type_str = item.get('insight_type', 'conceptual').lower()
-                if 'actionable' in type_str:
-                    insight_type = InsightType.ACTIONABLE
-                elif 'experiential' in type_str or 'example' in type_str:
-                    insight_type = InsightType.EXAMPLE
+                insight_type = self._map_insight_type(item.get('type', 'general'))
+                
+                # Extract title and description from content if needed
+                content = item.get('content', '')
+                if 'title' in item and 'description' in item:
+                    title = item['title']
+                    description = item['description']
                 else:
-                    insight_type = InsightType.OBSERVATION
+                    # Split content into title and description
+                    parts = content.split(':', 1) if ':' in content else [content[:50], content]
+                    title = parts[0].strip()
+                    description = parts[1].strip() if len(parts) > 1 else content
                 
                 insight = Insight(
-                    content=f"{item.get('title', '')}: {item.get('description', '')}".strip(),
-                    type=insight_type,
-                    confidence=min(1.0, item.get('confidence', 5) / 10),
-                    context=item.get('context', '')
+                    id=f"insight_{len(insights)}_{datetime.now().timestamp()}",
+                    title=title,
+                    description=description,
+                    insight_type=insight_type,
+                    confidence_score=item.get('confidence', 0.7),
+                    supporting_entities=item.get('related_entities', [])
                 )
                 insights.append(insight)
             except Exception as e:
@@ -350,12 +358,13 @@ class KnowledgeExtractor:
         quotes = []
         for item in quote_data:
             try:
+                quote_type = self._map_quote_type(item.get('type', 'general'))
                 quote = Quote(
+                    id=f"quote_{len(quotes)}_{datetime.now().timestamp()}",
                     text=item.get('text', ''),
                     speaker=item.get('speaker', 'Unknown'),
-                    timestamp="",  # Not available in combined extraction
-                    context=item.get('context', ''),
-                    type=QuoteType.STATEMENT
+                    quote_type=quote_type,
+                    context=item.get('context', '')
                 )
                 quotes.append(quote)
             except Exception as e:
@@ -384,6 +393,236 @@ class KnowledgeExtractor:
                 })
         
         return topics
+    
+    def extract_from_segments(
+        self,
+        segments: List[Dict[str, Any]],
+        podcast_name: Optional[str] = None,
+        episode_title: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """
+        Extract knowledge from multiple segments with multi-factor importance scoring.
+        
+        Args:
+            segments: List of segment dictionaries
+            podcast_name: Optional podcast name for context
+            episode_title: Optional episode title for context
+            
+        Returns:
+            Dictionary with extraction results
+        """
+        all_entities = []
+        all_insights = []
+        all_quotes = []
+        segment_objects = []
+        
+        # Calculate total duration from segments
+        total_duration = 0.0
+        if segments:
+            last_segment = segments[-1]
+            total_duration = last_segment.get('end_time', 0)
+        
+        # Extract from each segment
+        for i, segment_data in enumerate(segments):
+            # Create Segment object
+            segment_obj = Segment(
+                id=f"segment_{i}",
+                text=segment_data.get('text', ''),
+                start_time=segment_data.get('start_time', 0),
+                end_time=segment_data.get('end_time', 0),
+                speaker=segment_data.get('speaker', 'Unknown'),
+                segment_index=i
+            )
+            segment_objects.append(segment_obj)
+            
+            # Extract from this segment
+            if segment_obj.text.strip():
+                try:
+                    result = self.extract_combined(
+                        segment_obj.text,
+                        podcast_name=podcast_name,
+                        episode_title=episode_title
+                    )
+                    
+                    # Track segment index for entities
+                    for entity in result.entities:
+                        if not hasattr(entity, '_segment_indices'):
+                            entity._segment_indices = []
+                        entity._segment_indices.append(i)
+                        if not hasattr(entity, '_timestamps'):
+                            entity._timestamps = []
+                        entity._timestamps.append(segment_obj.start_time)
+                    
+                    all_entities.extend(result.entities)
+                    all_insights.extend(result.insights)
+                    all_quotes.extend(result.quotes)
+                    
+                except Exception as e:
+                    logger.warning(f"Failed to extract from segment {i}: {e}")
+        
+        # Deduplicate and merge entities
+        merged_entities = self._merge_duplicate_entities(all_entities)
+        
+        # Apply multi-factor importance scoring
+        logger.info("Applying multi-factor importance scoring to entities...")
+        importance_scorer = ImportanceScorer()
+        
+        for entity in merged_entities:
+            try:
+                # Build entity mentions data
+                entity_mentions = []
+                if hasattr(entity, '_segment_indices'):
+                    for idx, timestamp in zip(entity._segment_indices, entity._timestamps):
+                        entity_mentions.append({
+                            'segment_index': idx,
+                            'timestamp': timestamp
+                        })
+                
+                # Calculate individual factors
+                all_factors = {}
+                
+                # 1. Frequency factor
+                all_factors['frequency'] = importance_scorer.calculate_frequency_factor(
+                    entity_mentions,
+                    total_duration
+                )
+                
+                # 2. Semantic centrality (using embeddings if available)
+                if hasattr(entity, 'embedding') and entity.embedding:
+                    all_embeddings = [e.embedding for e in merged_entities 
+                                     if hasattr(e, 'embedding') and e.embedding]
+                    all_factors['semantic_centrality'] = importance_scorer.calculate_semantic_centrality(
+                        entity.embedding,
+                        all_embeddings
+                    )
+                else:
+                    all_factors['semantic_centrality'] = 0.5  # Default
+                
+                # 3. Discourse function
+                discourse_factors = importance_scorer.analyze_discourse_function(
+                    entity_mentions,
+                    segment_objects
+                )
+                all_factors.update(discourse_factors)
+                entity.discourse_roles = discourse_factors
+                
+                # 4. Temporal dynamics
+                temporal_factors = importance_scorer.analyze_temporal_dynamics(
+                    entity_mentions,
+                    segment_objects
+                )
+                all_factors.update(temporal_factors)
+                
+                # 5. Cross-reference score
+                all_factors['cross_reference'] = importance_scorer.calculate_cross_reference_score(
+                    entity.id,
+                    merged_entities,
+                    all_insights
+                )
+                
+                # Note: Structural centrality will be calculated later when graph is available
+                all_factors['structural_centrality'] = 0.5  # Placeholder
+                
+                # Calculate composite importance
+                composite_score = importance_scorer.calculate_composite_importance(all_factors)
+                
+                # Update entity with importance data
+                entity.importance_score = composite_score
+                entity.importance_factors = all_factors
+                
+                # Clean up temporary attributes
+                if hasattr(entity, '_segment_indices'):
+                    delattr(entity, '_segment_indices')
+                if hasattr(entity, '_timestamps'):
+                    delattr(entity, '_timestamps')
+                    
+            except Exception as e:
+                logger.warning(f"Failed to calculate importance for entity {entity.name}: {e}")
+                # Set defaults on error
+                entity.importance_score = 0.5
+                entity.importance_factors = {}
+                entity.discourse_roles = {}
+        
+        # Sort entities by importance
+        merged_entities.sort(key=lambda e: e.importance_score, reverse=True)
+        
+        # Derive topics from insights
+        topics = self._derive_topics_from_insights(all_insights)
+        
+        return {
+            'entities': merged_entities,
+            'insights': all_insights,
+            'quotes': all_quotes,
+            'topics': topics,
+            'segments': len(segments),
+            'metadata': {
+                'extraction_timestamp': datetime.now().isoformat(),
+                'total_duration': total_duration,
+                'segments_processed': len(segments),
+                'importance_scoring_applied': True
+            }
+        }
+    
+    def _merge_duplicate_entities(self, entities: List[Entity]) -> List[Entity]:
+        """
+        Merge duplicate entities based on name similarity.
+        
+        Args:
+            entities: List of entities to merge
+            
+        Returns:
+            List of merged entities
+        """
+        if not entities:
+            return []
+        
+        # Group entities by normalized name
+        entity_groups = {}
+        for entity in entities:
+            # Simple normalization - can be enhanced
+            normalized_name = entity.name.lower().strip()
+            if normalized_name not in entity_groups:
+                entity_groups[normalized_name] = []
+            entity_groups[normalized_name].append(entity)
+        
+        # Merge each group
+        merged_entities = []
+        for name, group in entity_groups.items():
+            if len(group) == 1:
+                merged_entities.append(group[0])
+            else:
+                # Merge entities in group
+                merged = group[0]
+                for other in group[1:]:
+                    # Merge descriptions
+                    if other.description and other.description not in (merged.description or ''):
+                        if merged.description:
+                            merged.description += f" {other.description}"
+                        else:
+                            merged.description = other.description
+                    
+                    # Update mention count
+                    merged.mention_count += other.mention_count
+                    
+                    # Merge segment indices and timestamps
+                    if hasattr(other, '_segment_indices'):
+                        if not hasattr(merged, '_segment_indices'):
+                            merged._segment_indices = []
+                        merged._segment_indices.extend(other._segment_indices)
+                    
+                    if hasattr(other, '_timestamps'):
+                        if not hasattr(merged, '_timestamps'):
+                            merged._timestamps = []
+                        merged._timestamps.extend(other._timestamps)
+                    
+                    # Merge aliases
+                    for alias in other.aliases:
+                        if alias not in merged.aliases and alias != merged.name:
+                            merged.aliases.append(alias)
+                
+                merged_entities.append(merged)
+        
+        return merged_entities
     
     def _map_entity_type(self, type_str: str) -> EntityType:
         """Map string entity type to EntityType enum."""

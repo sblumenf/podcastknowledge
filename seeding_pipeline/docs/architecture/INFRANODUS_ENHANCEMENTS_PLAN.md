@@ -8,17 +8,19 @@ This document provides an extremely detailed, step-by-step implementation plan f
 
 **Implementation Note**: When implementing these enhancements, Claude Code should reference https://infranodus.com/docs to understand the theoretical foundations of these concepts.
 
-## Enhancement 1: Multi-Factor Importance Scoring
+## Enhancement 1: Multi-Factor Importance Scoring ✅
 
 ### Purpose
 Replace the current simple importance scoring (1-10 scale) with a sophisticated multi-factor system that considers frequency, structural position, semantic centrality, discourse function, and temporal dynamics. This will help identify truly important concepts that shape discussions, even if mentioned briefly.
 
+**Status: COMPLETED** - All tasks implemented and tested.
+
 ### Detailed Implementation Tasks
 
 #### 1.1 Create Multi-Factor Importance Model
-- [ ] **Task**: Create new file `src/processing/importance_scoring.py`
-- [ ] **Purpose**: Centralize all importance calculation logic in one module
-- [ ] **What to implement**:
+- [x] **Task**: Create new file `src/processing/importance_scoring.py`
+- [x] **Purpose**: Centralize all importance calculation logic in one module
+- [x] **What to implement**:
   ```python
   class ImportanceScorer:
       """
@@ -31,17 +33,17 @@ Replace the current simple importance scoring (1-10 scale) with a sophisticated 
       6. Cross-Reference Score: How often other concepts reference this one
       """
   ```
-- [ ] **Specific instruction**: Import necessary dependencies including networkx for graph metrics, numpy for calculations, and existing models from src/core/models.py
+- [x] **Specific instruction**: Import necessary dependencies including networkx for graph metrics, numpy for calculations, and existing models from src/core/models.py
 
 #### 1.2 Implement Frequency Factor Calculation
-- [ ] **Task**: Add method `calculate_frequency_factor(entity_mentions: List[Dict], episode_duration: float) -> float`
-- [ ] **Purpose**: Calculate normalized frequency score that accounts for episode length
-- [ ] **What it does**:
+- [x] **Task**: Add method `calculate_frequency_factor(entity_mentions: List[Dict], episode_duration: float) -> float`
+- [x] **Purpose**: Calculate normalized frequency score that accounts for episode length
+- [x] **What it does**:
   - Count total mentions of entity across all segments
   - Normalize by episode duration (mentions per minute)
   - Apply logarithmic scaling to prevent frequency dominance
   - Return score between 0 and 1
-- [ ] **Implementation details**:
+- [x] **Implementation details**:
   ```python
   def calculate_frequency_factor(self, entity_mentions: List[Dict], episode_duration: float) -> float:
       """
@@ -52,33 +54,33 @@ Replace the current simple importance scoring (1-10 scale) with a sophisticated 
   ```
 
 #### 1.3 Implement Structural Centrality Factor
-- [ ] **Task**: Add method `calculate_structural_centrality(entity_id: str, graph: nx.Graph) -> float`
-- [ ] **Purpose**: Measure how central the entity is in the knowledge structure
-- [ ] **What it calculates**:
+- [x] **Task**: Add method `calculate_structural_centrality(entity_id: str, graph: nx.Graph) -> float`
+- [x] **Purpose**: Measure how central the entity is in the knowledge structure
+- [x] **What it calculates**:
   - Betweenness centrality: How often this entity bridges other concepts
   - Degree centrality: How many connections it has
   - Eigenvector centrality: Connection to other important entities
   - Combine into weighted score
-- [ ] **Specific instruction**: Use NetworkX library methods but catch exceptions for disconnected nodes
+- [x] **Specific instruction**: Use NetworkX library methods but catch exceptions for disconnected nodes
 
 #### 1.4 Implement Semantic Centrality Factor
-- [ ] **Task**: Add method `calculate_semantic_centrality(entity_embedding: np.ndarray, all_embeddings: List[np.ndarray]) -> float`
-- [ ] **Purpose**: Determine semantic importance based on embedding relationships
-- [ ] **What it does**:
+- [x] **Task**: Add method `calculate_semantic_centrality(entity_embedding: np.ndarray, all_embeddings: List[np.ndarray]) -> float`
+- [x] **Purpose**: Determine semantic importance based on embedding relationships
+- [x] **What it does**:
   - Calculate average cosine similarity to all other entities
   - Identify if entity is semantically central or peripheral
   - Higher scores for entities that relate to many others
-- [ ] **Implementation note**: Handle edge case where embeddings might be None
+- [x] **Implementation note**: Handle edge case where embeddings might be None
 
 #### 1.5 Implement Discourse Function Analysis
-- [ ] **Task**: Add method `analyze_discourse_function(entity_mentions: List[Dict], segments: List[Dict]) -> Dict[str, float]`
-- [ ] **Purpose**: Understand the role of entity in conversation structure
-- [ ] **What to track**:
+- [x] **Task**: Add method `analyze_discourse_function(entity_mentions: List[Dict], segments: List[Dict]) -> Dict[str, float]`
+- [x] **Purpose**: Understand the role of entity in conversation structure
+- [x] **What to track**:
   - **Introduction score**: First appearance in first 20% of episode
   - **Development score**: Mentioned across multiple segments
   - **Conclusion score**: Appears in final 20% of episode
   - **Bridge score**: Connects different topics/segments
-- [ ] **Output format**:
+- [x] **Output format**:
   ```python
   {
       "introduction_role": 0.8,  # Strong introduction
@@ -89,28 +91,28 @@ Replace the current simple importance scoring (1-10 scale) with a sophisticated 
   ```
 
 #### 1.6 Implement Temporal Dynamics Analysis
-- [ ] **Task**: Add method `analyze_temporal_dynamics(entity_mentions: List[Dict], segments: List[Dict]) -> Dict[str, float]`
-- [ ] **Purpose**: Analyze how entity importance changes over time
-- [ ] **What to calculate**:
+- [x] **Task**: Add method `analyze_temporal_dynamics(entity_mentions: List[Dict], segments: List[Dict]) -> Dict[str, float]`
+- [x] **Purpose**: Analyze how entity importance changes over time
+- [x] **What to calculate**:
   - **Recency weight**: Recent mentions weighted higher
   - **Persistence score**: Sustained discussion vs one-time mention
   - **Peak influence**: Maximum importance at any point
   - **Momentum**: Increasing or decreasing importance
-- [ ] **Specific calculation**: Use exponential decay for recency: `weight = exp(-alpha * time_since_mention)`
+- [x] **Specific calculation**: Use exponential decay for recency: `weight = exp(-alpha * time_since_mention)`
 
 #### 1.7 Implement Cross-Reference Analysis
-- [ ] **Task**: Add method `calculate_cross_reference_score(entity_id: str, all_entities: List[Entity], insights: List[Insight]) -> float`
-- [ ] **Purpose**: Measure how often other entities/insights reference this concept
-- [ ] **What to check**:
+- [x] **Task**: Add method `calculate_cross_reference_score(entity_id: str, all_entities: List[Entity], insights: List[Insight]) -> float`
+- [x] **Purpose**: Measure how often other entities/insights reference this concept
+- [x] **What to check**:
   - Count mentions in other entity descriptions
   - Count appearances in insight descriptions
   - Weight by importance of referencing entities
-- [ ] **Note**: This creates a "PageRank-like" importance propagation
+- [x] **Note**: This creates a "PageRank-like" importance propagation
 
 #### 1.8 Create Composite Score Calculator
-- [ ] **Task**: Add method `calculate_composite_importance(all_factors: Dict[str, float], weights: Dict[str, float] = None) -> float`
-- [ ] **Purpose**: Combine all factors into final importance score
-- [ ] **Default weights**:
+- [x] **Task**: Add method `calculate_composite_importance(all_factors: Dict[str, float], weights: Dict[str, float] = None) -> float`
+- [x] **Purpose**: Combine all factors into final importance score
+- [x] **Default weights**:
   ```python
   {
       "frequency": 0.15,
@@ -121,17 +123,17 @@ Replace the current simple importance scoring (1-10 scale) with a sophisticated 
       "cross_reference": 0.10
   }
   ```
-- [ ] **Output**: Single importance score 0-1 with factor breakdown
+- [x] **Output**: Single importance score 0-1 with factor breakdown
 
 #### 1.9 Integrate with Entity Extraction
-- [ ] **Task**: Modify `src/processing/extraction.py` to use new importance scoring
-- [ ] **Where to modify**: In `_extract_entities_large_context` and `_extract_entities` methods
-- [ ] **What to change**:
+- [x] **Task**: Modify `src/processing/extraction.py` to use new importance scoring
+- [x] **Where to modify**: In `_extract_entities_large_context` and `_extract_entities` methods
+- [x] **What to change**:
   - After LLM extraction, before returning entities
   - Create ImportanceScorer instance
   - Calculate multi-factor importance for each entity
   - Store both composite score and factor breakdown
-- [ ] **Storage format**: Add to entity data:
+- [x] **Storage format**: Add to entity data:
   ```python
   entity["importance_score"] = composite_score
   entity["importance_factors"] = {
@@ -140,21 +142,22 @@ Replace the current simple importance scoring (1-10 scale) with a sophisticated 
       # ... all factors
   }
   ```
+- [x] **Note**: Integration was done in new `extract_from_segments` method to work with orchestrator's expectations
 
 #### 1.10 Update Entity Model
-- [ ] **Task**: Modify `Entity` class in `src/core/models.py`
-- [ ] **Add fields**:
+- [x] **Task**: Modify `Entity` class in `src/core/models.py`
+- [x] **Add fields**:
   ```python
   importance_score: float = Field(0.5, description="Multi-factor importance 0-1")
   importance_factors: Dict[str, float] = Field(default_factory=dict, description="Breakdown of importance factors")
   discourse_roles: Dict[str, float] = Field(default_factory=dict, description="Entity's discourse functions")
   ```
-- [ ] **Ensure backward compatibility**: Keep original importance field, map to frequency factor
+- [x] **Ensure backward compatibility**: Keep original importance field, map to frequency factor
 
 #### 1.11 Create Importance Visualization Data
-- [ ] **Task**: Add method `generate_importance_visualization_data(entities: List[Entity]) -> Dict`
-- [ ] **Purpose**: Prepare data for future visualization of importance factors
-- [ ] **Output structure**:
+- [x] **Task**: Add method `generate_importance_visualization_data(entities: List[Entity]) -> Dict`
+- [x] **Purpose**: Prepare data for future visualization of importance factors
+- [x] **Output structure**:
   ```python
   {
       "entities": [...],
@@ -169,44 +172,46 @@ Replace the current simple importance scoring (1-10 scale) with a sophisticated 
   ```
 
 #### 1.12 Add Importance-Based Filtering
-- [ ] **Task**: Add utility methods for filtering entities by importance
-- [ ] **Methods to add**:
+- [x] **Task**: Add utility methods for filtering entities by importance
+- [x] **Methods to add**:
   - `get_top_entities_by_importance(entities, top_n=10)`
   - `filter_entities_by_importance_threshold(entities, threshold=0.5)`
   - `get_entities_by_factor(entities, factor_name, top_n=5)`
-- [ ] **Purpose**: Enable smart filtering based on multi-factor importance
+- [x] **Purpose**: Enable smart filtering based on multi-factor importance
 
 #### 1.13 Write Comprehensive Tests
-- [ ] **Task**: Create `tests/processing/test_importance_scoring.py`
-- [ ] **Test cases**:
+- [x] **Task**: Create `tests/processing/test_importance_scoring.py`
+- [x] **Test cases**:
   - Each factor calculation independently
   - Composite score calculation with various weights
   - Edge cases (single mention, no connections, etc.)
   - Integration with entity extraction
-- [ ] **Use fixtures**: Create test entities with known importance characteristics
+- [x] **Use fixtures**: Create test entities with known importance characteristics
 
-## Enhancement 2: Enhanced Structural Gap Analysis
+## Enhancement 2: Enhanced Structural Gap Analysis ✅
 
 ### Purpose
 Extend the existing basic gap detection to analyze the semantic distance between disconnected communities, identify potential bridging concepts, and score gaps by their "bridgeability". This helps users discover unexplored connections between topics.
 
+**Status: COMPLETED** - All tasks implemented and tested.
+
 ### Detailed Implementation Tasks
 
 #### 2.1 Enhance Gap Analysis Class
-- [ ] **Task**: Extend `GraphAnalyzer` class in `src/processing/graph_analysis.py`
-- [ ] **Current method**: `identify_structural_gaps()` - keep this
-- [ ] **Add new class**: `EnhancedGapAnalyzer` as inner class
-- [ ] **Purpose**: Separate enhanced gap analysis while maintaining backward compatibility
+- [x] **Task**: Extend `GraphAnalyzer` class in `src/processing/graph_analysis.py`
+- [x] **Current method**: `identify_structural_gaps()` - keep this
+- [x] **Add new class**: `EnhancedGapAnalyzer` as inner class
+- [x] **Purpose**: Separate enhanced gap analysis while maintaining backward compatibility
 
 #### 2.2 Implement Semantic Distance Calculator
-- [ ] **Task**: Add method `calculate_semantic_distance(community1_entities: List[Entity], community2_entities: List[Entity]) -> float`
-- [ ] **Purpose**: Measure how semantically different two disconnected communities are
-- [ ] **Algorithm**:
+- [x] **Task**: Add method `calculate_semantic_distance(community1_entities: List[Entity], community2_entities: List[Entity]) -> float`
+- [x] **Purpose**: Measure how semantically different two disconnected communities are
+- [x] **Algorithm**:
   1. Get embeddings for all entities in each community
   2. Calculate centroid embedding for each community
   3. Compute cosine distance between centroids
   4. Also calculate min/max/avg pairwise distances
-- [ ] **Return format**:
+- [x] **Return format**:
   ```python
   {
       "centroid_distance": 0.73,
@@ -217,14 +222,14 @@ Extend the existing basic gap detection to analyze the semantic distance between
   ```
 
 #### 2.3 Implement Potential Bridge Finder
-- [ ] **Task**: Add method `find_potential_bridges(gap: Dict, all_entities: List[Entity], top_n: int = 5) -> List[Dict]`
-- [ ] **Purpose**: Identify concepts that could connect disconnected communities
-- [ ] **Algorithm**:
+- [x] **Task**: Add method `find_potential_bridges(gap: Dict, all_entities: List[Entity], top_n: int = 5) -> List[Dict]`
+- [x] **Purpose**: Identify concepts that could connect disconnected communities
+- [x] **Algorithm**:
   1. For each entity not in either community
   2. Calculate semantic similarity to both communities
   3. Score bridging potential: `min(sim_to_comm1, sim_to_comm2) * 2`
   4. Rank and return top candidates
-- [ ] **Output format**:
+- [x] **Output format**:
   ```python
   {
       "entity": entity_object,
@@ -236,31 +241,31 @@ Extend the existing basic gap detection to analyze the semantic distance between
   ```
 
 #### 2.4 Implement Gap Bridgeability Scorer
-- [ ] **Task**: Add method `calculate_gap_bridgeability(gap: Dict, semantic_distance: Dict, potential_bridges: List[Dict]) -> float`
-- [ ] **Purpose**: Score how easily a gap could be bridged
-- [ ] **Factors to consider**:
+- [x] **Task**: Add method `calculate_gap_bridgeability(gap: Dict, semantic_distance: Dict, potential_bridges: List[Dict]) -> float`
+- [x] **Purpose**: Score how easily a gap could be bridged
+- [x] **Factors to consider**:
   - Semantic distance (closer = more bridgeable)
   - Number of quality bridge candidates
   - Conceptual coherence of communities
   - Size differential between communities
-- [ ] **Formula**: 
+- [x] **Formula**: 
   ```python
   bridgeability = (1 - semantic_distance) * bridge_quality * size_balance * coherence_factor
   ```
 
 #### 2.5 Implement Conceptual Path Finder
-- [ ] **Task**: Add method `find_conceptual_paths(entity1: Entity, entity2: Entity, max_hops: int = 3) -> List[List[Entity]]`
-- [ ] **Purpose**: Find potential conceptual paths between disconnected entities
-- [ ] **Algorithm**:
+- [x] **Task**: Add method `find_conceptual_paths(entity1: Entity, entity2: Entity, max_hops: int = 3) -> List[List[Entity]]`
+- [x] **Purpose**: Find potential conceptual paths between disconnected entities
+- [x] **Algorithm**:
   1. Use embedding space to find intermediate concepts
   2. Build paths through semantic similarity
   3. Validate paths don't go through unrelated concepts
   4. Return top 3 most coherent paths
 
 #### 2.6 Create Gap Analysis Report Structure
-- [ ] **Task**: Add method `generate_enhanced_gap_report(gap: Dict) -> Dict`
-- [ ] **Purpose**: Create comprehensive gap analysis data
-- [ ] **Report structure**:
+- [x] **Task**: Add method `generate_enhanced_gap_report(gap: Dict) -> Dict`
+- [x] **Purpose**: Create comprehensive gap analysis data
+- [x] **Report structure**:
   ```python
   {
       "gap_id": "community_3_to_7",
@@ -281,28 +286,28 @@ Extend the existing basic gap detection to analyze the semantic distance between
   ```
 
 #### 2.7 Implement Gap Evolution Tracking
-- [ ] **Task**: Add method `track_gap_evolution(current_gaps: List[Dict], previous_gaps: List[Dict]) -> Dict`
-- [ ] **Purpose**: Track how gaps change as more content is processed
-- [ ] **What to track**:
+- [x] **Task**: Add method `track_gap_evolution(current_gaps: List[Dict], previous_gaps: List[Dict]) -> Dict`
+- [x] **Purpose**: Track how gaps change as more content is processed
+- [x] **What to track**:
   - New gaps emerged
   - Gaps that were bridged
   - Gaps that grew larger
   - Stability of gap structure
 
 #### 2.8 Add Intelligent Gap Prioritization
-- [ ] **Task**: Add method `prioritize_gaps(gaps: List[Dict]) -> List[Dict]`
-- [ ] **Purpose**: Rank gaps by their importance and exploration value
-- [ ] **Prioritization factors**:
+- [x] **Task**: Add method `prioritize_gaps(gaps: List[Dict]) -> List[Dict]`
+- [x] **Purpose**: Rank gaps by their importance and exploration value
+- [x] **Prioritization factors**:
   - Size of disconnected communities
   - Importance of entities in communities
   - Bridgeability score
   - Novelty of potential connections
-- [ ] **Add priority score and rank to each gap**
+- [x] **Add priority score and rank to each gap**
 
 #### 2.9 Integrate with Main Processing
-- [ ] **Task**: Modify `enhance_with_graph_analysis` in `src/seeding/orchestrator.py`
-- [ ] **Where to add**: After basic gap identification
-- [ ] **What to add**:
+- [x] **Task**: Modify `enhance_with_graph_analysis` in `src/seeding/orchestrator.py`
+- [x] **Where to add**: After basic gap identification
+- [x] **What to add**:
   ```python
   # After identifying basic gaps
   enhanced_gaps = []
@@ -313,27 +318,30 @@ Extend the existing basic gap detection to analyze the semantic distance between
   # Store enhanced gap data
   episode_enhancements["enhanced_structural_gaps"] = enhanced_gaps
   ```
+- [x] **Note**: Integration was actually done in `analyze_episode_discourse` method in `graph_analysis.py` to maintain modularity
 
 #### 2.10 Create Gap Visualization Data
-- [ ] **Task**: Add method `prepare_gap_visualization_data(enhanced_gaps: List[Dict]) -> Dict`
-- [ ] **Purpose**: Structure data for future gap visualization
-- [ ] **Include**:
+- [x] **Task**: Add method `prepare_gap_visualization_data(enhanced_gaps: List[Dict]) -> Dict`
+- [x] **Purpose**: Structure data for future gap visualization
+- [x] **Include**:
   - Community positions and sizes
   - Bridge candidate positions
   - Semantic distance gradients
   - Suggested connection paths
 
-## Enhancement 3: Discourse Flow Tracking
+## Enhancement 3: Discourse Flow Tracking ✅
 
 ### Purpose
 Track how concepts flow through conversations, identifying introduction points, development arcs, and resolution patterns. This helps users understand the logical progression and narrative structure of complex discussions.
 
+**Status: COMPLETED** - All tasks implemented and tested.
+
 ### Detailed Implementation Tasks
 
 #### 3.1 Create Discourse Flow Tracker
-- [ ] **Task**: Create new file `src/processing/discourse_flow.py`
-- [ ] **Purpose**: Centralize all discourse flow analysis
-- [ ] **Main class structure**:
+- [x] **Task**: Create new file `src/processing/discourse_flow.py`
+- [x] **Purpose**: Centralize all discourse flow analysis
+- [x] **Main class structure**:
   ```python
   class DiscourseFlowTracker:
       """
@@ -344,9 +352,9 @@ Track how concepts flow through conversations, identifying introduction points, 
   ```
 
 #### 3.2 Implement Concept Timeline Builder
-- [ ] **Task**: Add method `build_concept_timeline(segments: List[Segment], entities: List[Entity]) -> Dict[str, List[Dict]]`
-- [ ] **Purpose**: Create timeline of when each concept appears
-- [ ] **For each entity, track**:
+- [x] **Task**: Add method `build_concept_timeline(segments: List[Segment], entities: List[Entity]) -> Dict[str, List[Dict]]`
+- [x] **Purpose**: Create timeline of when each concept appears
+- [x] **For each entity, track**:
   ```python
   {
       "entity_id": "uuid",
@@ -363,15 +371,15 @@ Track how concepts flow through conversations, identifying introduction points, 
   ```
 
 #### 3.3 Implement Concept Lifecycle Analyzer
-- [ ] **Task**: Add method `analyze_concept_lifecycle(concept_timeline: List[Dict]) -> Dict`
-- [ ] **Purpose**: Identify lifecycle phases of each concept
-- [ ] **Lifecycle phases**:
+- [x] **Task**: Add method `analyze_concept_lifecycle(concept_timeline: List[Dict]) -> Dict`
+- [x] **Purpose**: Identify lifecycle phases of each concept
+- [x] **Lifecycle phases**:
   - **Introduction**: First meaningful mention
   - **Elaboration**: Expanded discussion
   - **Peak**: Most intensive discussion
   - **Integration**: Connected to other concepts
   - **Resolution**: Final state or conclusion
-- [ ] **Output format**:
+- [x] **Output format**:
   ```python
   {
       "lifecycle_pattern": "introduce-develop-integrate",
@@ -383,59 +391,59 @@ Track how concepts flow through conversations, identifying introduction points, 
   ```
 
 #### 3.4 Implement Discourse Pattern Detector
-- [ ] **Task**: Add method `detect_discourse_patterns(concept_timelines: Dict[str, List]) -> List[Dict]`
-- [ ] **Purpose**: Identify common discourse patterns
-- [ ] **Patterns to detect**:
+- [x] **Task**: Add method `detect_discourse_patterns(concept_timelines: Dict[str, List]) -> List[Dict]`
+- [x] **Purpose**: Identify common discourse patterns
+- [x] **Patterns to detect**:
   - **Linear progression**: A→B→C→D
   - **Circular return**: A→B→C→A
   - **Hub and spoke**: Central concept with radiating discussions
   - **Parallel threads**: Multiple concepts developed simultaneously
   - **Convergence**: Multiple concepts merge into one
-- [ ] **Include pattern confidence scores**
+- [x] **Include pattern confidence scores**
 
 #### 3.5 Implement Concept Momentum Calculator
-- [ ] **Task**: Add method `calculate_concept_momentum(timeline: List[Dict], window_size: int = 3) -> List[float]`
-- [ ] **Purpose**: Measure how concept importance changes over time
-- [ ] **Algorithm**:
+- [x] **Task**: Add method `calculate_concept_momentum(timeline: List[Dict], window_size: int = 3) -> List[float]`
+- [x] **Purpose**: Measure how concept importance changes over time
+- [x] **Algorithm**:
   1. For each time window, calculate mention density
   2. Compute rate of change between windows
   3. Identify acceleration/deceleration points
   4. Mark momentum shifts
 
 #### 3.6 Implement Narrative Arc Detector
-- [ ] **Task**: Add method `detect_narrative_arcs(segments: List[Segment], concept_timelines: Dict) -> Dict`
-- [ ] **Purpose**: Identify story-like structures in discussions
-- [ ] **Arc types to detect**:
+- [x] **Task**: Add method `detect_narrative_arcs(segments: List[Segment], concept_timelines: Dict) -> Dict`
+- [x] **Purpose**: Identify story-like structures in discussions
+- [x] **Arc types to detect**:
   - **Problem-solution**: Issue introduced, explored, resolved
   - **Journey**: Sequential exploration of related concepts
   - **Debate**: Contrasting viewpoints presented
   - **Discovery**: Unknown to known progression
-- [ ] **Output**: Arc type, key turning points, resolution status
+- [x] **Output**: Arc type, key turning points, resolution status
 
 #### 3.7 Implement Concept Interaction Tracker
-- [ ] **Task**: Add method `track_concept_interactions(timelines: Dict[str, List], segments: List[Segment]) -> List[Dict]`
-- [ ] **Purpose**: Track when concepts interact or merge
-- [ ] **Interaction types**:
+- [x] **Task**: Add method `track_concept_interactions(timelines: Dict[str, List], segments: List[Segment]) -> List[Dict]`
+- [x] **Purpose**: Track when concepts interact or merge
+- [x] **Interaction types**:
   - **Co-introduction**: Concepts introduced together
   - **Causal link**: One concept leads to another
   - **Synthesis**: Concepts merge into new idea
   - **Contrast**: Concepts presented as alternatives
-- [ ] **Track interaction strength and type**
+- [x] **Track interaction strength and type**
 
 #### 3.8 Implement Discourse Transition Analyzer
-- [ ] **Task**: Add method `analyze_transitions(segments: List[Segment], concept_timelines: Dict) -> List[Dict]`
-- [ ] **Purpose**: Identify how conversation moves between topics
-- [ ] **Transition types**:
+- [x] **Task**: Add method `analyze_transitions(segments: List[Segment], concept_timelines: Dict) -> List[Dict]`
+- [x] **Purpose**: Identify how conversation moves between topics
+- [x] **Transition types**:
   - **Smooth**: Natural progression
   - **Abrupt**: Sudden topic change
   - **Bridged**: Explicit connection made
   - **Returned**: Coming back to earlier topic
-- [ ] **Include transition quality scores**
+- [x] **Include transition quality scores**
 
 #### 3.9 Create Flow Visualization Data
-- [ ] **Task**: Add method `generate_flow_visualization_data(flow_analysis: Dict) -> Dict`
-- [ ] **Purpose**: Prepare data for timeline visualization
-- [ ] **Data structure**:
+- [x] **Task**: Add method `generate_flow_visualization_data(flow_analysis: Dict) -> Dict`
+- [x] **Purpose**: Prepare data for timeline visualization
+- [x] **Data structure**:
   ```python
   {
       "concept_streams": [...],  # Parallel concept timelines
@@ -447,9 +455,9 @@ Track how concepts flow through conversations, identifying introduction points, 
   ```
 
 #### 3.10 Integrate with Segment Processing
-- [ ] **Task**: Modify `process_episode` in `src/seeding/orchestrator.py`
-- [ ] **Where to add**: After entity extraction, before graph storage
-- [ ] **Integration code**:
+- [x] **Task**: Modify `process_episode` in `src/seeding/orchestrator.py`
+- [x] **Where to add**: After entity extraction, before graph storage
+- [x] **Integration code**:
   ```python
   # After extraction
   flow_tracker = DiscourseFlowTracker()
@@ -464,35 +472,37 @@ Track how concepts flow through conversations, identifying introduction points, 
   ```
 
 #### 3.11 Add Flow-Based Entity Enrichment
-- [ ] **Task**: Add method `enrich_entities_with_flow_data(entities: List[Entity], flow_analysis: Dict) -> List[Entity]`
-- [ ] **Purpose**: Add discourse flow information to entities
-- [ ] **Enrichments**:
+- [x] **Task**: Add method `enrich_entities_with_flow_data(entities: List[Entity], flow_analysis: Dict) -> List[Entity]`
+- [x] **Purpose**: Add discourse flow information to entities
+- [x] **Enrichments**:
   - Discourse role (introducer, developer, integrator)
   - Lifecycle phase when most discussed
   - Narrative importance score
   - Transition catalyst score
 
 #### 3.12 Create Flow Summary Generator
-- [ ] **Task**: Add method `generate_flow_summary(flow_analysis: Dict) -> str`
-- [ ] **Purpose**: Create human-readable summary of discourse flow
-- [ ] **Example output**:
+- [x] **Task**: Add method `generate_flow_summary(flow_analysis: Dict) -> str`
+- [x] **Purpose**: Create human-readable summary of discourse flow
+- [x] **Example output**:
   ```
   "The discussion begins with AI ethics, develops through three main phases 
   exploring bias, accountability, and regulation. Key transition at 15:30 
   bridges to practical applications. Circular return to ethics in conclusion."
   ```
 
-## Enhancement 4: Emergent Theme Detection
+## Enhancement 4: Emergent Theme Detection ✅
 
 ### Purpose
 Identify themes that emerge from the interaction of concepts rather than being explicitly stated. This reveals implicit patterns, underlying messages, and hidden connections that speakers don't directly articulate.
 
+**Status: COMPLETED** - All tasks implemented and tested.
+
 ### Detailed Implementation Tasks
 
 #### 4.1 Create Emergent Theme Detector
-- [ ] **Task**: Create new file `src/processing/emergent_themes.py`
-- [ ] **Purpose**: Detect implicit themes from concept interactions
-- [ ] **Main class**:
+- [x] **Task**: Create new file `src/processing/emergent_themes.py`
+- [x] **Purpose**: Detect implicit themes from concept interactions
+- [x] **Main class**:
   ```python
   class EmergentThemeDetector:
       """
@@ -503,24 +513,24 @@ Identify themes that emerge from the interaction of concepts rather than being e
   ```
 
 #### 4.2 Implement Concept Cluster Analyzer
-- [ ] **Task**: Add method `analyze_concept_clusters(entities: List[Entity], co_occurrences: List[Dict]) -> List[Dict]`
-- [ ] **Purpose**: Group entities into semantic clusters
-- [ ] **Algorithm**:
+- [x] **Task**: Add method `analyze_concept_clusters(entities: List[Entity], co_occurrences: List[Dict]) -> List[Dict]`
+- [x] **Purpose**: Group entities into semantic clusters
+- [x] **Algorithm**:
   1. Build co-occurrence graph
   2. Apply community detection at multiple resolutions
   3. Calculate cluster coherence using embeddings
   4. Filter for significant clusters only
-- [ ] **Output**: List of coherent concept clusters with member entities
+- [x] **Output**: List of coherent concept clusters with member entities
 
 #### 4.3 Implement Semantic Field Extractor
-- [ ] **Task**: Add method `extract_semantic_fields(clusters: List[Dict], entities: List[Entity]) -> List[Dict]`
-- [ ] **Purpose**: Identify the semantic field each cluster represents
-- [ ] **Process**:
+- [x] **Task**: Add method `extract_semantic_fields(clusters: List[Dict], entities: List[Entity]) -> List[Dict]`
+- [x] **Purpose**: Identify the semantic field each cluster represents
+- [x] **Process**:
   1. For each cluster, get all entity embeddings
   2. Find the semantic centroid
   3. Identify closest abstract concepts in embedding space
   4. Generate field description using LLM
-- [ ] **Output format**:
+- [x] **Output format**:
   ```python
   {
       "cluster_id": "cluster_1",
@@ -532,24 +542,24 @@ Identify themes that emerge from the interaction of concepts rather than being e
   ```
 
 #### 4.4 Implement Cross-Cluster Pattern Detector
-- [ ] **Task**: Add method `detect_cross_cluster_patterns(clusters: List[Dict], insights: List[Insight]) -> List[Dict]`
-- [ ] **Purpose**: Find patterns that span multiple concept clusters
-- [ ] **Patterns to detect**:
+- [x] **Task**: Add method `detect_cross_cluster_patterns(clusters: List[Dict], insights: List[Insight]) -> List[Dict]`
+- [x] **Purpose**: Find patterns that span multiple concept clusters
+- [x] **Patterns to detect**:
   - **Causal chains**: Cluster A → affects → Cluster B
   - **Tensions**: Opposing clusters in dialogue
   - **Dependencies**: Cluster A requires Cluster B
   - **Emergence**: Clusters combine to form new concept
-- [ ] **Include pattern strength and evidence**
+- [x] **Include pattern strength and evidence**
 
 #### 4.5 Implement Implicit Message Extractor
-- [ ] **Task**: Add method `extract_implicit_messages(semantic_fields: List[Dict], discourse_flow: Dict) -> List[Dict]`
-- [ ] **Purpose**: Identify messages not explicitly stated
-- [ ] **Analysis approach**:
+- [x] **Task**: Add method `extract_implicit_messages(semantic_fields: List[Dict], discourse_flow: Dict) -> List[Dict]`
+- [x] **Purpose**: Identify messages not explicitly stated
+- [x] **Analysis approach**:
   1. Look for recurring semantic patterns
   2. Analyze emotional undertones of clusters
   3. Identify value judgments in concept relationships
   4. Detect unstated assumptions
-- [ ] **Output format**:
+- [x] **Output format**:
   ```python
   {
       "implicit_message": "Technology adoption requires cultural change",
@@ -560,57 +570,57 @@ Identify themes that emerge from the interaction of concepts rather than being e
   ```
 
 #### 4.6 Implement Theme Emergence Scorer
-- [ ] **Task**: Add method `score_theme_emergence(theme: Dict, explicit_topics: List[str]) -> float`
-- [ ] **Purpose**: Measure how "emergent" vs explicit a theme is
-- [ ] **Scoring factors**:
+- [x] **Task**: Add method `score_theme_emergence(theme: Dict, explicit_topics: List[str]) -> float`
+- [x] **Purpose**: Measure how "emergent" vs explicit a theme is
+- [x] **Scoring factors**:
   - Absence from explicit topic list
   - Distributed across multiple segments
   - Arises from concept interactions
   - Not directly named but repeatedly implied
-- [ ] **Score range**: 0 (explicit) to 1 (fully emergent)
+- [x] **Score range**: 0 (explicit) to 1 (fully emergent)
 
 #### 4.7 Implement Metaphor and Analogy Detector
-- [ ] **Task**: Add method `detect_metaphorical_themes(segments: List[Segment], entities: List[Entity]) -> List[Dict]`
-- [ ] **Purpose**: Identify recurring metaphors that reveal themes
-- [ ] **Process**:
+- [x] **Task**: Add method `detect_metaphorical_themes(segments: List[Segment], entities: List[Entity]) -> List[Dict]`
+- [x] **Purpose**: Identify recurring metaphors that reveal themes
+- [x] **Process**:
   1. Identify analogical language patterns
   2. Track metaphor families (e.g., journey, war, growth)
   3. Link metaphors to concept clusters
   4. Extract thematic implications
-- [ ] **Example**: "Multiple 'battle' metaphors suggest underlying theme of competition"
+- [x] **Example**: "Multiple 'battle' metaphors suggest underlying theme of competition"
 
 #### 4.8 Implement Theme Evolution Tracker
-- [ ] **Task**: Add method `track_theme_evolution(emergent_themes: List[Dict], segments: List[Segment]) -> Dict`
-- [ ] **Purpose**: Track how emergent themes develop through conversation
-- [ ] **Track**:
+- [x] **Task**: Add method `track_theme_evolution(emergent_themes: List[Dict], segments: List[Segment]) -> Dict`
+- [x] **Purpose**: Track how emergent themes develop through conversation
+- [x] **Track**:
   - When theme first emerges
   - How it strengthens or weakens
   - Which concepts contribute to it
   - Whether it gets explicitly acknowledged
 
 #### 4.9 Implement Theme Validation
-- [ ] **Task**: Add method `validate_emergent_themes(themes: List[Dict], segments: List[Segment], insights: List[Insight]) -> List[Dict]`
-- [ ] **Purpose**: Ensure detected themes are genuine, not artifacts
-- [ ] **Validation checks**:
+- [x] **Task**: Add method `validate_emergent_themes(themes: List[Dict], segments: List[Segment], insights: List[Insight]) -> List[Dict]`
+- [x] **Purpose**: Ensure detected themes are genuine, not artifacts
+- [x] **Validation checks**:
   - Multiple independent evidence sources
   - Coherence across conversation
   - Not contradicted by explicit statements
   - Statistical significance of patterns
 
 #### 4.10 Create Theme Hierarchy Builder
-- [ ] **Task**: Add method `build_theme_hierarchy(emergent_themes: List[Dict]) -> Dict`
-- [ ] **Purpose**: Organize themes into hierarchical structure
-- [ ] **Hierarchy levels**:
+- [x] **Task**: Add method `build_theme_hierarchy(emergent_themes: List[Dict]) -> Dict`
+- [x] **Purpose**: Organize themes into hierarchical structure
+- [x] **Hierarchy levels**:
   - Meta-themes: Overarching patterns
   - Primary themes: Main emergent topics
   - Sub-themes: Specific aspects
   - Micro-themes: Detailed patterns
-- [ ] **Include parent-child relationships**
+- [x] **Include parent-child relationships**
 
 #### 4.11 Integrate with Main Processing
-- [ ] **Task**: Modify extraction pipeline to include emergent themes
-- [ ] **Where**: In `orchestrator.py`, after entity extraction
-- [ ] **Integration**:
+- [x] **Task**: Modify extraction pipeline to include emergent themes
+- [x] **Where**: In `orchestrator.py`, after entity extraction
+- [x] **Integration**:
   ```python
   # After entity and insight extraction
   theme_detector = EmergentThemeDetector()
@@ -626,9 +636,9 @@ Identify themes that emerge from the interaction of concepts rather than being e
   ```
 
 #### 4.12 Create Theme Summary Generator
-- [ ] **Task**: Add method `generate_theme_summary(emergent_themes: List[Dict]) -> Dict`
-- [ ] **Purpose**: Create interpretable summary of emergent themes
-- [ ] **Output format**:
+- [x] **Task**: Add method `generate_theme_summary(emergent_themes: List[Dict]) -> Dict`
+- [x] **Purpose**: Create interpretable summary of emergent themes
+- [x] **Output format**:
   ```python
   {
       "major_themes": [
@@ -644,18 +654,20 @@ Identify themes that emerge from the interaction of concepts rather than being e
   }
   ```
 
-## Enhancement 5: Within-Episode Discourse Flow
+## Enhancement 5: Within-Episode Discourse Flow ✅
 
 ### Purpose
 Track concept progression within individual episodes, understanding how ideas develop, transform, and resolve throughout a single conversation. This is a focused version of Enhancement 3, specifically designed to work within the current episode-by-episode processing architecture.
 
+**Status: COMPLETED** - All tasks implemented and tested.
+
 ### Detailed Implementation Tasks
 
 #### 5.1 Create Episode Flow Analyzer
-- [ ] **Task**: Create new file `src/processing/episode_flow.py`
-- [ ] **Purpose**: Analyze concept flow within single episodes
-- [ ] **Note**: This is separate from cross-episode analysis to work within current architecture
-- [ ] **Main class**:
+- [x] **Task**: Create new file `src/processing/episode_flow.py`
+- [x] **Purpose**: Analyze concept flow within single episodes
+- [x] **Note**: This is separate from cross-episode analysis to work within current architecture
+- [x] **Main class**:
   ```python
   class EpisodeFlowAnalyzer:
       """
@@ -666,15 +678,15 @@ Track concept progression within individual episodes, understanding how ideas de
   ```
 
 #### 5.2 Implement Segment Transition Classifier
-- [ ] **Task**: Add method `classify_segment_transitions(segments: List[Segment]) -> List[Dict]`
-- [ ] **Purpose**: Classify how conversation moves between segments
-- [ ] **Transition types**:
+- [x] **Task**: Add method `classify_segment_transitions(segments: List[Segment]) -> List[Dict]`
+- [x] **Purpose**: Classify how conversation moves between segments
+- [x] **Transition types**:
   - **Continuation**: Same topic, deeper exploration
   - **Expansion**: Related topic, broadening scope
   - **Pivot**: Shift to new but connected topic
   - **Jump**: Abrupt change to unrelated topic
   - **Return**: Coming back to earlier topic
-- [ ] **For each transition, calculate**:
+- [x] **For each transition, calculate**:
   ```python
   {
       "from_segment": 5,
@@ -687,14 +699,14 @@ Track concept progression within individual episodes, understanding how ideas de
   ```
 
 #### 5.3 Implement Concept Introduction Tracker
-- [ ] **Task**: Add method `track_concept_introductions(segments: List[Segment], entities: List[Entity]) -> Dict[str, Dict]`
-- [ ] **Purpose**: Identify how concepts are introduced
-- [ ] **Introduction types**:
+- [x] **Task**: Add method `track_concept_introductions(segments: List[Segment], entities: List[Entity]) -> Dict[str, Dict]`
+- [x] **Purpose**: Identify how concepts are introduced
+- [x] **Introduction types**:
   - **Planned**: Announced introduction ("Today we'll discuss...")
   - **Organic**: Natural emergence from discussion
   - **Responsive**: Introduced in response to question
   - **Tangential**: Side mention that develops
-- [ ] **Track for each concept**:
+- [x] **Track for each concept**:
   ```python
   {
       "entity_id": {
@@ -708,43 +720,43 @@ Track concept progression within individual episodes, understanding how ideas de
   ```
 
 #### 5.4 Implement Concept Development Mapper
-- [ ] **Task**: Add method `map_concept_development(entity: Entity, segments: List[Segment]) -> Dict`
-- [ ] **Purpose**: Track how each concept develops through episode
-- [ ] **Development phases**:
+- [x] **Task**: Add method `map_concept_development(entity: Entity, segments: List[Segment]) -> Dict`
+- [x] **Purpose**: Track how each concept develops through episode
+- [x] **Development phases**:
   - **Introduction**: First mention
   - **Elaboration**: Detailed explanation
   - **Application**: Practical examples
   - **Challenge**: Questions or counterpoints
   - **Integration**: Connection to other concepts
   - **Resolution**: Final state or conclusion
-- [ ] **Create development timeline with phase markers**
+- [x] **Create development timeline with phase markers**
 
 #### 5.5 Implement Conversation Momentum Analyzer
-- [ ] **Task**: Add method `analyze_conversation_momentum(segments: List[Segment], window_size: int = 5) -> List[Dict]`
-- [ ] **Purpose**: Track energy and pace of discussion
-- [ ] **Momentum factors**:
+- [x] **Task**: Add method `analyze_conversation_momentum(segments: List[Segment], window_size: int = 5) -> List[Dict]`
+- [x] **Purpose**: Track energy and pace of discussion
+- [x] **Momentum factors**:
   - New concept introduction rate
   - Speaker turn frequency
   - Question density
   - Insight generation rate
   - Emotional intensity
-- [ ] **Output momentum curve with annotations**
+- [x] **Output momentum curve with annotations**
 
 #### 5.6 Implement Topic Depth Tracker
-- [ ] **Task**: Add method `track_topic_depth(segments: List[Segment], entities: List[Entity]) -> Dict[str, float]`
-- [ ] **Purpose**: Measure how deeply each topic is explored
-- [ ] **Depth indicators**:
+- [x] **Task**: Add method `track_topic_depth(segments: List[Segment], entities: List[Entity]) -> Dict[str, float]`
+- [x] **Purpose**: Measure how deeply each topic is explored
+- [x] **Depth indicators**:
   - Time spent on topic
   - Number of related concepts introduced
   - Level of detail in explanations
   - Examples and evidence provided
   - Questions answered vs raised
-- [ ] **Return depth score 0-1 for each major topic**
+- [x] **Return depth score 0-1 for each major topic**
 
 #### 5.7 Implement Circular Reference Detector
-- [ ] **Task**: Add method `detect_circular_references(concept_timeline: Dict[str, List]) -> List[Dict]`
-- [ ] **Purpose**: Find when conversation returns to earlier concepts
-- [ ] **For each circular reference**:
+- [x] **Task**: Add method `detect_circular_references(concept_timeline: Dict[str, List]) -> List[Dict]`
+- [x] **Purpose**: Find when conversation returns to earlier concepts
+- [x] **For each circular reference**:
   ```python
   {
       "concept": "AI ethics",
@@ -756,20 +768,20 @@ Track concept progression within individual episodes, understanding how ideas de
   ```
 
 #### 5.8 Implement Concept Resolution Analyzer
-- [ ] **Task**: Add method `analyze_concept_resolution(concepts: Dict[str, Dict], final_segments: List[Segment]) -> Dict[str, Dict]`
-- [ ] **Purpose**: Determine if/how concepts are resolved
-- [ ] **Resolution types**:
+- [x] **Task**: Add method `analyze_concept_resolution(concepts: Dict[str, Dict], final_segments: List[Segment]) -> Dict[str, Dict]`
+- [x] **Purpose**: Determine if/how concepts are resolved
+- [x] **Resolution types**:
   - **Answered**: Question fully addressed
   - **Partial**: Some aspects resolved
   - **Deferred**: Explicitly left for future
   - **Abandoned**: Dropped without resolution
   - **Transformed**: Evolved into different question
-- [ ] **Include resolution quality score**
+- [x] **Include resolution quality score**
 
 #### 5.9 Create Episode Flow Summary
-- [ ] **Task**: Add method `generate_episode_flow_summary(flow_analysis: Dict) -> Dict`
-- [ ] **Purpose**: Create structured summary of episode flow
-- [ ] **Summary includes**:
+- [x] **Task**: Add method `generate_episode_flow_summary(flow_analysis: Dict) -> Dict`
+- [x] **Purpose**: Create structured summary of episode flow
+- [x] **Summary includes**:
   ```python
   {
       "opening_concepts": [...],
@@ -783,9 +795,9 @@ Track concept progression within individual episodes, understanding how ideas de
   ```
 
 #### 5.10 Implement Speaker Contribution Flow
-- [ ] **Task**: Add method `analyze_speaker_contribution_flow(segments: List[Segment]) -> Dict[str, Dict]`
-- [ ] **Purpose**: Track how each speaker contributes to flow
-- [ ] **For each speaker track**:
+- [x] **Task**: Add method `analyze_speaker_contribution_flow(segments: List[Segment]) -> Dict[str, Dict]`
+- [x] **Purpose**: Track how each speaker contributes to flow
+- [x] **For each speaker track**:
   - Concept introduction rate
   - Question vs statement ratio
   - Topic transition initiation
@@ -793,8 +805,8 @@ Track concept progression within individual episodes, understanding how ideas de
   - Role in concept development
 
 #### 5.11 Add Flow Metrics to Storage
-- [ ] **Task**: Modify entity and episode storage to include flow data
-- [ ] **Entity additions**:
+- [x] **Task**: Modify entity and episode storage to include flow data
+- [x] **Entity additions**:
   ```python
   entity["flow_data"] = {
       "introduction_point": 0.15,  # Position in episode (0-1)
@@ -803,7 +815,7 @@ Track concept progression within individual episodes, understanding how ideas de
       "resolution_status": "partial"
   }
   ```
-- [ ] **Episode additions**:
+- [x] **Episode additions**:
   ```python
   episode["discourse_flow"] = {
       "pattern": "problem_solution",
@@ -813,9 +825,9 @@ Track concept progression within individual episodes, understanding how ideas de
   ```
 
 #### 5.12 Create Flow-Based Segment Importance
-- [ ] **Task**: Add method `calculate_segment_flow_importance(segment: Segment, flow_analysis: Dict) -> float`
-- [ ] **Purpose**: Score segment importance based on flow role
-- [ ] **High importance for segments that**:
+- [x] **Task**: Add method `calculate_segment_flow_importance(segment: Segment, flow_analysis: Dict) -> float`
+- [x] **Purpose**: Score segment importance based on flow role
+- [x] **High importance for segments that**:
   - Introduce major concepts
   - Contain key transitions
   - Achieve resolutions
@@ -867,3 +879,18 @@ Each enhancement is complete when:
 - [ ] Performance impact is <20% on processing time
 - [ ] Documentation is complete
 - [ ] Enhancement provides clear value in test examples
+
+### Enhancement 1 Success Status:
+- [x] All code tasks are implemented (13/13 tasks completed)
+- [x] Unit tests created with comprehensive coverage
+- [x] Integration tests included showing extraction with importance scoring
+- [x] Documentation complete with clear docstrings
+- [x] Enhancement integrated into existing extraction pipeline
+
+### Enhancement 2 Success Status:
+- [x] All code tasks are implemented (10/10 tasks completed)
+- [x] EnhancedGapAnalyzer implemented as inner class of GraphAnalyzer
+- [x] Semantic distance calculation using embeddings implemented
+- [x] Bridge identification and scoring system created
+- [x] Comprehensive tests written covering all functionality
+- [x] Integration with graph analysis pipeline completed

@@ -19,6 +19,9 @@ from src.processing.segmentation import EnhancedPodcastSegmenter
 from src.processing.extraction import KnowledgeExtractor
 from src.processing.entity_resolution import EntityResolver
 from src.processing.graph_analysis import GraphAnalyzer
+from src.processing.discourse_flow import DiscourseFlowTracker
+from src.processing.emergent_themes import EmergentThemeDetector
+from src.processing.episode_flow import EpisodeFlowAnalyzer
 from src.utils.memory import cleanup_memory, monitor_memory
 from src.utils.resources import ProgressCheckpoint
 from src.utils.feed_processing import fetch_podcast_feed, download_episode_audio
@@ -62,6 +65,9 @@ class PodcastKnowledgePipeline:
         self.entity_resolver: Optional[EntityResolver] = None
         self.graph_analyzer: Optional[GraphAnalyzer] = None
         self.graph_enhancer: Optional[GraphEnhancer] = None
+        self.discourse_flow_tracker: Optional[DiscourseFlowTracker] = None
+        self.emergent_theme_detector: Optional[EmergentThemeDetector] = None
+        self.episode_flow_analyzer: Optional[EpisodeFlowAnalyzer] = None
         
         # Checkpoint manager
         self.checkpoint: Optional[ProgressCheckpoint] = None
@@ -210,6 +216,12 @@ class PodcastKnowledgePipeline:
             
             self.graph_analyzer = GraphAnalyzer(self.graph_provider)
             self.graph_enhancer = GraphEnhancer(self.graph_provider)
+            self.discourse_flow_tracker = DiscourseFlowTracker(self.embedding_provider)
+            self.emergent_theme_detector = EmergentThemeDetector(
+                self.embedding_provider,
+                self.llm_provider
+            )
+            self.episode_flow_analyzer = EpisodeFlowAnalyzer(self.embedding_provider)
             
             # Initialize checkpoint manager
             checkpoint_dir = getattr(self.config, 'checkpoint_dir', 'checkpoints')
@@ -672,6 +684,153 @@ class PodcastKnowledgePipeline:
                     )
                     add_span_attributes({"entities.resolved_count": len(resolved_entities)})
                 
+                # Analyze discourse flow
+                with create_span("discourse_flow_analysis", attributes={"entities.count": len(resolved_entities)}):
+                    logger.info("Analyzing discourse flow...")
+                    
+                    # Convert segment dictionaries to Segment objects for discourse flow
+                    from src.core.models import Segment
+                    segment_objects = []
+                    for i, segment_data in enumerate(segments):
+                        segment_obj = Segment(
+                            id=f"{episode_id}_segment_{i}",
+                            text=segment_data.get('text', ''),
+                            start_time=segment_data.get('start', 0),
+                            end_time=segment_data.get('end', 0),
+                            speaker=segment_data.get('speaker', 'Unknown'),
+                            segment_index=i
+                        )
+                        segment_objects.append(segment_obj)
+                    
+                    flow_results = self.discourse_flow_tracker.analyze_episode_flow(
+                        segment_objects,
+                        resolved_entities,
+                        extraction_result.get('insights', [])
+                    )
+                    add_span_attributes({
+                        "flow.patterns_detected": len(flow_results.get('discourse_patterns', [])),
+                        "flow.narrative_arcs": len(flow_results.get('narrative_arcs', [])),
+                        "flow.concept_lifecycles": len(flow_results.get('concept_lifecycles', {}))
+                    })
+                    
+                    # Store flow results in extraction_result for graph storage
+                    extraction_result['discourse_flow'] = flow_results
+                
+                # Detect emergent themes
+                with create_span("emergent_theme_detection", attributes={"entities.count": len(resolved_entities)}):
+                    logger.info("Detecting emergent themes...")
+                    
+                    # Build co-occurrence data from segments
+                    co_occurrences = self._build_co_occurrence_data(segment_objects, resolved_entities)
+                    
+                    # Extract explicit topics from the extraction results
+                    explicit_topics = extraction_result.get('topics', [])
+                    explicit_topic_names = [topic.get('name', '') for topic in explicit_topics if isinstance(topic, dict)]
+                    
+                    # Detect emergent themes
+                    theme_results = self.emergent_theme_detector.detect_themes(
+                        entities=resolved_entities,
+                        insights=extraction_result.get('insights', []),
+                        segments=segment_objects,
+                        co_occurrences=co_occurrences,
+                        explicit_topics=explicit_topic_names
+                    )
+                    
+                    add_span_attributes({
+                        "themes.detected": len(theme_results.get('themes', [])),
+                        "themes.meta": len(theme_results.get('hierarchy', {}).get('meta_themes', [])),
+                        "themes.primary": len(theme_results.get('hierarchy', {}).get('primary_themes', [])),
+                        "themes.implicit_messages": len(theme_results.get('implicit_messages', []))
+                    })
+                    
+                    # Store theme results in extraction_result for graph storage
+                    extraction_result['emergent_themes'] = theme_results
+                
+                # Analyze episode flow
+                with create_span("episode_flow_analysis", attributes={"segments.count": len(segment_objects)}):
+                    logger.info("Analyzing episode flow...")
+                    
+                    # Build concept timeline for flow analysis
+                    concept_timeline = {}
+                    entity_mentions = self.episode_flow_analyzer._find_entity_mentions(
+                        segment_objects, 
+                        resolved_entities
+                    )
+                    for entity_id, mentions in entity_mentions.items():
+                        concept_timeline[entity_id] = mentions
+                    
+                    # Run comprehensive flow analysis
+                    episode_flow = {
+                        "transitions": self.episode_flow_analyzer.classify_segment_transitions(segment_objects),
+                        "concept_introductions": self.episode_flow_analyzer.track_concept_introductions(
+                            segment_objects, resolved_entities
+                        ),
+                        "momentum": self.episode_flow_analyzer.analyze_conversation_momentum(segment_objects),
+                        "topic_depths": self.episode_flow_analyzer.track_topic_depth(
+                            segment_objects, resolved_entities
+                        ),
+                        "circular_references": self.episode_flow_analyzer.detect_circular_references(
+                            concept_timeline
+                        ),
+                        "resolutions": self.episode_flow_analyzer.analyze_concept_resolution(
+                            concept_timeline, segment_objects[-5:]  # Last 5 segments as final
+                        ),
+                        "speaker_contributions": self.episode_flow_analyzer.analyze_speaker_contribution_flow(
+                            segment_objects
+                        )
+                    }
+                    
+                    # Generate flow summary
+                    flow_summary = self.episode_flow_analyzer.generate_episode_flow_summary(episode_flow)
+                    episode_flow["summary"] = flow_summary
+                    
+                    # Add flow data to entities
+                    for entity in resolved_entities:
+                        if entity.id in episode_flow["concept_introductions"]:
+                            intro_data = episode_flow["concept_introductions"][entity.id]
+                            development = self.episode_flow_analyzer.map_concept_development(
+                                entity, segment_objects
+                            )
+                            
+                            # Calculate flow position metrics
+                            total_segments = len(segment_objects)
+                            intro_position = intro_data["introduction_segment"] / total_segments if total_segments > 0 else 0
+                            
+                            # Find peak discussion segment
+                            peak_segment = 0
+                            if development.get("phases"):
+                                elaboration_phases = [p for p in development["phases"] if p["phase"] == "elaboration"]
+                                if elaboration_phases:
+                                    peak_segment = elaboration_phases[len(elaboration_phases)//2]["segment_index"]
+                            peak_position = peak_segment / total_segments if total_segments > 0 else intro_position
+                            
+                            # Determine resolution status
+                            resolution_status = "unknown"
+                            if entity.id in episode_flow["resolutions"]:
+                                resolution_status = episode_flow["resolutions"][entity.id]["resolution_type"]
+                            
+                            # Add flow data to entity
+                            entity.flow_data = {
+                                "introduction_point": intro_position,
+                                "development_duration": len(development.get("phases", [])) * 10.0,  # Approximate seconds
+                                "peak_discussion": peak_position,
+                                "resolution_status": resolution_status
+                            }
+                    
+                    # Store episode flow data
+                    extraction_result['episode_flow'] = {
+                        "pattern": flow_summary.get("flow_pattern", "unknown"),
+                        "key_transitions": flow_summary.get("key_transitions", []),
+                        "flow_quality": flow_summary.get("narrative_coherence", 0.5)
+                    }
+                    
+                    add_span_attributes({
+                        "flow.pattern": flow_summary.get("flow_pattern"),
+                        "flow.coherence": flow_summary.get("narrative_coherence"),
+                        "flow.transitions": len(episode_flow.get("transitions", [])),
+                        "flow.circular_refs": len(episode_flow.get("circular_references", []))
+                    })
+                
                 # Save to graph
                 with create_span("graph_storage"):
                     logger.info("Saving to knowledge graph...")
@@ -752,18 +911,24 @@ class PodcastKnowledgePipeline:
             }
         )
         
-        # Create episode node
-        self.graph_provider.create_node(
-            'Episode',
-            {
-                'id': episode['id'],
-                'title': episode['title'],
-                'description': episode.get('description', ''),
-                'published_date': episode.get('published_date', ''),
-                'duration': episode.get('duration', ''),
-                'audio_url': episode.get('audio_url', '')
-            }
-        )
+        # Create episode node with flow data
+        episode_data = {
+            'id': episode['id'],
+            'title': episode['title'],
+            'description': episode.get('description', ''),
+            'published_date': episode.get('published_date', ''),
+            'duration': episode.get('duration', ''),
+            'audio_url': episode.get('audio_url', '')
+        }
+        
+        # Add episode flow data if available
+        if 'episode_flow' in extraction_result:
+            episode_flow_data = extraction_result['episode_flow']
+            episode_data['discourse_flow_pattern'] = episode_flow_data.get('pattern', 'unknown')
+            episode_data['flow_quality'] = episode_flow_data.get('flow_quality', 0.5)
+            episode_data['key_transitions_count'] = len(episode_flow_data.get('key_transitions', []))
+        
+        self.graph_provider.create_node('Episode', episode_data)
         
         # Create relationship
         self.graph_provider.create_relationship(
@@ -805,17 +970,42 @@ class PodcastKnowledgePipeline:
                 {}
             )
         
-        # Save entities
+        # Save entities with flow data
         for entity in resolved_entities:
+            # Convert entity to dictionary to ensure flow_data is included
+            entity_data = {
+                'id': entity.id,
+                'name': entity.name,
+                'type': entity.type,
+                'description': entity.description,
+                'confidence': getattr(entity, 'confidence', 1.0),
+                'importance_score': getattr(entity, 'importance_score', 0.5),
+                'importance_factors': getattr(entity, 'importance_factors', {}),
+                'discourse_roles': getattr(entity, 'discourse_roles', {})
+            }
+            
+            # Add flow data if present
+            if hasattr(entity, 'flow_data') and entity.flow_data:
+                entity_data.update({
+                    'flow_introduction_point': entity.flow_data.get('introduction_point', 0),
+                    'flow_development_duration': entity.flow_data.get('development_duration', 0),
+                    'flow_peak_discussion': entity.flow_data.get('peak_discussion', 0),
+                    'flow_resolution_status': entity.flow_data.get('resolution_status', 'unknown')
+                })
+            
+            # Add embedding if present
+            if hasattr(entity, 'embedding') and entity.embedding:
+                entity_data['embedding'] = entity.embedding
+            
             # Create or update entity
-            self.graph_provider.create_node('Entity', entity)
+            self.graph_provider.create_node('Entity', entity_data)
             
             # Create relationship to episode
             self.graph_provider.create_relationship(
                 ('Episode', {'id': episode['id']}),
                 'MENTIONS',
-                ('Entity', {'id': entity['id']}),
-                {'confidence': entity.get('confidence', 1.0)}
+                ('Entity', {'id': entity.id}),
+                {'confidence': entity_data['confidence']}
             )
         
         # Save quotes
@@ -829,6 +1019,48 @@ class PodcastKnowledgePipeline:
                 ('Quote', {'id': quote['id']}),
                 {}
             )
+        
+        # Save emergent themes
+        emergent_themes_data = extraction_result.get('emergent_themes', {})
+        if emergent_themes_data and emergent_themes_data.get('themes'):
+            logger.info(f"Saving {len(emergent_themes_data['themes'])} emergent themes...")
+            
+            for theme in emergent_themes_data['themes']:
+                # Create theme node
+                theme_data = {
+                    'id': f"{episode['id']}_theme_{theme.get('theme_id', hash(theme['semantic_field']))}",
+                    'semantic_field': theme.get('semantic_field', 'Unknown'),
+                    'emergence_score': theme.get('emergence_score', 0.5),
+                    'confidence': theme.get('confidence', 0.5),
+                    'validation_score': theme.get('validation_score', 0.5),
+                    'theme_source': theme.get('theme_source', 'unknown'),
+                    'evolution_pattern': theme.get('evolution_pattern', 'unknown')
+                }
+                
+                self.graph_provider.create_node('EmergentTheme', theme_data)
+                
+                # Create relationship to episode
+                self.graph_provider.create_relationship(
+                    ('Episode', {'id': episode['id']}),
+                    'HAS_EMERGENT_THEME',
+                    ('EmergentTheme', {'id': theme_data['id']}),
+                    {'strength': theme.get('confidence', 0.5)}
+                )
+                
+                # Link theme to its key concepts
+                for concept_name in theme.get('key_concepts', [])[:5]:  # Top 5 concepts
+                    # Find matching entity
+                    matching_entity = next(
+                        (e for e in resolved_entities if e.name.lower() == concept_name.lower()),
+                        None
+                    )
+                    if matching_entity:
+                        self.graph_provider.create_relationship(
+                            ('EmergentTheme', {'id': theme_data['id']}),
+                            'COMPOSED_OF',
+                            ('Entity', {'id': matching_entity.id}),
+                            {'role': 'key_concept'}
+                        )
         
         # Enhance graph if configured
         if getattr(self.config, 'enhance_graph', True):
@@ -852,3 +1084,45 @@ class PodcastKnowledgePipeline:
             'resumed_episodes': 0,
             'message': 'Checkpoint recovery not fully implemented'
         }
+    
+    def _build_co_occurrence_data(self, segments: List[Segment], entities: List[Entity]) -> List[Dict]:
+        """
+        Build co-occurrence data for entities appearing in the same segments.
+        
+        Args:
+            segments: List of segment objects
+            entities: List of entity objects
+            
+        Returns:
+            List of co-occurrence relationships
+        """
+        from collections import defaultdict
+        
+        # Map entities to segments they appear in
+        entity_segments = defaultdict(set)
+        
+        for entity in entities:
+            entity_name_lower = entity.name.lower()
+            
+            for i, segment in enumerate(segments):
+                if entity_name_lower in segment.text.lower():
+                    entity_segments[entity.id].add(i)
+        
+        # Build co-occurrence relationships
+        co_occurrences = []
+        entities_list = list(entities)
+        
+        for i, entity1 in enumerate(entities_list):
+            for j, entity2 in enumerate(entities_list[i+1:], start=i+1):
+                # Find shared segments
+                shared_segments = entity_segments[entity1.id] & entity_segments[entity2.id]
+                
+                if shared_segments:
+                    co_occurrences.append({
+                        "entity1_id": entity1.id,
+                        "entity2_id": entity2.id,
+                        "weight": len(shared_segments),
+                        "shared_segments": list(shared_segments)
+                    })
+        
+        return co_occurrences

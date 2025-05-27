@@ -211,6 +211,11 @@ class Entity:
     wikipedia_url: Optional[str] = None
     confidence_score: float = 1.0
     
+    # Multi-factor importance scoring
+    importance_score: float = 0.5  # Composite importance score 0-1
+    importance_factors: Dict[str, float] = field(default_factory=dict)  # Breakdown of importance factors
+    discourse_roles: Dict[str, float] = field(default_factory=dict)  # Entity's discourse functions
+    
     # Embeddings
     embedding: Optional[List[float]] = None
     
@@ -229,6 +234,9 @@ class Entity:
             "mention_count": self.mention_count,
             "bridge_score": self.bridge_score,
             "is_peripheral": self.is_peripheral,
+            "importance_score": self.importance_score,
+            "importance_factors": self.importance_factors,
+            "discourse_roles": self.discourse_roles,
             "embedding": self.embedding
         }
 
