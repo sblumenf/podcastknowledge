@@ -31,7 +31,7 @@ class MockAudioProvider(BaseAudioProvider):
         
     def transcribe(self, audio_path: str) -> List[TranscriptSegment]:
         """Return mock transcription."""
-        self._ensure_initialized()
+        # Skip initialization check for mock
         
         if self.fail_transcription:
             raise Exception("Mock transcription failure")
@@ -81,7 +81,7 @@ class MockAudioProvider(BaseAudioProvider):
         
     def diarize(self, audio_path: str) -> List[DiarizationSegment]:
         """Return mock diarization."""
-        self._ensure_initialized()
+        # Skip initialization check for mock
         
         if self.fail_diarization:
             raise Exception("Mock diarization failure")
@@ -169,3 +169,11 @@ class MockAudioProvider(BaseAudioProvider):
         """Set failure modes for testing error handling."""
         self.fail_transcription = fail_transcription
         self.fail_diarization = fail_diarization
+        
+    def _provider_specific_health_check(self) -> Dict[str, Any]:
+        """Mock implementation of provider-specific health check."""
+        return {
+            'status': 'healthy',
+            'mock_provider': 'available',
+            'test_mode': True
+        }

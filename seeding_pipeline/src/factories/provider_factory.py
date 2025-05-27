@@ -73,7 +73,9 @@ class ProviderFactory:
         if cls._config_loaded:
             return
             
-        config_path = os.path.join('config', 'providers.yml')
+        config_dir = os.environ.get('PODCAST_KG_CONFIG_DIR', 
+            os.path.join(os.path.dirname(__file__), '..', '..', 'config'))
+        config_path = os.path.join(config_dir, 'providers.yml')
         if os.path.exists(config_path):
             try:
                 with open(config_path, 'r') as f:

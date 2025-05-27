@@ -10,6 +10,8 @@ from .seeding import (
     PodcastKnowledgePipeline,
     get_api_version,
     check_api_compatibility,
+    deprecated,
+    api_version_check,
 )
 
 __all__ = [
@@ -18,6 +20,8 @@ __all__ = [
     'PodcastKnowledgePipeline',
     'get_api_version',
     'check_api_compatibility',
+    'deprecated',
+    'api_version_check',
 ]
 
 # API version information

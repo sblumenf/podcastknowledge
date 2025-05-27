@@ -398,3 +398,7 @@ class ProviderHealthMonitor:
             'health_percentage': health_percentage,
             'providers': self.get_all_status()
         }
+
+
+# Alias for backward compatibility
+ProviderHealthChecker = ProviderHealthMonitor

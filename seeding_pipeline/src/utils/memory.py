@@ -339,3 +339,38 @@ def batch_processor(batch_size: int = 100,
         
         return wrapper
     return decorator
+
+class MemoryMonitor:
+    """Memory monitoring utility for tracking memory usage."""
+    
+    def __init__(self, threshold_mb: Optional[float] = None):
+        """
+        Initialize memory monitor.
+        
+        Args:
+            threshold_mb: Memory threshold in MB to trigger warnings
+        """
+        self.threshold_mb = threshold_mb or 1000.0  # Default 1GB
+        self.start_memory = 0.0
+        self.peak_memory = 0.0
+        
+    def start(self) -> None:
+        """Start memory monitoring."""
+        self.start_memory = get_memory_usage()
+        self.peak_memory = self.start_memory
+        
+    def check(self) -> Dict[str, float]:
+        """Check current memory usage."""
+        current = get_memory_usage()
+        self.peak_memory = max(self.peak_memory, current)
+        
+        return {
+            'current_mb': current,
+            'start_mb': self.start_memory,
+            'peak_mb': self.peak_memory,
+            'delta_mb': current - self.start_memory
+        }
+        
+    def stop(self) -> Dict[str, float]:
+        """Stop monitoring and return final stats."""
+        return self.check()

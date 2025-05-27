@@ -6,7 +6,7 @@ This module provides decorators and utilities for marking deprecated functionali
 
 import warnings
 import functools
-from typing import Optional, Callable, Any
+from typing import Optional, Callable, Any, Dict
 from datetime import datetime
 
 from ..utils.logging import get_logger

@@ -14,13 +14,7 @@ def test_imports():
     errors = []
     
     # Test each import individually to find the specific issue
-    # Phase 1
-    try:
-        from src.providers.graph.schemaless_poc import SchemalessPoC
-        print("✓ SchemalessPoC")
-    except ImportError as e:
-        print(f"✗ SchemalessPoC: {e}")
-        errors.append(e)
+    # Phase 1 - POC removed during cleanup
     
     try:
         from src.providers.llm.gemini_adapter import GeminiGraphRAGAdapter, create_gemini_adapter

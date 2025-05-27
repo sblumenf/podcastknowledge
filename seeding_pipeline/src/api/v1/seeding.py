@@ -7,7 +7,7 @@ from typing import Any, Callable, Dict, List, Optional, Union
 
 from ...core.config import Config
 from ...seeding import PodcastKnowledgePipeline as _PipelineImpl
-from ..._version__ import __api_version__
+from ...__version__ import __api_version__
 
 
 # Deprecation helpers

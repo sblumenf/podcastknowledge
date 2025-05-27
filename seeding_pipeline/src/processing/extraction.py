@@ -1279,33 +1279,18 @@ JSON RESPONSE:
         return validated
 
 
-# ========== Compatibility imports for migration ==========
-# These imports allow existing code to continue working while
-# transitioning to the new strategy-based extraction system
-
-import warnings
-from src.processing.strategies.extraction_factory import ExtractionFactory
-from src.processing.strategies import ExtractedData as StrategyExtractedData
-
-def create_extractor(mode="fixed", **kwargs):
+# Re-export for backward compatibility
+def create_extractor(config: Dict[str, Any]) -> KnowledgeExtractor:
     """
-    Create an extraction strategy using the new system.
-    
-    DEPRECATED: Use ExtractionFactory.create_strategy() instead.
+    Factory function to create a KnowledgeExtractor instance.
     
     Args:
-        mode: Extraction mode ("fixed", "schemaless", "dual")
-        **kwargs: Additional arguments for the strategy
+        config: Configuration dictionary
         
     Returns:
-        Extraction strategy instance
+        KnowledgeExtractor instance
     """
-    warnings.warn(
-        "create_extractor is deprecated. Use ExtractionFactory.create_strategy() instead.",
-        DeprecationWarning,
-        stacklevel=2
-    )
-    return ExtractionFactory.create_strategy(mode, **kwargs)
+    return KnowledgeExtractor(config)
 
-# Re-export for backward compatibility
+
 __all__ = ["KnowledgeExtractor", "ExtractionResult", "create_extractor"]

@@ -12,7 +12,7 @@ from src.processing.segmentation import EnhancedPodcastSegmenter
 from src.processing.extraction import KnowledgeExtractor
 from src.processing.entity_resolution import EntityResolver
 from src.processing.graph_analysis import GraphAnalyzer
-from src.providers.graph.enhancements import GraphEnhancer
+from src.providers.graph.enhancements import GraphEnhancements
 from src.processing.discourse_flow import DiscourseFlowTracker
 from src.processing.emergent_themes import EmergentThemeDetector
 from src.processing.episode_flow import EpisodeFlowAnalyzer
@@ -46,7 +46,7 @@ class ProviderCoordinator:
         self.knowledge_extractor: Optional[KnowledgeExtractor] = None
         self.entity_resolver: Optional[EntityResolver] = None
         self.graph_analyzer: Optional[GraphAnalyzer] = None
-        self.graph_enhancer: Optional[GraphEnhancer] = None
+        self.graph_enhancer: Optional[GraphEnhancements] = None
         self.discourse_flow_tracker: Optional[DiscourseFlowTracker] = None
         self.emergent_theme_detector: Optional[EmergentThemeDetector] = None
         self.episode_flow_analyzer: Optional[EpisodeFlowAnalyzer] = None
@@ -120,7 +120,7 @@ class ProviderCoordinator:
             )
             
             self.graph_analyzer = GraphAnalyzer(self.graph_provider)
-            self.graph_enhancer = GraphEnhancer(self.graph_provider)
+            self.graph_enhancer = GraphEnhancements()
             self.discourse_flow_tracker = DiscourseFlowTracker(self.embedding_provider)
             self.emergent_theme_detector = EmergentThemeDetector(
                 self.embedding_provider,

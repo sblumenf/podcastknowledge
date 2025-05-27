@@ -25,7 +25,7 @@ from src.processing.episode_flow import EpisodeFlowAnalyzer
 from src.utils.memory import cleanup_memory, monitor_memory
 from src.utils.resources import ProgressCheckpoint
 from src.utils.feed_processing import fetch_podcast_feed, download_episode_audio
-from src.providers.graph.enhancements import GraphEnhancer
+from src.providers.graph.enhancements import GraphEnhancements
 from src.utils.logging import get_logger, log_execution_time, log_error_with_context, log_metric
 from src.tracing import (
     init_tracing, trace_method, trace_async, add_span_attributes,
@@ -82,7 +82,7 @@ class PodcastKnowledgePipeline:
         self.knowledge_extractor: Optional[KnowledgeExtractor] = None
         self.entity_resolver: Optional[EntityResolver] = None
         self.graph_analyzer: Optional[GraphAnalyzer] = None
-        self.graph_enhancer: Optional[GraphEnhancer] = None
+        self.graph_enhancer: Optional[GraphEnhancements] = None
         self.discourse_flow_tracker: Optional[DiscourseFlowTracker] = None
         self.emergent_theme_detector: Optional[EmergentThemeDetector] = None
         self.episode_flow_analyzer: Optional[EpisodeFlowAnalyzer] = None

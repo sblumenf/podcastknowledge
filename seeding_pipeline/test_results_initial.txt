@@ -1,0 +1,1171 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.9.6, pytest-7.4.3, pluggy-1.6.0 -- /Users/s.blumenfeld/podcastknowledge/seeding_pipeline/venv/bin/python3
+cachedir: .pytest_cache
+rootdir: /Users/s.blumenfeld/podcastknowledge/seeding_pipeline
+configfile: pyproject.toml
+testpaths: tests
+plugins: cov-4.1.0, asyncio-0.21.1, mock-3.12.0, anyio-3.7.1
+asyncio: mode=strict
+collecting ... /Users/s.blumenfeld/podcastknowledge/seeding_pipeline/venv/lib/python3.9/site-packages/coverage/report_core.py:110: CoverageWarning: Couldn't parse Python file '/Users/s.blumenfeld/podcastknowledge/seeding_pipeline/src/migration/cli.py' (couldnt-parse)
+  coverage._warn(msg, slug="couldnt-parse")
+/Users/s.blumenfeld/podcastknowledge/seeding_pipeline/venv/lib/python3.9/site-packages/coverage/report_core.py:110: CoverageWarning: Couldn't parse Python file '/Users/s.blumenfeld/podcastknowledge/seeding_pipeline/src/seeding/components/pipeline_executor.py' (couldnt-parse)
+  coverage._warn(msg, slug="couldnt-parse")
+collected 396 items / 44 errors
+
+==================================== ERRORS ====================================
+______________________ ERROR collecting tests/test_cli.py ______________________
+ImportError while importing test module '/Users/s.blumenfeld/podcastknowledge/seeding_pipeline/tests/test_cli.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/importlib/__init__.py:127: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+tests/test_cli.py:13: in <module>
+    from cli import main, load_podcast_configs, seed_podcasts, health_check, validate_config
+cli.py:18: in <module>
+    from src.seeding import PodcastKnowledgePipeline
+src/__init__.py:10: in <module>
+    from .seeding import PodcastKnowledgePipeline
+src/seeding/__init__.py:3: in <module>
+    from .orchestrator import PodcastKnowledgePipeline
+src/seeding/orchestrator.py:18: in <module>
+    from src.processing.segmentation import EnhancedPodcastSegmenter
+src/processing/__init__.py:5: in <module>
+    from .strategies.extraction_factory import ExtractionFactory
+src/processing/strategies/extraction_factory.py:12: in <module>
+    from src.processing.strategies.fixed_schema_strategy import FixedSchemaStrategy
+src/processing/strategies/fixed_schema_strategy.py:12: in <module>
+    from src.processing.extraction import KnowledgeExtractor, ExtractionResult
+src/processing/extraction.py:1287: in <module>
+    from src.processing.strategies.extraction_factory import ExtractionFactory
+E   ImportError: cannot import name 'ExtractionFactory' from partially initialized module 'src.processing.strategies.extraction_factory' (most likely due to a circular import) (/Users/s.blumenfeld/podcastknowledge/seeding_pipeline/src/processing/strategies/extraction_factory.py)
+______________ ERROR collecting tests/test_component_baselines.py ______________
+ImportError while importing test module '/Users/s.blumenfeld/podcastknowledge/seeding_pipeline/tests/test_component_baselines.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/importlib/__init__.py:127: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+tests/test_component_baselines.py:15: in <module>
+    from src.utils.component_tracker import get_component_tracker
+src/utils/component_tracker.py:20: in <module>
+    from ..api.metrics import get_metrics_collector
+src/__init__.py:10: in <module>
+    from .seeding import PodcastKnowledgePipeline
+src/seeding/__init__.py:3: in <module>
+    from .orchestrator import PodcastKnowledgePipeline
+src/seeding/orchestrator.py:19: in <module>
+    from src.processing.extraction import KnowledgeExtractor
+src/processing/__init__.py:5: in <module>
+    from .strategies.extraction_factory import ExtractionFactory
+src/processing/strategies/extraction_factory.py:12: in <module>
+    from src.processing.strategies.fixed_schema_strategy import FixedSchemaStrategy
+src/processing/strategies/fixed_schema_strategy.py:12: in <module>
+    from src.processing.extraction import KnowledgeExtractor, ExtractionResult
+src/processing/extraction.py:1287: in <module>
+    from src.processing.strategies.extraction_factory import ExtractionFactory
+E   ImportError: cannot import name 'ExtractionFactory' from partially initialized module 'src.processing.strategies.extraction_factory' (most likely due to a circular import) (/Users/s.blumenfeld/podcastknowledge/seeding_pipeline/src/processing/strategies/extraction_factory.py)
+__________________ ERROR collecting tests/api/test_health.py ___________________
+ImportError while importing test module '/Users/s.blumenfeld/podcastknowledge/seeding_pipeline/tests/api/test_health.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/importlib/__init__.py:127: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+tests/api/test_health.py:6: in <module>
+    from src.api.health import (
+src/__init__.py:10: in <module>
+    from .seeding import PodcastKnowledgePipeline
+src/seeding/__init__.py:3: in <module>
+    from .orchestrator import PodcastKnowledgePipeline
+src/seeding/orchestrator.py:19: in <module>
+    from src.processing.extraction import KnowledgeExtractor
+src/processing/__init__.py:5: in <module>
+    from .strategies.extraction_factory import ExtractionFactory
+src/processing/strategies/extraction_factory.py:12: in <module>
+    from src.processing.strategies.fixed_schema_strategy import FixedSchemaStrategy
+src/processing/strategies/fixed_schema_strategy.py:12: in <module>
+    from src.processing.extraction import KnowledgeExtractor, ExtractionResult
+src/processing/extraction.py:1287: in <module>
+    from src.processing.strategies.extraction_factory import ExtractionFactory
+E   ImportError: cannot import name 'ExtractionFactory' from partially initialized module 'src.processing.strategies.extraction_factory' (most likely due to a circular import) (/Users/s.blumenfeld/podcastknowledge/seeding_pipeline/src/processing/strategies/extraction_factory.py)
+__________________ ERROR collecting tests/api/test_v1_api.py ___________________
+ImportError while importing test module '/Users/s.blumenfeld/podcastknowledge/seeding_pipeline/tests/api/test_v1_api.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/importlib/__init__.py:127: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+tests/api/test_v1_api.py:7: in <module>
+    from src.api.v1 import (
+src/__init__.py:10: in <module>
+    from .seeding import PodcastKnowledgePipeline
+src/seeding/__init__.py:3: in <module>
+    from .orchestrator import PodcastKnowledgePipeline
+src/seeding/orchestrator.py:19: in <module>
+    from src.processing.extraction import KnowledgeExtractor
+src/processing/__init__.py:5: in <module>
+    from .strategies.extraction_factory import ExtractionFactory
+src/processing/strategies/extraction_factory.py:12: in <module>
+    from src.processing.strategies.fixed_schema_strategy import FixedSchemaStrategy
+src/processing/strategies/fixed_schema_strategy.py:12: in <module>
+    from src.processing.extraction import KnowledgeExtractor, ExtractionResult
+src/processing/extraction.py:1287: in <module>
+    from src.processing.strategies.extraction_factory import ExtractionFactory
+E   ImportError: cannot import name 'ExtractionFactory' from partially initialized module 'src.processing.strategies.extraction_factory' (most likely due to a circular import) (/Users/s.blumenfeld/podcastknowledge/seeding_pipeline/src/processing/strategies/extraction_factory.py)
+_______________ ERROR collecting tests/e2e/test_e2e_scenarios.py _______________
+ImportError while importing test module '/Users/s.blumenfeld/podcastknowledge/seeding_pipeline/tests/e2e/test_e2e_scenarios.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/importlib/__init__.py:127: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+tests/e2e/test_e2e_scenarios.py:15: in <module>
+    from src.api.v1 import seed_podcast, seed_podcasts, PodcastKnowledgePipeline
+src/__init__.py:10: in <module>
+    from .seeding import PodcastKnowledgePipeline
+src/seeding/__init__.py:3: in <module>
+    from .orchestrator import PodcastKnowledgePipeline
+src/seeding/orchestrator.py:19: in <module>
+    from src.processing.extraction import KnowledgeExtractor
+src/processing/__init__.py:5: in <module>
+    from .strategies.extraction_factory import ExtractionFactory
+src/processing/strategies/extraction_factory.py:12: in <module>
+    from src.processing.strategies.fixed_schema_strategy import FixedSchemaStrategy
+src/processing/strategies/fixed_schema_strategy.py:12: in <module>
+    from src.processing.extraction import KnowledgeExtractor, ExtractionResult
+src/processing/extraction.py:1287: in <module>
+    from src.processing.strategies.extraction_factory import ExtractionFactory
+E   ImportError: cannot import name 'ExtractionFactory' from partially initialized module 'src.processing.strategies.extraction_factory' (most likely due to a circular import) (/Users/s.blumenfeld/podcastknowledge/seeding_pipeline/src/processing/strategies/extraction_factory.py)
+___________ ERROR collecting tests/integration/test_api_contracts.py ___________
+ImportError while importing test module '/Users/s.blumenfeld/podcastknowledge/seeding_pipeline/tests/integration/test_api_contracts.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/importlib/__init__.py:127: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+tests/integration/test_api_contracts.py:11: in <module>
+    from src.api.v1.seeding import (
+src/__init__.py:10: in <module>
+    from .seeding import PodcastKnowledgePipeline
+src/seeding/__init__.py:3: in <module>
+    from .orchestrator import PodcastKnowledgePipeline
+src/seeding/orchestrator.py:19: in <module>
+    from src.processing.extraction import KnowledgeExtractor
+src/processing/__init__.py:5: in <module>
+    from .strategies.extraction_factory import ExtractionFactory
+src/processing/strategies/extraction_factory.py:12: in <module>
+    from src.processing.strategies.fixed_schema_strategy import FixedSchemaStrategy
+src/processing/strategies/fixed_schema_strategy.py:12: in <module>
+    from src.processing.extraction import KnowledgeExtractor, ExtractionResult
+src/processing/extraction.py:1287: in <module>
+    from src.processing.strategies.extraction_factory import ExtractionFactory
+E   ImportError: cannot import name 'ExtractionFactory' from partially initialized module 'src.processing.strategies.extraction_factory' (most likely due to a circular import) (/Users/s.blumenfeld/podcastknowledge/seeding_pipeline/src/processing/strategies/extraction_factory.py)
+________ ERROR collecting tests/integration/test_checkpoint_recovery.py ________
+ImportError while importing test module '/Users/s.blumenfeld/podcastknowledge/seeding_pipeline/tests/integration/test_checkpoint_recovery.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/importlib/__init__.py:127: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+tests/integration/test_checkpoint_recovery.py:12: in <module>
+    from src.seeding.checkpoint import ProgressCheckpoint
+src/__init__.py:10: in <module>
+    from .seeding import PodcastKnowledgePipeline
+src/seeding/__init__.py:3: in <module>
+    from .orchestrator import PodcastKnowledgePipeline
+src/seeding/orchestrator.py:19: in <module>
+    from src.processing.extraction import KnowledgeExtractor
+src/processing/__init__.py:5: in <module>
+    from .strategies.extraction_factory import ExtractionFactory
+src/processing/strategies/extraction_factory.py:12: in <module>
+    from src.processing.strategies.fixed_schema_strategy import FixedSchemaStrategy
+src/processing/strategies/fixed_schema_strategy.py:12: in <module>
+    from src.processing.extraction import KnowledgeExtractor, ExtractionResult
+src/processing/extraction.py:1287: in <module>
+    from src.processing.strategies.extraction_factory import ExtractionFactory
+E   ImportError: cannot import name 'ExtractionFactory' from partially initialized module 'src.processing.strategies.extraction_factory' (most likely due to a circular import) (/Users/s.blumenfeld/podcastknowledge/seeding_pipeline/src/processing/strategies/extraction_factory.py)
+___________ ERROR collecting tests/integration/test_cli_commands.py ____________
+ImportError while importing test module '/Users/s.blumenfeld/podcastknowledge/seeding_pipeline/tests/integration/test_cli_commands.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/importlib/__init__.py:127: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+tests/integration/test_cli_commands.py:15: in <module>
+    from cli import main, seed_podcasts, health_check, validate_config, schema_stats
+cli.py:18: in <module>
+    from src.seeding import PodcastKnowledgePipeline
+src/__init__.py:10: in <module>
+    from .seeding import PodcastKnowledgePipeline
+src/seeding/__init__.py:3: in <module>
+    from .orchestrator import PodcastKnowledgePipeline
+src/seeding/orchestrator.py:19: in <module>
+    from src.processing.extraction import KnowledgeExtractor
+src/processing/__init__.py:5: in <module>
+    from .strategies.extraction_factory import ExtractionFactory
+src/processing/strategies/extraction_factory.py:12: in <module>
+    from src.processing.strategies.fixed_schema_strategy import FixedSchemaStrategy
+src/processing/strategies/fixed_schema_strategy.py:12: in <module>
+    from src.processing.extraction import KnowledgeExtractor, ExtractionResult
+src/processing/extraction.py:1287: in <module>
+    from src.processing.strategies.extraction_factory import ExtractionFactory
+E   ImportError: cannot import name 'ExtractionFactory' from partially initialized module 'src.processing.strategies.extraction_factory' (most likely due to a circular import) (/Users/s.blumenfeld/podcastknowledge/seeding_pipeline/src/processing/strategies/extraction_factory.py)
+__ ERROR collecting tests/integration/test_comprehensive_extraction_modes.py ___
+ImportError while importing test module '/Users/s.blumenfeld/podcastknowledge/seeding_pipeline/tests/integration/test_comprehensive_extraction_modes.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/importlib/__init__.py:127: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+tests/integration/test_comprehensive_extraction_modes.py:17: in <module>
+    from src.seeding.orchestrator import PodcastKnowledgePipeline
+src/__init__.py:10: in <module>
+    from .seeding import PodcastKnowledgePipeline
+src/seeding/__init__.py:3: in <module>
+    from .orchestrator import PodcastKnowledgePipeline
+src/seeding/orchestrator.py:19: in <module>
+    from src.processing.extraction import KnowledgeExtractor
+src/processing/__init__.py:5: in <module>
+    from .strategies.extraction_factory import ExtractionFactory
+src/processing/strategies/extraction_factory.py:12: in <module>
+    from src.processing.strategies.fixed_schema_strategy import FixedSchemaStrategy
+src/processing/strategies/fixed_schema_strategy.py:12: in <module>
+    from src.processing.extraction import KnowledgeExtractor, ExtractionResult
+src/processing/extraction.py:1287: in <module>
+    from src.processing.strategies.extraction_factory import ExtractionFactory
+E   ImportError: cannot import name 'ExtractionFactory' from partially initialized module 'src.processing.strategies.extraction_factory' (most likely due to a circular import) (/Users/s.blumenfeld/podcastknowledge/seeding_pipeline/src/processing/strategies/extraction_factory.py)
+__________ ERROR collecting tests/integration/test_golden_outputs.py ___________
+ImportError while importing test module '/Users/s.blumenfeld/podcastknowledge/seeding_pipeline/tests/integration/test_golden_outputs.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/importlib/__init__.py:127: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+tests/integration/test_golden_outputs.py:12: in <module>
+    from src.api.v1 import seed_podcast
+src/__init__.py:10: in <module>
+    from .seeding import PodcastKnowledgePipeline
+src/seeding/__init__.py:3: in <module>
+    from .orchestrator import PodcastKnowledgePipeline
+src/seeding/orchestrator.py:19: in <module>
+    from src.processing.extraction import KnowledgeExtractor
+src/processing/__init__.py:5: in <module>
+    from .strategies.extraction_factory import ExtractionFactory
+src/processing/strategies/extraction_factory.py:12: in <module>
+    from src.processing.strategies.fixed_schema_strategy import FixedSchemaStrategy
+src/processing/strategies/fixed_schema_strategy.py:12: in <module>
+    from src.processing.extraction import KnowledgeExtractor, ExtractionResult
+src/processing/extraction.py:1287: in <module>
+    from src.processing.strategies.extraction_factory import ExtractionFactory
+E   ImportError: cannot import name 'ExtractionFactory' from partially initialized module 'src.processing.strategies.extraction_factory' (most likely due to a circular import) (/Users/s.blumenfeld/podcastknowledge/seeding_pipeline/src/processing/strategies/extraction_factory.py)
+_____ ERROR collecting tests/integration/test_golden_outputs_validation.py _____
+ImportError while importing test module '/Users/s.blumenfeld/podcastknowledge/seeding_pipeline/tests/integration/test_golden_outputs_validation.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/importlib/__init__.py:127: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+tests/integration/test_golden_outputs_validation.py:12: in <module>
+    from src.seeding.orchestrator import PodcastKnowledgePipeline
+src/__init__.py:10: in <module>
+    from .seeding import PodcastKnowledgePipeline
+src/seeding/__init__.py:3: in <module>
+    from .orchestrator import PodcastKnowledgePipeline
+src/seeding/orchestrator.py:19: in <module>
+    from src.processing.extraction import KnowledgeExtractor
+src/processing/__init__.py:5: in <module>
+    from .strategies.extraction_factory import ExtractionFactory
+src/processing/strategies/extraction_factory.py:12: in <module>
+    from src.processing.strategies.fixed_schema_strategy import FixedSchemaStrategy
+src/processing/strategies/fixed_schema_strategy.py:12: in <module>
+    from src.processing.extraction import KnowledgeExtractor, ExtractionResult
+src/processing/extraction.py:1287: in <module>
+    from src.processing.strategies.extraction_factory import ExtractionFactory
+E   ImportError: cannot import name 'ExtractionFactory' from partially initialized module 'src.processing.strategies.extraction_factory' (most likely due to a circular import) (/Users/s.blumenfeld/podcastknowledge/seeding_pipeline/src/processing/strategies/extraction_factory.py)
+________ ERROR collecting tests/integration/test_minimal_schemaless.py _________
+ImportError while importing test module '/Users/s.blumenfeld/podcastknowledge/seeding_pipeline/tests/integration/test_minimal_schemaless.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/importlib/__init__.py:127: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+tests/integration/test_minimal_schemaless.py:6: in <module>
+    from src.core.config import Config
+E   ImportError: cannot import name 'Config' from 'src.core.config' (/Users/s.blumenfeld/podcastknowledge/seeding_pipeline/src/core/config.py)
+___________ ERROR collecting tests/integration/test_orchestrator.py ____________
+ImportError while importing test module '/Users/s.blumenfeld/podcastknowledge/seeding_pipeline/tests/integration/test_orchestrator.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/importlib/__init__.py:127: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+tests/integration/test_orchestrator.py:7: in <module>
+    from src.seeding.orchestrator import PodcastKnowledgePipeline
+src/__init__.py:10: in <module>
+    from .seeding import PodcastKnowledgePipeline
+src/seeding/__init__.py:3: in <module>
+    from .orchestrator import PodcastKnowledgePipeline
+src/seeding/orchestrator.py:19: in <module>
+    from src.processing.extraction import KnowledgeExtractor
+src/processing/__init__.py:5: in <module>
+    from .strategies.extraction_factory import ExtractionFactory
+src/processing/strategies/extraction_factory.py:12: in <module>
+    from src.processing.strategies.fixed_schema_strategy import FixedSchemaStrategy
+src/processing/strategies/fixed_schema_strategy.py:12: in <module>
+    from src.processing.extraction import KnowledgeExtractor, ExtractionResult
+src/processing/extraction.py:1287: in <module>
+    from src.processing.strategies.extraction_factory import ExtractionFactory
+E   ImportError: cannot import name 'ExtractionFactory' from partially initialized module 'src.processing.strategies.extraction_factory' (most likely due to a circular import) (/Users/s.blumenfeld/podcastknowledge/seeding_pipeline/src/processing/strategies/extraction_factory.py)
+______ ERROR collecting tests/integration/test_performance_benchmarks.py _______
+ImportError while importing test module '/Users/s.blumenfeld/podcastknowledge/seeding_pipeline/tests/integration/test_performance_benchmarks.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/importlib/__init__.py:127: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+tests/integration/test_performance_benchmarks.py:16: in <module>
+    from src.seeding.orchestrator import PodcastKnowledgePipeline
+src/__init__.py:10: in <module>
+    from .seeding import PodcastKnowledgePipeline
+src/seeding/__init__.py:3: in <module>
+    from .orchestrator import PodcastKnowledgePipeline
+src/seeding/orchestrator.py:19: in <module>
+    from src.processing.extraction import KnowledgeExtractor
+src/processing/__init__.py:5: in <module>
+    from .strategies.extraction_factory import ExtractionFactory
+src/processing/strategies/extraction_factory.py:12: in <module>
+    from src.processing.strategies.fixed_schema_strategy import FixedSchemaStrategy
+src/processing/strategies/fixed_schema_strategy.py:12: in <module>
+    from src.processing.extraction import KnowledgeExtractor, ExtractionResult
+src/processing/extraction.py:1287: in <module>
+    from src.processing.strategies.extraction_factory import ExtractionFactory
+E   ImportError: cannot import name 'ExtractionFactory' from partially initialized module 'src.processing.strategies.extraction_factory' (most likely due to a circular import) (/Users/s.blumenfeld/podcastknowledge/seeding_pipeline/src/processing/strategies/extraction_factory.py)
+________ ERROR collecting tests/integration/test_schemaless_pipeline.py ________
+ImportError while importing test module '/Users/s.blumenfeld/podcastknowledge/seeding_pipeline/tests/integration/test_schemaless_pipeline.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/importlib/__init__.py:127: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+tests/integration/test_schemaless_pipeline.py:8: in <module>
+    from src.providers.graph.schemaless_neo4j import SchemalessNeo4jProvider
+src/providers/graph/schemaless_neo4j.py:16: in <module>
+    from src.processing.schemaless_preprocessor import SegmentPreprocessor
+src/__init__.py:10: in <module>
+    from .seeding import PodcastKnowledgePipeline
+src/seeding/__init__.py:3: in <module>
+    from .orchestrator import PodcastKnowledgePipeline
+src/seeding/orchestrator.py:19: in <module>
+    from src.processing.extraction import KnowledgeExtractor
+src/processing/__init__.py:5: in <module>
+    from .strategies.extraction_factory import ExtractionFactory
+src/processing/strategies/extraction_factory.py:12: in <module>
+    from src.processing.strategies.fixed_schema_strategy import FixedSchemaStrategy
+src/processing/strategies/fixed_schema_strategy.py:12: in <module>
+    from src.processing.extraction import KnowledgeExtractor, ExtractionResult
+src/processing/extraction.py:1287: in <module>
+    from src.processing.strategies.extraction_factory import ExtractionFactory
+E   ImportError: cannot import name 'ExtractionFactory' from partially initialized module 'src.processing.strategies.extraction_factory' (most likely due to a circular import) (/Users/s.blumenfeld/podcastknowledge/seeding_pipeline/src/processing/strategies/extraction_factory.py)
+__________ ERROR collecting tests/integration/test_signal_handling.py __________
+ImportError while importing test module '/Users/s.blumenfeld/podcastknowledge/seeding_pipeline/tests/integration/test_signal_handling.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/importlib/__init__.py:127: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+tests/integration/test_signal_handling.py:12: in <module>
+    from src.seeding.orchestrator import PodcastKnowledgePipeline
+src/__init__.py:10: in <module>
+    from .seeding import PodcastKnowledgePipeline
+src/seeding/__init__.py:3: in <module>
+    from .orchestrator import PodcastKnowledgePipeline
+src/seeding/orchestrator.py:19: in <module>
+    from src.processing.extraction import KnowledgeExtractor
+src/processing/__init__.py:5: in <module>
+    from .strategies.extraction_factory import ExtractionFactory
+src/processing/strategies/extraction_factory.py:12: in <module>
+    from src.processing.strategies.fixed_schema_strategy import FixedSchemaStrategy
+src/processing/strategies/fixed_schema_strategy.py:12: in <module>
+    from src.processing.extraction import KnowledgeExtractor, ExtractionResult
+src/processing/extraction.py:1287: in <module>
+    from src.processing.strategies.extraction_factory import ExtractionFactory
+E   ImportError: cannot import name 'ExtractionFactory' from partially initialized module 'src.processing.strategies.extraction_factory' (most likely due to a circular import) (/Users/s.blumenfeld/podcastknowledge/seeding_pipeline/src/processing/strategies/extraction_factory.py)
+________ ERROR collecting tests/integration/test_tracing_integration.py ________
+ImportError while importing test module '/Users/s.blumenfeld/podcastknowledge/seeding_pipeline/tests/integration/test_tracing_integration.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/importlib/__init__.py:127: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+tests/integration/test_tracing_integration.py:10: in <module>
+    from src.seeding import PodcastKnowledgePipeline
+src/__init__.py:10: in <module>
+    from .seeding import PodcastKnowledgePipeline
+src/seeding/__init__.py:3: in <module>
+    from .orchestrator import PodcastKnowledgePipeline
+src/seeding/orchestrator.py:19: in <module>
+    from src.processing.extraction import KnowledgeExtractor
+src/processing/__init__.py:5: in <module>
+    from .strategies.extraction_factory import ExtractionFactory
+src/processing/strategies/extraction_factory.py:12: in <module>
+    from src.processing.strategies.fixed_schema_strategy import FixedSchemaStrategy
+src/processing/strategies/fixed_schema_strategy.py:12: in <module>
+    from src.processing.extraction import KnowledgeExtractor, ExtractionResult
+src/processing/extraction.py:1287: in <module>
+    from src.processing.strategies.extraction_factory import ExtractionFactory
+E   ImportError: cannot import name 'ExtractionFactory' from partially initialized module 'src.processing.strategies.extraction_factory' (most likely due to a circular import) (/Users/s.blumenfeld/podcastknowledge/seeding_pipeline/src/processing/strategies/extraction_factory.py)
+_______________ ERROR collecting tests/performance/load_test.py ________________
+ImportError while importing test module '/Users/s.blumenfeld/podcastknowledge/seeding_pipeline/tests/performance/load_test.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/importlib/__init__.py:127: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+tests/performance/load_test.py:31: in <module>
+    from src.api.v1 import PodcastKnowledgePipeline, seed_podcast
+src/__init__.py:10: in <module>
+    from .seeding import PodcastKnowledgePipeline
+src/seeding/__init__.py:3: in <module>
+    from .orchestrator import PodcastKnowledgePipeline
+src/seeding/orchestrator.py:19: in <module>
+    from src.processing.extraction import KnowledgeExtractor
+src/processing/__init__.py:5: in <module>
+    from .strategies.extraction_factory import ExtractionFactory
+src/processing/strategies/extraction_factory.py:12: in <module>
+    from src.processing.strategies.fixed_schema_strategy import FixedSchemaStrategy
+src/processing/strategies/fixed_schema_strategy.py:12: in <module>
+    from src.processing.extraction import KnowledgeExtractor, ExtractionResult
+src/processing/extraction.py:1287: in <module>
+    from src.processing.strategies.extraction_factory import ExtractionFactory
+E   ImportError: cannot import name 'ExtractionFactory' from partially initialized module 'src.processing.strategies.extraction_factory' (most likely due to a circular import) (/Users/s.blumenfeld/podcastknowledge/seeding_pipeline/src/processing/strategies/extraction_factory.py)
+_________ ERROR collecting tests/performance/test_domain_diversity.py __________
+venv/lib/python3.9/site-packages/_pytest/python.py:617: in _importtestmodule
+    mod = import_path(self.path, mode=importmode, root=self.config.rootpath)
+venv/lib/python3.9/site-packages/_pytest/pathlib.py:567: in import_path
+    importlib.import_module(module_name)
+/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/importlib/__init__.py:127: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+<frozen importlib._bootstrap>:1030: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1007: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:986: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:680: in _load_unlocked
+    ???
+venv/lib/python3.9/site-packages/_pytest/assertion/rewrite.py:177: in exec_module
+    source_stat, co = _rewrite_test(fn, self.config)
+venv/lib/python3.9/site-packages/_pytest/assertion/rewrite.py:361: in _rewrite_test
+    co = compile(tree, strfn, "exec", dont_inherit=True)
+E     File "/Users/s.blumenfeld/podcastknowledge/seeding_pipeline/tests/performance/test_domain_diversity.py", line 303
+E       result = await tester.test_domain("technology", fixtures.technology_podcast_fixture())
+E                ^
+E   SyntaxError: 'await' outside async function
+______ ERROR collecting tests/performance/test_performance_regression.py _______
+ImportError while importing test module '/Users/s.blumenfeld/podcastknowledge/seeding_pipeline/tests/performance/test_performance_regression.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/importlib/__init__.py:127: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+tests/performance/test_performance_regression.py:15: in <module>
+    from src.api.v1 import seed_podcast, PodcastKnowledgePipeline
+src/__init__.py:10: in <module>
+    from .seeding import PodcastKnowledgePipeline
+src/seeding/__init__.py:3: in <module>
+    from .orchestrator import PodcastKnowledgePipeline
+src/seeding/orchestrator.py:19: in <module>
+    from src.processing.extraction import KnowledgeExtractor
+src/processing/__init__.py:5: in <module>
+    from .strategies.extraction_factory import ExtractionFactory
+src/processing/strategies/extraction_factory.py:12: in <module>
+    from src.processing.strategies.fixed_schema_strategy import FixedSchemaStrategy
+src/processing/strategies/fixed_schema_strategy.py:12: in <module>
+    from src.processing.extraction import KnowledgeExtractor, ExtractionResult
+src/processing/extraction.py:1287: in <module>
+    from src.processing.strategies.extraction_factory import ExtractionFactory
+E   ImportError: cannot import name 'ExtractionFactory' from partially initialized module 'src.processing.strategies.extraction_factory' (most likely due to a circular import) (/Users/s.blumenfeld/podcastknowledge/seeding_pipeline/src/processing/strategies/extraction_factory.py)
+________ ERROR collecting tests/processing/test_complexity_analysis.py _________
+ImportError while importing test module '/Users/s.blumenfeld/podcastknowledge/seeding_pipeline/tests/processing/test_complexity_analysis.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/importlib/__init__.py:127: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+tests/processing/test_complexity_analysis.py:8: in <module>
+    from src.processing.complexity_analysis import (
+src/__init__.py:10: in <module>
+    from .seeding import PodcastKnowledgePipeline
+src/seeding/__init__.py:3: in <module>
+    from .orchestrator import PodcastKnowledgePipeline
+src/seeding/orchestrator.py:19: in <module>
+    from src.processing.extraction import KnowledgeExtractor
+src/processing/__init__.py:5: in <module>
+    from .strategies.extraction_factory import ExtractionFactory
+src/processing/strategies/extraction_factory.py:12: in <module>
+    from src.processing.strategies.fixed_schema_strategy import FixedSchemaStrategy
+src/processing/strategies/fixed_schema_strategy.py:12: in <module>
+    from src.processing.extraction import KnowledgeExtractor, ExtractionResult
+src/processing/extraction.py:1287: in <module>
+    from src.processing.strategies.extraction_factory import ExtractionFactory
+E   ImportError: cannot import name 'ExtractionFactory' from partially initialized module 'src.processing.strategies.extraction_factory' (most likely due to a circular import) (/Users/s.blumenfeld/podcastknowledge/seeding_pipeline/src/processing/strategies/extraction_factory.py)
+___________ ERROR collecting tests/processing/test_discourse_flow.py ___________
+ImportError while importing test module '/Users/s.blumenfeld/podcastknowledge/seeding_pipeline/tests/processing/test_discourse_flow.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/importlib/__init__.py:127: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+tests/processing/test_discourse_flow.py:8: in <module>
+    from src.processing.discourse_flow import DiscourseFlowTracker
+src/__init__.py:10: in <module>
+    from .seeding import PodcastKnowledgePipeline
+src/seeding/__init__.py:3: in <module>
+    from .orchestrator import PodcastKnowledgePipeline
+src/seeding/orchestrator.py:19: in <module>
+    from src.processing.extraction import KnowledgeExtractor
+src/processing/__init__.py:5: in <module>
+    from .strategies.extraction_factory import ExtractionFactory
+src/processing/strategies/extraction_factory.py:12: in <module>
+    from src.processing.strategies.fixed_schema_strategy import FixedSchemaStrategy
+src/processing/strategies/fixed_schema_strategy.py:12: in <module>
+    from src.processing.extraction import KnowledgeExtractor, ExtractionResult
+src/processing/extraction.py:1287: in <module>
+    from src.processing.strategies.extraction_factory import ExtractionFactory
+E   ImportError: cannot import name 'ExtractionFactory' from partially initialized module 'src.processing.strategies.extraction_factory' (most likely due to a circular import) (/Users/s.blumenfeld/podcastknowledge/seeding_pipeline/src/processing/strategies/extraction_factory.py)
+__________ ERROR collecting tests/processing/test_emergent_themes.py ___________
+ImportError while importing test module '/Users/s.blumenfeld/podcastknowledge/seeding_pipeline/tests/processing/test_emergent_themes.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/importlib/__init__.py:127: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+tests/processing/test_emergent_themes.py:8: in <module>
+    from src.processing.emergent_themes import EmergentThemeDetector
+src/__init__.py:10: in <module>
+    from .seeding import PodcastKnowledgePipeline
+src/seeding/__init__.py:3: in <module>
+    from .orchestrator import PodcastKnowledgePipeline
+src/seeding/orchestrator.py:19: in <module>
+    from src.processing.extraction import KnowledgeExtractor
+src/processing/__init__.py:5: in <module>
+    from .strategies.extraction_factory import ExtractionFactory
+src/processing/strategies/extraction_factory.py:12: in <module>
+    from src.processing.strategies.fixed_schema_strategy import FixedSchemaStrategy
+src/processing/strategies/fixed_schema_strategy.py:12: in <module>
+    from src.processing.extraction import KnowledgeExtractor, ExtractionResult
+src/processing/extraction.py:1287: in <module>
+    from src.processing.strategies.extraction_factory import ExtractionFactory
+E   ImportError: cannot import name 'ExtractionFactory' from partially initialized module 'src.processing.strategies.extraction_factory' (most likely due to a circular import) (/Users/s.blumenfeld/podcastknowledge/seeding_pipeline/src/processing/strategies/extraction_factory.py)
+_______ ERROR collecting tests/processing/test_enhanced_gap_analysis.py ________
+ImportError while importing test module '/Users/s.blumenfeld/podcastknowledge/seeding_pipeline/tests/processing/test_enhanced_gap_analysis.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/importlib/__init__.py:127: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+tests/processing/test_enhanced_gap_analysis.py:8: in <module>
+    from src.processing.graph_analysis import GraphAnalyzer, StructuralGap
+src/__init__.py:10: in <module>
+    from .seeding import PodcastKnowledgePipeline
+src/seeding/__init__.py:3: in <module>
+    from .orchestrator import PodcastKnowledgePipeline
+src/seeding/orchestrator.py:19: in <module>
+    from src.processing.extraction import KnowledgeExtractor
+src/processing/__init__.py:5: in <module>
+    from .strategies.extraction_factory import ExtractionFactory
+src/processing/strategies/extraction_factory.py:12: in <module>
+    from src.processing.strategies.fixed_schema_strategy import FixedSchemaStrategy
+src/processing/strategies/fixed_schema_strategy.py:12: in <module>
+    from src.processing.extraction import KnowledgeExtractor, ExtractionResult
+src/processing/extraction.py:1287: in <module>
+    from src.processing.strategies.extraction_factory import ExtractionFactory
+E   ImportError: cannot import name 'ExtractionFactory' from partially initialized module 'src.processing.strategies.extraction_factory' (most likely due to a circular import) (/Users/s.blumenfeld/podcastknowledge/seeding_pipeline/src/processing/strategies/extraction_factory.py)
+_________ ERROR collecting tests/processing/test_entity_resolution.py __________
+ImportError while importing test module '/Users/s.blumenfeld/podcastknowledge/seeding_pipeline/tests/processing/test_entity_resolution.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/importlib/__init__.py:127: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+tests/processing/test_entity_resolution.py:10: in <module>
+    from src.processing.entity_resolution import (
+src/__init__.py:10: in <module>
+    from .seeding import PodcastKnowledgePipeline
+src/seeding/__init__.py:3: in <module>
+    from .orchestrator import PodcastKnowledgePipeline
+src/seeding/orchestrator.py:19: in <module>
+    from src.processing.extraction import KnowledgeExtractor
+src/processing/__init__.py:5: in <module>
+    from .strategies.extraction_factory import ExtractionFactory
+src/processing/strategies/extraction_factory.py:12: in <module>
+    from src.processing.strategies.fixed_schema_strategy import FixedSchemaStrategy
+src/processing/strategies/fixed_schema_strategy.py:12: in <module>
+    from src.processing.extraction import KnowledgeExtractor, ExtractionResult
+src/processing/extraction.py:1287: in <module>
+    from src.processing.strategies.extraction_factory import ExtractionFactory
+E   ImportError: cannot import name 'ExtractionFactory' from partially initialized module 'src.processing.strategies.extraction_factory' (most likely due to a circular import) (/Users/s.blumenfeld/podcastknowledge/seeding_pipeline/src/processing/strategies/extraction_factory.py)
+____________ ERROR collecting tests/processing/test_episode_flow.py ____________
+ImportError while importing test module '/Users/s.blumenfeld/podcastknowledge/seeding_pipeline/tests/processing/test_episode_flow.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/importlib/__init__.py:127: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+tests/processing/test_episode_flow.py:7: in <module>
+    from src.processing.episode_flow import EpisodeFlowAnalyzer
+src/__init__.py:10: in <module>
+    from .seeding import PodcastKnowledgePipeline
+src/seeding/__init__.py:3: in <module>
+    from .orchestrator import PodcastKnowledgePipeline
+src/seeding/orchestrator.py:19: in <module>
+    from src.processing.extraction import KnowledgeExtractor
+src/processing/__init__.py:5: in <module>
+    from .strategies.extraction_factory import ExtractionFactory
+src/processing/strategies/extraction_factory.py:12: in <module>
+    from src.processing.strategies.fixed_schema_strategy import FixedSchemaStrategy
+src/processing/strategies/fixed_schema_strategy.py:12: in <module>
+    from src.processing.extraction import KnowledgeExtractor, ExtractionResult
+src/processing/extraction.py:1287: in <module>
+    from src.processing.strategies.extraction_factory import ExtractionFactory
+E   ImportError: cannot import name 'ExtractionFactory' from partially initialized module 'src.processing.strategies.extraction_factory' (most likely due to a circular import) (/Users/s.blumenfeld/podcastknowledge/seeding_pipeline/src/processing/strategies/extraction_factory.py)
+_____________ ERROR collecting tests/processing/test_extraction.py _____________
+ImportError while importing test module '/Users/s.blumenfeld/podcastknowledge/seeding_pipeline/tests/processing/test_extraction.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/importlib/__init__.py:127: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+tests/processing/test_extraction.py:10: in <module>
+    from src.processing.extraction import KnowledgeExtractor
+src/__init__.py:10: in <module>
+    from .seeding import PodcastKnowledgePipeline
+src/seeding/__init__.py:3: in <module>
+    from .orchestrator import PodcastKnowledgePipeline
+src/seeding/orchestrator.py:19: in <module>
+    from src.processing.extraction import KnowledgeExtractor
+src/processing/__init__.py:5: in <module>
+    from .strategies.extraction_factory import ExtractionFactory
+src/processing/strategies/extraction_factory.py:12: in <module>
+    from src.processing.strategies.fixed_schema_strategy import FixedSchemaStrategy
+src/processing/strategies/fixed_schema_strategy.py:12: in <module>
+    from src.processing.extraction import KnowledgeExtractor, ExtractionResult
+src/processing/extraction.py:1287: in <module>
+    from src.processing.strategies.extraction_factory import ExtractionFactory
+E   ImportError: cannot import name 'ExtractionFactory' from partially initialized module 'src.processing.strategies.extraction_factory' (most likely due to a circular import) (/Users/s.blumenfeld/podcastknowledge/seeding_pipeline/src/processing/strategies/extraction_factory.py)
+______ ERROR collecting tests/processing/test_extraction_compatibility.py ______
+ImportError while importing test module '/Users/s.blumenfeld/podcastknowledge/seeding_pipeline/tests/processing/test_extraction_compatibility.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/importlib/__init__.py:127: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+tests/processing/test_extraction_compatibility.py:12: in <module>
+    from src.processing.extraction import KnowledgeExtractor, ExtractionResult, create_extractor
+src/__init__.py:10: in <module>
+    from .seeding import PodcastKnowledgePipeline
+src/seeding/__init__.py:3: in <module>
+    from .orchestrator import PodcastKnowledgePipeline
+src/seeding/orchestrator.py:19: in <module>
+    from src.processing.extraction import KnowledgeExtractor
+src/processing/__init__.py:5: in <module>
+    from .strategies.extraction_factory import ExtractionFactory
+src/processing/strategies/extraction_factory.py:12: in <module>
+    from src.processing.strategies.fixed_schema_strategy import FixedSchemaStrategy
+src/processing/strategies/fixed_schema_strategy.py:12: in <module>
+    from src.processing.extraction import KnowledgeExtractor, ExtractionResult
+src/processing/extraction.py:1287: in <module>
+    from src.processing.strategies.extraction_factory import ExtractionFactory
+E   ImportError: cannot import name 'ExtractionFactory' from partially initialized module 'src.processing.strategies.extraction_factory' (most likely due to a circular import) (/Users/s.blumenfeld/podcastknowledge/seeding_pipeline/src/processing/strategies/extraction_factory.py)
+___________ ERROR collecting tests/processing/test_graph_analysis.py ___________
+ImportError while importing test module '/Users/s.blumenfeld/podcastknowledge/seeding_pipeline/tests/processing/test_graph_analysis.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/importlib/__init__.py:127: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+tests/processing/test_graph_analysis.py:10: in <module>
+    from src.processing.graph_analysis import (
+src/__init__.py:10: in <module>
+    from .seeding import PodcastKnowledgePipeline
+src/seeding/__init__.py:3: in <module>
+    from .orchestrator import PodcastKnowledgePipeline
+src/seeding/orchestrator.py:19: in <module>
+    from src.processing.extraction import KnowledgeExtractor
+src/processing/__init__.py:5: in <module>
+    from .strategies.extraction_factory import ExtractionFactory
+src/processing/strategies/extraction_factory.py:12: in <module>
+    from src.processing.strategies.fixed_schema_strategy import FixedSchemaStrategy
+src/processing/strategies/fixed_schema_strategy.py:12: in <module>
+    from src.processing.extraction import KnowledgeExtractor, ExtractionResult
+src/processing/extraction.py:1287: in <module>
+    from src.processing.strategies.extraction_factory import ExtractionFactory
+E   ImportError: cannot import name 'ExtractionFactory' from partially initialized module 'src.processing.strategies.extraction_factory' (most likely due to a circular import) (/Users/s.blumenfeld/podcastknowledge/seeding_pipeline/src/processing/strategies/extraction_factory.py)
+______________ ERROR collecting tests/processing/test_metrics.py _______________
+ImportError while importing test module '/Users/s.blumenfeld/podcastknowledge/seeding_pipeline/tests/processing/test_metrics.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/importlib/__init__.py:127: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+tests/processing/test_metrics.py:12: in <module>
+    from src.processing.metrics import (
+src/__init__.py:10: in <module>
+    from .seeding import PodcastKnowledgePipeline
+src/seeding/__init__.py:3: in <module>
+    from .orchestrator import PodcastKnowledgePipeline
+src/seeding/orchestrator.py:19: in <module>
+    from src.processing.extraction import KnowledgeExtractor
+src/processing/__init__.py:5: in <module>
+    from .strategies.extraction_factory import ExtractionFactory
+src/processing/strategies/extraction_factory.py:12: in <module>
+    from src.processing.strategies.fixed_schema_strategy import FixedSchemaStrategy
+src/processing/strategies/fixed_schema_strategy.py:12: in <module>
+    from src.processing.extraction import KnowledgeExtractor, ExtractionResult
+src/processing/extraction.py:1287: in <module>
+    from src.processing.strategies.extraction_factory import ExtractionFactory
+E   ImportError: cannot import name 'ExtractionFactory' from partially initialized module 'src.processing.strategies.extraction_factory' (most likely due to a circular import) (/Users/s.blumenfeld/podcastknowledge/seeding_pipeline/src/processing/strategies/extraction_factory.py)
+______________ ERROR collecting tests/processing/test_parsers.py _______________
+ImportError while importing test module '/Users/s.blumenfeld/podcastknowledge/seeding_pipeline/tests/processing/test_parsers.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/importlib/__init__.py:127: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+tests/processing/test_parsers.py:9: in <module>
+    from src.processing.parsers import ResponseParser, ParseResult, ValidationUtils
+src/__init__.py:10: in <module>
+    from .seeding import PodcastKnowledgePipeline
+src/seeding/__init__.py:3: in <module>
+    from .orchestrator import PodcastKnowledgePipeline
+src/seeding/orchestrator.py:19: in <module>
+    from src.processing.extraction import KnowledgeExtractor
+src/processing/__init__.py:5: in <module>
+    from .strategies.extraction_factory import ExtractionFactory
+src/processing/strategies/extraction_factory.py:12: in <module>
+    from src.processing.strategies.fixed_schema_strategy import FixedSchemaStrategy
+src/processing/strategies/fixed_schema_strategy.py:12: in <module>
+    from src.processing.extraction import KnowledgeExtractor, ExtractionResult
+src/processing/extraction.py:1287: in <module>
+    from src.processing.strategies.extraction_factory import ExtractionFactory
+E   ImportError: cannot import name 'ExtractionFactory' from partially initialized module 'src.processing.strategies.extraction_factory' (most likely due to a circular import) (/Users/s.blumenfeld/podcastknowledge/seeding_pipeline/src/processing/strategies/extraction_factory.py)
+______________ ERROR collecting tests/processing/test_prompts.py _______________
+ImportError while importing test module '/Users/s.blumenfeld/podcastknowledge/seeding_pipeline/tests/processing/test_prompts.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/importlib/__init__.py:127: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+tests/processing/test_prompts.py:7: in <module>
+    from src.processing.prompts import PromptBuilder, PromptTemplate
+src/__init__.py:10: in <module>
+    from .seeding import PodcastKnowledgePipeline
+src/seeding/__init__.py:3: in <module>
+    from .orchestrator import PodcastKnowledgePipeline
+src/seeding/orchestrator.py:19: in <module>
+    from src.processing.extraction import KnowledgeExtractor
+src/processing/__init__.py:5: in <module>
+    from .strategies.extraction_factory import ExtractionFactory
+src/processing/strategies/extraction_factory.py:12: in <module>
+    from src.processing.strategies.fixed_schema_strategy import FixedSchemaStrategy
+src/processing/strategies/fixed_schema_strategy.py:12: in <module>
+    from src.processing.extraction import KnowledgeExtractor, ExtractionResult
+src/processing/extraction.py:1287: in <module>
+    from src.processing.strategies.extraction_factory import ExtractionFactory
+E   ImportError: cannot import name 'ExtractionFactory' from partially initialized module 'src.processing.strategies.extraction_factory' (most likely due to a circular import) (/Users/s.blumenfeld/podcastknowledge/seeding_pipeline/src/processing/strategies/extraction_factory.py)
+______ ERROR collecting tests/processing/test_schemaless_preprocessor.py _______
+ImportError while importing test module '/Users/s.blumenfeld/podcastknowledge/seeding_pipeline/tests/processing/test_schemaless_preprocessor.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/importlib/__init__.py:127: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+tests/processing/test_schemaless_preprocessor.py:9: in <module>
+    from src.processing.schemaless_preprocessor import (
+src/__init__.py:10: in <module>
+    from .seeding import PodcastKnowledgePipeline
+src/seeding/__init__.py:3: in <module>
+    from .orchestrator import PodcastKnowledgePipeline
+src/seeding/orchestrator.py:19: in <module>
+    from src.processing.extraction import KnowledgeExtractor
+src/processing/__init__.py:5: in <module>
+    from .strategies.extraction_factory import ExtractionFactory
+src/processing/strategies/extraction_factory.py:12: in <module>
+    from src.processing.strategies.fixed_schema_strategy import FixedSchemaStrategy
+src/processing/strategies/fixed_schema_strategy.py:12: in <module>
+    from src.processing.extraction import KnowledgeExtractor, ExtractionResult
+src/processing/extraction.py:1287: in <module>
+    from src.processing.strategies.extraction_factory import ExtractionFactory
+E   ImportError: cannot import name 'ExtractionFactory' from partially initialized module 'src.processing.strategies.extraction_factory' (most likely due to a circular import) (/Users/s.blumenfeld/podcastknowledge/seeding_pipeline/src/processing/strategies/extraction_factory.py)
+_____ ERROR collecting tests/processing/test_schemaless_quote_extractor.py _____
+ImportError while importing test module '/Users/s.blumenfeld/podcastknowledge/seeding_pipeline/tests/processing/test_schemaless_quote_extractor.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/importlib/__init__.py:127: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+tests/processing/test_schemaless_quote_extractor.py:5: in <module>
+    from src.processing.schemaless_quote_extractor import SchemalessQuoteExtractor
+src/__init__.py:10: in <module>
+    from .seeding import PodcastKnowledgePipeline
+src/seeding/__init__.py:3: in <module>
+    from .orchestrator import PodcastKnowledgePipeline
+src/seeding/orchestrator.py:19: in <module>
+    from src.processing.extraction import KnowledgeExtractor
+src/processing/__init__.py:5: in <module>
+    from .strategies.extraction_factory import ExtractionFactory
+src/processing/strategies/extraction_factory.py:12: in <module>
+    from src.processing.strategies.fixed_schema_strategy import FixedSchemaStrategy
+src/processing/strategies/fixed_schema_strategy.py:12: in <module>
+    from src.processing.extraction import KnowledgeExtractor, ExtractionResult
+src/processing/extraction.py:1287: in <module>
+    from src.processing.strategies.extraction_factory import ExtractionFactory
+E   ImportError: cannot import name 'ExtractionFactory' from partially initialized module 'src.processing.strategies.extraction_factory' (most likely due to a circular import) (/Users/s.blumenfeld/podcastknowledge/seeding_pipeline/src/processing/strategies/extraction_factory.py)
+__ ERROR collecting tests/processing/strategies/test_extraction_strategies.py __
+ImportError while importing test module '/Users/s.blumenfeld/podcastknowledge/seeding_pipeline/tests/processing/strategies/test_extraction_strategies.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/importlib/__init__.py:127: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+tests/processing/strategies/test_extraction_strategies.py:12: in <module>
+    from src.processing.strategies.fixed_schema_strategy import FixedSchemaStrategy
+src/processing/strategies/fixed_schema_strategy.py:12: in <module>
+    from src.processing.extraction import KnowledgeExtractor, ExtractionResult
+src/__init__.py:10: in <module>
+    from .seeding import PodcastKnowledgePipeline
+src/seeding/__init__.py:3: in <module>
+    from .orchestrator import PodcastKnowledgePipeline
+src/seeding/orchestrator.py:19: in <module>
+    from src.processing.extraction import KnowledgeExtractor
+src/processing/__init__.py:5: in <module>
+    from .strategies.extraction_factory import ExtractionFactory
+src/processing/strategies/extraction_factory.py:12: in <module>
+    from src.processing.strategies.fixed_schema_strategy import FixedSchemaStrategy
+E   ImportError: cannot import name 'FixedSchemaStrategy' from partially initialized module 'src.processing.strategies.fixed_schema_strategy' (most likely due to a circular import) (/Users/s.blumenfeld/podcastknowledge/seeding_pipeline/src/processing/strategies/fixed_schema_strategy.py)
+_______ ERROR collecting tests/providers/graph/test_metadata_enricher.py _______
+ImportError while importing test module '/Users/s.blumenfeld/podcastknowledge/seeding_pipeline/tests/providers/graph/test_metadata_enricher.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/importlib/__init__.py:127: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+tests/providers/graph/test_metadata_enricher.py:8: in <module>
+    from src.providers.graph.metadata_enricher import MetadataEnricher
+src/providers/graph/metadata_enricher.py:38: in <module>
+    from src.utils.component_tracker import track_component_impact, ComponentContribution, get_tracker
+src/utils/component_tracker.py:20: in <module>
+    from ..api.metrics import get_metrics_collector
+src/__init__.py:10: in <module>
+    from .seeding import PodcastKnowledgePipeline
+src/seeding/__init__.py:3: in <module>
+    from .orchestrator import PodcastKnowledgePipeline
+src/seeding/orchestrator.py:19: in <module>
+    from src.processing.extraction import KnowledgeExtractor
+src/processing/__init__.py:5: in <module>
+    from .strategies.extraction_factory import ExtractionFactory
+src/processing/strategies/extraction_factory.py:12: in <module>
+    from src.processing.strategies.fixed_schema_strategy import FixedSchemaStrategy
+src/processing/strategies/fixed_schema_strategy.py:12: in <module>
+    from src.processing.extraction import KnowledgeExtractor, ExtractionResult
+src/processing/extraction.py:1287: in <module>
+    from src.processing.strategies.extraction_factory import ExtractionFactory
+E   ImportError: cannot import name 'ExtractionFactory' from partially initialized module 'src.processing.strategies.extraction_factory' (most likely due to a circular import) (/Users/s.blumenfeld/podcastknowledge/seeding_pipeline/src/processing/strategies/extraction_factory.py)
+_______ ERROR collecting tests/providers/graph/test_schemaless_neo4j.py ________
+ImportError while importing test module '/Users/s.blumenfeld/podcastknowledge/seeding_pipeline/tests/providers/graph/test_schemaless_neo4j.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/importlib/__init__.py:127: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+tests/providers/graph/test_schemaless_neo4j.py:6: in <module>
+    from neo4j_graphrag.experimental.pipeline.kg_builder import SimpleKGPipeline
+E   ModuleNotFoundError: No module named 'neo4j_graphrag'
+____________ ERROR collecting tests/seeding/test_batch_processor.py ____________
+ImportError while importing test module '/Users/s.blumenfeld/podcastknowledge/seeding_pipeline/tests/seeding/test_batch_processor.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/importlib/__init__.py:127: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+tests/seeding/test_batch_processor.py:7: in <module>
+    from src.seeding.batch_processor import (
+src/__init__.py:10: in <module>
+    from .seeding import PodcastKnowledgePipeline
+src/seeding/__init__.py:3: in <module>
+    from .orchestrator import PodcastKnowledgePipeline
+src/seeding/orchestrator.py:19: in <module>
+    from src.processing.extraction import KnowledgeExtractor
+src/processing/__init__.py:5: in <module>
+    from .strategies.extraction_factory import ExtractionFactory
+src/processing/strategies/extraction_factory.py:12: in <module>
+    from src.processing.strategies.fixed_schema_strategy import FixedSchemaStrategy
+src/processing/strategies/fixed_schema_strategy.py:12: in <module>
+    from src.processing.extraction import KnowledgeExtractor, ExtractionResult
+src/processing/extraction.py:1287: in <module>
+    from src.processing.strategies.extraction_factory import ExtractionFactory
+E   ImportError: cannot import name 'ExtractionFactory' from partially initialized module 'src.processing.strategies.extraction_factory' (most likely due to a circular import) (/Users/s.blumenfeld/podcastknowledge/seeding_pipeline/src/processing/strategies/extraction_factory.py)
+______________ ERROR collecting tests/seeding/test_checkpoint.py _______________
+ImportError while importing test module '/Users/s.blumenfeld/podcastknowledge/seeding_pipeline/tests/seeding/test_checkpoint.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/importlib/__init__.py:127: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+tests/seeding/test_checkpoint.py:11: in <module>
+    from src.seeding.checkpoint import ProgressCheckpoint, CheckpointVersion, CheckpointMetadata
+src/__init__.py:10: in <module>
+    from .seeding import PodcastKnowledgePipeline
+src/seeding/__init__.py:3: in <module>
+    from .orchestrator import PodcastKnowledgePipeline
+src/seeding/orchestrator.py:19: in <module>
+    from src.processing.extraction import KnowledgeExtractor
+src/processing/__init__.py:5: in <module>
+    from .strategies.extraction_factory import ExtractionFactory
+src/processing/strategies/extraction_factory.py:12: in <module>
+    from src.processing.strategies.fixed_schema_strategy import FixedSchemaStrategy
+src/processing/strategies/fixed_schema_strategy.py:12: in <module>
+    from src.processing.extraction import KnowledgeExtractor, ExtractionResult
+src/processing/extraction.py:1287: in <module>
+    from src.processing.strategies.extraction_factory import ExtractionFactory
+E   ImportError: cannot import name 'ExtractionFactory' from partially initialized module 'src.processing.strategies.extraction_factory' (most likely due to a circular import) (/Users/s.blumenfeld/podcastknowledge/seeding_pipeline/src/processing/strategies/extraction_factory.py)
+______________ ERROR collecting tests/seeding/test_concurrency.py ______________
+ImportError while importing test module '/Users/s.blumenfeld/podcastknowledge/seeding_pipeline/tests/seeding/test_concurrency.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/importlib/__init__.py:127: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+tests/seeding/test_concurrency.py:10: in <module>
+    from src.seeding.concurrency import (
+src/__init__.py:10: in <module>
+    from .seeding import PodcastKnowledgePipeline
+src/seeding/__init__.py:3: in <module>
+    from .orchestrator import PodcastKnowledgePipeline
+src/seeding/orchestrator.py:19: in <module>
+    from src.processing.extraction import KnowledgeExtractor
+src/processing/__init__.py:5: in <module>
+    from .strategies.extraction_factory import ExtractionFactory
+src/processing/strategies/extraction_factory.py:12: in <module>
+    from src.processing.strategies.fixed_schema_strategy import FixedSchemaStrategy
+src/processing/strategies/fixed_schema_strategy.py:12: in <module>
+    from src.processing.extraction import KnowledgeExtractor, ExtractionResult
+src/processing/extraction.py:1287: in <module>
+    from src.processing.strategies.extraction_factory import ExtractionFactory
+E   ImportError: cannot import name 'ExtractionFactory' from partially initialized module 'src.processing.strategies.extraction_factory' (most likely due to a circular import) (/Users/s.blumenfeld/podcastknowledge/seeding_pipeline/src/processing/strategies/extraction_factory.py)
+_____ ERROR collecting tests/seeding/test_pipeline_executor_refactored.py ______
+ImportError while importing test module '/Users/s.blumenfeld/podcastknowledge/seeding_pipeline/tests/seeding/test_pipeline_executor_refactored.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/importlib/__init__.py:127: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+tests/seeding/test_pipeline_executor_refactored.py:12: in <module>
+    from src.seeding.components.pipeline_executor import PipelineExecutor
+src/__init__.py:10: in <module>
+    from .seeding import PodcastKnowledgePipeline
+src/seeding/__init__.py:3: in <module>
+    from .orchestrator import PodcastKnowledgePipeline
+src/seeding/orchestrator.py:19: in <module>
+    from src.processing.extraction import KnowledgeExtractor
+src/processing/__init__.py:5: in <module>
+    from .strategies.extraction_factory import ExtractionFactory
+src/processing/strategies/extraction_factory.py:12: in <module>
+    from src.processing.strategies.fixed_schema_strategy import FixedSchemaStrategy
+src/processing/strategies/fixed_schema_strategy.py:12: in <module>
+    from src.processing.extraction import KnowledgeExtractor, ExtractionResult
+src/processing/extraction.py:1287: in <module>
+    from src.processing.strategies.extraction_factory import ExtractionFactory
+E   ImportError: cannot import name 'ExtractionFactory' from partially initialized module 'src.processing.strategies.extraction_factory' (most likely due to a circular import) (/Users/s.blumenfeld/podcastknowledge/seeding_pipeline/src/processing/strategies/extraction_factory.py)
+_______ ERROR collecting tests/unit/test_schemaless_entity_resolution.py _______
+ImportError while importing test module '/Users/s.blumenfeld/podcastknowledge/seeding_pipeline/tests/unit/test_schemaless_entity_resolution.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/importlib/__init__.py:127: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+tests/unit/test_schemaless_entity_resolution.py:8: in <module>
+    from src.processing.schemaless_entity_resolution import SchemalessEntityResolver
+src/__init__.py:10: in <module>
+    from .seeding import PodcastKnowledgePipeline
+src/seeding/__init__.py:3: in <module>
+    from .orchestrator import PodcastKnowledgePipeline
+src/seeding/orchestrator.py:19: in <module>
+    from src.processing.extraction import KnowledgeExtractor
+src/processing/__init__.py:5: in <module>
+    from .strategies.extraction_factory import ExtractionFactory
+src/processing/strategies/extraction_factory.py:12: in <module>
+    from src.processing.strategies.fixed_schema_strategy import FixedSchemaStrategy
+src/processing/strategies/fixed_schema_strategy.py:12: in <module>
+    from src.processing.extraction import KnowledgeExtractor, ExtractionResult
+src/processing/extraction.py:1287: in <module>
+    from src.processing.strategies.extraction_factory import ExtractionFactory
+E   ImportError: cannot import name 'ExtractionFactory' from partially initialized module 'src.processing.strategies.extraction_factory' (most likely due to a circular import) (/Users/s.blumenfeld/podcastknowledge/seeding_pipeline/src/processing/strategies/extraction_factory.py)
+_______________ ERROR collecting tests/unit/test_segmentation.py _______________
+ImportError while importing test module '/Users/s.blumenfeld/podcastknowledge/seeding_pipeline/tests/unit/test_segmentation.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/importlib/__init__.py:127: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+tests/unit/test_segmentation.py:6: in <module>
+    from src.processing import EnhancedPodcastSegmenter
+src/__init__.py:10: in <module>
+    from .seeding import PodcastKnowledgePipeline
+src/seeding/__init__.py:3: in <module>
+    from .orchestrator import PodcastKnowledgePipeline
+src/seeding/orchestrator.py:19: in <module>
+    from src.processing.extraction import KnowledgeExtractor
+src/processing/__init__.py:5: in <module>
+    from .strategies.extraction_factory import ExtractionFactory
+src/processing/strategies/extraction_factory.py:12: in <module>
+    from src.processing.strategies.fixed_schema_strategy import FixedSchemaStrategy
+src/processing/strategies/fixed_schema_strategy.py:12: in <module>
+    from src.processing.extraction import KnowledgeExtractor, ExtractionResult
+src/processing/extraction.py:1287: in <module>
+    from src.processing.strategies.extraction_factory import ExtractionFactory
+E   ImportError: cannot import name 'ExtractionFactory' from partially initialized module 'src.processing.strategies.extraction_factory' (most likely due to a circular import) (/Users/s.blumenfeld/podcastknowledge/seeding_pipeline/src/processing/strategies/extraction_factory.py)
+____________ ERROR collecting tests/utils/test_component_tracker.py ____________
+ImportError while importing test module '/Users/s.blumenfeld/podcastknowledge/seeding_pipeline/tests/utils/test_component_tracker.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/importlib/__init__.py:127: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+tests/utils/test_component_tracker.py:11: in <module>
+    from src.utils.component_tracker import (
+src/utils/component_tracker.py:20: in <module>
+    from ..api.metrics import get_metrics_collector
+src/__init__.py:10: in <module>
+    from .seeding import PodcastKnowledgePipeline
+src/seeding/__init__.py:3: in <module>
+    from .orchestrator import PodcastKnowledgePipeline
+src/seeding/orchestrator.py:19: in <module>
+    from src.processing.extraction import KnowledgeExtractor
+src/processing/__init__.py:5: in <module>
+    from .strategies.extraction_factory import ExtractionFactory
+src/processing/strategies/extraction_factory.py:12: in <module>
+    from src.processing.strategies.fixed_schema_strategy import FixedSchemaStrategy
+src/processing/strategies/fixed_schema_strategy.py:12: in <module>
+    from src.processing.extraction import KnowledgeExtractor, ExtractionResult
+src/processing/extraction.py:1287: in <module>
+    from src.processing.strategies.extraction_factory import ExtractionFactory
+E   ImportError: cannot import name 'ExtractionFactory' from partially initialized module 'src.processing.strategies.extraction_factory' (most likely due to a circular import) (/Users/s.blumenfeld/podcastknowledge/seeding_pipeline/src/processing/strategies/extraction_factory.py)
+=============================== warnings summary ===============================
+venv/lib/python3.9/site-packages/pythonjsonlogger/jsonlogger.py:11
+  /Users/s.blumenfeld/podcastknowledge/seeding_pipeline/venv/lib/python3.9/site-packages/pythonjsonlogger/jsonlogger.py:11: DeprecationWarning: pythonjsonlogger.jsonlogger has been moved to pythonjsonlogger.json
+    warnings.warn(
+
+venv/lib/python3.9/site-packages/urllib3/__init__.py:35
+  /Users/s.blumenfeld/podcastknowledge/seeding_pipeline/venv/lib/python3.9/site-packages/urllib3/__init__.py:35: NotOpenSSLWarning: urllib3 v2 only supports OpenSSL 1.1.1+, currently the 'ssl' module is compiled with 'LibreSSL 2.8.3'. See: https://github.com/urllib3/urllib3/issues/3020
+    warnings.warn(
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+
+---------- coverage: platform darwin, python 3.9.6-final-0 -----------
+Name                                                       Stmts   Miss Branch BrPart  Cover   Missing
+------------------------------------------------------------------------------------------------------
+src/api/app.py                                               114    114      6      0  0.00%   3-270
+src/api/health.py                                            188    188     32      0  0.00%   8-454
+src/api/metrics.py                                           249    249     52      0  0.00%   8-540
+src/api/metrics_integration.py                                82     82     10      0  0.00%   8-203
+src/api/slo_tracking.py                                      126    126     16      0  0.00%   7-293
+src/api/v1/seeding.py                                        102    102     26      0  0.00%   3-332
+src/api/v1/slo.py                                             82     82     26      0  0.00%   7-225
+src/core/config.py                                           192    110     52      0 33.61%   19-20, 25-27, 96-110, 114-150, 157-166, 171-185, 226-230, 234, 247, 255-300, 322-344, 350, 359
+src/core/env_config.py                                        54     54     12      0  0.00%   8-221
+src/core/error_budget.py                                     160    160     46      0  0.00%   8-398
+src/core/exceptions.py                                        87     50     30      0 31.62%   35-38, 42-45, 57, 74, 91, 103, 120, 138-144, 162-165, 176, 194, 212-216, 234-240, 258-262, 280-286
+src/core/extraction_interface.py                              51     51      0      0  0.00%   8-155
+src/core/feature_flags.py                                     79     42     14      0 39.78%   46, 54-103, 115-136, 146-150, 159-167, 171-172, 182-184, 197, 208, 218, 235-243
+src/core/interfaces.py                                        84     17      0      0 79.76%   29, 69, 84, 101, 131, 150, 159, 180, 193, 202, 211, 228, 240, 249, 293, 305, 317
+src/core/models.py                                           232     36     20      0 77.78%   80, 128, 174, 228, 266, 298, 332, 359, 377, 408, 426-433, 438-445, 450-459
+src/core/plugin_discovery.py                                  89     60     20      0 26.61%   55-62, 75-85, 93-100, 113-126, 134-144, 152-164, 173, 185, 197, 209-212, 220, 228, 242-245, 261-279
+src/factories/provider_factory.py                            243    186     86      0 17.33%   73-90, 95-97, 120-134, 157-230, 239-250, 267, 277-291, 296, 301, 307-312, 317, 330-353, 358-364, 369-374, 390-408, 416-422, 448-471, 475-488, 500, 512-513, 517-531, 535, 543-551, 555-575
+src/migration/compatibility.py                               216    216     76      0  0.00%   8-615
+src/migration/data_migrator.py                               234    234     44      0  0.00%   8-545
+src/migration/query_translator.py                            128    128     60      0  0.00%   3-400
+src/migration/result_standardizer.py                         131    131     76      0  0.00%   3-363
+src/migration/schema_manager.py                              144    144     44      0  0.00%   8-499
+src/migration/validators.py                                  241    241    112      0  0.00%   8-716
+src/processing/adapters/fixed_schema_adapter.py               49     49      8      0  0.00%   8-172
+src/processing/adapters/schemaless_adapter.py                 85     85      8      0  0.00%   8-256
+src/processing/complexity_analysis.py                        248    248    102      0  0.00%   4-704
+src/processing/discourse_flow.py                             427    427    214      0  0.00%   8-1070
+src/processing/emergent_themes.py                            590    590    298      0  0.00%   3-1397
+src/processing/entity_resolution.py                          269    269    136      0  0.00%   4-746
+src/processing/episode_flow.py                               480    480    248      0  0.00%   3-1158
+src/processing/extraction.py                                 475    414    172      0  9.43%   69-74, 78-79, 83-85, 89-98, 102-103, 121-140, 164-202, 221-302, 306-322, 326-354, 358-372, 376-395, 414-552, 576-625, 629-655, 678-698, 716-736, 762-776, 782-825, 858-887, 905-931, 954-970, 993-1019, 1023-1047, 1051-1075, 1079-1097, 1104-1136, 1140-1162, 1166-1176, 1180-1189, 1197-1229, 1233-1245, 1253-1279, 1288-1311
+src/processing/graph_analysis.py                             594    594    234      0  0.00%   4-1612
+src/processing/importance_scoring.py                         262    242    130      0  5.10%   49-51, 68-86, 103-136, 153-182, 199-245, 267-336, 360-406, 424-486, 501-616, 626-631, 643, 656-694
+src/processing/metrics.py                                    162    162     38      0  0.00%   3-487
+src/processing/parsers.py                                    250    250     90      0  0.00%   3-566
+src/processing/prompts.py                                    157    157     32      0  0.00%   3-641
+src/processing/schemaless_entity_resolution.py               182    182     86      0  0.00%   25-471
+src/processing/schemaless_preprocessor.py                    113    113     38      0  0.00%   22-347
+src/processing/schemaless_quote_extractor.py                 161    161     68      0  0.00%   27-407
+src/processing/segmentation.py                               101     81     34      0 14.81%   56-72, 87-135, 151-177, 189-201, 218-255, 272-304
+src/processing/strategies/dual_mode_strategy.py               37     37      4      0  0.00%   8-152
+src/processing/strategies/extraction_factory.py               88     84     34      0  3.28%   13-276
+src/processing/strategies/fixed_schema_strategy.py            22     18      0      0 18.18%   13-105
+src/processing/strategies/schemaless_strategy.py              44     44     10      0  0.00%   8-165
+src/providers/audio/base.py                                   62     51     22      0 13.10%   39-41, 92-147, 156-174, 193-194, 206-226
+src/providers/audio/mock.py                                   61     44     14      0 22.67%   19-26, 30, 34-58, 84-106, 110-130, 139, 149, 166, 170-171
+src/providers/audio/whisper.py                               144    120     24      0 14.29%   50-64, 68-76, 80-104, 112-123, 144-156, 165-199, 203-221, 236-278, 286-304, 317-336, 340-355
+src/providers/embeddings/base.py                              55     43     14      0 17.39%   15-19, 28-30, 39-48, 57-73, 85-98, 103-112, 122-131
+src/providers/embeddings/mock.py                              50     36     18      0 20.59%   19-21, 25, 29-76, 80, 91-94, 98
+src/providers/embeddings/sentence_transformer.py             144    123     34      0 11.80%   21-24, 28-51, 55-76, 80-127, 131-147, 164-183, 193-199, 203-219, 223-245, 249-295, 299
+src/providers/embeddings/sentence_transformer_adapter.py      48     30      4      0 34.62%   40-54, 67-71, 84-88, 93-97, 104, 112, 117, 122, 132, 141, 155
+src/providers/graph/base.py                                   55     40     12      0 22.39%   19-25, 34-36, 97-121, 133-144, 148-161, 165-177, 181-193, 197-206, 210-219
+src/providers/graph/memory.py                                161    129     64      0 14.22%   25-29, 33, 37-38, 42-47, 52-62, 67-82, 93-106, 110, 114-135, 139-152, 156-161, 165, 170-187, 192-268, 274, 278, 282-285, 289, 293
+src/providers/graph/metadata_enricher.py                     222    217    110      0  1.51%   39-545
+src/providers/graph/neo4j.py                                 183    152     40      0 13.90%   25-28, 32-55, 59-68, 72-79, 84-92, 97-127, 138-168, 175-189, 193-202, 206-232, 236-252, 256-301, 307-308, 312-313, 317-335, 339-342
+src/providers/graph/schemaless_neo4j.py                      418    405    126      0  2.39%   17-938
+src/providers/health.py                                      192    192     44      0  0.00%   3-394
+src/providers/llm/base.py                                     31     16      2      0 45.45%   24-28, 37-39, 53-54, 63-76
+src/providers/llm/gemini.py                                   68     54     16      0 16.67%   22-48, 52-70, 74-103, 107-150, 154
+src/providers/llm/gemini_adapter.py                           62     45     18      0 21.25%   34-51, 63-87, 91-102, 106-107, 114, 120, 125, 130, 149-157
+src/providers/llm/mock.py                                     52     34     12      0 28.12%   18-27, 31, 35-63, 67-71, 86, 90, 100, 112-113, 117, 121, 125-128
+src/seeding/batch_processor.py                               270    270     82      0  0.00%   3-574
+src/seeding/checkpoint.py                                    311    311    116      0  0.00%   3-716
+src/seeding/checkpoint_compatibility.py                      118    118     32      0  0.00%   8-287
+src/seeding/components/checkpoint_manager.py                  34     34      0      0  0.00%   3-142
+src/seeding/components/provider_coordinator.py                92     92     12      0  0.00%   3-189
+src/seeding/components/signal_manager.py                      34     34      6      0  0.00%   3-70
+src/seeding/components/storage_coordinator.py                 86     86     28      0  0.00%   3-339
+src/seeding/concurrency.py                                   304    304     62      0  0.00%   3-572
+src/seeding/orchestrator.py                                  190    174     46      0  6.78%   20-445
+src/tracing/config.py                                         31      2      0      0 93.55%   50, 80
+src/tracing/instrumentation.py                               130    110     14      0 13.89%   24-61, 66-70, 75-80, 85-89, 94-166, 171-215, 220-227
+src/tracing/middleware.py                                    174    157     34      0  8.17%   21-22, 40-41, 63-154, 172-205, 223-294, 312-354, 373-393
+src/tracing/tracer.py                                        124     85     28      0 25.66%   58-120, 126-128, 153-174, 197-227, 246-250, 255, 264-266, 279-281, 291-293, 305-306, 318
+src/utils/component_tracker.py                               175    164     52      0  4.85%   22-421
+src/utils/debugging.py                                       179    124     52      0 23.81%   49, 63, 80-110, 114-132, 136-161, 182-222, 241-259, 267, 316-332, 350-390, 398, 418-423, 429-437, 444, 451, 457-466, 473
+src/utils/deprecation.py                                      67     38     20      2 35.63%   46-65, 69, 115-134, 141, 179-210, 223-241
+src/utils/error_handling.py                                  104    104     24      0  0.00%   8-297
+src/utils/feature_flag_utils.py                              121    121     50      0  0.00%   7-244
+src/utils/feed_processing.py                                 198    166     98      0 10.81%   19-21, 59-94, 107-117, 129-143, 156-189, 201-230, 244-253, 265-275, 287-301, 322-398, 410-430, 442-463
+src/utils/logging.py                                         148    116     32      0 17.78%   23-24, 32-59, 66-70, 74-79, 88-96, 117-179, 210-245, 255-274, 281-283, 287-298, 302, 316-330, 337, 352
+src/utils/logging_enhanced.py                                 91     91     14      0  0.00%   8-353
+src/utils/memory.py                                          163    133     44      0 14.49%   14-16, 21-23, 28-30, 43-57, 66-106, 123-147, 164-167, 175-203, 207-208, 212-213, 218, 234-253, 265-284, 306-341
+src/utils/naming_guidelines.py                                36     36      8      0  0.00%   9-237
+src/utils/patterns.py                                        119     64     42      1 36.02%   169->177, 172-175, 181-184, 188-191, 203-213, 225-239, 252-270, 282-328, 343-344, 358-370, 374, 378-380, 398-408
+src/utils/performance_decorator.py                           121    121     32      0  0.00%   7-277
+src/utils/performance_profiling.py                           175    175     44      0  0.00%   7-444
+src/utils/rate_limiting.py                                   116     90     48      0 15.85%   44-49, 53-54, 58-61, 69-70, 74-75, 85-88, 108-117, 121-151, 155-167, 171-172, 176-214, 219-230, 234, 246, 250, 257-258, 262-263, 267
+src/utils/resources.py                                       254    203     48      0 16.89%   24-27, 45-52, 68-71, 82-93, 104-115, 120-125, 129, 133, 150-160, 175-182, 194-198, 214-233, 247-262, 270-280, 288-295, 303-312, 329-334, 343-356, 364-372, 376-379, 388-392, 396-397, 412-414, 422-425, 429-436, 440, 444, 458-478, 487-524, 538-569
+src/utils/retry.py                                           186    143     50      0 18.22%   25-27, 31-33, 37, 79-122, 130-145, 168-174, 179-184, 188-197, 201-204, 208-216, 220-223, 249-274, 287-290, 302-314, 318-324, 360-391
+src/utils/text_processing.py                                 140    120     66      0  9.71%   22-46, 58-97, 110-114, 127-154, 167-226, 238-252, 266-276, 289-302, 314-323, 335-343, 355-369, 381-412, 432-441
+src/utils/validation.py                                      173    153     70      0  8.23%   23-29, 41-73, 86-97, 118-122, 136-201, 212-268, 279-318, 329-372, 380, 394-402, 414-422, 434-438
+------------------------------------------------------------------------------------------------------
+TOTAL                                                      14627  13160   4672      3  7.63%
+
+2 files skipped due to complete coverage.
+Coverage HTML written to dir htmlcov
+Coverage XML written to file coverage.xml
+
+=========================== short test summary info ============================
+ERROR tests/test_cli.py
+ERROR tests/test_component_baselines.py
+ERROR tests/api/test_health.py
+ERROR tests/api/test_v1_api.py
+ERROR tests/e2e/test_e2e_scenarios.py
+ERROR tests/integration/test_api_contracts.py
+ERROR tests/integration/test_checkpoint_recovery.py
+ERROR tests/integration/test_cli_commands.py
+ERROR tests/integration/test_comprehensive_extraction_modes.py
+ERROR tests/integration/test_golden_outputs.py
+ERROR tests/integration/test_golden_outputs_validation.py
+ERROR tests/integration/test_minimal_schemaless.py
+ERROR tests/integration/test_orchestrator.py
+ERROR tests/integration/test_performance_benchmarks.py
+ERROR tests/integration/test_schemaless_pipeline.py
+ERROR tests/integration/test_signal_handling.py
+ERROR tests/integration/test_tracing_integration.py
+ERROR tests/performance/load_test.py
+ERROR tests/performance/test_domain_diversity.py
+ERROR tests/performance/test_performance_regression.py
+ERROR tests/processing/test_complexity_analysis.py
+ERROR tests/processing/test_discourse_flow.py
+ERROR tests/processing/test_emergent_themes.py
+ERROR tests/processing/test_enhanced_gap_analysis.py
+ERROR tests/processing/test_entity_resolution.py
+ERROR tests/processing/test_episode_flow.py
+ERROR tests/processing/test_extraction.py
+ERROR tests/processing/test_extraction_compatibility.py
+ERROR tests/processing/test_graph_analysis.py
+ERROR tests/processing/test_metrics.py
+ERROR tests/processing/test_parsers.py
+ERROR tests/processing/test_prompts.py
+ERROR tests/processing/test_schemaless_preprocessor.py
+ERROR tests/processing/test_schemaless_quote_extractor.py
+ERROR tests/processing/strategies/test_extraction_strategies.py
+ERROR tests/providers/graph/test_metadata_enricher.py
+ERROR tests/providers/graph/test_schemaless_neo4j.py
+ERROR tests/seeding/test_batch_processor.py
+ERROR tests/seeding/test_checkpoint.py
+ERROR tests/seeding/test_concurrency.py
+ERROR tests/seeding/test_pipeline_executor_refactored.py
+ERROR tests/unit/test_schemaless_entity_resolution.py
+ERROR tests/unit/test_segmentation.py
+ERROR tests/utils/test_component_tracker.py
+!!!!!!!!!!!!!!!!!!! Interrupted: 44 errors during collection !!!!!!!!!!!!!!!!!!!
+======================== 2 warnings, 44 errors in 9.55s ========================

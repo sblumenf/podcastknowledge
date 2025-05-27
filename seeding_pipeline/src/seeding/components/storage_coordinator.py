@@ -4,7 +4,7 @@ import logging
 from typing import Dict, Any, List, Optional
 
 from src.providers.graph.base import GraphProvider
-from src.providers.graph.enhancements import GraphEnhancer
+from src.providers.graph.enhancements import GraphEnhancements
 from src.core.models import Entity
 from src.tracing import trace_method, create_span, add_span_attributes
 from src.utils.logging import get_logger
@@ -15,7 +15,7 @@ logger = get_logger(__name__)
 class StorageCoordinator:
     """Coordinates all storage operations to the knowledge graph."""
     
-    def __init__(self, graph_provider: GraphProvider, graph_enhancer: GraphEnhancer, config):
+    def __init__(self, graph_provider: GraphProvider, graph_enhancer: GraphEnhancements, config):
         """Initialize storage coordinator.
         
         Args:

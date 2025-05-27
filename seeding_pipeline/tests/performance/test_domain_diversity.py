@@ -124,7 +124,7 @@ class DomainDiversityTester:
             }
         }
 
-    def test_domain(self, domain_name: str, segments: List[Segment]) -> Dict[str, Any]:
+    async def test_domain(self, domain_name: str, segments: List[Segment]) -> Dict[str, Any]:
         """Test extraction for a specific domain."""
         # Mock the SimpleKGPipeline response for this domain
         mock_response = self.domain_responses.get(domain_name, {"nodes": [], "relationships": []})
@@ -295,7 +295,7 @@ class DomainDiversityTester:
         return report
 
 
-def test_technology_podcast_extraction():
+async def test_technology_podcast_extraction():
     """Test technology domain extraction."""
     tester = DomainDiversityTester()
     fixtures = DomainFixtures()
@@ -308,7 +308,7 @@ def test_technology_podcast_extraction():
     assert result["total_relationships"] > 0
 
 
-def test_cooking_podcast_extraction():
+async def test_cooking_podcast_extraction():
     """Test cooking domain extraction."""
     tester = DomainDiversityTester()
     fixtures = DomainFixtures()
@@ -321,7 +321,7 @@ def test_cooking_podcast_extraction():
     assert result["total_relationships"] > 0
 
 
-def test_history_podcast_extraction():
+async def test_history_podcast_extraction():
     """Test history domain extraction."""
     tester = DomainDiversityTester()
     fixtures = DomainFixtures()
@@ -334,7 +334,7 @@ def test_history_podcast_extraction():
     assert result["total_relationships"] > 0
 
 
-def test_medical_podcast_extraction():
+async def test_medical_podcast_extraction():
     """Test medical domain extraction."""
     tester = DomainDiversityTester()
     fixtures = DomainFixtures()
@@ -347,7 +347,7 @@ def test_medical_podcast_extraction():
     assert result["total_relationships"] > 0
 
 
-def test_arts_culture_podcast_extraction():
+async def test_arts_culture_podcast_extraction():
     """Test arts/culture domain extraction."""
     tester = DomainDiversityTester()
     fixtures = DomainFixtures()
@@ -360,7 +360,7 @@ def test_arts_culture_podcast_extraction():
     assert result["total_relationships"] > 0
 
 
-def test_cross_domain_patterns():
+async def test_cross_domain_patterns():
     """Test emergent patterns across all domains."""
     tester = DomainDiversityTester()
     await tester.run_all_domain_tests()

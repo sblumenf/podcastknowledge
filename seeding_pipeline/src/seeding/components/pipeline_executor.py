@@ -656,7 +656,7 @@ class PipelineExecutor:
         )
         
         if not audio_path:
-            raise PipelineError(f"Failed to download audio for episode {episode[\"id\"]}")
+            raise PipelineError(f"Failed to download audio for episode {episode['id']}")
             
         return audio_path
     

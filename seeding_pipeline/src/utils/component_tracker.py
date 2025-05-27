@@ -36,6 +36,39 @@ class ComponentImpact:
     timestamp: str = field(default_factory=lambda: datetime.utcnow().isoformat())
 
 
+@dataclass
+class ComponentContribution:
+    """Tracks detailed contributions from a component."""
+    component_name: str
+    contribution_type: str  # e.g., 'entity', 'relationship', 'property'
+    count: int = 0
+    examples: List[str] = field(default_factory=list)
+    metadata: Dict[str, Any] = field(default_factory=dict)
+    
+    
+@dataclass  
+class ComponentMetrics:
+    """Aggregated metrics for a component."""
+    component_name: str
+    total_executions: int = 0
+    total_execution_time: float = 0.0
+    avg_execution_time: float = 0.0
+    total_items_added: int = 0
+    total_items_modified: int = 0
+    total_items_removed: int = 0
+    contributions: List[ComponentContribution] = field(default_factory=list)
+
+
+@dataclass
+class ComponentDependency:
+    """Tracks dependencies between components."""
+    component_name: str
+    depends_on: List[str] = field(default_factory=list)
+    used_by: List[str] = field(default_factory=list)
+    version: str = "1.0.0"
+    metadata: Dict[str, Any] = field(default_factory=dict)
+
+
 class ComponentTracker:
     """Tracks component execution and impact."""
     
@@ -337,15 +370,16 @@ class ImpactContext:
         self.impact.metadata[key] = value
 
 
-def track_component_impact(name: Optional[str] = None):
+def track_component_impact(name: Optional[str] = None, version: Optional[str] = None):
     """
     Decorator to track component impact.
     
     Args:
         name: Component name (defaults to function name)
+        version: Component version (optional)
         
     Example:
-        @track_component_impact(name="segment_preprocessor")
+        @track_component_impact("segment_preprocessor", "1.0.0")
         def preprocess_segments(segments):
             # Process segments
             return processed_segments

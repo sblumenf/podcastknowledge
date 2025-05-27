@@ -24,6 +24,7 @@ from .middleware import (
     trace_database,
     trace_provider_call,
     trace_queue_operation,
+    trace_business_operation,
 )
 
 from .instrumentation import (
@@ -53,6 +54,7 @@ __all__ = [
     'trace_database',
     'trace_provider_call',
     'trace_queue_operation',
+    'trace_business_operation',
     
     # Instrumentation
     'instrument_neo4j',

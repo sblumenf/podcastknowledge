@@ -286,8 +286,57 @@ class DataIntegrityError(PodcastProcessingError):
         super().__init__(message, ErrorSeverity.CRITICAL, details)
 
 
-# Alias for backward compatibility
+# Aliases for backward compatibility
 ConnectionError = DatabaseConnectionError
+PodcastKGError = PodcastProcessingError  # Legacy name
+
+# Additional specific exceptions
+class ParsingError(PodcastProcessingError):
+    """
+    Raised when parsing fails (e.g., feed parsing, JSON parsing).
+    
+    Default severity is WARNING as parsing errors can often be skipped.
+    """
+    
+    def __init__(
+        self,
+        message: str,
+        severity: ErrorSeverity = ErrorSeverity.WARNING,
+        details: Optional[dict[str, Any]] = None
+    ):
+        super().__init__(message, severity, details)
+
+
+class CheckpointError(PodcastProcessingError):
+    """
+    Raised when checkpoint operations fail.
+    
+    Default severity is WARNING as checkpoint failures can often be recovered.
+    """
+    
+    def __init__(
+        self,
+        message: str,
+        severity: ErrorSeverity = ErrorSeverity.WARNING,
+        details: Optional[dict[str, Any]] = None
+    ):
+        super().__init__(message, severity, details)
+
+
+class BatchProcessingError(PodcastProcessingError):
+    """
+    Raised when batch processing fails.
+    
+    Default severity is WARNING as individual items can often be retried.
+    """
+    
+    def __init__(
+        self,
+        message: str,
+        severity: ErrorSeverity = ErrorSeverity.WARNING,
+        details: Optional[dict[str, Any]] = None
+    ):
+        super().__init__(message, severity, details)
 
 
 # Exception Usage Guidelines

@@ -362,3 +362,7 @@ def get_llm_config(config: PipelineConfig) -> Dict[str, Any]:
         "whisper_model": config.whisper_model_size,
         "use_faster_whisper": config.use_faster_whisper,
     }
+
+
+# Alias for backward compatibility
+Config = PipelineConfig
