@@ -1,6 +1,6 @@
 {
   "extraction_mode": "migration",
-  "created_at": "2025-05-28T00:11:17.484703",
+  "created_at": "2025-05-28T00:42:42.406239",
   "segments_count": 5,
   "results": [
     {
@@ -134,11 +134,11 @@
         "schemaless_entity_count": 6,
         "new_entity_types": [
           "AI Expert",
-          "AI Company",
-          "Podcast Host",
+          "Medical Institution",
           "Performance Metric",
+          "Podcast Host",
           "AI Technology",
-          "Medical Institution"
+          "AI Company"
         ]
       }
     },
@@ -273,11 +273,11 @@
         "schemaless_entity_count": 6,
         "new_entity_types": [
           "AI Expert",
-          "AI Company",
-          "Podcast Host",
+          "Medical Institution",
           "Performance Metric",
+          "Podcast Host",
           "AI Technology",
-          "Medical Institution"
+          "AI Company"
         ]
       }
     },
@@ -412,11 +412,11 @@
         "schemaless_entity_count": 6,
         "new_entity_types": [
           "AI Expert",
-          "AI Company",
-          "Podcast Host",
+          "Medical Institution",
           "Performance Metric",
+          "Podcast Host",
           "AI Technology",
-          "Medical Institution"
+          "AI Company"
         ]
       }
     },
@@ -551,11 +551,11 @@
         "schemaless_entity_count": 6,
         "new_entity_types": [
           "AI Expert",
-          "AI Company",
-          "Podcast Host",
+          "Medical Institution",
           "Performance Metric",
+          "Podcast Host",
           "AI Technology",
-          "Medical Institution"
+          "AI Company"
         ]
       }
     },
@@ -690,11 +690,11 @@
         "schemaless_entity_count": 6,
         "new_entity_types": [
           "AI Expert",
-          "AI Company",
-          "Podcast Host",
+          "Medical Institution",
           "Performance Metric",
+          "Podcast Host",
           "AI Technology",
-          "Medical Institution"
+          "AI Company"
         ]
       }
     }
