@@ -54,6 +54,8 @@ INITIAL_RETRY_DELAY = 1.0  # Initial retry delay in seconds
 MAX_SEGMENT_LENGTH = 1000  # Maximum segment length in characters
 MAX_TRANSCRIPT_LENGTH = 500000  # Maximum transcript length in characters
 MIN_SEGMENT_LENGTH = 50  # Minimum segment length in characters
+MIN_SEGMENT_TOKENS = 150  # Minimum tokens per segment
+MAX_SEGMENT_TOKENS = 800  # Maximum tokens per segment
 MAX_ENTITIES_PER_SEGMENT = 20  # Maximum entities to extract per segment
 MAX_RELATIONSHIPS_PER_SEGMENT = 15  # Maximum relationships per segment
 
@@ -87,3 +89,23 @@ CHECKPOINT_RETENTION_DAYS = 7  # Checkpoint retention period
 # Performance Thresholds
 SLOW_QUERY_THRESHOLD_MS = 100  # Slow query threshold in milliseconds
 MEMORY_LEAK_THRESHOLD_MB = 50  # Memory leak detection threshold
+
+# Advertisement Detection
+AD_MARKERS = [
+    "brought to you by",
+    "sponsored by",
+    "promo code",
+    "discount code",
+    "visit our sponsor",
+    "thanks to our sponsor",
+    "ad break",
+    "commercial break",
+    "special offer",
+    "limited time offer"
+]
+
+# Sentiment Analysis
+SENTIMENT_THRESHOLDS = {
+    "positive": 0.1,
+    "negative": -0.1
+}

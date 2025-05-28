@@ -29,8 +29,17 @@ class TestEnhancedPodcastSegmenter:
         
     def test_process_audio_with_mock_provider(self):
         """Test audio processing with mock provider."""
-        # Use the actual mock provider
-        mock_provider = MockAudioProvider(config={"mock_segments": 3})
+        # Create mock segments
+        mock_segments = [
+            TranscriptSegment(
+                id=f"seg_{i}",
+                text=f"This is segment {i}",
+                start_time=i * 10.0,
+                end_time=(i + 1) * 10.0,
+                confidence=0.95
+            ) for i in range(3)
+        ]
+        mock_provider = MockAudioProvider(config={"mock_segments": mock_segments})
         segmenter = EnhancedPodcastSegmenter(mock_provider)
         
         result = segmenter.process_audio("fake_audio.mp3")
@@ -91,18 +100,21 @@ class TestEnhancedPodcastSegmenter:
         # Create test segments
         segments = [
             TranscriptSegment(
+                id="seg_1",
                 text="Welcome to our podcast sponsored by TechCorp.",
                 start_time=0.0,
                 end_time=5.0,
                 speaker="Speaker_0"
             ),
             TranscriptSegment(
+                id="seg_2",
                 text="",  # Empty segment should be skipped
                 start_time=5.0,
                 end_time=5.5,
                 speaker="Speaker_0"
             ),
             TranscriptSegment(
+                id="seg_3",
                 text="Today we have great news to share!",
                 start_time=5.5,
                 end_time=10.0,
@@ -201,11 +213,11 @@ class TestEnhancedPodcastSegmenter:
         """Test handling when diarization fails but transcription succeeds."""
         mock_provider = Mock()
         mock_provider.transcribe.return_value = [
-            TranscriptSegment(text="Test", start_time=0, end_time=5)
+            TranscriptSegment(id="seg_1", text="Test", start_time=0, end_time=5)
         ]
         mock_provider.diarize.side_effect = Exception("Diarization failed")
         mock_provider.align_transcript_with_diarization.return_value = [
-            TranscriptSegment(text="Test", start_time=0, end_time=5)
+            TranscriptSegment(id="seg_1", text="Test", start_time=0, end_time=5)
         ]
         
         segmenter = EnhancedPodcastSegmenter(mock_provider)
