@@ -74,8 +74,14 @@ def test_core_models_import():
     assert podcast.name == "Test Podcast"
 
 
-def test_core_config_import():
+def test_core_config_import(monkeypatch):
     """Test that configuration can be imported."""
+    # Set required environment variables
+    monkeypatch.setenv("NEO4J_URI", "bolt://localhost:7687")
+    monkeypatch.setenv("NEO4J_USERNAME", "neo4j")
+    monkeypatch.setenv("NEO4J_PASSWORD", "test")
+    monkeypatch.setenv("GOOGLE_API_KEY", "test_key")
+    
     from src.core import (
         PipelineConfig,
         SeedingConfig,

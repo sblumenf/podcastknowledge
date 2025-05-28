@@ -5,6 +5,9 @@ This module consolidates all hardcoded values from across the codebase
 to improve maintainability and configurability.
 """
 
+# Version
+VERSION = "0.1.0"
+
 # Timeout Constants (in seconds)
 DEFAULT_REQUEST_TIMEOUT = 300  # 5 minutes - used for HTTP requests
 NEO4J_CONNECTION_TIMEOUT = 30.0  # Neo4j connection acquisition timeout
@@ -49,6 +52,7 @@ INITIAL_RETRY_DELAY = 1.0  # Initial retry delay in seconds
 
 # Processing Limits
 MAX_SEGMENT_LENGTH = 1000  # Maximum segment length in characters
+MAX_TRANSCRIPT_LENGTH = 500000  # Maximum transcript length in characters
 MIN_SEGMENT_LENGTH = 50  # Minimum segment length in characters
 MAX_ENTITIES_PER_SEGMENT = 20  # Maximum entities to extract per segment
 MAX_RELATIONSHIPS_PER_SEGMENT = 15  # Maximum relationships per segment
