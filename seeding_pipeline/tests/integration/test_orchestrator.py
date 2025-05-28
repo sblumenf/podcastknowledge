@@ -39,8 +39,14 @@ def mock_providers():
 
 
 @pytest.fixture
-def test_config():
+def test_config(monkeypatch):
     """Create test configuration."""
+    # Set required environment variables
+    monkeypatch.setenv("NEO4J_URI", "bolt://localhost:7687")
+    monkeypatch.setenv("NEO4J_USERNAME", "neo4j")
+    monkeypatch.setenv("NEO4J_PASSWORD", "test_password")
+    monkeypatch.setenv("GOOGLE_API_KEY", "test_api_key")
+    
     with tempfile.TemporaryDirectory() as tmpdir:
         config = SeedingConfig()
         config.checkpoint_dir = tmpdir
@@ -132,7 +138,7 @@ class TestPodcastKnowledgePipeline:
         
         assert result is False
     
-    @patch('src.seeding.orchestrator.download_episode_audio')
+    @patch('src.seeding.components.pipeline_executor.download_episode_audio')
     @patch('src.seeding.orchestrator.fetch_podcast_feed')
     @patch('src.seeding.orchestrator.ProviderFactory')
     def test_seed_single_podcast(self, mock_factory, mock_fetch_feed, mock_download, 
@@ -166,6 +172,7 @@ class TestPodcastKnowledgePipeline:
         ]
         
         pipeline = PodcastKnowledgePipeline(test_config)
+        pipeline.initialize_components()
         
         # Inject mocked components
         with patch.object(pipeline, 'segmenter', mock_segmenter), \
@@ -219,7 +226,7 @@ class TestPodcastKnowledgePipeline:
         assert result['podcasts_processed'] == 0
         assert result['episodes_processed'] == 0
     
-    @patch('src.seeding.orchestrator.download_episode_audio')
+    @patch('src.seeding.components.pipeline_executor.download_episode_audio')
     @patch('src.seeding.orchestrator.fetch_podcast_feed')
     @patch('src.seeding.orchestrator.ProviderFactory')
     def test_error_handling(self, mock_factory, mock_fetch_feed, mock_download,

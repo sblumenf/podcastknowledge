@@ -45,7 +45,7 @@ class TestAudioModuleIntegration:
         """Test that mock provider produces compatible output structure."""
         from src.providers.audio import MockAudioProvider
         
-        provider = MockAudioProvider(config={"mock_segments": 3, "mock_speakers": 2})
+        provider = MockAudioProvider(config={})
         
         # Test transcription
         transcripts = provider.transcribe("fake.mp3")
@@ -100,7 +100,7 @@ class TestAudioModuleIntegration:
             "Special offer for our listeners"
         ]
         
-        provider = MockAudioProvider()
+        provider = MockAudioProvider(config={})
         segmenter = EnhancedPodcastSegmenter(provider)
         
         for text in ad_texts:
@@ -123,7 +123,7 @@ class TestAudioModuleIntegration:
         from src.processing.segmentation import EnhancedPodcastSegmenter
         from src.providers.audio import MockAudioProvider
         
-        provider = MockAudioProvider()
+        provider = MockAudioProvider(config={})
         segmenter = EnhancedPodcastSegmenter(provider)
         
         # Test sentiment for known texts
@@ -145,7 +145,7 @@ class TestAudioModuleIntegration:
         from src.providers.audio import MockAudioProvider, WhisperAudioProvider
         
         # Test mock provider
-        mock_provider = MockAudioProvider()
+        mock_provider = MockAudioProvider(config={})
         mock_health = mock_provider.health_check()
         
         assert "status" in mock_health

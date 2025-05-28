@@ -64,6 +64,7 @@ def test_component_initialization():
     # Test provider coordinator
     try:
         from src.seeding.components.provider_coordinator import ProviderCoordinator
+        from src.factories.provider_factory import ProviderFactory
         from src.core.config import Config
         config = Config()
         # We'll test with mock providers
@@ -73,7 +74,8 @@ def test_component_initialization():
             'embeddings': {'name': 'mock'},
             'graph': {'name': 'memory'}
         }
-        pc = ProviderCoordinator(config)
+        factory = ProviderFactory()
+        pc = ProviderCoordinator(factory, config)
         print("  ✅ ProviderCoordinator initialized")
         results['passed'] += 1
     except Exception as e:

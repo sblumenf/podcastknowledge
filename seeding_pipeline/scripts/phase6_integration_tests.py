@@ -250,7 +250,7 @@ class TestRefactoredComponents(unittest.TestCase):
             
             from src.seeding.components.provider_coordinator import ProviderCoordinator
             
-            pc = ProviderCoordinator(mock_config)
+            pc = ProviderCoordinator(mock_factory.return_value, mock_config)
             
             # Check methods exist
             self.assertTrue(hasattr(pc, 'initialize_providers'))

@@ -114,14 +114,11 @@ class ProviderCoordinator:
                 self.embedding_provider
             )
             
-            self.entity_resolver = EntityResolver(
-                self.graph_provider,
-                self.embedding_provider
-            )
+            self.entity_resolver = EntityResolver()
             
             self.graph_analyzer = GraphAnalyzer(self.graph_provider)
             self.graph_enhancer = GraphEnhancements()
-            self.discourse_flow_tracker = DiscourseFlowTracker(self.embedding_provider)
+            self.discourse_flow_tracker = DiscourseFlowTracker()
             self.emergent_theme_detector = EmergentThemeDetector(
                 self.embedding_provider,
                 self.llm_provider

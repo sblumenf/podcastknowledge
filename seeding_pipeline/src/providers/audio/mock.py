@@ -153,20 +153,6 @@ class MockAudioProvider(BaseAudioProvider):
             'config': self.config
         }
         
-    def health_check(self) -> Dict[str, Any]:
-        """Check provider health."""
-        return {
-            'healthy': True,
-            'provider': 'MockAudioProvider',
-            'initialized': self._initialized,
-            'config': self.config,
-            'timestamp': datetime.now().isoformat() + 'Z',
-            'mock_mode': True,
-            'mock_segments': len(self.mock_segments) if self.mock_segments else 5,
-            'mock_speakers': len(self.mock_speakers) if self.mock_speakers else 2,
-            'fail_transcription': self.fail_transcription,
-            'fail_diarization': self.fail_diarization
-        }
         
     # Additional methods for testing
     
@@ -182,7 +168,11 @@ class MockAudioProvider(BaseAudioProvider):
     def _provider_specific_health_check(self) -> Dict[str, Any]:
         """Mock implementation of provider-specific health check."""
         return {
-            'status': 'healthy',
+            'mock_mode': True,
+            'mock_segments': len(self.mock_segments) if self.mock_segments else 3,
+            'mock_speakers': len(self.mock_speakers) if self.mock_speakers else 2,
+            'fail_transcription': self.fail_transcription,
+            'fail_diarization': self.fail_diarization,
             'mock_provider': 'available',
             'test_mode': True
         }
