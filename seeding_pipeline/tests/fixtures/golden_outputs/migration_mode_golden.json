@@ -1,0 +1,702 @@
+{
+  "extraction_mode": "migration",
+  "created_at": "2025-05-28T00:11:17.484703",
+  "segments_count": 5,
+  "results": [
+    {
+      "segment": {
+        "text": "Welcome to the AI podcast. I'm your host John Smith, and today we're joined by Dr. Sarah Johnson, who is the Chief Technology Officer at TechCorp. Sarah has been working in artificial intelligence for over 15 years.",
+        "start": 0.0,
+        "end": 15.0,
+        "speaker": "Host"
+      },
+      "fixed_extraction": {
+        "insights": [
+          {
+            "content": "Machine learning models at TechCorp achieve 95% accuracy in predicting patient outcomes",
+            "speaker": "Dr. Sarah Johnson",
+            "confidence": 0.9
+          },
+          {
+            "content": "AI system can detect early signs of cancer that human doctors might miss",
+            "speaker": "Dr. Sarah Johnson",
+            "confidence": 0.85
+          }
+        ],
+        "entities": [
+          {
+            "name": "John Smith",
+            "type": "Person",
+            "description": "Host of the AI podcast"
+          },
+          {
+            "name": "Dr. Sarah Johnson",
+            "type": "Person",
+            "description": "Chief Technology Officer at TechCorp"
+          },
+          {
+            "name": "TechCorp",
+            "type": "Organization",
+            "description": "Technology company specializing in AI"
+          },
+          {
+            "name": "Stanford Medical Center",
+            "type": "Organization",
+            "description": "Medical institution partnering with TechCorp"
+          }
+        ],
+        "relationships": [
+          {
+            "source": "Dr. Sarah Johnson",
+            "target": "TechCorp",
+            "type": "WORKS_FOR"
+          },
+          {
+            "source": "TechCorp",
+            "target": "Stanford Medical Center",
+            "type": "PARTNERS_WITH"
+          }
+        ],
+        "themes": [
+          "artificial intelligence",
+          "healthcare",
+          "machine learning",
+          "medical diagnostics"
+        ],
+        "topics": [
+          "AI in healthcare",
+          "cancer detection",
+          "medical imaging",
+          "patient privacy"
+        ]
+      },
+      "schemaless_extraction": {
+        "entities": [
+          {
+            "name": "John Smith",
+            "type": "Podcast Host",
+            "description": "Host of the AI-focused podcast"
+          },
+          {
+            "name": "Dr. Sarah Johnson",
+            "type": "AI Expert",
+            "description": "CTO with 15 years of AI experience"
+          },
+          {
+            "name": "TechCorp",
+            "type": "AI Company",
+            "description": "Company developing healthcare AI models"
+          },
+          {
+            "name": "Stanford Medical Center",
+            "type": "Medical Institution",
+            "description": "Healthcare partner for AI deployment"
+          },
+          {
+            "name": "Diagnostic AI System",
+            "type": "AI Technology",
+            "description": "System for analyzing medical imaging and detecting cancer"
+          },
+          {
+            "name": "95% Accuracy",
+            "type": "Performance Metric",
+            "description": "Accuracy rate of patient outcome predictions"
+          }
+        ],
+        "relationships": [
+          {
+            "source": "Dr. Sarah Johnson",
+            "target": "TechCorp",
+            "type": "LEADS_AI_AT"
+          },
+          {
+            "source": "TechCorp",
+            "target": "Diagnostic AI System",
+            "type": "DEVELOPED"
+          },
+          {
+            "source": "Diagnostic AI System",
+            "target": "Stanford Medical Center",
+            "type": "DEPLOYED_AT"
+          },
+          {
+            "source": "Dr. Sarah Johnson",
+            "target": "AI Expert",
+            "type": "HAS_EXPERTISE_IN",
+            "properties": {
+              "years": 15
+            }
+          }
+        ]
+      },
+      "comparison": {
+        "fixed_entity_count": 4,
+        "schemaless_entity_count": 6,
+        "new_entity_types": [
+          "AI Expert",
+          "AI Company",
+          "Podcast Host",
+          "Performance Metric",
+          "AI Technology",
+          "Medical Institution"
+        ]
+      }
+    },
+    {
+      "segment": {
+        "text": "Thanks for having me, John. I'm excited to discuss how machine learning is transforming the healthcare industry. At TechCorp, we've developed several AI models that can predict patient outcomes with 95% accuracy.",
+        "start": 15.0,
+        "end": 30.0,
+        "speaker": "Guest"
+      },
+      "fixed_extraction": {
+        "insights": [
+          {
+            "content": "Machine learning models at TechCorp achieve 95% accuracy in predicting patient outcomes",
+            "speaker": "Dr. Sarah Johnson",
+            "confidence": 0.9
+          },
+          {
+            "content": "AI system can detect early signs of cancer that human doctors might miss",
+            "speaker": "Dr. Sarah Johnson",
+            "confidence": 0.85
+          }
+        ],
+        "entities": [
+          {
+            "name": "John Smith",
+            "type": "Person",
+            "description": "Host of the AI podcast"
+          },
+          {
+            "name": "Dr. Sarah Johnson",
+            "type": "Person",
+            "description": "Chief Technology Officer at TechCorp"
+          },
+          {
+            "name": "TechCorp",
+            "type": "Organization",
+            "description": "Technology company specializing in AI"
+          },
+          {
+            "name": "Stanford Medical Center",
+            "type": "Organization",
+            "description": "Medical institution partnering with TechCorp"
+          }
+        ],
+        "relationships": [
+          {
+            "source": "Dr. Sarah Johnson",
+            "target": "TechCorp",
+            "type": "WORKS_FOR"
+          },
+          {
+            "source": "TechCorp",
+            "target": "Stanford Medical Center",
+            "type": "PARTNERS_WITH"
+          }
+        ],
+        "themes": [
+          "artificial intelligence",
+          "healthcare",
+          "machine learning",
+          "medical diagnostics"
+        ],
+        "topics": [
+          "AI in healthcare",
+          "cancer detection",
+          "medical imaging",
+          "patient privacy"
+        ]
+      },
+      "schemaless_extraction": {
+        "entities": [
+          {
+            "name": "John Smith",
+            "type": "Podcast Host",
+            "description": "Host of the AI-focused podcast"
+          },
+          {
+            "name": "Dr. Sarah Johnson",
+            "type": "AI Expert",
+            "description": "CTO with 15 years of AI experience"
+          },
+          {
+            "name": "TechCorp",
+            "type": "AI Company",
+            "description": "Company developing healthcare AI models"
+          },
+          {
+            "name": "Stanford Medical Center",
+            "type": "Medical Institution",
+            "description": "Healthcare partner for AI deployment"
+          },
+          {
+            "name": "Diagnostic AI System",
+            "type": "AI Technology",
+            "description": "System for analyzing medical imaging and detecting cancer"
+          },
+          {
+            "name": "95% Accuracy",
+            "type": "Performance Metric",
+            "description": "Accuracy rate of patient outcome predictions"
+          }
+        ],
+        "relationships": [
+          {
+            "source": "Dr. Sarah Johnson",
+            "target": "TechCorp",
+            "type": "LEADS_AI_AT"
+          },
+          {
+            "source": "TechCorp",
+            "target": "Diagnostic AI System",
+            "type": "DEVELOPED"
+          },
+          {
+            "source": "Diagnostic AI System",
+            "target": "Stanford Medical Center",
+            "type": "DEPLOYED_AT"
+          },
+          {
+            "source": "Dr. Sarah Johnson",
+            "target": "AI Expert",
+            "type": "HAS_EXPERTISE_IN",
+            "properties": {
+              "years": 15
+            }
+          }
+        ]
+      },
+      "comparison": {
+        "fixed_entity_count": 4,
+        "schemaless_entity_count": 6,
+        "new_entity_types": [
+          "AI Expert",
+          "AI Company",
+          "Podcast Host",
+          "Performance Metric",
+          "AI Technology",
+          "Medical Institution"
+        ]
+      }
+    },
+    {
+      "segment": {
+        "text": "That's fascinating. Can you tell us about some specific applications? I understand you've been working with Stanford Medical Center on a groundbreaking project.",
+        "start": 30.0,
+        "end": 40.0,
+        "speaker": "Host"
+      },
+      "fixed_extraction": {
+        "insights": [
+          {
+            "content": "Machine learning models at TechCorp achieve 95% accuracy in predicting patient outcomes",
+            "speaker": "Dr. Sarah Johnson",
+            "confidence": 0.9
+          },
+          {
+            "content": "AI system can detect early signs of cancer that human doctors might miss",
+            "speaker": "Dr. Sarah Johnson",
+            "confidence": 0.85
+          }
+        ],
+        "entities": [
+          {
+            "name": "John Smith",
+            "type": "Person",
+            "description": "Host of the AI podcast"
+          },
+          {
+            "name": "Dr. Sarah Johnson",
+            "type": "Person",
+            "description": "Chief Technology Officer at TechCorp"
+          },
+          {
+            "name": "TechCorp",
+            "type": "Organization",
+            "description": "Technology company specializing in AI"
+          },
+          {
+            "name": "Stanford Medical Center",
+            "type": "Organization",
+            "description": "Medical institution partnering with TechCorp"
+          }
+        ],
+        "relationships": [
+          {
+            "source": "Dr. Sarah Johnson",
+            "target": "TechCorp",
+            "type": "WORKS_FOR"
+          },
+          {
+            "source": "TechCorp",
+            "target": "Stanford Medical Center",
+            "type": "PARTNERS_WITH"
+          }
+        ],
+        "themes": [
+          "artificial intelligence",
+          "healthcare",
+          "machine learning",
+          "medical diagnostics"
+        ],
+        "topics": [
+          "AI in healthcare",
+          "cancer detection",
+          "medical imaging",
+          "patient privacy"
+        ]
+      },
+      "schemaless_extraction": {
+        "entities": [
+          {
+            "name": "John Smith",
+            "type": "Podcast Host",
+            "description": "Host of the AI-focused podcast"
+          },
+          {
+            "name": "Dr. Sarah Johnson",
+            "type": "AI Expert",
+            "description": "CTO with 15 years of AI experience"
+          },
+          {
+            "name": "TechCorp",
+            "type": "AI Company",
+            "description": "Company developing healthcare AI models"
+          },
+          {
+            "name": "Stanford Medical Center",
+            "type": "Medical Institution",
+            "description": "Healthcare partner for AI deployment"
+          },
+          {
+            "name": "Diagnostic AI System",
+            "type": "AI Technology",
+            "description": "System for analyzing medical imaging and detecting cancer"
+          },
+          {
+            "name": "95% Accuracy",
+            "type": "Performance Metric",
+            "description": "Accuracy rate of patient outcome predictions"
+          }
+        ],
+        "relationships": [
+          {
+            "source": "Dr. Sarah Johnson",
+            "target": "TechCorp",
+            "type": "LEADS_AI_AT"
+          },
+          {
+            "source": "TechCorp",
+            "target": "Diagnostic AI System",
+            "type": "DEVELOPED"
+          },
+          {
+            "source": "Diagnostic AI System",
+            "target": "Stanford Medical Center",
+            "type": "DEPLOYED_AT"
+          },
+          {
+            "source": "Dr. Sarah Johnson",
+            "target": "AI Expert",
+            "type": "HAS_EXPERTISE_IN",
+            "properties": {
+              "years": 15
+            }
+          }
+        ]
+      },
+      "comparison": {
+        "fixed_entity_count": 4,
+        "schemaless_entity_count": 6,
+        "new_entity_types": [
+          "AI Expert",
+          "AI Company",
+          "Podcast Host",
+          "Performance Metric",
+          "AI Technology",
+          "Medical Institution"
+        ]
+      }
+    },
+    {
+      "segment": {
+        "text": "Absolutely. We partnered with Stanford Medical Center last year to deploy our diagnostic AI system. The system analyzes medical imaging data and can detect early signs of cancer that human doctors might miss. It's been incredibly successful.",
+        "start": 40.0,
+        "end": 55.0,
+        "speaker": "Guest"
+      },
+      "fixed_extraction": {
+        "insights": [
+          {
+            "content": "Machine learning models at TechCorp achieve 95% accuracy in predicting patient outcomes",
+            "speaker": "Dr. Sarah Johnson",
+            "confidence": 0.9
+          },
+          {
+            "content": "AI system can detect early signs of cancer that human doctors might miss",
+            "speaker": "Dr. Sarah Johnson",
+            "confidence": 0.85
+          }
+        ],
+        "entities": [
+          {
+            "name": "John Smith",
+            "type": "Person",
+            "description": "Host of the AI podcast"
+          },
+          {
+            "name": "Dr. Sarah Johnson",
+            "type": "Person",
+            "description": "Chief Technology Officer at TechCorp"
+          },
+          {
+            "name": "TechCorp",
+            "type": "Organization",
+            "description": "Technology company specializing in AI"
+          },
+          {
+            "name": "Stanford Medical Center",
+            "type": "Organization",
+            "description": "Medical institution partnering with TechCorp"
+          }
+        ],
+        "relationships": [
+          {
+            "source": "Dr. Sarah Johnson",
+            "target": "TechCorp",
+            "type": "WORKS_FOR"
+          },
+          {
+            "source": "TechCorp",
+            "target": "Stanford Medical Center",
+            "type": "PARTNERS_WITH"
+          }
+        ],
+        "themes": [
+          "artificial intelligence",
+          "healthcare",
+          "machine learning",
+          "medical diagnostics"
+        ],
+        "topics": [
+          "AI in healthcare",
+          "cancer detection",
+          "medical imaging",
+          "patient privacy"
+        ]
+      },
+      "schemaless_extraction": {
+        "entities": [
+          {
+            "name": "John Smith",
+            "type": "Podcast Host",
+            "description": "Host of the AI-focused podcast"
+          },
+          {
+            "name": "Dr. Sarah Johnson",
+            "type": "AI Expert",
+            "description": "CTO with 15 years of AI experience"
+          },
+          {
+            "name": "TechCorp",
+            "type": "AI Company",
+            "description": "Company developing healthcare AI models"
+          },
+          {
+            "name": "Stanford Medical Center",
+            "type": "Medical Institution",
+            "description": "Healthcare partner for AI deployment"
+          },
+          {
+            "name": "Diagnostic AI System",
+            "type": "AI Technology",
+            "description": "System for analyzing medical imaging and detecting cancer"
+          },
+          {
+            "name": "95% Accuracy",
+            "type": "Performance Metric",
+            "description": "Accuracy rate of patient outcome predictions"
+          }
+        ],
+        "relationships": [
+          {
+            "source": "Dr. Sarah Johnson",
+            "target": "TechCorp",
+            "type": "LEADS_AI_AT"
+          },
+          {
+            "source": "TechCorp",
+            "target": "Diagnostic AI System",
+            "type": "DEVELOPED"
+          },
+          {
+            "source": "Diagnostic AI System",
+            "target": "Stanford Medical Center",
+            "type": "DEPLOYED_AT"
+          },
+          {
+            "source": "Dr. Sarah Johnson",
+            "target": "AI Expert",
+            "type": "HAS_EXPERTISE_IN",
+            "properties": {
+              "years": 15
+            }
+          }
+        ]
+      },
+      "comparison": {
+        "fixed_entity_count": 4,
+        "schemaless_entity_count": 6,
+        "new_entity_types": [
+          "AI Expert",
+          "AI Company",
+          "Podcast Host",
+          "Performance Metric",
+          "AI Technology",
+          "Medical Institution"
+        ]
+      }
+    },
+    {
+      "segment": {
+        "text": "What about the ethical considerations? How do you ensure patient privacy while training these models?",
+        "start": 55.0,
+        "end": 65.0,
+        "speaker": "Host"
+      },
+      "fixed_extraction": {
+        "insights": [
+          {
+            "content": "Machine learning models at TechCorp achieve 95% accuracy in predicting patient outcomes",
+            "speaker": "Dr. Sarah Johnson",
+            "confidence": 0.9
+          },
+          {
+            "content": "AI system can detect early signs of cancer that human doctors might miss",
+            "speaker": "Dr. Sarah Johnson",
+            "confidence": 0.85
+          }
+        ],
+        "entities": [
+          {
+            "name": "John Smith",
+            "type": "Person",
+            "description": "Host of the AI podcast"
+          },
+          {
+            "name": "Dr. Sarah Johnson",
+            "type": "Person",
+            "description": "Chief Technology Officer at TechCorp"
+          },
+          {
+            "name": "TechCorp",
+            "type": "Organization",
+            "description": "Technology company specializing in AI"
+          },
+          {
+            "name": "Stanford Medical Center",
+            "type": "Organization",
+            "description": "Medical institution partnering with TechCorp"
+          }
+        ],
+        "relationships": [
+          {
+            "source": "Dr. Sarah Johnson",
+            "target": "TechCorp",
+            "type": "WORKS_FOR"
+          },
+          {
+            "source": "TechCorp",
+            "target": "Stanford Medical Center",
+            "type": "PARTNERS_WITH"
+          }
+        ],
+        "themes": [
+          "artificial intelligence",
+          "healthcare",
+          "machine learning",
+          "medical diagnostics"
+        ],
+        "topics": [
+          "AI in healthcare",
+          "cancer detection",
+          "medical imaging",
+          "patient privacy"
+        ]
+      },
+      "schemaless_extraction": {
+        "entities": [
+          {
+            "name": "John Smith",
+            "type": "Podcast Host",
+            "description": "Host of the AI-focused podcast"
+          },
+          {
+            "name": "Dr. Sarah Johnson",
+            "type": "AI Expert",
+            "description": "CTO with 15 years of AI experience"
+          },
+          {
+            "name": "TechCorp",
+            "type": "AI Company",
+            "description": "Company developing healthcare AI models"
+          },
+          {
+            "name": "Stanford Medical Center",
+            "type": "Medical Institution",
+            "description": "Healthcare partner for AI deployment"
+          },
+          {
+            "name": "Diagnostic AI System",
+            "type": "AI Technology",
+            "description": "System for analyzing medical imaging and detecting cancer"
+          },
+          {
+            "name": "95% Accuracy",
+            "type": "Performance Metric",
+            "description": "Accuracy rate of patient outcome predictions"
+          }
+        ],
+        "relationships": [
+          {
+            "source": "Dr. Sarah Johnson",
+            "target": "TechCorp",
+            "type": "LEADS_AI_AT"
+          },
+          {
+            "source": "TechCorp",
+            "target": "Diagnostic AI System",
+            "type": "DEVELOPED"
+          },
+          {
+            "source": "Diagnostic AI System",
+            "target": "Stanford Medical Center",
+            "type": "DEPLOYED_AT"
+          },
+          {
+            "source": "Dr. Sarah Johnson",
+            "target": "AI Expert",
+            "type": "HAS_EXPERTISE_IN",
+            "properties": {
+              "years": 15
+            }
+          }
+        ]
+      },
+      "comparison": {
+        "fixed_entity_count": 4,
+        "schemaless_entity_count": 6,
+        "new_entity_types": [
+          "AI Expert",
+          "AI Company",
+          "Podcast Host",
+          "Performance Metric",
+          "AI Technology",
+          "Medical Institution"
+        ]
+      }
+    }
+  ]
+}

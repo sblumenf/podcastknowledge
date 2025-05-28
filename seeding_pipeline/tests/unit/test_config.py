@@ -19,8 +19,14 @@ from src.core import (
 class TestPipelineConfig:
     """Test PipelineConfig class."""
     
-    def test_default_config(self):
+    def test_default_config(self, monkeypatch):
         """Test default configuration values."""
+        # Set required environment variables
+        monkeypatch.setenv("NEO4J_URI", "bolt://localhost:7687")
+        monkeypatch.setenv("NEO4J_USERNAME", "neo4j")
+        monkeypatch.setenv("NEO4J_PASSWORD", "test")
+        monkeypatch.setenv("GOOGLE_API_KEY", "test_key")
+        
         config = PipelineConfig()
         
         # Check defaults
@@ -45,8 +51,14 @@ class TestPipelineConfig:
         assert config.neo4j_password == "testpass"
         assert config.google_api_key == "test_google_key"
         
-    def test_path_resolution(self):
+    def test_path_resolution(self, monkeypatch):
         """Test that paths are resolved correctly."""
+        # Set required environment variables
+        monkeypatch.setenv("NEO4J_URI", "bolt://localhost:7687")
+        monkeypatch.setenv("NEO4J_USERNAME", "neo4j")
+        monkeypatch.setenv("NEO4J_PASSWORD", "test")
+        monkeypatch.setenv("GOOGLE_API_KEY", "test_key")
+        
         config = PipelineConfig(
             base_dir="/tmp/test",
             audio_dir="audio",
@@ -57,16 +69,26 @@ class TestPipelineConfig:
         assert config.audio_dir == Path("/tmp/test/audio")
         assert config.output_dir == Path("/tmp/test/output")
         
-    def test_absolute_paths(self):
+    def test_absolute_paths(self, monkeypatch, tmp_path):
         """Test that absolute paths are preserved."""
+        # Set required environment variables
+        monkeypatch.setenv("NEO4J_URI", "bolt://localhost:7687")
+        monkeypatch.setenv("NEO4J_USERNAME", "neo4j")
+        monkeypatch.setenv("NEO4J_PASSWORD", "test")
+        monkeypatch.setenv("GOOGLE_API_KEY", "test_key")
+        
+        # Create temporary absolute paths
+        audio_dir = tmp_path / "absolute_audio"
+        output_dir = tmp_path / "absolute_output"
+        
         config = PipelineConfig(
             base_dir="/tmp/test",
-            audio_dir="/absolute/audio",
-            output_dir="/absolute/output"
+            audio_dir=str(audio_dir),
+            output_dir=str(output_dir)
         )
         
-        assert config.audio_dir == Path("/absolute/audio")
-        assert config.output_dir == Path("/absolute/output")
+        assert config.audio_dir == audio_dir
+        assert config.output_dir == output_dir
         
     def test_config_validation_errors(self):
         """Test configuration validation errors."""
@@ -115,8 +137,14 @@ class TestPipelineConfig:
 class TestSeedingConfig:
     """Test SeedingConfig class."""
     
-    def test_seeding_defaults(self):
+    def test_seeding_defaults(self, monkeypatch):
         """Test seeding configuration defaults."""
+        # Set required environment variables
+        monkeypatch.setenv("NEO4J_URI", "bolt://localhost:7687")
+        monkeypatch.setenv("NEO4J_USERNAME", "neo4j")
+        monkeypatch.setenv("NEO4J_PASSWORD", "test")
+        monkeypatch.setenv("GOOGLE_API_KEY", "test_key")
+        
         config = SeedingConfig()
         
         # Check seeding-specific defaults
@@ -127,16 +155,28 @@ class TestSeedingConfig:
         assert config.interactive_mode is False
         assert config.save_visualizations is False
         
-    def test_batch_mode_logging(self):
+    def test_batch_mode_logging(self, monkeypatch):
         """Test that batch mode sets appropriate logging."""
+        # Set required environment variables
+        monkeypatch.setenv("NEO4J_URI", "bolt://localhost:7687")
+        monkeypatch.setenv("NEO4J_USERNAME", "neo4j")
+        monkeypatch.setenv("NEO4J_PASSWORD", "test")
+        monkeypatch.setenv("GOOGLE_API_KEY", "test_key")
+        
         config = SeedingConfig(verbose_logging=False)
         assert config.log_level == "ERROR"
         
         config = SeedingConfig(verbose_logging=True)
         assert config.log_level != "ERROR"
         
-    def test_get_segmenter_config(self):
+    def test_get_segmenter_config(self, monkeypatch):
         """Test segmenter configuration generation."""
+        # Set required environment variables
+        monkeypatch.setenv("NEO4J_URI", "bolt://localhost:7687")
+        monkeypatch.setenv("NEO4J_USERNAME", "neo4j")
+        monkeypatch.setenv("NEO4J_PASSWORD", "test")
+        monkeypatch.setenv("GOOGLE_API_KEY", "test_key")
+        
         config = SeedingConfig(
             min_segment_tokens=100,
             max_segment_tokens=500,
@@ -150,8 +190,14 @@ class TestSeedingConfig:
         assert segmenter_config["batch_size"] == 20
         assert segmenter_config["use_gpu"] is True
         
-    def test_get_rate_limits(self):
+    def test_get_rate_limits(self, monkeypatch):
         """Test rate limit configuration."""
+        # Set required environment variables
+        monkeypatch.setenv("NEO4J_URI", "bolt://localhost:7687")
+        monkeypatch.setenv("NEO4J_USERNAME", "neo4j")
+        monkeypatch.setenv("NEO4J_PASSWORD", "test")
+        monkeypatch.setenv("GOOGLE_API_KEY", "test_key")
+        
         config = SeedingConfig(
             llm_requests_per_minute=30,
             llm_tokens_per_minute=100000
@@ -162,8 +208,14 @@ class TestSeedingConfig:
         assert rate_limits["llm_rpm"] == 30
         assert rate_limits["llm_tpm"] == 100000
         
-    def test_validate_dependencies(self):
+    def test_validate_dependencies(self, monkeypatch):
         """Test dependency validation."""
+        # Set required environment variables
+        monkeypatch.setenv("NEO4J_URI", "bolt://localhost:7687")
+        monkeypatch.setenv("NEO4J_USERNAME", "neo4j")
+        monkeypatch.setenv("NEO4J_PASSWORD", "test")
+        monkeypatch.setenv("GOOGLE_API_KEY", "test_key")
+        
         config = SeedingConfig()
         
         # This will check which dependencies are actually installed
@@ -176,16 +228,27 @@ class TestSeedingConfig:
 class TestConfigLoading:
     """Test configuration loading functions."""
     
-    def test_load_config_defaults(self):
+    def test_load_config_defaults(self, monkeypatch):
         """Test loading configuration with defaults."""
+        # Set required environment variables
+        monkeypatch.setenv("NEO4J_URI", "bolt://localhost:7687")
+        monkeypatch.setenv("NEO4J_USERNAME", "neo4j")
+        monkeypatch.setenv("NEO4J_PASSWORD", "test")
+        monkeypatch.setenv("GOOGLE_API_KEY", "test_key")
+        
         config = load_config(config_type="pipeline")
         assert isinstance(config, PipelineConfig)
         
         config = load_config(config_type="seeding")
         assert isinstance(config, SeedingConfig)
         
-    def test_load_config_from_yaml(self):
+    def test_load_config_from_yaml(self, monkeypatch):
         """Test loading configuration from YAML file."""
+        # Set required environment variables
+        monkeypatch.setenv("NEO4J_URI", "bolt://localhost:7687")
+        monkeypatch.setenv("NEO4J_USERNAME", "neo4j")
+        monkeypatch.setenv("NEO4J_PASSWORD", "test")
+        monkeypatch.setenv("GOOGLE_API_KEY", "test_key")
         with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml', delete=False) as f:
             yaml.dump({
                 'min_segment_tokens': 200,
@@ -205,8 +268,14 @@ class TestConfigLoading:
         finally:
             os.unlink(temp_path)
             
-    def test_get_neo4j_config(self):
+    def test_get_neo4j_config(self, monkeypatch):
         """Test Neo4j configuration extraction."""
+        # Set required environment variables
+        monkeypatch.setenv("NEO4J_URI", "bolt://localhost:7687")
+        monkeypatch.setenv("NEO4J_USERNAME", "neo4j")
+        monkeypatch.setenv("NEO4J_PASSWORD", "test")
+        monkeypatch.setenv("GOOGLE_API_KEY", "test_key")
+        
         config = PipelineConfig(
             neo4j_uri="bolt://localhost:7687",
             neo4j_username="neo4j",
@@ -220,8 +289,14 @@ class TestConfigLoading:
         assert neo4j_config["auth"] == ("neo4j", "password")
         assert neo4j_config["database"] == "test"
         
-    def test_get_llm_config(self):
+    def test_get_llm_config(self, monkeypatch):
         """Test LLM configuration extraction."""
+        # Set required environment variables
+        monkeypatch.setenv("NEO4J_URI", "bolt://localhost:7687")
+        monkeypatch.setenv("NEO4J_USERNAME", "neo4j")
+        monkeypatch.setenv("NEO4J_PASSWORD", "test")
+        monkeypatch.setenv("GOOGLE_API_KEY", "test_key")
+        
         config = PipelineConfig(
             google_api_key="google_key",
             openai_api_key="openai_key",
@@ -240,8 +315,13 @@ class TestConfigLoading:
 class TestConfigFromFile:
     """Test loading configuration from files."""
     
-    def test_from_yaml_file(self):
+    def test_from_yaml_file(self, monkeypatch):
         """Test loading from YAML file."""
+        # Set required environment variables
+        monkeypatch.setenv("NEO4J_URI", "bolt://localhost:7687")
+        monkeypatch.setenv("NEO4J_USERNAME", "neo4j")
+        monkeypatch.setenv("NEO4J_PASSWORD", "test")
+        monkeypatch.setenv("GOOGLE_API_KEY", "test_key")
         with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml', delete=False) as f:
             yaml.dump({
                 'min_segment_tokens': 250,

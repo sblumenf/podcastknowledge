@@ -25,9 +25,18 @@ class MockAudioProvider(BaseAudioProvider):
         self.fail_transcription = config.get('fail_transcription', False)
         self.fail_diarization = config.get('fail_diarization', False)
         
+        # Mark as initialized since mock doesn't need actual initialization
+        self._initialized = True
+        
     def _initialize_model(self) -> None:
         """No model initialization needed for mock provider."""
         pass
+        
+    def _ensure_initialized(self) -> None:
+        """Ensure the provider is initialized."""
+        if not self._initialized:
+            self._initialize_model()
+            self._initialized = True
         
     def transcribe(self, audio_path: str) -> List[TranscriptSegment]:
         """Return mock transcription."""

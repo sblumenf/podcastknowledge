@@ -1,0 +1,35 @@
+{
+  "version": "1.0.0",
+  "timestamp": "2025-05-28T00:11:21.632863",
+  "thresholds": {
+    "extraction_time": {
+      "mean": 1.5,
+      "p95": 2.5,
+      "p99": 3.0
+    },
+    "memory_usage": {
+      "baseline": 200,
+      "peak": 500,
+      "increase": 300
+    },
+    "neo4j_queries": {
+      "mean": 0.05,
+      "p95": 0.1,
+      "p99": 0.2
+    },
+    "episode_processing": {
+      "small": 30,
+      "medium": 60,
+      "large": 120
+    },
+    "concurrent_processing": {
+      "max_workers": 4,
+      "episodes_per_minute": 2
+    }
+  },
+  "hardware": {
+    "cpu_cores": 8,
+    "memory_gb": 16.0,
+    "platform": "Darwin"
+  }
+}

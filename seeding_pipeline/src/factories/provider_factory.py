@@ -573,3 +573,19 @@ class ProviderManager:
                         }
                         
         return results
+
+
+# Singleton instance
+_provider_factory = None
+
+
+def get_provider_factory() -> ProviderFactory:
+    """Get the singleton ProviderFactory instance.
+    
+    Returns:
+        The global ProviderFactory instance
+    """
+    global _provider_factory
+    if _provider_factory is None:
+        _provider_factory = ProviderFactory()
+    return _provider_factory

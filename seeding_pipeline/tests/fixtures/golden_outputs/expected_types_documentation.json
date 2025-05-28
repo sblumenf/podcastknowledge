@@ -1,0 +1,50 @@
+{
+  "fixed_schema": {
+    "entity_types": [
+      "Person",
+      "Organization",
+      "Location",
+      "Event",
+      "Technology",
+      "Concept"
+    ],
+    "relationship_types": [
+      "WORKS_FOR",
+      "PARTNERS_WITH",
+      "LOCATED_IN",
+      "PARTICIPATES_IN",
+      "DEVELOPS",
+      "USES"
+    ],
+    "special_nodes": [
+      "Podcast",
+      "Episode",
+      "Insight",
+      "Quote"
+    ]
+  },
+  "schemaless": {
+    "discovered_entity_types_examples": [
+      "Podcast Host",
+      "AI Expert",
+      "AI Company",
+      "Medical Institution",
+      "AI Technology",
+      "Performance Metric",
+      "Research Project",
+      "Academic Institution",
+      "Government Agency",
+      "Industry Standard"
+    ],
+    "discovered_relationship_types_examples": [
+      "LEADS_AI_AT",
+      "DEVELOPED",
+      "DEPLOYED_AT",
+      "HAS_EXPERTISE_IN",
+      "COLLABORATES_WITH",
+      "FUNDED_BY",
+      "RESEARCHES",
+      "REGULATES"
+    ]
+  }
+}

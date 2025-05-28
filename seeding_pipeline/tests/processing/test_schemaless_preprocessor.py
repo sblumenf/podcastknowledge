@@ -11,7 +11,8 @@ from src.processing.schemaless_preprocessor import (
     PreprocessingConfig,
     preprocess_segments_batch
 )
-from src.core.models import Segment, TranscriptSegment
+from src.core.models import Segment
+from src.core.interfaces import TranscriptSegment
 
 
 class TestSegmentPreprocessor:

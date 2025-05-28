@@ -31,6 +31,7 @@ DEFAULT_ENTITY_CONFIDENCE = 0.8  # Default confidence for entities
 # Model Parameters
 DEFAULT_TEMPERATURE = 0.3  # Default temperature for LLM generation
 DEFAULT_MAX_TOKENS = 2000  # Default max tokens for LLM response
+DEFAULT_WHISPER_MODEL = "large-v3"  # Default Whisper model size
 
 # Connection Pool Sizes
 DEFAULT_CONNECTION_POOL_SIZE = 10  # Default connection pool size

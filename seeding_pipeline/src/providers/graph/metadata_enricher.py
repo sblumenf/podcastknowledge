@@ -55,6 +55,17 @@ class MetadataEnrichmentConfig:
     dry_run: bool = False  # Preview enrichment without applying
 
 
+class MetadataEnricher:
+    """Alias for SchemalessMetadataEnricher for backward compatibility."""
+    def __init__(self, *args, **kwargs):
+        # Create instance of SchemalessMetadataEnricher
+        self._enricher = SchemalessMetadataEnricher(*args, **kwargs)
+    
+    def __getattr__(self, name):
+        # Delegate all attribute access to the actual enricher
+        return getattr(self._enricher, name)
+
+
 class SchemalessMetadataEnricher:
     """
     Enriches extracted nodes with metadata not provided by SimpleKGPipeline.
