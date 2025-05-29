@@ -2,6 +2,53 @@
 
 This document provides a detailed, step-by-step plan for validating the test suite and achieving >90% test coverage for the Podcast Knowledge Graph Pipeline.
 
+## Coverage Gap Analysis (Updated 2025-01-28)
+
+**Current State:**
+- Coverage: 8.43% (1,233 of 14,627 statements)
+- Target: 90% (13,164 statements)
+- Gap: 81.57% (11,931 statements need tests)
+
+**Realistic Assessment:**
+- To bridge this gap requires approximately:
+  - 50-100 new test files
+  - 20,000-40,000 lines of test code
+  - 8-12 weeks of dedicated effort
+
+**Plan Adjustment:**
+- Phase 5 has been expanded into Phase 5A through 5E
+- Each sub-phase targets specific modules with measurable goals
+- Focus on high-impact, high-usage modules first
+
+## Module Coverage Prioritization
+
+Based on current coverage analysis, here are the modules requiring immediate attention:
+
+### Critical Modules (0% Coverage)
+1. **src/processing/extraction.py** - Core functionality, highest priority
+2. **src/seeding/orchestrator.py** - Pipeline coordination
+3. **src/providers/llm/gemini.py** - Primary LLM provider
+4. **src/providers/graph/neo4j.py** - Primary data store
+5. **src/api/v1/seeding.py** - Main API endpoints
+
+### High Priority (0-20% Coverage)
+1. **src/processing/parsers.py** - Data parsing
+2. **src/processing/entity_resolution.py** - Entity management
+3. **src/migration/schema_manager.py** - Schema evolution
+4. **src/utils/validation.py** - Input validation
+5. **src/providers/audio/whisper.py** - Audio processing
+
+### Medium Priority (20-50% Coverage)
+1. **src/core/config.py** (~30%) - Configuration management
+2. **src/utils/patterns.py** (~36%) - Utility patterns
+3. **src/utils/deprecation.py** (~36%) - Deprecation handling
+
+### Low Priority (>70% Coverage)
+1. **src/core/models.py** (~78%) - Already well-tested
+2. **src/core/interfaces.py** (~80%) - Good coverage
+3. **src/tracing/config.py** (~94%) - Nearly complete
+4. **src/core/exceptions.py** (100%) - Complete
+
 ## Phase 1: Environment Setup and Initial Assessment
 
 ### 1.1 Environment Preparation
@@ -444,81 +491,337 @@ This document provides a detailed, step-by-step plan for validating the test sui
 - [ ] Fix provider factory tests
   - Command: `pytest tests/factories/test_provider_factory.py -v`
 
-## Phase 5: Coverage Improvement
+## Phase 5: Coverage Improvement (Expanded)
 
-### 5.1 Identify Coverage Gaps
-- [ ] Generate detailed coverage HTML report
-  - Command: `pytest --cov=src --cov-report=html --cov-branch`
-- [ ] Open coverage report
-  - Command: `open htmlcov/index.html` (on macOS)
-- [ ] List files with <70% coverage
-  - Command: `coverage report | awk '$4 < 70 {print $1, $4}' | sort -k2 -n > low_coverage_files.txt`
-- [ ] For each low-coverage file, identify:
-  - [ ] Untested functions: Look for red highlights in HTML report
-  - [ ] Untested branches: Look for partial coverage indicators
-  - [ ] Error handling gaps: Search for uncovered except blocks
-  - [ ] Edge cases: Look for uncovered if/else branches
+**Note**: Phase 5 has been significantly expanded based on the coverage gap analysis. The original Phase 5 goals were unrealistic for bridging an 81.57% coverage gap. This expanded version provides a structured approach to incrementally increase coverage from 8.43% to 90%.
 
-### 5.2 Write Missing Unit Tests
-- [ ] Core module coverage
-  - [ ] Add tests for src/core/config.py uncovered functions
-  - [ ] Add tests for src/core/models.py validation edge cases
-  - [ ] Add tests for src/core/exceptions.py error scenarios
-  - [ ] Add tests for src/core/interfaces.py implementations
-  - [ ] Add tests for src/core/constants.py values
-  - [ ] Add tests for src/core/error_budget.py calculations
-  - [ ] Add tests for src/core/feature_flags.py functionality
-- [ ] Provider coverage
-  - [ ] Add tests for provider factory error cases
-  - [ ] Add tests for provider initialization failures
-  - [ ] Add tests for provider method edge cases
-  - [ ] Add tests for provider health checks
-  - [ ] Add tests for provider resource cleanup
-- [ ] Processing module coverage
-  - [ ] Add tests for extraction error handling
-  - [ ] Add tests for parser edge cases
-  - [ ] Add tests for segmentation boundaries
-  - [ ] Add tests for complexity analysis edge cases
-  - [ ] Add tests for all prompt variations
-- [ ] Utils coverage
-  - [ ] Add tests for retry logic edge cases
-  - [ ] Add tests for validation functions
-  - [ ] Add tests for text processing utilities
-  - [ ] Add tests for memory monitoring
-  - [ ] Add tests for rate limiting
-  - [ ] Add tests for deprecation warnings
-  - [ ] Add tests for performance decorators
-- [ ] Migration module coverage
-  - [ ] Add tests for migration compatibility checks
-  - [ ] Add tests for query translation
-  - [ ] Add tests for schema management
-  - [ ] Add tests for data migration edge cases
+### Phase 5A: Critical Core Modules (Target: 8.43% → 25%)
+**Goal**: Cover the most critical, frequently-used modules first to establish a solid foundation.
 
-### 5.3 Write Missing Integration Tests
-- [ ] End-to-end pipeline tests
-  - [ ] Test full pipeline with minimal data
-  - [ ] Test pipeline recovery from checkpoint
-  - [ ] Test pipeline with various failure scenarios
-- [ ] Provider integration tests
-  - [ ] Test provider switching
-  - [ ] Test provider fallback mechanisms
-  - [ ] Test provider resource cleanup
-- [ ] API integration tests
-  - [ ] Test all API endpoints with various inputs
-  - [ ] Test API error responses
-  - [ ] Test API rate limiting
+#### 5A.1 Core Module Test Suite
+- [ ] **src/core/config.py** (Currently ~30%, Target: 95%)
+  - [ ] Write test_config_comprehensive.py (~800 lines)
+  - [ ] Test all configuration loading scenarios
+  - [ ] Test validation error cases
+  - [ ] Test environment variable overrides
+  - [ ] Test configuration merging
+  - [ ] Estimated impact: +2% overall coverage
 
-### 5.4 Parametrized Test Addition
-- [ ] Identify repetitive test patterns
-  - Command: `grep -r "def test.*similar" tests/`
-- [ ] Convert to parametrized tests
-  - [ ] Use `@pytest.mark.parametrize` for test variations
-  - [ ] Add edge case parameters
-  - [ ] Add boundary value parameters
-- [ ] Add property-based tests where appropriate
-  - [ ] Install hypothesis: `pip install hypothesis`
-  - [ ] Add property tests for data models
-  - [ ] Add property tests for text processing
+- [ ] **src/core/models.py** (Currently ~78%, Target: 100%)
+  - [ ] Write test_models_complete.py (~600 lines)
+  - [ ] Test all model validations
+  - [ ] Test serialization/deserialization
+  - [ ] Test edge cases for each model
+  - [ ] Estimated impact: +1% overall coverage
+
+- [ ] **src/core/exceptions.py** (Currently ~100%, maintain)
+  - [x] Already completed in initial Phase 5
+
+- [ ] **src/core/interfaces.py** (Currently ~80%, Target: 100%)
+  - [ ] Write test_interfaces_full.py (~500 lines)
+  - [ ] Test all interface contracts
+  - [ ] Test default implementations
+  - [ ] Estimated impact: +0.5% overall coverage
+
+#### 5A.2 Processing Pipeline Core
+- [ ] **src/processing/extraction.py** (Currently 0%, Target: 90%)
+  - [ ] Write test_extraction_unit.py (~1,500 lines)
+  - [ ] Write test_extraction_integration.py (~1,000 lines)
+  - [ ] Test all extraction strategies
+  - [ ] Test error handling and recovery
+  - [ ] Mock all LLM interactions
+  - [ ] Estimated impact: +5% overall coverage
+
+- [ ] **src/processing/parsers.py** (Currently 0%, Target: 95%)
+  - [ ] Write test_parsers_comprehensive.py (~1,200 lines)
+  - [ ] Test all parser types
+  - [ ] Test malformed input handling
+  - [ ] Test edge cases
+  - [ ] Estimated impact: +3% overall coverage
+
+#### 5A.3 Seeding Orchestration
+- [ ] **src/seeding/orchestrator.py** (Currently 0%, Target: 85%)
+  - [ ] Write test_orchestrator_unit.py (~1,800 lines)
+  - [ ] Write test_orchestrator_scenarios.py (~1,200 lines)
+  - [ ] Test pipeline coordination
+  - [ ] Test checkpoint/recovery
+  - [ ] Test failure scenarios
+  - [ ] Estimated impact: +4% overall coverage
+
+**Phase 5A Summary**: 
+- New test files: 8
+- New test lines: ~8,600
+- Coverage target: 25% (+16.57%)
+
+### Phase 5B: Provider Infrastructure (Target: 25% → 40%)
+**Goal**: Ensure all provider implementations are thoroughly tested.
+
+#### 5B.1 LLM Providers
+- [ ] **src/providers/llm/gemini.py** (Currently 0%, Target: 90%)
+  - [ ] Write test_gemini_provider.py (~1,000 lines)
+  - [ ] Test all API interactions (mocked)
+  - [ ] Test rate limiting
+  - [ ] Test error handling
+  - [ ] Estimated impact: +2% overall coverage
+
+- [ ] **src/providers/llm/base.py** (Currently partial, Target: 100%)
+  - [ ] Write test_llm_base.py (~600 lines)
+  - [ ] Test base class contracts
+  - [ ] Test abstract method enforcement
+  - [ ] Estimated impact: +1% overall coverage
+
+#### 5B.2 Graph Providers
+- [ ] **src/providers/graph/neo4j.py** (Currently 0%, Target: 85%)
+  - [ ] Write test_neo4j_provider.py (~1,500 lines)
+  - [ ] Test all graph operations
+  - [ ] Test connection handling
+  - [ ] Test query building
+  - [ ] Estimated impact: +3% overall coverage
+
+- [ ] **src/providers/graph/schemaless_neo4j.py** (Currently 0%, Target: 85%)
+  - [ ] Write test_schemaless_neo4j.py (~1,800 lines)
+  - [ ] Test schemaless operations
+  - [ ] Test schema evolution
+  - [ ] Estimated impact: +3% overall coverage
+
+#### 5B.3 Audio Providers
+- [ ] **src/providers/audio/whisper.py** (Currently 0%, Target: 90%)
+  - [ ] Write test_whisper_provider.py (~800 lines)
+  - [ ] Test transcription mocking
+  - [ ] Test chunking logic
+  - [ ] Test error handling
+  - [ ] Estimated impact: +2% overall coverage
+
+#### 5B.4 Embedding Providers
+- [ ] **src/providers/embeddings/sentence_transformer.py** (Currently 0%, Target: 90%)
+  - [ ] Write test_sentence_transformer.py (~700 lines)
+  - [ ] Test embedding generation
+  - [ ] Test batch processing
+  - [ ] Estimated impact: +1.5% overall coverage
+
+**Phase 5B Summary**: 
+- New test files: 6
+- New test lines: ~7,400
+- Coverage target: 40% (+15%)
+
+### Phase 5C: API and Migration Layer (Target: 40% → 55%)
+**Goal**: Cover the API endpoints and migration functionality.
+
+#### 5C.1 API Layer
+- [ ] **src/api/v1/seeding.py** (Currently 0%, Target: 95%)
+  - [ ] Write test_seeding_api.py (~1,200 lines)
+  - [ ] Test all endpoints
+  - [ ] Test validation
+  - [ ] Test error responses
+  - [ ] Estimated impact: +3% overall coverage
+
+- [ ] **src/api/health.py** (Currently partial, Target: 100%)
+  - [ ] Write test_health_api.py (~600 lines)
+  - [ ] Test health check aggregation
+  - [ ] Test dependency checks
+  - [ ] Estimated impact: +1% overall coverage
+
+- [ ] **src/api/metrics.py** (Currently partial, Target: 95%)
+  - [ ] Write test_metrics_api.py (~800 lines)
+  - [ ] Test metrics collection
+  - [ ] Test metric export
+  - [ ] Estimated impact: +2% overall coverage
+
+#### 5C.2 Migration System
+- [ ] **src/migration/data_migrator.py** (Currently partial, Target: 90%)
+  - [ ] Enhance test_data_migrator.py (+1,000 lines)
+  - [ ] Test migration scenarios
+  - [ ] Test rollback functionality
+  - [ ] Estimated impact: +3% overall coverage
+
+- [ ] **src/migration/schema_manager.py** (Currently 0%, Target: 90%)
+  - [ ] Write test_schema_manager.py (~1,200 lines)
+  - [ ] Test schema evolution
+  - [ ] Test compatibility checks
+  - [ ] Estimated impact: +2% overall coverage
+
+#### 5C.3 Processing Components
+- [ ] **src/processing/entity_resolution.py** (Currently 0%, Target: 90%)
+  - [ ] Write test_entity_resolution_full.py (~1,500 lines)
+  - [ ] Test resolution algorithms
+  - [ ] Test merge strategies
+  - [ ] Estimated impact: +2% overall coverage
+
+- [ ] **src/processing/graph_analysis.py** (Currently 0%, Target: 85%)
+  - [ ] Write test_graph_analysis_complete.py (~1,200 lines)
+  - [ ] Test analysis algorithms
+  - [ ] Test metric calculations
+  - [ ] Estimated impact: +2% overall coverage
+
+**Phase 5C Summary**: 
+- New test files: 7
+- New test lines: ~8,500
+- Coverage target: 55% (+15%)
+
+### Phase 5D: Utilities and Support Modules (Target: 55% → 70%)
+**Goal**: Cover all utility functions and support modules.
+
+#### 5D.1 Core Utilities
+- [ ] **src/utils/retry.py** (Currently partial, Target: 100%)
+  - [ ] Write test_retry_complete.py (~800 lines)
+  - [ ] Test all retry scenarios
+  - [ ] Test exponential backoff
+  - [ ] Estimated impact: +1% overall coverage
+
+- [ ] **src/utils/validation.py** (Currently 0%, Target: 100%)
+  - [ ] Write test_validation_full.py (~1,000 lines)
+  - [ ] Test all validators
+  - [ ] Test error messages
+  - [ ] Estimated impact: +1.5% overall coverage
+
+- [ ] **src/utils/text_processing.py** (Currently 0%, Target: 95%)
+  - [ ] Write test_text_processing_all.py (~1,200 lines)
+  - [ ] Test all text operations
+  - [ ] Test unicode handling
+  - [ ] Estimated impact: +2% overall coverage
+
+- [ ] **src/utils/performance_profiling.py** (Currently 0%, Target: 90%)
+  - [ ] Write test_performance_profiling.py (~800 lines)
+  - [ ] Test profiling decorators
+  - [ ] Test metric collection
+  - [ ] Estimated impact: +1.5% overall coverage
+
+#### 5D.2 Advanced Processing
+- [ ] **src/processing/complexity_analysis.py** (Currently 0%, Target: 90%)
+  - [ ] Write test_complexity_analysis_full.py (~1,000 lines)
+  - [ ] Test complexity metrics
+  - [ ] Test analysis algorithms
+  - [ ] Estimated impact: +2% overall coverage
+
+- [ ] **src/processing/importance_scoring.py** (Currently 0%, Target: 90%)
+  - [ ] Write test_importance_scoring.py (~900 lines)
+  - [ ] Test scoring algorithms
+  - [ ] Test weight calculations
+  - [ ] Estimated impact: +1.5% overall coverage
+
+#### 5D.3 Batch Processing
+- [ ] **src/seeding/batch_processor.py** (Currently partial, Target: 90%)
+  - [ ] Enhance test_batch_processor.py (+1,000 lines)
+  - [ ] Test batch strategies
+  - [ ] Test parallel processing
+  - [ ] Estimated impact: +2% overall coverage
+
+- [ ] **src/seeding/checkpoint.py** (Currently partial, Target: 95%)
+  - [ ] Enhance test_checkpoint.py (+800 lines)
+  - [ ] Test checkpoint scenarios
+  - [ ] Test recovery logic
+  - [ ] Estimated impact: +1.5% overall coverage
+
+**Phase 5D Summary**: 
+- New test files: 8
+- New test lines: ~8,500
+- Coverage target: 70% (+15%)
+
+### Phase 5E: Integration and Edge Cases (Target: 70% → 90%)
+**Goal**: Add comprehensive integration tests and cover all edge cases.
+
+#### 5E.1 End-to-End Integration Tests
+- [ ] **Full Pipeline Integration** 
+  - [ ] Write test_e2e_pipeline_scenarios.py (~2,000 lines)
+  - [ ] Test complete workflows
+  - [ ] Test failure recovery
+  - [ ] Test data consistency
+  - [ ] Estimated impact: +5% overall coverage
+
+- [ ] **Provider Integration Suite**
+  - [ ] Write test_provider_integration_suite.py (~1,500 lines)
+  - [ ] Test provider combinations
+  - [ ] Test failover scenarios
+  - [ ] Estimated impact: +3% overall coverage
+
+#### 5E.2 Edge Case Coverage
+- [ ] **Error Handling Suite**
+  - [ ] Write test_error_scenarios.py (~1,800 lines)
+  - [ ] Test all error paths
+  - [ ] Test recovery mechanisms
+  - [ ] Estimated impact: +3% overall coverage
+
+- [ ] **Performance and Load Tests**
+  - [ ] Write test_performance_suite.py (~1,200 lines)
+  - [ ] Test under load
+  - [ ] Test memory limits
+  - [ ] Estimated impact: +2% overall coverage
+
+#### 5E.3 Remaining Modules
+- [ ] **Cover all remaining 0% modules**
+  - [ ] Write tests for 15-20 remaining modules
+  - [ ] Approximately 10,000 lines of tests
+  - [ ] Focus on critical paths first
+  - [ ] Estimated impact: +7% overall coverage
+
+**Phase 5E Summary**: 
+- New test files: 20-25
+- New test lines: ~16,500
+- Coverage target: 90% (+20%)
+
+### Phase 5 Total Summary
+- **Total new test files**: 60-70
+- **Total new test lines**: 49,000+ 
+- **Timeline**: 8-12 weeks with dedicated effort
+- **Coverage progression**: 8.43% → 25% → 40% → 55% → 70% → 90%
+
+### 5.5 Continuous Monitoring
+- [ ] Set up weekly coverage reports
+- [ ] Track coverage trends by module
+- [ ] Identify and prioritize gaps
+- [ ] Adjust targets based on progress
+
+## Execution Strategy for Phase 5
+
+### Parallel Development Approach
+To complete Phase 5 efficiently, consider:
+
+1. **Team Distribution** (if available):
+   - Developer 1: Phase 5A (Core modules)
+   - Developer 2: Phase 5B (Providers)
+   - Developer 3: Phase 5C (API/Migration)
+   - Developer 4: Phase 5D (Utilities)
+   - Developer 5: Phase 5E (Integration)
+
+2. **Solo Developer Approach**:
+   - Week 1-2: Phase 5A (Foundation)
+   - Week 3-4: Phase 5B (Providers)
+   - Week 5-6: Phase 5C (API/Migration)
+   - Week 7-8: Phase 5D (Utilities)
+   - Week 9-12: Phase 5E (Integration & remaining)
+
+3. **Incremental CI/CD Updates**:
+   - Update coverage threshold after each sub-phase
+   - Phase 5A complete: Set threshold to 25%
+   - Phase 5B complete: Set threshold to 40%
+   - Phase 5C complete: Set threshold to 55%
+   - Phase 5D complete: Set threshold to 70%
+   - Phase 5E complete: Set threshold to 90%
+
+### Test Writing Guidelines
+
+1. **Use Existing Patterns**:
+   ```python
+   # Follow patterns from successful test files:
+   # - test_feature_flags.py (comprehensive mocking)
+   # - test_error_budget.py (state management)
+   # - test_metrics.py (metric validation)
+   ```
+
+2. **Mock Strategy**:
+   - Mock all external dependencies
+   - Use fixtures for common test data
+   - Create factory functions for complex objects
+
+3. **Coverage Focus**:
+   - Prioritize happy path first
+   - Add error cases second
+   - Edge cases last
+
+4. **Performance Considerations**:
+   - Keep individual tests under 100ms
+   - Use parametrize for similar tests
+   - Share expensive fixtures at session scope
 
 ## Phase 6: Test Quality Enhancement
 
