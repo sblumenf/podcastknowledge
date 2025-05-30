@@ -112,102 +112,6 @@ class PipelineExecutor:
         """
         return self.segmenter.process_audio(audio_path)
     
-    def _extract_fixed_schema(self, podcast_config: Dict[str, Any],
-                            episode: Dict[str, Any],
-                            segments: List[Dict[str, Any]],
-                            episode_id: str,
-                            use_large_context: bool) -> Dict[str, Any]:
-        """Extract knowledge using fixed schema approach.
-        
-        Args:
-            podcast_config: Podcast configuration
-            episode: Episode information  
-            segments: Processed segments
-            episode_id: Episode ID
-            use_large_context: Whether to use large context
-            
-        Returns:
-            Extraction results
-        """
-        logger.info("Using FIXED SCHEMA extraction pipeline")
-        
-        with create_span("fixed_schema_extraction", attributes={
-            "segments.count": len(segments),
-            "extraction.mode": "fixed"
-        }):
-            # Extract knowledge
-            logger.info("Extracting knowledge...")
-            extraction_result = self.knowledge_extractor.extract_from_segments(
-                segments,
-                podcast_name=podcast_config.get('name', ''),
-                episode_title=episode['title']
-            )
-            
-            add_span_attributes({
-                "entities.extracted": len(extraction_result.get('entities', [])),
-                "insights.extracted": len(extraction_result.get('insights', []))
-            })
-            
-            # Save extraction checkpoint
-            self.checkpoint_manager.save_progress(episode_id, 'extraction', extraction_result)
-            
-            # Resolve entities
-            logger.info("Resolving entities...")
-            resolved_entities = self._resolve_entities(
-                extraction_result.get('entities', []),
-                episode_id
-            )
-            
-            # Analyze discourse flow
-            segment_objects = self._create_segment_objects(segments, episode_id)
-            flow_results = self.discourse_flow_tracker.analyze_episode_flow(
-                segment_objects,
-                resolved_entities,
-                extraction_result.get('insights', [])
-            )
-            extraction_result['discourse_flow'] = flow_results
-            
-            # Detect emergent themes
-            theme_results = self._detect_themes(
-                resolved_entities,
-                extraction_result,
-                segment_objects
-            )
-            extraction_result['emergent_themes'] = theme_results
-            
-            # Analyze episode flow
-            episode_flow = self._analyze_episode_flow(
-                segment_objects,
-                resolved_entities
-            )
-            extraction_result['episode_flow'] = episode_flow
-            
-            # Save to graph
-            if self.storage_coordinator:
-                self.storage_coordinator.store_all(
-                    podcast_config,
-                    episode,
-                    segments,
-                    extraction_result,
-                    resolved_entities
-                )
-            else:
-                # Fallback to direct method if storage coordinator not available
-                self._save_to_graph(
-                    podcast_config,
-                    episode,
-                    segments,
-                    extraction_result,
-                    resolved_entities
-                )
-            
-            return {
-                'segments': len(segments),
-                'insights': len(extraction_result.get('insights', [])),
-                'entities': len(resolved_entities),
-                'mode': 'fixed'
-            }
-    
     def _extract_schemaless(self, podcast_config: Dict[str, Any],
                           episode: Dict[str, Any],
                           segments: List[Dict[str, Any]],
@@ -292,53 +196,6 @@ class PipelineExecutor:
                 'discovered_types': list(discovered_types),
                 'mode': 'schemaless'
             }
-    
-    def _handle_migration_mode(self, podcast_config: Dict[str, Any],
-                             episode: Dict[str, Any],
-                             segments: List[Dict[str, Any]],
-                             episode_id: str,
-                             use_large_context: bool) -> Dict[str, Any]:
-        """Handle migration mode by running both extraction methods.
-        
-        Args:
-            podcast_config: Podcast configuration
-            episode: Episode information
-            segments: Processed segments
-            episode_id: Episode ID
-            use_large_context: Whether to use large context
-            
-        Returns:
-            Combined extraction results
-        """
-        logger.info("Running in MIGRATION MODE - executing both extraction pipelines")
-        
-        # Run fixed schema extraction
-        fixed_result = self._extract_fixed_schema(
-            podcast_config, episode, segments, episode_id, use_large_context
-        )
-        
-        # Run schemaless extraction
-        schemaless_result = self._extract_schemaless(
-            podcast_config, episode, segments, episode_id
-        )
-        
-        # Compare results
-        logger.info(f"Migration mode comparison:")
-        logger.info(f"  Fixed schema: {fixed_result['entities']} entities")
-        logger.info(f"  Schemaless: {schemaless_result['entities']} entities, "
-                   f"{len(schemaless_result.get('discovered_types', []))} types")
-        
-        # Return combined results
-        return {
-            'segments': len(segments),
-            'insights': fixed_result['insights'],
-            'entities': fixed_result['entities'],
-            'relationships': schemaless_result.get('relationships', 0),
-            'discovered_types': schemaless_result.get('discovered_types', []),
-            'mode': 'migration',
-            'fixed_result': fixed_result,
-            'schemaless_result': schemaless_result
-        }
     
     def _resolve_entities(self, entities: List[Dict[str, Any]], 
                          episode_id: str) -> List[Any]:
@@ -722,40 +579,18 @@ class PipelineExecutor:
         Returns:
             Extraction results
         """
-        # Determine extraction mode
-        extraction_mode = self._determine_extraction_mode()
-        
-        if extraction_mode == "migration":
-            # Handle migration mode - run both extractions
-            return self._handle_migration_mode(
-                podcast_config, episode, segments, episode_id, use_large_context
-            )
-        elif extraction_mode == "schemaless":
-            # Schemaless extraction
-            return self._extract_schemaless(
-                podcast_config, episode, segments, episode_id
-            )
-        else:
-            # Fixed schema extraction
-            return self._extract_fixed_schema(
-                podcast_config, episode, segments, episode_id, use_large_context
-            )
+        # Always use schemaless extraction
+        return self._extract_schemaless(
+            podcast_config, episode, segments, episode_id
+        )
     
     def _determine_extraction_mode(self) -> str:
         """Determine which extraction mode to use.
         
         Returns:
-            Extraction mode: "fixed", "schemaless", or "migration"
+            Extraction mode: always "schemaless"
         """
-        use_schemaless = getattr(self.config, "use_schemaless_extraction", False)
-        migration_mode = getattr(self.config, "migration_mode", False)
-        
-        if migration_mode:
-            return "migration"
-        elif use_schemaless:
-            return "schemaless"
-        else:
-            return "fixed"
+        return "schemaless"
     
     def _finalize_episode_processing(self, episode_id: str, result: Dict[str, Any]) -> None:
         """Finalize episode processing.

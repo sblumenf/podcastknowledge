@@ -19,9 +19,7 @@ logger = get_logger(__name__)
 class FeatureFlag(Enum):
     """Available feature flags for the pipeline."""
     
-    # Schemaless extraction flags
-    ENABLE_SCHEMALESS_EXTRACTION = "ENABLE_SCHEMALESS_EXTRACTION"
-    SCHEMALESS_MIGRATION_MODE = "SCHEMALESS_MIGRATION_MODE"
+    # Schemaless extraction flags (schemaless is now the only mode)
     LOG_SCHEMA_DISCOVERY = "LOG_SCHEMA_DISCOVERY"
     ENABLE_ENTITY_RESOLUTION_V2 = "ENABLE_ENTITY_RESOLUTION_V2"
     
@@ -52,16 +50,6 @@ class FeatureFlagManager:
     def __init__(self):
         """Initialize the feature flag manager."""
         self._flags: Dict[FeatureFlag, FlagConfig] = {
-            FeatureFlag.ENABLE_SCHEMALESS_EXTRACTION: FlagConfig(
-                name="ENABLE_SCHEMALESS_EXTRACTION",
-                default_value=False,
-                description="Enable schemaless knowledge extraction using Neo4j GraphRAG"
-            ),
-            FeatureFlag.SCHEMALESS_MIGRATION_MODE: FlagConfig(
-                name="SCHEMALESS_MIGRATION_MODE",
-                default_value=False,
-                description="Run both fixed and schemaless extraction for comparison"
-            ),
             FeatureFlag.LOG_SCHEMA_DISCOVERY: FlagConfig(
                 name="LOG_SCHEMA_DISCOVERY",
                 default_value=True,

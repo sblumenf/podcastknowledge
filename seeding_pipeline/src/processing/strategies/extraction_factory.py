@@ -9,9 +9,7 @@ import logging
 from typing import Dict, Any, Optional, Union
 
 from src.processing.strategies import ExtractionStrategy
-from src.processing.strategies.fixed_schema_strategy import FixedSchemaStrategy
 from src.processing.strategies.schemaless_strategy import SchemalessStrategy
-from src.processing.strategies.dual_mode_strategy import DualModeStrategy
 from src.core.interfaces import LLMProvider
 from src.providers.graph.base import GraphProvider
 from src.core.exceptions import ConfigurationError
@@ -23,10 +21,7 @@ class ExtractionFactory:
     """Factory for creating extraction strategies based on configuration."""
     
     # Strategy mode constants
-    FIXED_MODE = 'fixed'
     SCHEMALESS_MODE = 'schemaless'
-    DUAL_MODE = 'dual'
-    MIGRATION_MODE = 'migration'  # Alias for dual mode
     
     @classmethod
     def create_strategy(
@@ -42,11 +37,11 @@ class ExtractionFactory:
         Create an extraction strategy based on the specified mode.
         
         Args:
-            mode: Extraction mode ('fixed', 'schemaless', 'dual', 'migration')
-            llm_provider: LLM provider (required for fixed and dual modes)
-            graph_provider: Graph provider (required for schemaless and dual modes)
-            podcast_id: Podcast ID (required for schemaless and dual modes)
-            episode_id: Episode ID (required for schemaless and dual modes)
+            mode: Extraction mode (only 'schemaless' supported)
+            llm_provider: LLM provider (unused, kept for compatibility)
+            graph_provider: Graph provider (required)
+            podcast_id: Podcast ID (required)
+            episode_id: Episode ID (required)
             config: Additional configuration options
             
         Returns:
@@ -59,45 +54,17 @@ class ExtractionFactory:
         
         # Normalize mode
         mode = mode.lower()
-        if mode == cls.MIGRATION_MODE:
-            mode = cls.DUAL_MODE  # Migration is an alias for dual
             
         logger.info(f"Creating extraction strategy for mode: {mode}")
         
-        if mode == cls.FIXED_MODE:
-            return cls._create_fixed_strategy(llm_provider, config)
-        elif mode == cls.SCHEMALESS_MODE:
+        if mode == cls.SCHEMALESS_MODE:
             return cls._create_schemaless_strategy(
                 graph_provider, podcast_id, episode_id, config
             )
-        elif mode == cls.DUAL_MODE:
-            return cls._create_dual_strategy(
-                llm_provider, graph_provider, podcast_id, episode_id, config
-            )
         else:
             raise ConfigurationError(
-                f"Unknown extraction mode: {mode}. "
-                f"Valid modes: {cls.FIXED_MODE}, {cls.SCHEMALESS_MODE}, {cls.DUAL_MODE}"
+                f"Only 'schemaless' mode is supported. Got: {mode}"
             )
-    
-    @classmethod
-    def _create_fixed_strategy(
-        cls,
-        llm_provider: Optional[LLMProvider],
-        config: Dict[str, Any]
-    ) -> FixedSchemaStrategy:
-        """Create fixed schema strategy."""
-        if not llm_provider:
-            raise ConfigurationError(
-                "LLM provider is required for fixed schema extraction"
-            )
-            
-        return FixedSchemaStrategy(
-            llm_provider=llm_provider,
-            use_large_context=config.get('use_large_context', True),
-            max_retries=config.get('max_retries', 3),
-            enable_cache=config.get('enable_cache', True)
-        )
     
     @classmethod
     def _create_schemaless_strategy(
@@ -121,38 +88,6 @@ class ExtractionFactory:
             graph_provider=graph_provider,
             podcast_id=podcast_id,
             episode_id=episode_id
-        )
-    
-    @classmethod
-    def _create_dual_strategy(
-        cls,
-        llm_provider: Optional[LLMProvider],
-        graph_provider: Optional[GraphProvider],
-        podcast_id: Optional[str],
-        episode_id: Optional[str],
-        config: Dict[str, Any]
-    ) -> DualModeStrategy:
-        """Create dual mode strategy."""
-        if not llm_provider:
-            raise ConfigurationError(
-                "LLM provider is required for dual mode extraction"
-            )
-        if not graph_provider:
-            raise ConfigurationError(
-                "Graph provider is required for dual mode extraction"
-            )
-        if not podcast_id or not episode_id:
-            raise ConfigurationError(
-                "Podcast ID and Episode ID are required for dual mode extraction"
-            )
-            
-        return DualModeStrategy(
-            llm_provider=llm_provider,
-            graph_provider=graph_provider,
-            podcast_id=podcast_id,
-            episode_id=episode_id,
-            use_large_context=config.get('use_large_context', True),
-            enable_cache=config.get('enable_cache', True)
         )
     
     @classmethod
@@ -197,23 +132,10 @@ class ExtractionFactory:
         """
         Determine extraction mode from configuration.
         
-        Priority order:
-        1. Explicit extraction_mode setting
-        2. Feature flags (ENABLE_SCHEMALESS_EXTRACTION, MIGRATION_MODE)
-        3. Default to fixed
+        Always returns 'schemaless' mode
         """
-        # Check explicit mode
-        extraction_config = config.get('extraction', {})
-        if 'mode' in extraction_config:
-            return extraction_config['mode']
-            
-        # Check feature flags
-        if config.get('MIGRATION_MODE', False):
-            return cls.DUAL_MODE
-        elif config.get('ENABLE_SCHEMALESS_EXTRACTION', False):
-            return cls.SCHEMALESS_MODE
-        else:
-            return cls.FIXED_MODE
+        # Always return schemaless mode
+        return cls.SCHEMALESS_MODE
     
     @classmethod
     def supports_runtime_switching(cls) -> bool:

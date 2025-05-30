@@ -14,7 +14,7 @@ This plan transforms the over-engineered podcast knowledge pipeline into a strea
 ## Phase 1: Remove Fixed-Schema Mode (2 days)
 
 ### 1.1 Identify and Remove Fixed-Schema Components
-- [ ] **Audit fixed-schema code**
+- [x] **Audit fixed-schema code**
   - Purpose: Create comprehensive list of all fixed-schema components
   - Steps:
     1. Search for "fixed_schema" across codebase: `grep -r "fixed_schema" src/`
@@ -23,7 +23,7 @@ This plan transforms the over-engineered podcast knowledge pipeline into a strea
     4. Document all imports of fixed-schema components
   - Validation: Complete list of files to remove/modify
 
-- [ ] **Remove fixed-schema strategy**
+- [x] **Remove fixed-schema strategy**
   - Purpose: Eliminate the fixed-schema processing path
   - Steps:
     1. Delete `src/processing/strategies/fixed_schema_strategy.py`
@@ -32,7 +32,7 @@ This plan transforms the over-engineered podcast knowledge pipeline into a strea
     4. Remove from `src/processing/strategies/extraction_factory.py`
   - Validation: No fixed-schema imports remain
 
-- [ ] **Remove dual-mode strategy**
+- [x] **Remove dual-mode strategy**
   - Purpose: Eliminate mode selection logic
   - Steps:
     1. Delete `src/processing/strategies/dual_mode_strategy.py`
@@ -42,7 +42,7 @@ This plan transforms the over-engineered podcast knowledge pipeline into a strea
   - Validation: Only schemaless path exists
 
 ### 1.2 Update Configuration
-- [ ] **Simplify config schema**
+- [x] **Simplify config schema**
   - Purpose: Remove fixed-schema configuration options
   - Steps:
     1. Remove `schema_type` from `config/config.example.yml`
@@ -51,7 +51,7 @@ This plan transforms the over-engineered podcast knowledge pipeline into a strea
     4. Set schemaless as only option (no choice needed)
   - Validation: Config files have no schema type references
 
-- [ ] **Clean up test fixtures**
+- [x] **Clean up test fixtures**
   - Purpose: Remove fixed-schema test data
   - Steps:
     1. Delete `tests/fixtures/golden_outputs/fixed_schema_golden.json`
