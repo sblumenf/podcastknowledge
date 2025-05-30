@@ -20,14 +20,13 @@ RUN pip install --no-cache-dir --upgrade pip setuptools wheel && \
 # Production stage
 FROM python:3.10-slim
 
-# Install runtime dependencies
+# Install runtime dependencies (minimal)
 RUN apt-get update && apt-get install -y \
-    ffmpeg \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
 # Create non-root user
-RUN useradd -m -u 1000 -s /bin/bash podcast
+RUN useradd -m -u 1000 -s /bin/bash vtt-processor
 
 # Copy virtual environment from builder
 COPY --from=builder /opt/venv /opt/venv
@@ -42,22 +41,22 @@ ENV PODCAST_KG_LOG_LEVEL=INFO
 WORKDIR /app
 
 # Copy application code
-COPY --chown=podcast:podcast . .
+COPY --chown=vtt-processor:vtt-processor . .
 
 # Install the package in production mode
 RUN pip install --no-deps -e .
 
 # Create necessary directories
-RUN mkdir -p /app/data /app/logs /app/cache && \
-    chown -R podcast:podcast /app
+RUN mkdir -p /app/data /app/logs /app/checkpoints && \
+    chown -R vtt-processor:vtt-processor /app
 
 # Switch to non-root user
-USER podcast
+USER vtt-processor
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD python -c "import sys; from src.api.health import health_check; sys.exit(0 if health_check()['status'] == 'healthy' else 1)"
+    CMD python -c "import sys; from src.api.health import health_check; sys.exit(0 if health_check()['healthy'] else 1)"
 
-# Default command
+# Default command for VTT processing
 ENTRYPOINT ["python", "-m", "cli"]
 CMD ["--help"]
