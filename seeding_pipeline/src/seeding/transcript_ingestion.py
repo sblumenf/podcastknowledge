@@ -11,7 +11,7 @@ import hashlib
 from src.core.interfaces import TranscriptSegment
 from src.core.models import Podcast, Episode
 from src.core.exceptions import ValidationError, PipelineError
-from src.processing.vtt_parser import VTTParser
+from src.vtt import VTTParser
 from src.core.config import PipelineConfig
 from src.utils.logging import get_logger
 

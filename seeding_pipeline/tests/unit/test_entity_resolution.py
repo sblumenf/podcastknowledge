@@ -5,7 +5,7 @@ from unittest.mock import Mock, patch, mock_open
 import yaml
 from typing import List, Dict, Any
 
-from src.processing.schemaless_entity_resolution import SchemalessEntityResolver
+from src.processing.entity_resolution import EntityResolver, EntityResolutionConfig
 
 
 class TestSchemalessEntityResolver:
@@ -14,8 +14,14 @@ class TestSchemalessEntityResolver:
     @pytest.fixture
     def resolver(self):
         """Create entity resolver instance with default config."""
-        with patch('builtins.open', mock_open(read_data=self._get_mock_yaml())):
-            return SchemalessEntityResolver()
+        config = EntityResolutionConfig(
+            similarity_threshold=0.85,
+            case_sensitive=False,
+            use_aliases=True,
+            use_abbreviations=True,
+            merge_singular_plural=True
+        )
+        return EntityResolver(config)
 
     @pytest.fixture
     def sample_entities(self) -> List[Dict[str, Any]]:
@@ -53,64 +59,61 @@ thresholds:
     # Setup and Fixtures Tests
     def test_init_default_config(self):
         """Verify default thresholds and settings."""
-        with patch('builtins.open', mock_open(read_data=self._get_mock_yaml())):
-            resolver = SchemalessEntityResolver()
-            assert resolver.fuzzy_threshold == 0.85
-            assert resolver.enable_fuzzy_matching is True
-            assert resolver.enable_alias_resolution is True
+        resolver = EntityResolver()
+        assert resolver.config.similarity_threshold == 0.85
+        assert resolver.config.case_sensitive is False
+        assert resolver.config.use_aliases is True
 
     def test_init_with_custom_config(self):
         """Test custom configuration loading."""
-        with patch('builtins.open', mock_open(read_data=self._get_mock_yaml())):
-            resolver = SchemalessEntityResolver(
-                fuzzy_threshold=0.9,
-                enable_fuzzy_matching=False
-            )
-            assert resolver.fuzzy_threshold == 0.9
-            assert resolver.enable_fuzzy_matching is False
+        config = EntityResolutionConfig(
+            similarity_threshold=0.9,
+            use_aliases=False
+        )
+        resolver = EntityResolver(config)
+        assert resolver.config.similarity_threshold == 0.9
+        assert resolver.config.use_aliases is False
 
     def test_load_resolution_rules(self):
-        """Verify YAML rules file loading."""
-        with patch('builtins.open', mock_open(read_data=self._get_mock_yaml())):
-            resolver = SchemalessEntityResolver()
-            assert "AI" in resolver.alias_map
-            assert resolver.alias_map["AI"] == "Artificial Intelligence"
-            assert resolver.abbreviations["Dr"] == "Doctor"
+        """Verify built-in alias rules work."""
+        resolver = EntityResolver()
+        # Check built-in alias rules exist
+        assert len(resolver.alias_rules) > 0
+        assert len(resolver.abbreviation_map) > 0
 
     def test_invalid_config_handling(self):
         """Test graceful handling of bad config."""
-        with patch('builtins.open', side_effect=FileNotFoundError()):
-            resolver = SchemalessEntityResolver()
-            # Should initialize with empty rules
-            assert resolver.alias_map == {}
-            assert resolver.abbreviations == {}
+        # Test with None config
+        resolver = EntityResolver(None)
+        # Should initialize with default config
+        assert resolver.config.similarity_threshold == 0.85
 
     # Basic Entity Resolution Tests
     def test_resolve_exact_duplicates(self, resolver, sample_entities):
         """Same entity, different IDs."""
         entities = [
-            {"id": "1", "name": "OpenAI", "type": "ORGANIZATION"},
-            {"id": "2", "name": "OpenAI", "type": "ORGANIZATION"}
+            {"id": "1", "value": "OpenAI", "type": "ORGANIZATION"},
+            {"id": "2", "value": "OpenAI", "type": "ORGANIZATION"}
         ]
         with patch('src.utils.component_tracker.ComponentTracker.log_execution'):
             result = resolver.resolve_entities(entities)
         
-        assert len(result["entities"]) == 1
-        assert result["entities"][0]["name"] == "OpenAI"
-        assert result["resolution_stats"]["total_merges"] == 1
+        assert len(result["resolved_entities"]) == 1
+        assert result["resolved_entities"][0]["value"] == "OpenAI"
+        assert result["metrics"]["merges_performed"] == 1
 
     def test_resolve_case_differences(self, resolver):
         """Test case-insensitive matching."""
         entities = [
-            {"id": "1", "name": "IBM", "type": "ORGANIZATION"},
-            {"id": "2", "name": "ibm", "type": "ORGANIZATION"},
-            {"id": "3", "name": "Ibm", "type": "ORGANIZATION"}
+            {"id": "1", "value": "IBM", "type": "ORGANIZATION"},
+            {"id": "2", "value": "ibm", "type": "ORGANIZATION"},
+            {"id": "3", "value": "Ibm", "type": "ORGANIZATION"}
         ]
         with patch('src.utils.component_tracker.ComponentTracker.log_execution'):
             result = resolver.resolve_entities(entities)
         
-        assert len(result["entities"]) == 1
-        assert result["entities"][0]["name"] == "IBM"  # Preserves most common case
+        assert len(result["resolved_entities"]) == 1
+        assert result["resolved_entities"][0]["value"] == "IBM"  # Preserves first case
 
     def test_resolve_with_extra_spaces(self, resolver):
         """Test whitespace normalization."""

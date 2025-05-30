@@ -1,13 +1,18 @@
-"""Processing modules for podcast knowledge pipeline."""
+"""Processing modules for VTT knowledge pipeline."""
 
 from .segmentation import EnhancedPodcastSegmenter, SegmentMetadata
-from .strategies import ExtractionStrategy, ExtractedData
-from .strategies.extraction_factory import ExtractionFactory
+from .extraction import KnowledgeExtractor, ExtractionResult, ExtractionConfig
+from .preprocessor import TextPreprocessor, PreprocessingConfig
+from .entity_resolution import EntityResolver, EntityResolutionConfig
 
 __all__ = [
     "EnhancedPodcastSegmenter",
-    "SegmentMetadata",
-    "ExtractionStrategy",
-    "ExtractedData",
-    "ExtractionFactory",
+    "SegmentMetadata", 
+    "KnowledgeExtractor",
+    "ExtractionResult",
+    "ExtractionConfig",
+    "TextPreprocessor",
+    "PreprocessingConfig",
+    "EntityResolver",
+    "EntityResolutionConfig",
 ]

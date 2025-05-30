@@ -181,22 +181,20 @@ class TestRefactoredComponents(unittest.TestCase):
         }
         
         with patch('src.core.config.Config', return_value=mock_config):
-            from src.processing.strategies import ExtractionStrategy, ExtractedData
-            from src.processing.strategies.fixed_schema_strategy import FixedSchemaStrategy
-            from src.processing.strategies.dual_mode_strategy import DualModeStrategy
+            from src.processing.extraction import KnowledgeExtractor, ExtractionResult, ExtractionConfig
             
-            # Test ExtractedData
-            data = ExtractedData(
+            # Test ExtractionResult
+            result = ExtractionResult(
                 entities=[],
+                quotes=[],
                 relationships=[],
-                insights=[],
-                quotes=[]
+                metadata={}
             )
-            self.assertEqual(len(data.entities), 0)
+            self.assertEqual(len(result.entities), 0)
             
-            # Test strategy interface exists
-            from typing import Protocol
-            self.assertTrue(issubclass(ExtractionStrategy, Protocol))
+            # Test KnowledgeExtractor can be instantiated
+            extractor = KnowledgeExtractor(None, None)  # Mock services
+            self.assertIsNotNone(extractor)
     
     def test_pipeline_executor_refactoring(self):
         """Test pipeline executor was properly refactored."""

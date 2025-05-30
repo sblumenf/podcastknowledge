@@ -199,23 +199,21 @@ def test_extraction_strategies():
     print("\n🔍 Testing Extraction Strategies")
     
     try:
-        from src.processing.strategies.extraction_factory import ExtractionFactory
+        from src.processing.extraction import KnowledgeExtractor, ExtractionConfig
         from src.core.config import Config
         
         config = Config()
-        config.extraction = {'mode': 'fixed_schema'}
         
-        # Test factory creation
-        factory = ExtractionFactory(config)
-        strategy = factory.create_strategy('fixed_schema')
-        assert strategy is not None
-        print("  ✅ Fixed schema strategy created")
+        # Test direct extraction instantiation (simplified approach)
+        extractor = KnowledgeExtractor(None, None)  # Mock services
+        assert extractor is not None
+        print("  ✅ KnowledgeExtractor created")
         results['passed'] += 1
         
-        # Test dual mode
-        strategy = factory.create_strategy('dual')
-        assert strategy is not None
-        print("  ✅ Dual mode strategy created")
+        # Test extraction config
+        extraction_config = ExtractionConfig()
+        assert extraction_config is not None
+        print("  ✅ ExtractionConfig created")
         results['passed'] += 1
         
     except Exception as e:

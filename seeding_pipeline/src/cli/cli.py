@@ -16,12 +16,12 @@ from datetime import datetime
 import fnmatch
 
 # Add src to path for imports
-sys.path.insert(0, str(Path(__file__).parent))
+sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from src.seeding import PodcastKnowledgePipeline as VTTKnowledgePipeline
 from src.core.config import PipelineConfig
 from src.core.exceptions import PipelineError
-from src.processing.vtt_parser import VTTParser
+from src.vtt import VTTParser
 from src.seeding.transcript_ingestion import TranscriptIngestionManager
 from src.utils.logging import setup_logging as setup_structured_logging, get_logger
 from src.seeding.checkpoint import ProgressCheckpoint

@@ -17,10 +17,10 @@ def test_core_classes():
     
     # Phase 2 - Core processing components
     test_files = [
-        ('src/processing/schemaless_preprocessor.py', 'SegmentPreprocessor'),
-        ('src/processing/schemaless_entity_resolution.py', 'SchemalessEntityResolver'),
+        ('src/processing/preprocessor.py', 'TextPreprocessor'),
+        ('src/processing/entity_resolution.py', 'EntityResolver'),
         ('src/providers/graph/metadata_enricher.py', 'SchemalessMetadataEnricher'),
-        ('src/processing/schemaless_quote_extractor.py', 'SchemalessQuoteExtractor'),
+        ('src/processing/extraction.py', 'KnowledgeExtractor'),
         ('src/utils/component_tracker.py', 'ComponentTracker'),
     ]
     
@@ -109,10 +109,10 @@ def test_test_files():
     
     test_files = [
         'tests/utils/test_component_tracker.py',
-        'tests/processing/test_schemaless_preprocessor.py',
-        'tests/unit/test_schemaless_entity_resolution.py',
+        'tests/processing/test_preprocessor.py',
+        'tests/unit/test_entity_resolution.py',
         'tests/providers/graph/test_metadata_enricher.py',
-        'tests/processing/test_schemaless_quote_extractor.py',
+        'tests/processing/test_extraction.py',
     ]
     
     successes = 0

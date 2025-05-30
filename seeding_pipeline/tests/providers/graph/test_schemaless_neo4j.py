@@ -16,10 +16,10 @@ SimpleKGPipeline = Mock
 from src.providers.graph.schemaless_neo4j import SchemalessNeo4jProvider
 from src.providers.llm.gemini_adapter import GeminiGraphRAGAdapter
 from src.providers.embeddings.sentence_transformer_adapter import SentenceTransformerGraphRAGAdapter
-from src.processing.schemaless_preprocessor import SegmentPreprocessor
-from src.processing.schemaless_entity_resolution import SchemalessEntityResolver
+from src.processing.preprocessor import TextPreprocessor
+from src.processing.entity_resolution import EntityResolver
 from src.providers.graph.metadata_enricher import SchemalessMetadataEnricher
-from src.processing.schemaless_quote_extractor import SchemalessQuoteExtractor
+from src.processing.extraction import KnowledgeExtractor
 from src.core.models import Podcast, Episode, Segment
 
 

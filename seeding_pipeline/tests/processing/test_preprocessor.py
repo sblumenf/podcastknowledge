@@ -6,8 +6,8 @@ import pytest
 from datetime import datetime
 from unittest.mock import patch, MagicMock
 
-from src.processing.schemaless_preprocessor import (
-    SegmentPreprocessor,
+from src.processing.preprocessor import (
+    TextPreprocessor,
     PreprocessingConfig,
     preprocess_segments_batch
 )
@@ -15,8 +15,8 @@ from src.core.models import Segment
 from src.core.interfaces import TranscriptSegment
 
 
-class TestSegmentPreprocessor:
-    """Test cases for SegmentPreprocessor."""
+class TestTextPreprocessor:
+    """Test cases for TextPreprocessor."""
     
     @pytest.fixture
     def sample_segment(self):
@@ -42,11 +42,11 @@ class TestSegmentPreprocessor:
     @pytest.fixture
     def preprocessor(self):
         """Create a preprocessor instance."""
-        return SegmentPreprocessor()
+        return TextPreprocessor()
     
     def test_preprocessor_initialization(self):
         """Test preprocessor initializes with default config."""
-        preprocessor = SegmentPreprocessor()
+        preprocessor = TextPreprocessor()
         assert preprocessor.config.inject_timestamps
         assert preprocessor.config.inject_speakers
         assert preprocessor.config.inject_segment_id
@@ -59,7 +59,7 @@ class TestSegmentPreprocessor:
             inject_speakers=True,
             speaker_format="[WHO: {speaker}]"
         )
-        preprocessor = SegmentPreprocessor(config)
+        preprocessor = TextPreprocessor(config)
         assert not preprocessor.config.inject_timestamps
         assert preprocessor.config.speaker_format == "[WHO: {speaker}]"
     
@@ -91,23 +91,23 @@ class TestSegmentPreprocessor:
         assert "[TIME: 10.0-15.0s] [SPEAKER: Jane Doe]" in enriched
         assert enriched.index("[SPEAKER:") > enriched.index("[TIME:")
     
-    def test_prepare_segment_text_full(self, preprocessor, sample_segment, episode_metadata):
+    def test_preprocess_segment_full(self, preprocessor, sample_segment, episode_metadata):
         """Test full segment preparation with all metadata."""
         with patch('src.utils.component_tracker.get_tracker') as mock_tracker:
             mock_tracker.return_value = MagicMock()
             
-            result = preprocessor.prepare_segment_text(
+            result = preprocessor.preprocess_segment(
                 sample_segment,
                 episode_metadata,
                 episode_id="ep_456",
                 segment_id="seg_123"
             )
         
-        assert "enriched_text" in result
+        assert "processed_text" in result
         assert "original_text" in result
         assert "metrics" in result
         
-        enriched = result["enriched_text"]
+        enriched = result["processed_text"]
         assert "[SEGMENT: seg_123]" in enriched
         assert "[EPISODE: AI and the Future]" in enriched
         assert "[TIME: 15.5-20.3s]" in enriched
@@ -124,8 +124,8 @@ class TestSegmentPreprocessor:
             speaker=None
         )
         
-        result = preprocessor.prepare_segment_text(segment, {})
-        enriched = result["enriched_text"]
+        result = preprocessor.preprocess_segment(segment, {})
+        enriched = result["processed_text"]
         
         # Should have minimal modifications
         assert "[TIME:" not in enriched
@@ -136,9 +136,9 @@ class TestSegmentPreprocessor:
     def test_dry_run_mode(self, sample_segment, episode_metadata):
         """Test preview mode without applying changes."""
         config = PreprocessingConfig(dry_run=True)
-        preprocessor = SegmentPreprocessor(config)
+        preprocessor = TextPreprocessor(config)
         
-        result = preprocessor.prepare_segment_text(sample_segment, episode_metadata)
+        result = preprocessor.preprocess_segment(sample_segment, episode_metadata)
         
         assert "would_inject" in result
         assert "preview_text" in result
@@ -190,10 +190,10 @@ class TestSegmentPreprocessor:
             inject_segment_id=False,
             inject_episode_context=False
         )
-        preprocessor = SegmentPreprocessor(config)
+        preprocessor = TextPreprocessor(config)
         
-        result = preprocessor.prepare_segment_text(sample_segment, episode_metadata)
-        enriched = result["enriched_text"]
+        result = preprocessor.preprocess_segment(sample_segment, episode_metadata)
+        enriched = result["processed_text"]
         
         assert "[TIME:" in enriched
         assert "[SPEAKER:" not in enriched
@@ -208,13 +208,13 @@ class TestSegmentPreprocessor:
             segment_format="<seg:{id}>",
             episode_format="<ep:{title}>"
         )
-        preprocessor = SegmentPreprocessor(config)
+        preprocessor = TextPreprocessor(config)
         
-        result = preprocessor.prepare_segment_text(
+        result = preprocessor.preprocess_segment(
             sample_segment, 
             {"title": "Test Episode"}
         )
-        enriched = result["enriched_text"]
+        enriched = result["processed_text"]
         
         assert "<t:15.5-20.3>" in enriched
         assert "<s:Dr. Smith>" in enriched
@@ -245,10 +245,10 @@ class TestBatchProcessing:
         assert len(results) == 3
         
         for i, result in enumerate(results):
-            assert "enriched_text" in result
-            assert f"Segment {i} text" in result["enriched_text"]
-            assert f"[TIME: {i * 10.0}-{(i + 1) * 10.0}s]" in result["enriched_text"]
-            assert f"[SPEAKER: Speaker_{i % 2}]" in result["enriched_text"]
+            assert "processed_text" in result
+            assert f"Segment {i} text" in result["processed_text"]
+            assert f"[TIME: {i * 10.0}-{(i + 1) * 10.0}s]" in result["processed_text"]
+            assert f"[SPEAKER: Speaker_{i % 2}]" in result["processed_text"]
 
 
 class TestEdgeCases:
@@ -257,10 +257,10 @@ class TestEdgeCases:
     def test_empty_text(self):
         """Test handling of empty segment text."""
         segment = Segment(id="empty", text="", start_time=0, end_time=1)
-        preprocessor = SegmentPreprocessor()
+        preprocessor = TextPreprocessor()
         
-        result = preprocessor.prepare_segment_text(segment, {})
-        assert result["enriched_text"] != ""  # Should have markers even if text is empty
+        result = preprocessor.preprocess_segment(segment, {})
+        assert result["processed_text"] != ""  # Should have markers even if text is empty
     
     def test_none_values(self):
         """Test handling of None values in segment."""
@@ -271,10 +271,10 @@ class TestEdgeCases:
             end_time=None,
             speaker=None
         )
-        preprocessor = SegmentPreprocessor()
+        preprocessor = TextPreprocessor()
         
-        result = preprocessor.prepare_segment_text(segment, {})
-        enriched = result["enriched_text"]
+        result = preprocessor.preprocess_segment(segment, {})
+        enriched = result["processed_text"]
         
         assert "[TIME:" not in enriched  # Should skip if times are None
         assert "[SPEAKER:" not in enriched  # Should skip if speaker is None
@@ -289,10 +289,10 @@ class TestEdgeCases:
             end_time=20,
             speaker="Dr. Smith [PhD]"
         )
-        preprocessor = SegmentPreprocessor()
+        preprocessor = TextPreprocessor()
         
-        result = preprocessor.prepare_segment_text(segment, {"title": "Episode: \"AI & ML\""})
-        enriched = result["enriched_text"]
+        result = preprocessor.preprocess_segment(segment, {"title": "Episode: \"AI & ML\""})
+        enriched = result["processed_text"]
         
         # Should handle special characters properly
         assert "[SPEAKER: Dr. Smith [PhD]]" in enriched

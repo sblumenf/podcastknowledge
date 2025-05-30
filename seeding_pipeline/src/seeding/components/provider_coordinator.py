@@ -4,14 +4,12 @@ import logging
 from typing import Dict, Any, Optional
 from dataclasses import asdict
 
-from src.services import LLMService, GraphStorageService, EmbeddingsService
+from src.services import LLMService, EmbeddingsService
+from src.storage import GraphStorageService
 from src.processing.segmentation import EnhancedPodcastSegmenter
-from src.processing.extraction import KnowledgeExtractor
-from src.processing.entity_resolution import EntityResolver
-from src.processing.graph_analysis import GraphAnalyzer
+from src.extraction import KnowledgeExtractor, EntityResolver
+# Analytics components removed in Phase 3.3.1
 # Graph enhancements removed with provider pattern
-from src.processing.discourse_flow import DiscourseFlowTracker
-from src.processing.emergent_themes import EmergentThemeDetector
 from src.processing.episode_flow import EpisodeFlowAnalyzer
 from src.core.config import PipelineConfig
 from src.core.exceptions import ConfigurationError
@@ -39,10 +37,8 @@ class ProviderCoordinator:
         self.segmenter: Optional[EnhancedPodcastSegmenter] = None
         self.knowledge_extractor: Optional[KnowledgeExtractor] = None
         self.entity_resolver: Optional[EntityResolver] = None
-        self.graph_analyzer: Optional[GraphAnalyzer] = None
-        self.graph_enhancer: Optional[GraphEnhancements] = None
-        self.discourse_flow_tracker: Optional[DiscourseFlowTracker] = None
-        self.emergent_theme_detector: Optional[EmergentThemeDetector] = None
+        # Analytics components removed in Phase 3.3.1
+        self.graph_enhancer: Optional[Any] = None  # Removed with provider pattern
         self.episode_flow_analyzer: Optional[EpisodeFlowAnalyzer] = None
     
     def initialize_providers(self, use_large_context: bool = True) -> bool:
@@ -112,13 +108,8 @@ class ProviderCoordinator:
             
             self.entity_resolver = EntityResolver()
             
-            self.graph_analyzer = GraphAnalyzer(self.graph_service)
+            # Analytics components removed in Phase 3.3.1
             self.graph_enhancer = None  # Removed with provider pattern
-            self.discourse_flow_tracker = DiscourseFlowTracker()
-            self.emergent_theme_detector = EmergentThemeDetector(
-                self.embedding_service,
-                self.llm_service
-            )
             self.episode_flow_analyzer = EpisodeFlowAnalyzer(self.embedding_service)
             
             logger.info("All providers initialized successfully")

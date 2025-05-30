@@ -4,7 +4,7 @@ from .signal_manager import SignalManager
 from .provider_coordinator import ProviderCoordinator
 from .checkpoint_manager import CheckpointManager
 from .pipeline_executor import PipelineExecutor
-from .storage_coordinator import StorageCoordinator
+from src.storage import StorageCoordinator
 
 __all__ = [
     'SignalManager',

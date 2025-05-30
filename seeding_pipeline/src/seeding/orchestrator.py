@@ -10,13 +10,11 @@ import logging
 
 from src.core.config import PipelineConfig, SeedingConfig
 from src.core.exceptions import PipelineError, ConfigurationError
-from src.services import LLMService, GraphStorageService, EmbeddingsService
+from src.services import LLMService, EmbeddingsService
+from src.storage import GraphStorageService
 from src.processing.segmentation import EnhancedPodcastSegmenter
-from src.processing.extraction import KnowledgeExtractor
-from src.processing.entity_resolution import EntityResolver
-from src.processing.graph_analysis import GraphAnalyzer
-from src.processing.discourse_flow import DiscourseFlowTracker
-from src.processing.emergent_themes import EmergentThemeDetector
+from src.extraction import KnowledgeExtractor, EntityResolver
+# Analytics components removed in Phase 3.3.1
 from src.processing.episode_flow import EpisodeFlowAnalyzer
 from src.utils.memory import cleanup_memory, monitor_memory
 from src.utils.resources import ProgressCheckpoint
@@ -67,10 +65,8 @@ class PodcastKnowledgePipeline:
         self.segmenter: Optional[EnhancedPodcastSegmenter] = None
         self.knowledge_extractor: Optional[KnowledgeExtractor] = None
         self.entity_resolver: Optional[EntityResolver] = None
-        self.graph_analyzer: Optional[GraphAnalyzer] = None
+        # Analytics components removed in Phase 3.3.1
         self.graph_enhancer: Optional[Any] = None  # Removed with provider pattern
-        self.discourse_flow_tracker: Optional[DiscourseFlowTracker] = None
-        self.emergent_theme_detector: Optional[EmergentThemeDetector] = None
         self.episode_flow_analyzer: Optional[EpisodeFlowAnalyzer] = None
         
         # Checkpoint manager - maintain reference for backward compatibility
@@ -123,10 +119,8 @@ class PodcastKnowledgePipeline:
             self.segmenter = self.provider_coordinator.segmenter
             self.knowledge_extractor = self.provider_coordinator.knowledge_extractor
             self.entity_resolver = self.provider_coordinator.entity_resolver
-            self.graph_analyzer = self.provider_coordinator.graph_analyzer
+            # Analytics components removed in Phase 3.3.1
             self.graph_enhancer = self.provider_coordinator.graph_enhancer
-            self.discourse_flow_tracker = self.provider_coordinator.discourse_flow_tracker
-            self.emergent_theme_detector = self.provider_coordinator.emergent_theme_detector
             self.episode_flow_analyzer = self.provider_coordinator.episode_flow_analyzer
             
             # Set up checkpoint reference for backward compatibility
@@ -134,7 +128,7 @@ class PodcastKnowledgePipeline:
             
             # Initialize storage coordinator first
             self.storage_coordinator = StorageCoordinator(
-                self.graph_provider,
+                self.graph_service,
                 self.graph_enhancer,
                 self.config
             )
@@ -226,7 +220,7 @@ class PodcastKnowledgePipeline:
             vtt_files = [vtt_files]
         
         # Initialize components if not already done
-        if not self.llm_provider:
+        if not self.llm_service:
             if not self.initialize_components(use_large_context):
                 raise PipelineError("Failed to initialize pipeline components")
         

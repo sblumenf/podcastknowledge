@@ -124,7 +124,7 @@ This plan transforms the over-engineered podcast knowledge pipeline into a strea
 ## Phase 3: Consolidate Processing Components (2 days)
 
 ### 3.1 Merge Duplicate Components
-- [ ] **Consolidate entity resolution**
+- [x] **Consolidate entity resolution**
   - Purpose: Single entity resolution implementation
   - Steps:
     1. Compare `entity_resolution.py` and `schemaless_entity_resolution.py`
@@ -133,7 +133,7 @@ This plan transforms the over-engineered podcast knowledge pipeline into a strea
     4. Update all imports to use single implementation
   - Validation: Single entity resolver handles all cases
 
-- [ ] **Consolidate preprocessing**
+- [x] **Consolidate preprocessing**
   - Purpose: Single preprocessor for all text
   - Steps:
     1. Merge `schemaless_preprocessor.py` into main preprocessor
@@ -142,7 +142,7 @@ This plan transforms the over-engineered podcast knowledge pipeline into a strea
     4. Delete schemaless-specific preprocessor
   - Validation: All text goes through same preprocessing
 
-- [ ] **Consolidate extraction**
+- [x] **Consolidate extraction**
   - Purpose: Single extraction pipeline
   - Steps:
     1. Remove `schemaless_quote_extractor.py` (merge into main)
@@ -152,7 +152,7 @@ This plan transforms the over-engineered podcast knowledge pipeline into a strea
   - Validation: Single extraction path works
 
 ### 3.2 Simplify Processing Flow
-- [ ] **Remove strategy pattern**
+- [x] **Remove strategy pattern**
   - Purpose: Direct processing without strategies
   - Steps:
     1. Delete `src/processing/strategies/` directory
@@ -161,7 +161,7 @@ This plan transforms the over-engineered podcast knowledge pipeline into a strea
     4. Update imports throughout codebase
   - Validation: Processing works without strategies
 
-- [ ] **Streamline pipeline executor**
+- [x] **Streamline pipeline executor**
   - Purpose: Simpler execution flow
   - Steps:
     1. Remove mode selection from pipeline executor
@@ -169,6 +169,25 @@ This plan transforms the over-engineered podcast knowledge pipeline into a strea
     3. Direct processor calls without abstraction
     4. Simplify error handling
   - Validation: Pipeline processes VTT files directly
+
+### 3.3 Remove Advanced Analytics Components
+- [x] **Remove complex analytics modules**
+  - Purpose: Eliminate unnecessary analytics complexity
+  - Steps:
+    1. Delete `EmergentThemeDetector` and related classes
+    2. Delete `DiscourseFlowTracker` and related classes
+    3. Delete `GraphAnalyzer` components not needed for basic VTT processing
+    4. Remove imports and dependencies on these components
+  - Validation: Only essential knowledge extraction remains
+
+- [x] **Simplify concurrency management**
+  - Purpose: Reduce threading complexity
+  - Steps:
+    1. Simplify `src/seeding/concurrency.py` to basic thread pool
+    2. Remove deadlock detection if not needed
+    3. Remove complex job queue management
+    4. Keep only essential parallel processing
+  - Validation: Simpler concurrency model works for VTT processing
 
 ## Phase 4: Restructure Project Layout (2 days)
 
@@ -251,6 +270,25 @@ This plan transforms the over-engineered podcast knowledge pipeline into a strea
     4. Keep only VTT processing settings
   - Validation: Config focused on VTT processing
 
+### 5.3 Remove Monitoring and Telemetry
+- [ ] **Remove tracing infrastructure**
+  - Purpose: Eliminate unnecessary monitoring complexity
+  - Steps:
+    1. Remove `@trace_method` decorators throughout codebase
+    2. Delete tracing utilities in `src/utils/tracing.py`
+    3. Remove Jaeger/OpenTelemetry dependencies
+    4. Remove tracing configuration from config files
+  - Validation: No tracing imports or decorators remain
+
+- [ ] **Simplify memory management**
+  - Purpose: Remove complex memory monitoring
+  - Steps:
+    1. Remove memory profiling utilities
+    2. Simplify memory cleanup to basic garbage collection
+    3. Remove memory usage reporting
+    4. Keep only essential resource management
+  - Validation: Simple memory management works for VTT processing
+
 ## Phase 6: Final Cleanup and Documentation (1 day)
 
 ### 6.1 Remove Dead Code
@@ -291,6 +329,16 @@ This plan transforms the over-engineered podcast knowledge pipeline into a strea
     4. Add examples for direct service usage
   - Validation: Documentation matches code
 
+### 6.3 Remove Health Checking System
+- [ ] **Eliminate provider health monitoring**
+  - Purpose: Remove unnecessary health checking
+  - Steps:
+    1. Delete health check utilities
+    2. Remove health check endpoints from API
+    3. Remove health check configuration
+    4. Remove provider status monitoring
+  - Validation: No health check code remains
+
 ## Success Criteria
 
 ### Quantitative Metrics
@@ -316,6 +364,10 @@ This plan transforms the over-engineered podcast knowledge pipeline into a strea
 - [ ] No fixed-schema code remains
 - [ ] CLI focused on VTT processing
 - [ ] Documentation reflects new structure
+- [ ] No monitoring/tracing code remains
+- [ ] No complex concurrency management remains
+- [ ] No advanced analytics components remain
+- [ ] No health checking system remains
 
 ## Technology Requirements
 
@@ -332,6 +384,10 @@ This plan transforms the over-engineered podcast knowledge pipeline into a strea
 - Strategy pattern implementations
 - Fixed-schema processing
 - Dual-mode logic
+- Distributed tracing (Jaeger/OpenTelemetry)
+- Complex concurrency management
+- Advanced analytics components
+- Health checking system
 
 ### New Technologies
 None required - this plan simplifies using existing technologies

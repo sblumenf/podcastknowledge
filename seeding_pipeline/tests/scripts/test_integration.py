@@ -41,17 +41,17 @@ def test_imports():
         errors.append(e)
     
     try:
-        from src.processing.schemaless_preprocessor import SegmentPreprocessor
-        print("✓ SegmentPreprocessor")
+        from src.processing.preprocessor import TextPreprocessor
+        print("✓ TextPreprocessor (consolidated)")
     except ImportError as e:
-        print(f"✗ SegmentPreprocessor: {e}")
+        print(f"✗ TextPreprocessor: {e}")
         errors.append(e)
     
     try:
-        from src.processing.schemaless_entity_resolution import SchemalessEntityResolver
-        print("✓ SchemalessEntityResolver")
+        from src.processing.entity_resolution import EntityResolver
+        print("✓ EntityResolver (consolidated)")
     except ImportError as e:
-        print(f"✗ SchemalessEntityResolver: {e}")
+        print(f"✗ EntityResolver: {e}")
         errors.append(e)
     
     try:
@@ -62,10 +62,10 @@ def test_imports():
         errors.append(e)
     
     try:
-        from src.processing.schemaless_quote_extractor import SchemalessQuoteExtractor
-        print("✓ SchemalessQuoteExtractor")
+        from src.processing.extraction import KnowledgeExtractor
+        print("✓ KnowledgeExtractor (consolidated)")
     except ImportError as e:
-        print(f"✗ SchemalessQuoteExtractor: {e}")
+        print(f"✗ KnowledgeExtractor: {e}")
         errors.append(e)
     
     # Phase 3
@@ -110,21 +110,21 @@ def test_basic_instantiation():
     print("\nTesting component instantiation...")
     
     try:
-        from src.processing.schemaless_preprocessor import SegmentPreprocessor
-        preprocessor = SegmentPreprocessor()
-        print("✓ SegmentPreprocessor instantiated")
+        from src.processing.preprocessor import TextPreprocessor
+        preprocessor = TextPreprocessor()
+        print("✓ TextPreprocessor instantiated")
         
-        from src.processing.schemaless_entity_resolution import SchemalessEntityResolver
-        resolver = SchemalessEntityResolver()
-        print("✓ SchemalessEntityResolver instantiated")
+        from src.processing.entity_resolution import EntityResolver
+        resolver = EntityResolver()
+        print("✓ EntityResolver instantiated")
         
         from src.providers.graph.metadata_enricher import SchemalessMetadataEnricher
         enricher = SchemalessMetadataEnricher()
         print("✓ SchemalessMetadataEnricher instantiated")
         
-        from src.processing.schemaless_quote_extractor import SchemalessQuoteExtractor
-        extractor = SchemalessQuoteExtractor()
-        print("✓ SchemalessQuoteExtractor instantiated")
+        from src.processing.extraction import KnowledgeExtractor
+        extractor = KnowledgeExtractor(None, None)  # Mock services
+        print("✓ KnowledgeExtractor instantiated")
         
         from src.migration.query_translator import QueryTranslator
         translator = QueryTranslator()
