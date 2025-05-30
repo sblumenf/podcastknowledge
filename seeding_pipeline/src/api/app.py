@@ -65,10 +65,6 @@ create_health_endpoints(app)
 # Setup metrics
 setup_metrics(app)
 
-# Add SLO endpoints
-from .v1.slo import router as slo_router
-app.include_router(slo_router, prefix="/api/v1")
-
 
 @app.get("/", tags=["root"])
 async def root():
