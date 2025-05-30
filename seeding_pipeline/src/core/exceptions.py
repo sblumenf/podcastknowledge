@@ -347,16 +347,15 @@ Exception Usage Guidelines:
 2. ConfigurationError - Invalid config, missing required settings
 3. ValidationError - Invalid input data, failed validation rules
 4. DatabaseConnectionError - Neo4j connection failures
-5. AudioProcessingError - Transcription, diarization failures
-6. LLMProcessingError - LLM API failures, response parsing errors
-7. ExtractionError - Entity/insight/quote extraction failures
-8. ProviderError - Generic provider failures, use specific types when possible
-9. RateLimitError - API rate limit exceeded (subclass of ProviderError)
-10. TimeoutError - Operation timeout exceeded
-11. ResourceError - Memory, disk, or other resource exhaustion
-12. DataIntegrityError - Data consistency or corruption issues
-13. PipelineError - Overall pipeline processing failures
-14. CriticalError - Unrecoverable errors requiring shutdown
+5. LLMProcessingError - LLM API failures, response parsing errors
+6. ExtractionError - Entity/insight/quote extraction failures
+7. ProviderError - Generic provider failures, use specific types when possible
+8. RateLimitError - API rate limit exceeded (subclass of ProviderError)
+9. TimeoutError - Operation timeout exceeded
+10. ResourceError - Memory, disk, or other resource exhaustion
+11. DataIntegrityError - Data consistency or corruption issues
+12. PipelineError - Overall pipeline processing failures
+13. CriticalError - Unrecoverable errors requiring shutdown
 
 Severity Guidelines:
 - CRITICAL: System must stop, requires intervention

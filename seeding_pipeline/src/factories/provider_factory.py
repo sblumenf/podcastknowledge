@@ -8,7 +8,7 @@ from typing import Dict, Any, Type, Optional, List, Tuple
 from importlib import import_module
 
 from src.core.interfaces import (
-    AudioProvider, LLMProvider, GraphProvider, 
+    LLMProvider, GraphProvider, 
     EmbeddingProvider, HealthCheckable
 )
 from src.core.exceptions import ConfigurationError, ProviderError
@@ -23,7 +23,6 @@ class ProviderFactory:
     
     # Registry of provider types and their implementations
     _provider_registry: Dict[str, Dict[str, Type]] = {
-        'audio': {},
         'llm': {},
         'graph': {},
         'embedding': {}
@@ -31,7 +30,6 @@ class ProviderFactory:
     
     # Provider metadata registry (author, version, description)
     _provider_metadata: Dict[str, Dict[str, Dict[str, Any]]] = {
-        'audio': {},
         'llm': {},
         'graph': {},
         'embedding': {}
@@ -39,10 +37,6 @@ class ProviderFactory:
     
     # Default provider mappings
     _default_providers = {
-        'audio': {
-            'whisper': 'src.providers.audio.whisper.WhisperAudioProvider',
-            'mock': 'src.providers.audio.mock.MockAudioProvider'
-        },
         'llm': {
             'gemini': 'src.providers.llm.gemini.GeminiProvider',
             'mock': 'src.providers.llm.mock.MockLLMProvider'
@@ -279,7 +273,7 @@ class ProviderFactory:
         
         # Merge with registered metadata
         all_metadata = {}
-        for provider_type in ['audio', 'llm', 'graph', 'embedding']:
+        for provider_type in ['llm', 'graph', 'embedding']:
             all_metadata[provider_type] = {}
             
             # Add registered metadata
@@ -290,11 +284,6 @@ class ProviderFactory:
             
         return all_metadata
     
-    @classmethod
-    def create_audio_provider(cls, provider_name: str, config: Dict[str, Any]) -> AudioProvider:
-        """Create an audio provider."""
-        return cls.create_provider('audio', provider_name, config)
-        
     @classmethod
     def create_llm_provider(cls, provider_name: str, config: Dict[str, Any], **kwargs) -> LLMProvider:
         """Create an LLM provider."""
@@ -330,11 +319,6 @@ class ProviderFactory:
         providers = {}
         
         # Create each type of provider if configured
-        if 'audio' in config:
-            audio_config = config['audio']
-            provider_name = audio_config.get('provider', 'whisper')
-            providers['audio'] = cls.create_audio_provider(provider_name, audio_config)
-            
         if 'llm' in config:
             llm_config = config['llm']
             provider_name = llm_config.get('provider', 'gemini')
@@ -414,13 +398,11 @@ class ProviderManager:
     def __init__(self):
         """Initialize provider manager."""
         self.providers: Dict[str, Dict[str, Any]] = {
-            'audio': {},
             'llm': {},
             'graph': {},
             'embedding': {}
         }
         self.metadata: Dict[str, Dict[str, Dict[str, Any]]] = {
-            'audio': {},
             'llm': {},
             'graph': {},
             'embedding': {}

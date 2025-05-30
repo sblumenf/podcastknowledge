@@ -33,15 +33,9 @@ from .exceptions import ConfigurationError
 class PipelineConfig:
     """Base configuration for the podcast processing pipeline."""
     
-    # Audio Processing Settings
+    # Processing Settings
     min_segment_tokens: int = 150
     max_segment_tokens: int = 800
-    whisper_model_size: str = "large-v3"
-    use_faster_whisper: bool = True
-    
-    # Speaker Diarization
-    min_speakers: int = 1
-    max_speakers: int = 10
     
     # Neo4j Database Settings (from environment)
     neo4j_uri: str = field(default_factory=lambda: os.environ.get("NEO4J_URI", "bolt://localhost:7687"))
@@ -61,7 +55,6 @@ class PipelineConfig:
     
     # File Paths
     base_dir: Path = field(default_factory=lambda: Path("."))
-    audio_dir: Path = field(default_factory=lambda: Path("./podcast_audio"))
     output_dir: Path = field(default_factory=lambda: Path("./processed_podcasts"))
     checkpoint_dir: Path = field(default_factory=lambda: Path("./checkpoints"))
     
@@ -255,16 +248,6 @@ class SeedingConfig(PipelineConfig):
         available = []
         missing = []
         
-        # Check audio processing
-        try:
-            import whisper
-            available.append("whisper")
-        except ImportError:
-            try:
-                import faster_whisper
-                available.append("faster-whisper")
-            except ImportError:
-                missing.append("whisper or faster-whisper")
                 
         # Check LLM providers
         try:
@@ -359,8 +342,6 @@ def get_llm_config(config: PipelineConfig) -> Dict[str, Any]:
     return {
         "google_api_key": config.google_api_key,
         "openai_api_key": config.openai_api_key,
-        "whisper_model": config.whisper_model_size,
-        "use_faster_whisper": config.use_faster_whisper,
     }
 
 

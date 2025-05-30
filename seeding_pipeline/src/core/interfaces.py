@@ -29,16 +29,7 @@ class HealthCheckable(Protocol):
         ...
 
 
-# Audio Processing Interfaces
-@dataclass
-class DiarizationSegment:
-    """Represents a speaker segment from diarization."""
-    speaker: str
-    start_time: float
-    end_time: float
-    confidence: Optional[float] = None
-
-
+# Transcript Processing Interfaces
 @dataclass
 class TranscriptSegment:
     """Represents a transcript segment."""
@@ -48,57 +39,6 @@ class TranscriptSegment:
     end_time: float
     speaker: Optional[str] = None
     confidence: Optional[float] = None
-
-
-class AudioProvider(HealthCheckable, Protocol):
-    """Interface for audio processing providers."""
-    
-    def transcribe(self, audio_path: str) -> List[TranscriptSegment]:
-        """
-        Transcribe audio file to text segments.
-        
-        Args:
-            audio_path: Path to the audio file
-            
-        Returns:
-            List of transcript segments with timestamps
-            
-        Raises:
-            AudioProcessingError: If transcription fails
-        """
-        ...
-    
-    def diarize(self, audio_path: str) -> List[DiarizationSegment]:
-        """
-        Perform speaker diarization on audio file.
-        
-        Args:
-            audio_path: Path to the audio file
-            
-        Returns:
-            List of speaker segments with timestamps
-            
-        Raises:
-            AudioProcessingError: If diarization fails
-        """
-        ...
-    
-    def align_transcript_with_diarization(
-        self, 
-        transcript_segments: List[TranscriptSegment], 
-        diarization_segments: List[DiarizationSegment]
-    ) -> List[TranscriptSegment]:
-        """
-        Align transcript segments with speaker diarization.
-        
-        Args:
-            transcript_segments: List of transcript segments
-            diarization_segments: List of speaker segments
-            
-        Returns:
-            Transcript segments with speaker information added
-        """
-        ...
 
 
 # LLM Provider Interfaces

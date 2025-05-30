@@ -5,7 +5,6 @@ from typing import Dict, Any, Optional
 from dataclasses import asdict
 
 from src.factories.provider_factory import ProviderFactory
-from src.providers.audio.base import AudioProvider
 from src.providers.llm.base import LLMProvider
 from src.providers.graph.base import GraphProvider
 from src.providers.embeddings.base import EmbeddingProvider
@@ -37,7 +36,6 @@ class ProviderCoordinator:
         self.config = config
         
         # Providers
-        self.audio_provider: Optional[AudioProvider] = None
         self.llm_provider: Optional[LLMProvider] = None
         self.graph_provider: Optional[GraphProvider] = None
         self.embedding_provider: Optional[EmbeddingProvider] = None
@@ -80,12 +78,6 @@ class ProviderCoordinator:
             config_dict = asdict(self.config) if hasattr(self.config, '__dataclass_fields__') else self.config
             
             # Initialize providers using factory
-            self.audio_provider = self.factory.create_provider(
-                'audio',
-                getattr(self.config, 'audio_provider', 'whisper'),
-                config_dict
-            )
-            
             # Add use_large_context to config for LLM provider
             llm_config = config_dict.copy()
             llm_config['use_large_context'] = use_large_context
@@ -152,7 +144,6 @@ class ProviderCoordinator:
             True if all providers healthy, False otherwise
         """
         components = [
-            ('Audio Provider', self.audio_provider),
             ('LLM Provider', self.llm_provider),
             ('Graph Provider', self.graph_provider),
             ('Embedding Provider', self.embedding_provider)
@@ -184,7 +175,6 @@ class ProviderCoordinator:
         
         # Close providers
         providers = [
-            self.audio_provider,
             self.llm_provider,
             self.graph_provider,
             self.embedding_provider

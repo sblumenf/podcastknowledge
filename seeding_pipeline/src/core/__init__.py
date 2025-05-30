@@ -2,14 +2,12 @@
 
 from .interfaces import (
     HealthCheckable,
-    AudioProvider,
     LLMProvider,
     GraphProvider,
     EmbeddingProvider,
     KnowledgeExtractor,
     Neo4jManager,
     # Data classes
-    DiarizationSegment,
     TranscriptSegment,
     LLMResponse,
     ExtractedEntity,
@@ -21,7 +19,6 @@ from .exceptions import (
     ErrorSeverity,
     PodcastProcessingError,
     DatabaseConnectionError,
-    AudioProcessingError,
     LLMProcessingError,
     ConfigurationError,
     ValidationError,
@@ -76,14 +73,12 @@ from . import constants
 __all__ = [
     # Protocols
     "HealthCheckable",
-    "AudioProvider",
     "LLMProvider", 
     "GraphProvider",
     "EmbeddingProvider",
     "KnowledgeExtractor",
     "Neo4jManager",
     # Interface data classes
-    "DiarizationSegment",
     "TranscriptSegment",
     "LLMResponse",
     "ExtractedEntity",
@@ -93,7 +88,6 @@ __all__ = [
     "ErrorSeverity",
     "PodcastProcessingError",
     "DatabaseConnectionError",
-    "AudioProcessingError",
     "LLMProcessingError",
     "ConfigurationError",
     "ValidationError",
