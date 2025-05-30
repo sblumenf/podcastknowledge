@@ -1,16 +1,18 @@
 """
-Structured logging configuration for the Podcast Knowledge Graph Pipeline.
+Consolidated logging utilities for VTT knowledge extraction.
 
-Provides JSON-formatted logs with proper levels, context, and metadata
-for production monitoring and debugging.
+Combines structured logging with correlation ID support for comprehensive
+logging capabilities throughout the pipeline.
 """
 
 import logging
 import sys
 import json
 import traceback
+import uuid
+import contextvars
 from datetime import datetime
-from typing import Dict, Any, Optional, Union
+from typing import Dict, Any, Optional, Union, Callable
 from pathlib import Path
 import os
 from functools import wraps
@@ -23,339 +25,303 @@ try:
 except ImportError:
     HAS_JSON_LOGGER = False
 
+# Context variable for correlation ID
+correlation_id_var: contextvars.ContextVar[Optional[str]] = contextvars.ContextVar(
+    'correlation_id', 
+    default=None
+)
+
+
+def generate_correlation_id() -> str:
+    """Generate a new correlation ID."""
+    return str(uuid.uuid4())
+
+
+def get_correlation_id() -> Optional[str]:
+    """Get the current correlation ID from context."""
+    return correlation_id_var.get()
+
+
+def set_correlation_id(correlation_id: Optional[str] = None) -> str:
+    """Set correlation ID in context."""
+    if correlation_id is None:
+        correlation_id = generate_correlation_id()
+    correlation_id_var.set(correlation_id)
+    return correlation_id
+
 
 class StructuredFormatter(logging.Formatter):
-    """Custom JSON formatter for structured logging."""
+    """Custom JSON formatter for structured logging with correlation ID support."""
     
     def format(self, record: logging.LogRecord) -> str:
-        """Format log record as JSON."""
+        """Format log record as JSON with correlation ID."""
+        # Base log data
         log_data = {
             "timestamp": datetime.utcnow().isoformat(),
             "level": record.levelname,
             "logger": record.name,
             "message": record.getMessage(),
+            "correlation_id": get_correlation_id(),
+        }
+        
+        # Add location info
+        log_data.update({
             "module": record.module,
             "function": record.funcName,
             "line": record.lineno,
-        }
+            "path": record.pathname,
+        })
         
-        # Add exception info if present
-        if record.exc_info:
-            log_data["exception"] = {
-                "type": record.exc_info[0].__name__,
-                "message": str(record.exc_info[1]),
-                "traceback": traceback.format_exception(*record.exc_info)
-            }
-        
-        # Add extra fields
+        # Add any extra fields
         for key, value in record.__dict__.items():
-            if key not in ["name", "msg", "args", "created", "filename", 
-                          "funcName", "levelname", "levelno", "lineno", 
-                          "module", "msecs", "message", "pathname", "process",
-                          "processName", "relativeCreated", "thread", 
-                          "threadName", "exc_info", "exc_text", "stack_info"]:
+            if key not in ['name', 'msg', 'args', 'created', 'filename', 
+                          'funcName', 'levelname', 'levelno', 'lineno', 
+                          'module', 'msecs', 'message', 'pathname', 'process',
+                          'processName', 'relativeCreated', 'thread', 'threadName',
+                          'exc_info', 'exc_text', 'stack_info']:
                 log_data[key] = value
         
-        return json.dumps(log_data)
-
-
-class ContextFilter(logging.Filter):
-    """Add contextual information to log records."""
-    
-    def __init__(self, app_name: str = "podcast-kg-pipeline"):
-        super().__init__()
-        self.app_name = app_name
-        self.hostname = os.environ.get("HOSTNAME", "unknown")
-        self.environment = os.environ.get("PODCAST_KG_ENV", "development")
-        self.version = os.environ.get("APP_VERSION", "unknown")
-    
-    def filter(self, record: logging.LogRecord) -> bool:
-        """Add context to log record."""
-        record.app = self.app_name
-        record.hostname = self.hostname
-        record.environment = self.environment
-        record.version = self.version
-        record.correlation_id = getattr(record, "correlation_id", None)
-        return True
-
-
-class PerformanceFilter(logging.Filter):
-    """Add performance metrics to log records."""
-    
-    def filter(self, record: logging.LogRecord) -> bool:
-        """Add performance context."""
-        # Add memory usage
-        try:
-            import psutil
-            process = psutil.Process()
-            record.memory_mb = round(process.memory_info().rss / 1024 / 1024, 2)
-            record.cpu_percent = process.cpu_percent()
-        except:
-            pass
+        # Handle exceptions
+        if record.exc_info:
+            log_data['exception'] = {
+                'type': record.exc_info[0].__name__,
+                'message': str(record.exc_info[1]),
+                'traceback': traceback.format_exception(*record.exc_info)
+            }
         
-        return True
+        return json.dumps(log_data, default=str)
 
 
 def setup_logging(
-    level: Union[str, int] = None,
+    level: Union[str, int] = "INFO",
     log_file: Optional[str] = None,
-    json_format: bool = True,
-    add_context: bool = True,
-    add_performance: bool = False
+    structured: bool = True,
+    correlation_id: Optional[str] = None
 ) -> None:
     """
-    Configure structured logging for the application.
+    Configure logging for the application with correlation ID support.
     
     Args:
-        level: Logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
-        log_file: Optional file path for log output
-        json_format: Whether to use JSON formatting
-        add_context: Whether to add contextual information
-        add_performance: Whether to add performance metrics
+        level: Logging level
+        log_file: Optional file path for logging
+        structured: Use structured JSON logging
+        correlation_id: Optional correlation ID to set
     """
-    # Determine log level
-    if level is None:
-        level = os.environ.get("PODCAST_KG_LOG_LEVEL", "INFO")
+    # Set correlation ID if provided
+    if correlation_id:
+        set_correlation_id(correlation_id)
+    
+    # Convert string level to int
     if isinstance(level, str):
         level = getattr(logging, level.upper(), logging.INFO)
+    
+    # Create formatter
+    if structured and HAS_JSON_LOGGER:
+        formatter = jsonlogger.JsonFormatter(
+            '%(timestamp)s %(level)s %(name)s %(message)s',
+            timestamp=True,
+        )
+    elif structured:
+        formatter = StructuredFormatter()
+    else:
+        formatter = logging.Formatter(
+            '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+        )
     
     # Configure root logger
     root_logger = logging.getLogger()
     root_logger.setLevel(level)
     
     # Remove existing handlers
-    for handler in root_logger.handlers[:]:
-        root_logger.removeHandler(handler)
-    
-    # Create formatter
-    if json_format:
-        if HAS_JSON_LOGGER:
-            formatter = jsonlogger.JsonFormatter(
-                "%(timestamp)s %(level)s %(name)s %(message)s",
-                timestamp=lambda: datetime.utcnow().isoformat()
-            )
-        else:
-            formatter = StructuredFormatter()
-    else:
-        formatter = logging.Formatter(
-            "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-        )
+    root_logger.handlers.clear()
     
     # Console handler
     console_handler = logging.StreamHandler(sys.stdout)
+    console_handler.setLevel(level)
     console_handler.setFormatter(formatter)
-    
-    # Add filters
-    if add_context:
-        console_handler.addFilter(ContextFilter())
-    if add_performance:
-        console_handler.addFilter(PerformanceFilter())
-    
     root_logger.addHandler(console_handler)
     
     # File handler if specified
     if log_file:
-        file_handler = logging.handlers.RotatingFileHandler(
-            log_file,
-            maxBytes=100 * 1024 * 1024,  # 100MB
-            backupCount=5
-        )
+        Path(log_file).parent.mkdir(parents=True, exist_ok=True)
+        file_handler = logging.FileHandler(log_file)
+        file_handler.setLevel(level)
         file_handler.setFormatter(formatter)
-        
-        if add_context:
-            file_handler.addFilter(ContextFilter())
-        if add_performance:
-            file_handler.addFilter(PerformanceFilter())
-        
         root_logger.addHandler(file_handler)
-    
-    # Configure specific loggers
-    logging.getLogger("urllib3").setLevel(logging.WARNING)
-    logging.getLogger("neo4j").setLevel(logging.WARNING)
-    logging.getLogger("whisper").setLevel(logging.WARNING)
-    
-    # Log startup
-    logger = logging.getLogger(__name__)
-    logger.info(
-        "Logging configured",
-        extra={
-            "log_level": logging.getLevelName(level),
-            "json_format": json_format,
-            "log_file": log_file,
-            "pid": os.getpid()
-        }
-    )
 
 
 def get_logger(name: str) -> logging.Logger:
-    """
-    Get a logger instance with the given name.
-    
-    Args:
-        name: Logger name (usually __name__)
-        
-    Returns:
-        Configured logger instance
-    """
+    """Get a logger instance with the given name."""
     return logging.getLogger(name)
 
 
-def log_execution_time(logger: Optional[logging.Logger] = None):
+def log_execution_time(func: Optional[Callable] = None, *, 
+                      log_args: bool = False,
+                      log_result: bool = False) -> Callable:
     """
-    Decorator to log function execution time.
+    Decorator to log function execution time with correlation ID.
     
     Args:
-        logger: Logger instance to use
+        func: Function to wrap
+        log_args: Whether to log function arguments
+        log_result: Whether to log function result
     """
-    def decorator(func):
-        @wraps(func)
+    def decorator(f: Callable) -> Callable:
+        @wraps(f)
         def wrapper(*args, **kwargs):
-            nonlocal logger
-            if logger is None:
-                logger = logging.getLogger(func.__module__)
-            
+            logger = get_logger(f.__module__)
             start_time = time.time()
+            
+            # Log function call
+            extra = {
+                'function': f.__name__,
+                'correlation_id': get_correlation_id()
+            }
+            if log_args:
+                extra['args'] = args
+                extra['kwargs'] = kwargs
+            
+            logger.debug(f"Starting {f.__name__}", extra=extra)
+            
             try:
-                result = func(*args, **kwargs)
+                result = f(*args, **kwargs)
+                
+                # Log completion
                 duration = time.time() - start_time
-                logger.info(
-                    f"Function executed successfully",
-                    extra={
-                        "function": func.__name__,
-                        "duration_seconds": round(duration, 3),
-                        "status": "success"
-                    }
-                )
+                extra['duration_seconds'] = duration
+                if log_result:
+                    extra['result'] = result
+                
+                logger.debug(f"Completed {f.__name__}", extra=extra)
                 return result
+                
             except Exception as e:
                 duration = time.time() - start_time
                 logger.error(
-                    f"Function execution failed",
+                    f"Error in {f.__name__}: {str(e)}",
+                    exc_info=True,
                     extra={
-                        "function": func.__name__,
-                        "duration_seconds": round(duration, 3),
-                        "status": "error",
-                        "error_type": type(e).__name__,
-                        "error_message": str(e)
-                    },
-                    exc_info=True
+                        'function': f.__name__,
+                        'duration_seconds': duration,
+                        'correlation_id': get_correlation_id()
+                    }
                 )
                 raise
+        
         return wrapper
-    return decorator
+    
+    if func is None:
+        return decorator
+    else:
+        return decorator(func)
 
 
-def log_with_context(**context):
+def log_error_with_context(logger: logging.Logger, 
+                          message: str,
+                          error: Exception,
+                          context: Optional[Dict[str, Any]] = None) -> None:
     """
-    Decorator to add context to all logs within a function.
+    Log an error with full context and correlation ID.
     
     Args:
-        **context: Context key-value pairs to add to logs
+        logger: Logger instance
+        message: Error message
+        error: Exception that occurred
+        context: Additional context data
     """
-    def decorator(func):
+    error_data = {
+        'error_type': type(error).__name__,
+        'error_message': str(error),
+        'correlation_id': get_correlation_id()
+    }
+    
+    if context:
+        error_data.update(context)
+    
+    logger.error(message, exc_info=error, extra=error_data)
+
+
+def log_metric(logger: logging.Logger,
+              metric_name: str,
+              value: Union[int, float],
+              unit: str = "count",
+              tags: Optional[Dict[str, str]] = None) -> None:
+    """
+    Log a metric value with correlation ID.
+    
+    Args:
+        logger: Logger instance
+        metric_name: Name of the metric
+        value: Metric value
+        unit: Unit of measurement
+        tags: Additional tags
+    """
+    metric_data = {
+        'metric_name': metric_name,
+        'metric_value': value,
+        'metric_unit': unit,
+        'correlation_id': get_correlation_id()
+    }
+    
+    if tags:
+        metric_data['tags'] = tags
+    
+    logger.info(f"Metric: {metric_name}={value} {unit}", extra=metric_data)
+
+
+def with_correlation_id(correlation_id: Optional[str] = None) -> Callable:
+    """
+    Decorator to set correlation ID for a function's execution.
+    
+    Args:
+        correlation_id: Correlation ID to use (generates new if None)
+    """
+    def decorator(func: Callable) -> Callable:
         @wraps(func)
         def wrapper(*args, **kwargs):
-            # Get logger for the function's module
-            logger = logging.getLogger(func.__module__)
-            
-            # Create a log adapter with context
-            adapter = logging.LoggerAdapter(logger, context)
-            
-            # Temporarily replace the logger
-            original_logger = logging.getLogger(func.__module__)
-            setattr(sys.modules[func.__module__], 'logger', adapter)
+            # Save current correlation ID
+            current_id = get_correlation_id()
             
             try:
+                # Set new correlation ID
+                new_id = set_correlation_id(correlation_id)
+                
+                # Log function entry
+                logger = get_logger(func.__module__)
+                logger.debug(
+                    f"Entering {func.__name__} with correlation_id={new_id}",
+                    extra={'correlation_id': new_id}
+                )
+                
+                # Execute function
                 return func(*args, **kwargs)
+                
             finally:
-                # Restore original logger
-                setattr(sys.modules[func.__module__], 'logger', original_logger)
+                # Restore previous correlation ID
+                correlation_id_var.set(current_id)
+        
         return wrapper
     return decorator
 
 
-class LogContext:
-    """Context manager for adding temporary log context."""
-    
-    def __init__(self, logger: logging.Logger, **context):
-        self.logger = logger
-        self.context = context
-        self.original_class = None
-    
-    def __enter__(self):
-        """Add context to logger."""
-        self.original_class = self.logger.__class__
-        
-        # Create a custom logger class with context
-        class ContextLogger(self.original_class):
-            def _log(self, level, msg, args, exc_info=None, extra=None, **kwargs):
-                if extra is None:
-                    extra = {}
-                extra.update(self.context)
-                super()._log(level, msg, args, exc_info, extra, **kwargs)
-        
-        self.logger.__class__ = ContextLogger
-        return self.logger
-    
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        """Remove context from logger."""
-        self.logger.__class__ = self.original_class
+# Convenience functions for backward compatibility
+def setup_structured_logging(level: str = "INFO", 
+                           log_file: Optional[str] = None) -> None:
+    """Setup structured JSON logging (backward compatibility)."""
+    setup_logging(level=level, log_file=log_file, structured=True)
 
 
-def create_operation_logger(operation: str, correlation_id: Optional[str] = None) -> logging.Logger:
-    """
-    Create a logger for a specific operation with correlation ID.
-    
-    Args:
-        operation: Operation name
-        correlation_id: Optional correlation ID for request tracing
-        
-    Returns:
-        Logger with operation context
-    """
-    logger = logging.getLogger(f"podcast_kg.{operation}")
-    
-    # Add correlation ID to all logs from this logger
-    if correlation_id:
-        class CorrelationAdapter(logging.LoggerAdapter):
-            def process(self, msg, kwargs):
-                extra = kwargs.get('extra', {})
-                extra['correlation_id'] = correlation_id
-                extra['operation'] = operation
-                kwargs['extra'] = extra
-                return msg, kwargs
-        
-        return CorrelationAdapter(logger, {})
-    
-    return logger
-
-
-# Convenience functions for common log patterns
-def log_error_with_context(logger: logging.Logger, error: Exception, 
-                          operation: str, **context) -> None:
-    """Log an error with full context."""
-    logger.error(
-        f"Error in {operation}",
-        extra={
-            "operation": operation,
-            "error_type": type(error).__name__,
-            "error_message": str(error),
-            **context
-        },
-        exc_info=True
-    )
-
-
-def log_metric(logger: logging.Logger, metric_name: str, 
-               value: Union[int, float], unit: str = "count", **tags) -> None:
-    """Log a metric value."""
-    logger.info(
-        f"Metric: {metric_name}",
-        extra={
-            "metric_name": metric_name,
-            "metric_value": value,
-            "metric_unit": unit,
-            "metric_type": "gauge",
-            **tags
-        }
-    )
+# Re-export commonly used functions
+__all__ = [
+    'setup_logging',
+    'setup_structured_logging',
+    'get_logger',
+    'log_execution_time',
+    'log_error_with_context',
+    'log_metric',
+    'generate_correlation_id',
+    'get_correlation_id',
+    'set_correlation_id',
+    'with_correlation_id',
+    'StructuredFormatter'
+]
