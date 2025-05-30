@@ -20,7 +20,7 @@ from src.processing.emergent_themes import EmergentThemeDetector
 from src.processing.episode_flow import EpisodeFlowAnalyzer
 from src.utils.memory import cleanup_memory, monitor_memory
 from src.utils.resources import ProgressCheckpoint
-from src.providers.graph.enhancements import GraphEnhancements
+# GraphEnhancements removed with provider pattern
 from src.utils.logging import get_logger, log_execution_time, log_error_with_context, log_metric
 
 # Import new components
@@ -68,7 +68,7 @@ class PodcastKnowledgePipeline:
         self.knowledge_extractor: Optional[KnowledgeExtractor] = None
         self.entity_resolver: Optional[EntityResolver] = None
         self.graph_analyzer: Optional[GraphAnalyzer] = None
-        self.graph_enhancer: Optional[GraphEnhancements] = None
+        self.graph_enhancer: Optional[Any] = None  # Removed with provider pattern
         self.discourse_flow_tracker: Optional[DiscourseFlowTracker] = None
         self.emergent_theme_detector: Optional[EmergentThemeDetector] = None
         self.episode_flow_analyzer: Optional[EpisodeFlowAnalyzer] = None
