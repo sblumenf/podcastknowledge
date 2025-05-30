@@ -11,7 +11,6 @@ import logging
 from src.core.config import PipelineConfig, SeedingConfig
 from src.core.exceptions import PipelineError, ConfigurationError
 from src.factories.provider_factory import ProviderFactory
-from src.providers.audio.base import AudioProvider
 from src.providers.llm.base import LLMProvider
 from src.providers.graph.base import GraphProvider
 from src.providers.embeddings.base import EmbeddingProvider
@@ -71,7 +70,6 @@ class PodcastKnowledgePipeline:
         self.storage_coordinator = None
         
         # Provider instances - maintain references for backward compatibility
-        self.audio_provider: Optional[AudioProvider] = None
         self.llm_provider: Optional[LLMProvider] = None
         self.graph_provider: Optional[GraphProvider] = None
         self.embedding_provider: Optional[EmbeddingProvider] = None
@@ -169,7 +167,6 @@ class PodcastKnowledgePipeline:
                 return False
             
             # Set up backward compatibility references
-            self.audio_provider = self.provider_coordinator.audio_provider
             self.llm_provider = self.provider_coordinator.llm_provider
             self.graph_provider = self.provider_coordinator.graph_provider
             self.embedding_provider = self.provider_coordinator.embedding_provider
@@ -270,7 +267,7 @@ class PodcastKnowledgePipeline:
             podcast_configs = [podcast_configs]
         
         # Initialize components if not already done
-        if not self.audio_provider:
+        if not self.llm_provider:
             if not self.initialize_components(use_large_context):
                 raise PipelineError("Failed to initialize pipeline components")
         
