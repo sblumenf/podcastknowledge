@@ -82,7 +82,7 @@ This plan transforms the current podcast processing pipeline into a streamlined 
   - Validation: Fresh install works without audio deps
 
 ### 2.2 Create VTT Processing Components
-- [ ] **Implement VTT parser**
+- [x] **Implement VTT parser**
   - Purpose: Parse VTT files into expected segment format
   - Steps:
     1. Create `src/processing/vtt_parser.py`
@@ -91,7 +91,7 @@ This plan transforms the current podcast processing pipeline into a streamlined 
     4. Create segment normalization logic
   - Validation: Parses sample VTT files correctly
 
-- [ ] **Create transcript ingestion module**
+- [x] **Create transcript ingestion module**
   - Purpose: Main entry point for VTT processing
   - Steps:
     1. Create `src/seeding/transcript_ingestion.py`
@@ -100,7 +100,7 @@ This plan transforms the current podcast processing pipeline into a streamlined 
     4. Integrate with existing checkpoint system
   - Validation: Successfully processes folder of VTT files
 
-- [ ] **Update pipeline executor**
+- [x] **Update pipeline executor**
   - Purpose: Adapt pipeline for transcript-first flow
   - Steps:
     1. Modify `_prepare_segments` to accept VTT segments

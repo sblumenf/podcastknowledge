@@ -6,6 +6,7 @@ from typing import Dict, Any, List, Optional
 from datetime import datetime
 
 from src.core.models import Podcast, Episode, Segment
+from src.core.interfaces import TranscriptSegment
 from src.core.exceptions import PipelineError
 from src.utils.memory import cleanup_memory
 from src.tracing import create_span, add_span_attributes
@@ -779,3 +780,66 @@ class PipelineExecutor:
             except Exception:
                 # Silently ignore cleanup failures
                 pass
+    
+    def process_vtt_segments(self,
+                           podcast_config: Dict[str, Any],
+                           episode: Dict[str, Any],
+                           segments: List[TranscriptSegment],
+                           use_large_context: bool = True) -> Dict[str, Any]:
+        """Process VTT segments through the knowledge extraction pipeline.
+        
+        This method is designed for VTT-based processing, bypassing audio transcription.
+        
+        Args:
+            podcast_config: Podcast configuration
+            episode: Episode information
+            segments: Pre-parsed VTT segments
+            use_large_context: Whether to use large context models
+            
+        Returns:
+            Processing results with extracted knowledge
+        """
+        episode_id = episode['id']
+        logger.info(f"Processing VTT segments for episode: {episode['title']} (ID: {episode_id})")
+        
+        # Check if already completed
+        if self._is_episode_completed(episode_id):
+            logger.info(f"Episode {episode_id} already completed, skipping")
+            return {'segments': 0, 'insights': 0, 'entities': 0}
+        
+        try:
+            # Add episode context
+            self._add_episode_context(episode, podcast_config)
+            
+            # Convert TranscriptSegment objects to dictionaries for compatibility
+            segment_dicts = []
+            for i, segment in enumerate(segments):
+                segment_dict = {
+                    'id': segment.id,
+                    'text': segment.text,
+                    'start_time': segment.start_time,
+                    'end_time': segment.end_time,
+                    'speaker': segment.speaker,
+                    'confidence': segment.confidence,
+                    'segment_index': i,
+                    'word_count': len(segment.text.split()),
+                    'duration_seconds': segment.end_time - segment.start_time
+                }
+                segment_dicts.append(segment_dict)
+            
+            # Save segments checkpoint
+            self.checkpoint_manager.save_progress(episode_id, "segments", segment_dicts)
+            
+            # Extract knowledge based on mode
+            result = self._extract_knowledge(
+                podcast_config, episode, segment_dicts, episode_id, use_large_context
+            )
+            
+            # Finalize processing
+            self._finalize_episode_processing(episode_id, result)
+            
+            return result
+            
+        except Exception as e:
+            logger.error(f"Error processing VTT segments for episode {episode_id}: {e}")
+            raise PipelineError(f"VTT segment processing failed: {e}")
