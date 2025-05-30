@@ -180,7 +180,7 @@ This plan transforms the current podcast processing pipeline into a streamlined 
 ## Phase 4: CLI and Interface Updates (2 days)
 
 ### 4.1 Redesign CLI Interface
-- [ ] **Create new CLI structure**
+- [x] **Create new CLI structure**
   - Purpose: Focused interface for VTT processing
   - Steps:
     1. Redesign `cli.py` with VTT-focused commands
@@ -189,7 +189,7 @@ This plan transforms the current podcast processing pipeline into a streamlined 
     4. Add progress indicators
   - Validation: CLI processes VTT folders successfully
 
-- [ ] **Implement batch processing commands**
+- [x] **Implement batch processing commands**
   - Purpose: Handle multiple VTT files efficiently
   - Steps:
     1. Add `--folder` option for directory processing
@@ -199,7 +199,7 @@ This plan transforms the current podcast processing pipeline into a streamlined 
   - Validation: Batch processing works with options
 
 ### 4.2 Error Handling and Recovery
-- [ ] **Enhance error handling for VTT processing**
+- [x] **Enhance error handling for VTT processing**
   - Purpose: Graceful handling of malformed files
   - Steps:
     1. Add VTT validation before processing
@@ -208,7 +208,7 @@ This plan transforms the current podcast processing pipeline into a streamlined 
     4. Log skipped files with reasons
   - Validation: Handles corrupted VTT files gracefully
 
-- [ ] **Update checkpoint system**
+- [x] **Update checkpoint system**
   - Purpose: Track VTT file processing progress
   - Steps:
     1. Modify checkpoint to track VTT files instead of episodes
