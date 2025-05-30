@@ -77,9 +77,10 @@ class TestMockAudioProvider:
         provider = MockAudioProvider(config={})
         health = provider.health_check()
         
-        assert health["healthy"] is True
+        assert health["status"] == "healthy"
         assert "provider" in health
         assert health["provider"] == "MockAudioProvider"
+        assert "timestamp" in health
 
 
 class TestWhisperAudioProvider:
@@ -113,7 +114,7 @@ class TestWhisperAudioProvider:
                 provider._validate_audio_path(f.name)
             assert "Unsupported audio format" in str(exc_info.value)
             
-    @patch('src.providers.audio.whisper.WhisperModel')
+    @patch('faster_whisper.WhisperModel')
     def test_faster_whisper_transcription(self, mock_whisper_model):
         """Test transcription with faster-whisper."""
         # Mock the transcription result
@@ -133,6 +134,7 @@ class TestWhisperAudioProvider:
             segments = provider.transcribe(f.name)
             
         assert len(segments) == 1
+        assert segments[0].id == "seg_0"
         assert segments[0].text == "Test transcript"
         assert segments[0].start_time == 0.0
         assert segments[0].end_time == 5.0
@@ -160,6 +162,7 @@ class TestWhisperAudioProvider:
             segments = provider.transcribe(f.name)
             
         assert len(segments) == 1
+        assert segments[0].id == "seg_0"
         assert segments[0].text == "Test transcript"
         assert segments[0].start_time == 0.0
         assert segments[0].end_time == 5.0

@@ -24,8 +24,12 @@ class TestAPIv1Contracts:
     """Test API v1 contracts and response formats."""
     
     @pytest.fixture
-    def test_config(self):
+    def test_config(self, monkeypatch):
         """Test configuration."""
+        # Set required environment variables
+        monkeypatch.setenv('NEO4J_PASSWORD', 'testpass')
+        monkeypatch.setenv('GOOGLE_API_KEY', 'test-api-key')
+        
         config = Config()
         config.neo4j_uri = 'bolt://localhost:7687'
         config.neo4j_user = 'neo4j'
@@ -219,7 +223,7 @@ class TestAPIv1Contracts:
         self, test_config, sample_podcast_config, mock_pipeline_result
     ):
         """Test module-level seed_podcast convenience function."""
-        with patch('src.seeding.orchestrator.PodcastKnowledgePipeline') as mock_pipeline_class:
+        with patch('src.api.v1.seeding.PodcastKnowledgePipeline') as mock_pipeline_class:
             mock_instance = Mock()
             mock_instance.seed_podcast.return_value = mock_pipeline_result
             mock_instance.cleanup.return_value = None
@@ -284,7 +288,7 @@ class TestAPIv1Contracts:
             with pytest.raises(PodcastKGError) as exc_info:
                 pipeline.seed_podcast(sample_podcast_config)
             
-            assert str(exc_info.value) == "Test error"
+            assert str(exc_info.value) == "[WARNING] Test error"
     
     @pytest.mark.integration
     def test_extraction_mode_configuration(self, test_config, sample_podcast_config):
@@ -299,14 +303,14 @@ class TestAPIv1Contracts:
                 sample_podcast_config,
                 extraction_mode='fixed'
             )
-            assert pipeline._config.use_schemaless_extraction is False
+            assert pipeline.config.use_schemaless_extraction is False
             
             # Test schemaless mode
             pipeline.seed_podcast(
                 sample_podcast_config,
                 extraction_mode='schemaless'
             )
-            assert pipeline._config.use_schemaless_extraction is True
+            assert pipeline.config.use_schemaless_extraction is True
     
     @pytest.mark.integration
     def test_backward_compatibility_fields(self, test_config, sample_podcast_config):

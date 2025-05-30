@@ -180,8 +180,9 @@ class WhisperAudioProvider(BaseAudioProvider):
         
         # Process segments
         transcript_segments = []
-        for segment in segments:
+        for i, segment in enumerate(segments):
             transcript_segment = TranscriptSegment(
+                id=f"seg_{i}",
                 text=segment.text.strip(),
                 start_time=segment.start,
                 end_time=segment.end
@@ -209,8 +210,9 @@ class WhisperAudioProvider(BaseAudioProvider):
         
         # Process segments
         transcript_segments = []
-        for segment in result["segments"]:
+        for i, segment in enumerate(result["segments"]):
             transcript_segment = TranscriptSegment(
+                id=f"seg_{i}",
                 text=segment["text"].strip(),
                 start_time=segment["start"],
                 end_time=segment["end"]

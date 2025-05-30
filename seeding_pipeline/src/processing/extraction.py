@@ -1002,7 +1002,7 @@ JSON RESPONSE:
                 entity = Entity(
                     id=f"entity_{len(entities)}_{item['name'].lower().replace(' ', '_')}",
                     name=item['name'],
-                    type=entity_type.value,
+                    entity_type=entity_type,
                     description=item.get('description', ''),
                     first_mentioned=datetime.now().isoformat(),
                     mention_count=item.get('frequency', 1),
@@ -1031,12 +1031,12 @@ JSON RESPONSE:
                 
                 insight = Insight(
                     id=f"insight_{len(insights)}_{datetime.now().timestamp()}",
-                    insight_type=insight_type.value,
-                    content=item['content'],
+                    title=item.get('title', item.get('content', 'Untitled')[:50]),
+                    description=item.get('content', ''),
+                    insight_type=insight_type,
                     confidence_score=item.get('confidence', 0.7),
                     extracted_from_segment="",  # Will be set by caller
                     is_bridge_insight=False,  # Will be determined later
-                    timestamp=datetime.now().isoformat()
                 )
                 insights.append(insight)
                 
@@ -1061,9 +1061,9 @@ JSON RESPONSE:
                     id=f"quote_{len(quotes)}_{datetime.now().timestamp()}",
                     text=item['text'],
                     speaker=item.get('speaker', 'Unknown'),
-                    quote_type=quote_type.value,
+                    quote_type=quote_type,
                     context=item.get('context', ''),
-                    timestamp=datetime.now().isoformat(),
+                    word_count=len(item['text'].split()),
                     segment_id=""  # Will be set by caller
                 )
                 quotes.append(quote)

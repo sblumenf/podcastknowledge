@@ -2,6 +2,7 @@
 
 import logging
 from typing import Dict, Any, Optional
+from dataclasses import asdict
 
 from src.factories.provider_factory import ProviderFactory
 from src.providers.audio.base import AudioProvider
@@ -75,35 +76,46 @@ class ProviderCoordinator:
             else:
                 logger.info("📊 Initializing providers in FIXED SCHEMA extraction mode")
             
+            # Convert config to dict for providers
+            config_dict = asdict(self.config) if hasattr(self.config, '__dataclass_fields__') else self.config
+            
             # Initialize providers using factory
             self.audio_provider = self.factory.create_provider(
                 'audio',
                 getattr(self.config, 'audio_provider', 'whisper'),
-                self.config
+                config_dict
             )
+            
+            # Add use_large_context to config for LLM provider
+            llm_config = config_dict.copy()
+            llm_config['use_large_context'] = use_large_context
+            # Map google_api_key to api_key for gemini provider
+            if 'google_api_key' in llm_config and 'api_key' not in llm_config:
+                llm_config['api_key'] = llm_config['google_api_key']
             
             self.llm_provider = self.factory.create_provider(
                 'llm',
                 getattr(self.config, 'llm_provider', 'gemini'),
-                self.config,
-                use_large_context=use_large_context
+                llm_config
             )
             
             # Graph provider will automatically use schemaless if configured
             self.graph_provider = self.factory.create_provider(
                 'graph',
                 getattr(self.config, 'graph_provider', 'neo4j'),
-                self.config
+                config_dict
             )
             
             self.embedding_provider = self.factory.create_provider(
-                'embeddings',
+                'embedding',
                 getattr(self.config, 'embedding_provider', 'sentence_transformer'),
-                self.config
+                config_dict
             )
             
             # Initialize processing components
             segmenter_config = getattr(self.config, 'segmenter_config', {})
+            if hasattr(segmenter_config, '__dataclass_fields__'):
+                segmenter_config = asdict(segmenter_config)
             self.segmenter = EnhancedPodcastSegmenter(
                 self.audio_provider,
                 config=segmenter_config

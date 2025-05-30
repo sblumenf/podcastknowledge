@@ -28,28 +28,28 @@ class TestEntityResolver:
             Entity(
                 id="1",
                 name="Apple Inc.",
-                type=EntityType.ORGANIZATION,
+                entity_type=EntityType.ORGANIZATION,
                 confidence=0.9,
                 description="Technology company"
             ),
             Entity(
                 id="2",
                 name="Apple",
-                type=EntityType.ORGANIZATION,
+                entity_type=EntityType.ORGANIZATION,
                 confidence=0.85,
                 description="Also known as Apple Computer"
             ),
             Entity(
                 id="3",
                 name="Microsoft Corporation",
-                type=EntityType.ORGANIZATION,
+                entity_type=EntityType.ORGANIZATION,
                 confidence=0.95,
                 description="Software company"
             ),
             Entity(
                 id="4",
                 name="Steve Jobs",
-                type=EntityType.PERSON,
+                entity_type=EntityType.PERSON,
                 confidence=0.9,
                 description="Co-founder of Apple"
             )
@@ -127,7 +127,7 @@ class TestEntityResolver:
         new_entity = Entity(
             id="5",
             name="Apple Computer",
-            type=EntityType.ORGANIZATION,
+            entity_type=EntityType.ORGANIZATION,
             confidence=0.8
         )
         
@@ -142,7 +142,7 @@ class TestEntityResolver:
         person_entity = Entity(
             id="6",
             name="Apple",
-            type=EntityType.PERSON,
+            entity_type=EntityType.PERSON,
             confidence=0.8
         )
         matches = resolver.find_potential_matches(person_entity, sample_entities)
@@ -153,7 +153,7 @@ class TestEntityResolver:
         primary = Entity(
             id="1",
             name="Apple Inc.",
-            type=EntityType.ORGANIZATION,
+            entity_type=EntityType.ORGANIZATION,
             confidence=0.9,
             description="Technology company"
         )
@@ -161,7 +161,7 @@ class TestEntityResolver:
         duplicate = Entity(
             id="2",
             name="Apple Computer",
-            type=EntityType.ORGANIZATION,
+            entity_type=EntityType.ORGANIZATION,
             confidence=0.85,
             description="Computer manufacturer"
         )
@@ -187,21 +187,21 @@ class TestEntityResolver:
     def test_resolve_entities(self, resolver):
         """Test entity resolution process"""
         entities = [
-            Entity(id="1", name="Apple Inc.", type=EntityType.ORGANIZATION, confidence=0.9),
-            Entity(id="2", name="Apple", type=EntityType.ORGANIZATION, confidence=0.85),
-            Entity(id="3", name="Microsoft", type=EntityType.ORGANIZATION, confidence=0.95),
-            Entity(id="4", name="Apple Computer", type=EntityType.ORGANIZATION, confidence=0.8),
-            Entity(id="5", name="Steve Jobs", type=EntityType.PERSON, confidence=0.9)
+            Entity(id="1", name="Apple Inc.", entity_type=EntityType.ORGANIZATION, confidence=0.9),
+            Entity(id="2", name="Apple", entity_type=EntityType.ORGANIZATION, confidence=0.85),
+            Entity(id="3", name="Microsoft", entity_type=EntityType.ORGANIZATION, confidence=0.95),
+            Entity(id="4", name="Apple Computer", entity_type=EntityType.ORGANIZATION, confidence=0.8),
+            Entity(id="5", name="Steve Jobs", entity_type=EntityType.PERSON, confidence=0.9)
         ]
         
         resolved = resolver.resolve_entities(entities)
         
         # Should merge Apple entities
-        org_entities = [e for e in resolved if e.type == EntityType.ORGANIZATION]
+        org_entities = [e for e in resolved if e.entity_type == EntityType.ORGANIZATION]
         assert len(org_entities) == 2  # Apple (merged) and Microsoft
         
         # Should keep person entity separate
-        person_entities = [e for e in resolved if e.type == EntityType.PERSON]
+        person_entities = [e for e in resolved if e.entity_type == EntityType.PERSON]
         assert len(person_entities) == 1
     
     def test_extract_entity_relationships(self, resolver, sample_entities):
@@ -234,8 +234,8 @@ class TestEntityResolver:
         # Entities close together
         text1 = "Steve Jobs founded Apple."
         entities = [
-            Entity(id="1", name="Steve Jobs", type=EntityType.PERSON, confidence=0.9),
-            Entity(id="2", name="Apple", type=EntityType.ORGANIZATION, confidence=0.9)
+            Entity(id="1", name="Steve Jobs", entity_type=EntityType.PERSON, confidence=0.9),
+            Entity(id="2", name="Apple", entity_type=EntityType.ORGANIZATION, confidence=0.9)
         ]
         
         relationships1 = resolver.extract_entity_relationships(text1, entities)
@@ -291,11 +291,11 @@ class TestVectorEntityMatcher:
     def sample_entities(self):
         """Create sample entities"""
         return [
-            Entity(id="1", name="Apple Inc.", type=EntityType.ORGANIZATION, confidence=0.9),
-            Entity(id="2", name="Microsoft Corporation", type=EntityType.ORGANIZATION, confidence=0.95),
-            Entity(id="3", name="Steve Jobs", type=EntityType.PERSON, confidence=0.9),
-            Entity(id="4", name="Machine Learning", type=EntityType.TECHNOLOGY, confidence=0.85),
-            Entity(id="5", name="Artificial Intelligence", type=EntityType.CONCEPT, confidence=0.88)
+            Entity(id="1", name="Apple Inc.", entity_type=EntityType.ORGANIZATION, confidence=0.9),
+            Entity(id="2", name="Microsoft Corporation", entity_type=EntityType.ORGANIZATION, confidence=0.95),
+            Entity(id="3", name="Steve Jobs", entity_type=EntityType.PERSON, confidence=0.9),
+            Entity(id="4", name="Machine Learning", entity_type=EntityType.TECHNOLOGY, confidence=0.85),
+            Entity(id="5", name="Artificial Intelligence", entity_type=EntityType.CONCEPT, confidence=0.88)
         ]
     
     def test_get_entity_embedding(self, matcher, sample_entities):
@@ -340,7 +340,7 @@ class TestVectorEntityMatcher:
         query = Entity(
             id="6",
             name="Apple",
-            type=EntityType.ORGANIZATION,
+            entity_type=EntityType.ORGANIZATION,
             confidence=0.8
         )
         
@@ -357,7 +357,7 @@ class TestVectorEntityMatcher:
         tech_entity = Entity(
             id="6",
             name="Machine Learning",
-            type=EntityType.TECHNOLOGY,
+            entity_type=EntityType.TECHNOLOGY,
             confidence=0.82
         )
         entities = sample_entities + [tech_entity]
@@ -388,7 +388,7 @@ class TestVectorEntityMatcher:
         for rel in relationships:
             source = next(e for e in sample_entities if e.id == rel.source_id)
             target = next(e for e in sample_entities if e.id == rel.target_id)
-            assert source.type != target.type
+            assert source.entity_type != target.entity_type
     
     def test_merge_entity_clusters(self, matcher):
         """Test merging entity clusters"""
@@ -396,11 +396,11 @@ class TestVectorEntityMatcher:
         
         clusters = [
             [
-                Entity(id="1", name="Apple Inc.", type=EntityType.ORGANIZATION, confidence=0.9),
-                Entity(id="2", name="Apple", type=EntityType.ORGANIZATION, confidence=0.85)
+                Entity(id="1", name="Apple Inc.", entity_type=EntityType.ORGANIZATION, confidence=0.9),
+                Entity(id="2", name="Apple", entity_type=EntityType.ORGANIZATION, confidence=0.85)
             ],
             [
-                Entity(id="3", name="Microsoft", type=EntityType.ORGANIZATION, confidence=0.95)
+                Entity(id="3", name="Microsoft", entity_type=EntityType.ORGANIZATION, confidence=0.95)
             ]
         ]
         
@@ -420,7 +420,7 @@ class TestVectorEntityMatcher:
         """Test handling of empty inputs"""
         # Empty entity list
         similar = matcher.find_similar_entities(
-            Entity(id="1", name="Test", type=EntityType.CONCEPT, confidence=0.8),
+            Entity(id="1", name="Test", entity_type=EntityType.CONCEPT, confidence=0.8),
             []
         )
         assert len(similar) == 0

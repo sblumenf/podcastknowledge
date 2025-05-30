@@ -33,14 +33,15 @@ class Neo4jProvider(BaseGraphProvider):
             from neo4j import GraphDatabase
         except ImportError:
             raise ProviderError(
+                "neo4j",
                 "neo4j is not installed. "
                 "Install with: pip install neo4j"
             )
             
         if not self.uri:
-            raise ProviderError("Neo4j URI is required")
+            raise ProviderError("neo4j", "Neo4j URI is required")
         if not self.username or not self.password:
-            raise ProviderError("Neo4j username and password are required")
+            raise ProviderError("neo4j", "Neo4j username and password are required")
             
         try:
             self._driver = GraphDatabase.driver(
@@ -124,7 +125,7 @@ class Neo4jProvider(BaseGraphProvider):
                     result = session.run(cypher, **params)
                     return result.single()["id"]
                 except Exception as e:
-                    raise ProviderError(f"Failed to create {node_type} node: {e}")
+                    raise ProviderError("neo4j", f"Failed to create {node_type} node: {e}")
                     
     @trace_method(name="neo4j.create_relationship")
     def create_relationship(
@@ -166,6 +167,7 @@ class Neo4jProvider(BaseGraphProvider):
                     result.single()  # Consume result
                 except Exception as e:
                     raise ProviderError(
+                        "neo4j",
                         f"Failed to create relationship {rel_type} "
                         f"between {source_id} and {target_id}: {e}"
                     )
@@ -186,7 +188,7 @@ class Neo4jProvider(BaseGraphProvider):
                 return records
                 
             except Exception as e:
-                raise ProviderError(f"Query execution failed: {e}")
+                raise ProviderError("neo4j", f"Query execution failed: {e}")
                 
     def delete_node(self, node_id: str) -> None:
         """Delete a node and its relationships."""
@@ -199,7 +201,7 @@ class Neo4jProvider(BaseGraphProvider):
                 try:
                     session.run(cypher, node_id=node_id)
                 except Exception as e:
-                    raise ProviderError(f"Failed to delete node {node_id}: {e}")
+                    raise ProviderError("neo4j", f"Failed to delete node {node_id}: {e}")
                     
     def update_node(self, node_id: str, properties: Dict[str, Any]) -> None:
         """Update node properties."""
@@ -227,9 +229,9 @@ class Neo4jProvider(BaseGraphProvider):
                 try:
                     result = session.run(cypher, **params)
                     if not result.single():
-                        raise ProviderError(f"Node with id {node_id} not found")
+                        raise ProviderError("neo4j", f"Node with id {node_id} not found")
                 except Exception as e:
-                    raise ProviderError(f"Failed to update node {node_id}: {e}")
+                    raise ProviderError("neo4j", f"Failed to update node {node_id}: {e}")
                     
     def get_node(self, node_id: str) -> Optional[Dict[str, Any]]:
         """Get a node by ID."""
@@ -249,7 +251,7 @@ class Neo4jProvider(BaseGraphProvider):
                 return None
                 
             except Exception as e:
-                raise ProviderError(f"Failed to get node {node_id}: {e}")
+                raise ProviderError("neo4j", f"Failed to get node {node_id}: {e}")
                 
     def setup_schema(self) -> None:
         """Set up Neo4j schema with constraints and indexes."""
@@ -332,7 +334,7 @@ class Neo4jProvider(BaseGraphProvider):
                         ids.append(record["id"])
                     return ids
                 except Exception as e:
-                    raise ProviderError(f"Failed to bulk create {node_type} nodes: {e}")
+                    raise ProviderError("neo4j", f"Failed to bulk create {node_type} nodes: {e}")
                     
     def get_connection_count(self) -> int:
         """Get current number of connections in the pool."""

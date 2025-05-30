@@ -1,0 +1,74 @@
+codecov:
+  require_ci_to_pass: yes
+  notify:
+    wait_for_ci: true
+
+coverage:
+  precision: 2
+  round: down
+  range: "8...90"
+  
+  status:
+    project:
+      default:
+        target: 8.43%
+        threshold: 0.5%
+        base: auto
+        if_not_found: success
+        if_ci_failed: error
+        informational: false
+        only_pulls: false
+    
+    patch:
+      default:
+        target: 80%
+        threshold: 10%
+        base: auto
+        if_not_found: success
+        if_ci_failed: error
+        informational: false
+        only_pulls: false
+  
+  # Ignore test files and generated code
+  ignore:
+    - "tests/**/*"
+    - "**/*_test.py"
+    - "**/test_*.py"
+    - "setup.py"
+    - "docs/**/*"
+    - "scripts/**/*"
+    - "notebooks/**/*"
+    - "examples/**/*"
+
+parsers:
+  gcov:
+    branch_detection:
+      conditional: yes
+      loop: yes
+      method: no
+      macro: no
+
+comment:
+  layout: "reach,diff,flags,files,footer"
+  behavior: default
+  require_changes: false
+  require_base: false
+  require_head: true
+  show_carryforward_flags: true
+
+flags:
+  unittests:
+    paths:
+      - src/
+    carryforward: true
+    
+  integration:
+    paths:
+      - src/
+    carryforward: true
+
+# Coverage goals by phase
+# Phase 5: 25-30% (current: 8.43%)
+# Phase 6: 50%
+# Phase 7: 70%
+# Phase 8: 90%

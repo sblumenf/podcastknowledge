@@ -89,11 +89,11 @@ class TestResponseParser:
         
         assert len(entities) == 3
         assert entities[0].name == "Apple Inc."
-        assert entities[0].type == EntityType.ORGANIZATION
+        assert entities[0].entity_type == EntityType.ORGANIZATION
         assert entities[1].name == "Tim Cook"
-        assert entities[1].type == EntityType.PERSON
+        assert entities[1].entity_type == EntityType.PERSON
         assert entities[2].name == "iPhone"
-        assert entities[2].type == EntityType.PRODUCT
+        assert entities[2].entity_type == EntityType.PRODUCT
     
     def test_parse_entities_json(self, parser):
         """Test parsing entities from JSON response"""
@@ -114,7 +114,7 @@ class TestResponseParser:
         
         assert len(entities) == 1
         assert entities[0].name == "Machine Learning"
-        assert entities[0].type == EntityType.TECHNOLOGY
+        assert entities[0].entity_type == EntityType.TECHNOLOGY
         assert entities[0].description == "AI subset"
     
     def test_parse_insights_structured(self, parser):

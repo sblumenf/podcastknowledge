@@ -2,6 +2,7 @@
 
 import time
 import functools
+import asyncio
 from typing import Optional, Dict, Any, Callable, TypeVar
 from contextlib import contextmanager
 

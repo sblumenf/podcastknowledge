@@ -7,7 +7,7 @@ import uuid
 from src.providers.graph.memory import InMemoryGraphProvider
 from src.providers.graph.neo4j import Neo4jProvider
 from src.core.exceptions import ProviderError, ConnectionError
-from src.core.models import Entity, Episode, Segment
+from src.core.models import Entity, Episode, Segment, EntityType
 
 
 class TestInMemoryGraphProvider:
@@ -196,7 +196,7 @@ class TestInMemoryGraphProvider:
         entity = Entity(
             id='e1',
             name='Test Entity',
-            type='PERSON',
+            entity_type=EntityType.PERSON,
             description='A test entity',
             first_mentioned='2024-01-01',
             mention_count=5,
@@ -210,7 +210,7 @@ class TestInMemoryGraphProvider:
         # Verify entity was created correctly
         node = provider.get_node('e1')
         assert node['name'] == 'Test Entity'
-        assert node['type'] == 'PERSON'
+        assert node['type'] == 'person'
         assert node['bridge_score'] == 0.8
 
 
@@ -231,7 +231,7 @@ class TestNeo4jProvider:
         with pytest.raises(ProviderError, match="username and password"):
             provider._initialize_driver()
             
-    @patch('src.providers.graph.neo4j.GraphDatabase')
+    @patch('neo4j.GraphDatabase')
     def test_initialization_with_credentials(self, mock_graph_db):
         """Test successful initialization."""
         config = {
@@ -257,7 +257,7 @@ class TestNeo4jProvider:
             connection_acquisition_timeout=30.0
         )
         
-    @patch('src.providers.graph.neo4j.GraphDatabase')
+    @patch('neo4j.GraphDatabase')
     def test_connect(self, mock_graph_db):
         """Test connection verification."""
         config = {
@@ -280,7 +280,7 @@ class TestNeo4jProvider:
         
         mock_session.run.assert_called_with("RETURN 'Connected' AS status")
         
-    @patch('src.providers.graph.neo4j.GraphDatabase')
+    @patch('neo4j.GraphDatabase')
     def test_create_node(self, mock_graph_db):
         """Test node creation."""
         config = {
@@ -293,7 +293,12 @@ class TestNeo4jProvider:
         mock_driver = MagicMock()
         mock_session = MagicMock()
         mock_result = MagicMock()
-        mock_result.single.return_value = {'id': 'test1'}
+        
+        # Configure the mock to return proper value when accessing result.single()["id"]
+        mock_single = MagicMock()
+        mock_single.__getitem__.side_effect = lambda key: 'test1' if key == 'id' else None
+        mock_result.single.return_value = mock_single
+        
         mock_session.run.return_value = mock_result
         mock_driver.session.return_value.__enter__.return_value = mock_session
         mock_graph_db.driver.return_value = mock_driver
@@ -318,7 +323,7 @@ class TestNeo4jProvider:
         assert params['name'] == 'Test Node'
         assert params['value'] == 42
         
-    @patch('src.providers.graph.neo4j.GraphDatabase')
+    @patch('neo4j.GraphDatabase')
     def test_health_check_success(self, mock_graph_db):
         """Test successful health check."""
         config = {

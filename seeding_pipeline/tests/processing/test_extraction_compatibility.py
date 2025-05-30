@@ -10,7 +10,7 @@ import warnings
 from unittest.mock import Mock, patch
 
 from src.processing.extraction import KnowledgeExtractor, ExtractionResult, create_extractor
-from src.core.models import Entity, Insight, Quote
+from src.core.models import Entity, Insight, Quote, EntityType
 
 
 class TestBackwardCompatibility:
@@ -37,7 +37,7 @@ class TestBackwardCompatibility:
         
         # Mock the individual extraction methods
         extractor.extract_entities = Mock(return_value=[
-            Entity(id='1', name='Test Entity', type='PERSON')
+            Entity(id='1', name='Test Entity', entity_type=EntityType.PERSON)
         ])
         extractor.extract_insights = Mock(return_value=[
             Insight(id='1', content='Test insight', type='FACTUAL')
@@ -105,7 +105,7 @@ class TestBackwardCompatibility:
     
     def test_extraction_result_structure_unchanged(self):
         """Test that ExtractionResult structure remains unchanged."""
-        entities = [Entity(id='1', name='Entity', type='PERSON')]
+        entities = [Entity(id='1', name='Entity', entity_type=EntityType.PERSON)]
         insights = [Insight(id='1', content='Insight', type='FACTUAL')]
         quotes = [Quote(id='1', text='Quote', speaker='Speaker', type='INSIGHTFUL')]
         topics = [{'name': 'Topic'}]

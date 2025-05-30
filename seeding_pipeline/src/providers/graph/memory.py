@@ -91,9 +91,9 @@ class InMemoryGraphProvider(BaseGraphProvider):
         """Create a relationship in memory."""
         # Verify nodes exist
         if source_id not in self.nodes:
-            raise ProviderError(f"Source node {source_id} not found")
+            raise ProviderError("in_memory", f"Source node {source_id} not found")
         if target_id not in self.nodes:
-            raise ProviderError(f"Target node {target_id} not found")
+            raise ProviderError("in_memory", f"Target node {target_id} not found")
             
         relationship = {
             'source_id': source_id,
@@ -112,7 +112,7 @@ class InMemoryGraphProvider(BaseGraphProvider):
     def delete_node(self, node_id: str) -> None:
         """Delete a node and its relationships."""
         if node_id not in self.nodes:
-            raise ProviderError(f"Node {node_id} not found")
+            raise ProviderError("in_memory", f"Node {node_id} not found")
             
         # Remove from nodes
         node_data = self.nodes.pop(node_id)
@@ -137,7 +137,7 @@ class InMemoryGraphProvider(BaseGraphProvider):
     def update_node(self, node_id: str, properties: Dict[str, Any]) -> None:
         """Update node properties."""
         if node_id not in self.nodes:
-            raise ProviderError(f"Node {node_id} not found")
+            raise ProviderError("in_memory", f"Node {node_id} not found")
             
         # Update properties
         self.nodes[node_id].update(properties)

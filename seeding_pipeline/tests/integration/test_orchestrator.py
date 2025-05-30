@@ -34,7 +34,7 @@ def mock_providers():
         'audio': audio_provider,
         'llm': llm_provider,
         'graph': graph_provider,
-        'embeddings': embedding_provider
+        'embedding': embedding_provider
     }
 
 

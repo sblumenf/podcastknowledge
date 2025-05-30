@@ -1,0 +1,126 @@
+name: Coverage Report
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  coverage:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Fetch all history for coverage trends
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.11"
+    
+    - name: Cache dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements*.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements-dev.txt
+        pip install coverage-badge diff-cover
+    
+    - name: Run tests with coverage
+      env:
+        NEO4J_URI: bolt://localhost:7687
+        NEO4J_USERNAME: neo4j
+        NEO4J_PASSWORD: testpassword
+        GOOGLE_API_KEY: test_key
+      run: |
+        pytest --cov=src --cov-branch --cov-report=xml --cov-report=term-missing --cov-report=html
+        coverage json
+    
+    - name: Generate coverage report
+      run: |
+        echo "## Coverage Report" > coverage-report.md
+        echo "" >> coverage-report.md
+        echo "### Overall Coverage" >> coverage-report.md
+        coverage report --format=markdown >> coverage-report.md || coverage report >> coverage-report.md
+        echo "" >> coverage-report.md
+        echo "### Coverage by Module" >> coverage-report.md
+        echo '```' >> coverage-report.md
+        coverage report --sort=cover >> coverage-report.md
+        echo '```' >> coverage-report.md
+    
+    - name: Coverage diff
+      if: github.event_name == 'pull_request'
+      run: |
+        # Get base branch coverage
+        git fetch origin ${{ github.base_ref }}:${{ github.base_ref }}
+        git checkout ${{ github.base_ref }}
+        pytest --cov=src --cov-report=xml:base-coverage.xml -q || true
+        git checkout -
+        
+        # Generate diff coverage
+        diff-cover coverage.xml --compare-branch=${{ github.base_ref }} --markdown-report=diff-coverage.md
+        
+        echo "" >> coverage-report.md
+        echo "### Coverage Changes" >> coverage-report.md
+        cat diff-coverage.md >> coverage-report.md || echo "No coverage diff available" >> coverage-report.md
+    
+    - name: Comment PR with coverage
+      if: github.event_name == 'pull_request'
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const fs = require('fs');
+          const coverageReport = fs.readFileSync('coverage-report.md', 'utf8');
+          
+          const comment = {
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            issue_number: context.issue.number,
+            body: coverageReport
+          };
+          
+          // Find existing comment
+          const comments = await github.rest.issues.listComments({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            issue_number: context.issue.number
+          });
+          
+          const botComment = comments.data.find(comment => 
+            comment.user.type === 'Bot' && comment.body.includes('## Coverage Report')
+          );
+          
+          if (botComment) {
+            await github.rest.issues.updateComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              comment_id: botComment.id,
+              body: coverageReport
+            });
+          } else {
+            await github.rest.issues.createComment(comment);
+          }
+    
+    - name: Upload coverage artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: coverage-report
+        path: |
+          htmlcov/
+          coverage-report.md
+          coverage.json
+        retention-days: 30
+    
+    - name: Check coverage threshold
+      run: |
+        coverage report --fail-under=8.43
+        echo "✅ Coverage threshold met: 8.43%"

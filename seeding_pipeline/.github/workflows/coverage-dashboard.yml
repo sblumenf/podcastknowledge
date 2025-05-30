@@ -1,0 +1,177 @@
+name: Coverage Dashboard
+
+on:
+  schedule:
+    - cron: '0 0 * * 0'  # Weekly on Sunday
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'src/**'
+      - 'tests/**'
+
+jobs:
+  generate-dashboard:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.11"
+    
+    - name: Install dependencies
+      run: |
+        pip install -r requirements-dev.txt
+        pip install matplotlib pandas plotly kaleido
+    
+    - name: Run tests and collect coverage
+      run: |
+        pytest --cov=src --cov-report=json --cov-report=xml
+    
+    - name: Generate coverage dashboard
+      run: |
+        python - <<'EOF'
+        import json
+        import pandas as pd
+        import plotly.graph_objects as go
+        from datetime import datetime
+        
+        # Load coverage data
+        with open('coverage.json', 'r') as f:
+            coverage_data = json.load(f)
+        
+        # Extract module coverage
+        files = coverage_data['files']
+        modules = []
+        for file, data in files.items():
+            if file.startswith('src/'):
+                modules.append({
+                    'module': file.replace('src/', '').replace('.py', ''),
+                    'coverage': data['summary']['percent_covered'],
+                    'lines': data['summary']['num_statements'],
+                    'missing': data['summary']['missing_lines']
+                })
+        
+        df = pd.DataFrame(modules)
+        df = df.sort_values('coverage', ascending=True)
+        
+        # Create coverage by module chart
+        fig1 = go.Figure(data=[
+            go.Bar(
+                x=df['coverage'][-20:],
+                y=df['module'][-20:],
+                orientation='h',
+                marker=dict(
+                    color=df['coverage'][-20:],
+                    colorscale=[[0, 'red'], [0.5, 'yellow'], [1, 'green']],
+                    cmin=0,
+                    cmax=100
+                )
+            )
+        ])
+        
+        fig1.update_layout(
+            title='Coverage by Module (Top 20)',
+            xaxis_title='Coverage %',
+            yaxis_title='Module',
+            height=600
+        )
+        
+        fig1.write_html('coverage-by-module.html')
+        
+        # Create coverage distribution
+        fig2 = go.Figure(data=[
+            go.Histogram(
+                x=df['coverage'],
+                nbinsx=20,
+                marker_color='lightblue'
+            )
+        ])
+        
+        fig2.update_layout(
+            title='Coverage Distribution',
+            xaxis_title='Coverage %',
+            yaxis_title='Number of Modules',
+            showlegend=False
+        )
+        
+        fig2.add_vline(x=8.43, line_dash="dash", line_color="red", annotation_text="Current: 8.43%")
+        fig2.add_vline(x=90, line_dash="dash", line_color="green", annotation_text="Target: 90%")
+        
+        fig2.write_html('coverage-distribution.html')
+        
+        # Generate markdown report
+        total_coverage = coverage_data['totals']['percent_covered']
+        total_lines = coverage_data['totals']['num_statements']
+        covered_lines = int(total_lines * total_coverage / 100)
+        
+        with open('coverage-dashboard.md', 'w') as f:
+            f.write(f"# Coverage Dashboard\n\n")
+            f.write(f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n")
+            f.write(f"## Overall Statistics\n\n")
+            f.write(f"- **Total Coverage**: {total_coverage:.2f}%\n")
+            f.write(f"- **Lines Covered**: {covered_lines:,} / {total_lines:,}\n")
+            f.write(f"- **Modules Analyzed**: {len(modules)}\n\n")
+            f.write(f"## Coverage by Category\n\n")
+            
+            categories = {
+                'API': 'api/',
+                'Core': 'core/',
+                'Processing': 'processing/',
+                'Providers': 'providers/',
+                'Seeding': 'seeding/',
+                'Utils': 'utils/',
+                'Migration': 'migration/'
+            }
+            
+            for cat_name, cat_path in categories.items():
+                cat_modules = [m for m in modules if cat_path in m['module']]
+                if cat_modules:
+                    cat_df = pd.DataFrame(cat_modules)
+                    avg_coverage = cat_df['coverage'].mean()
+                    f.write(f"### {cat_name}: {avg_coverage:.1f}%\n")
+                    f.write(f"- Modules: {len(cat_modules)}\n")
+                    f.write(f"- Best: {cat_df['coverage'].max():.1f}%\n")
+                    f.write(f"- Worst: {cat_df['coverage'].min():.1f}%\n\n")
+            
+            f.write(f"## Modules Needing Attention\n\n")
+            f.write("| Module | Coverage | Missing Lines |\n")
+            f.write("|--------|----------|---------------|\n")
+            for _, row in df.head(10).iterrows():
+                f.write(f"| {row['module']} | {row['coverage']:.1f}% | {row['missing']} |\n")
+        
+        print("Dashboard generated successfully!")
+        EOF
+    
+    - name: Upload dashboard artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: coverage-dashboard
+        path: |
+          coverage-dashboard.md
+          coverage-by-module.html
+          coverage-distribution.html
+        retention-days: 90
+    
+    - name: Update dashboard in wiki
+      if: github.ref == 'refs/heads/main'
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        
+        # Clone wiki
+        git clone https://github.com/${{ github.repository }}.wiki.git wiki
+        
+        # Copy dashboard
+        cp coverage-dashboard.md wiki/Coverage-Dashboard.md
+        
+        # Commit and push
+        cd wiki
+        git add Coverage-Dashboard.md
+        git commit -m "Update coverage dashboard" || true
+        git push || true

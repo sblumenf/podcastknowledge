@@ -63,6 +63,11 @@ def pytest_configure(config):
     config.addinivalue_line("markers", "slow: Slow running tests")
     config.addinivalue_line("markers", "requires_neo4j: Tests that require Neo4j")
     config.addinivalue_line("markers", "requires_gpu: Tests that require GPU")
+    config.addinivalue_line("markers", "requires_api_keys: Tests that require external API keys")
+    config.addinivalue_line("markers", "requires_docker: Tests that require Docker")
+    config.addinivalue_line("markers", "e2e: End-to-end tests")
+    config.addinivalue_line("markers", "performance: Performance tests")
+    config.addinivalue_line("markers", "benchmark: Benchmark tests")
 
 
 def pytest_collection_modifyitems(config, items):

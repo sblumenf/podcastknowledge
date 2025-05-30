@@ -54,21 +54,86 @@ jobs:
     - name: Run type checking
       run: mypy src
     
-    - name: Run tests
+    - name: Run tests with coverage
       env:
         NEO4J_URI: bolt://localhost:7687
         NEO4J_USERNAME: neo4j
         NEO4J_PASSWORD: testpassword
         GOOGLE_API_KEY: test_key
       run: |
-        pytest -v --cov=src --cov-report=xml
+        pytest -v --cov=src --cov-report=xml --cov-report=term-missing --cov-report=html
+    
+    - name: Check coverage threshold
+      run: |
+        coverage report --fail-under=8.43
+        echo "Current coverage threshold: 8.43%"
+        echo "Target coverage: 90%"
+    
+    - name: Generate coverage comment
+      if: github.event_name == 'pull_request'
+      uses: py-cov-action/python-coverage-comment-action@v3
+      with:
+        GITHUB_TOKEN: ${{ github.token }}
+        MINIMUM_GREEN: 85
+        MINIMUM_ORANGE: 70
+        ANNOTATE_MISSING_LINES: true
+        ANNOTATION_TYPE: warning
+    
+    - name: Upload coverage reports
+      uses: actions/upload-artifact@v3
+      with:
+        name: coverage-reports-${{ matrix.python-version }}
+        path: |
+          coverage.xml
+          htmlcov/
+        retention-days: 7
     
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v3
       with:
         file: ./coverage.xml
         flags: unittests
-        name: codecov-umbrella
+        name: codecov-py${{ matrix.python-version }}
+        fail_ci_if_error: false
+        verbose: true
+
+  coverage-trend:
+    runs-on: ubuntu-latest
+    needs: test
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Download coverage artifacts
+      uses: actions/download-artifact@v3
+      with:
+        path: coverage-artifacts
+    
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.11"
+    
+    - name: Generate coverage trend report
+      run: |
+        pip install coverage-badge
+        coverage-badge -o coverage.svg -f
+        echo "## Coverage Trend" > coverage-trend.md
+        echo "![Coverage](coverage.svg)" >> coverage-trend.md
+        echo "" >> coverage-trend.md
+        echo "### Historical Coverage" >> coverage-trend.md
+        echo "| Date | Coverage | Change |" >> coverage-trend.md
+        echo "|------|----------|--------|" >> coverage-trend.md
+        echo "| $(date +%Y-%m-%d) | 8.43% | Baseline |" >> coverage-trend.md
+    
+    - name: Commit coverage badge
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add coverage.svg coverage-trend.md || true
+        git commit -m "Update coverage badge [skip ci]" || true
+        git push || true
 
   security:
     runs-on: ubuntu-latest
@@ -91,3 +156,23 @@ jobs:
       with:
         name: bandit-report
         path: bandit-report.json
+
+  test-summary:
+    runs-on: ubuntu-latest
+    needs: [test, security]
+    if: always()
+    
+    steps:
+    - name: Test Summary
+      run: |
+        echo "## Test Summary" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Coverage Status" >> $GITHUB_STEP_SUMMARY
+        echo "- Current threshold: 8.43%" >> $GITHUB_STEP_SUMMARY
+        echo "- Target coverage: 90%" >> $GITHUB_STEP_SUMMARY
+        echo "- Progress: 9.37% of target" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Next Steps" >> $GITHUB_STEP_SUMMARY
+        echo "1. Add more unit tests for uncovered modules" >> $GITHUB_STEP_SUMMARY
+        echo "2. Increase coverage threshold incrementally" >> $GITHUB_STEP_SUMMARY
+        echo "3. Focus on critical path coverage" >> $GITHUB_STEP_SUMMARY

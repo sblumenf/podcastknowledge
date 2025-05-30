@@ -102,7 +102,7 @@ class TestGeminiProvider:
         with pytest.raises(ProviderError, match="API key is required"):
             GeminiProvider(config)
             
-    @patch('src.providers.llm.gemini.ChatGoogleGenerativeAI')
+    @patch('langchain_google_genai.ChatGoogleGenerativeAI')
     def test_initialization_with_api_key(self, mock_llm_class):
         """Test successful initialization with API key."""
         config = {
@@ -118,7 +118,7 @@ class TestGeminiProvider:
         assert provider.model_name == 'gemini-2.0-flash'
         mock_llm_class.assert_called_once()
         
-    @patch('src.providers.llm.gemini.ChatGoogleGenerativeAI')
+    @patch('langchain_google_genai.ChatGoogleGenerativeAI')
     def test_complete_success(self, mock_llm_class):
         """Test successful completion."""
         # Set up mock
@@ -139,7 +139,7 @@ class TestGeminiProvider:
         assert response == "Generated response"
         mock_client.invoke.assert_called_once_with("Test prompt")
         
-    @patch('src.providers.llm.gemini.ChatGoogleGenerativeAI')
+    @patch('langchain_google_genai.ChatGoogleGenerativeAI')
     def test_rate_limit_check(self, mock_llm_class):
         """Test rate limit checking."""
         config = {
@@ -170,7 +170,7 @@ class TestGeminiProvider:
         with pytest.raises(RateLimitError):
             provider.complete("Test 2")
             
-    @patch('src.providers.llm.gemini.ChatGoogleGenerativeAI')
+    @patch('langchain_google_genai.ChatGoogleGenerativeAI')
     def test_complete_with_options(self, mock_llm_class):
         """Test completion with custom options."""
         # Set up mock
@@ -198,7 +198,7 @@ class TestGeminiProvider:
         assert result['temperature'] == 0.9
         assert result['max_tokens'] == 2048
         
-    @patch('src.providers.llm.gemini.ChatGoogleGenerativeAI')
+    @patch('langchain_google_genai.ChatGoogleGenerativeAI')
     def test_health_check(self, mock_llm_class):
         """Test health check functionality."""
         # Set up mock
@@ -227,7 +227,7 @@ class TestGeminiProvider:
             'api_key': 'test-api-key'
         }
         
-        with patch('src.providers.llm.gemini.ChatGoogleGenerativeAI', side_effect=ImportError):
+        with patch('langchain_google_genai.ChatGoogleGenerativeAI', side_effect=ImportError):
             provider = GeminiProvider(config)
             with pytest.raises(ProviderError, match="langchain_google_genai is not installed"):
                 provider._initialize_client()

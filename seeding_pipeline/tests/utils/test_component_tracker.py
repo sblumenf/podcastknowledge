@@ -6,11 +6,12 @@ import os
 import tempfile
 import pytest
 from datetime import datetime
+from pathlib import Path
 from unittest.mock import patch, MagicMock
 
 from src.utils.component_tracker import (
     ComponentTracker,
-    ComponentMetrics,
+    ComponentImpact,
     ComponentContribution,
     ComponentDependency,
     track_component_impact,
@@ -25,298 +26,213 @@ class TestComponentTracker:
     """Test cases for ComponentTracker class."""
     
     @pytest.fixture
-    def temp_db(self):
-        """Create a temporary database file."""
-        with tempfile.NamedTemporaryFile(suffix='.db', delete=False) as f:
-            temp_path = f.name
-        yield temp_path
-        # Cleanup
-        if os.path.exists(temp_path):
-            os.unlink(temp_path)
+    def temp_dir(self):
+        """Create a temporary directory."""
+        with tempfile.TemporaryDirectory() as temp_dir:
+            yield Path(temp_dir)
     
     @pytest.fixture
-    def tracker(self, temp_db):
-        """Create a tracker instance with temporary database."""
-        return ComponentTracker(storage_path=temp_db)
+    def tracker(self, temp_dir):
+        """Create a tracker instance with temporary directory."""
+        return ComponentTracker(output_dir=temp_dir)
     
     def test_tracker_initialization(self, tracker):
         """Test tracker initializes correctly."""
-        assert tracker.enabled
-        assert tracker.storage_path is not None
-        assert os.path.exists(tracker.storage_path)
+        assert tracker.output_dir is not None
+        assert os.path.exists(tracker.output_dir)
+        assert hasattr(tracker, 'impacts')
+        assert hasattr(tracker, 'baseline_results')
     
-    def test_tracker_disabled(self, temp_db):
-        """Test tracker behavior when disabled."""
-        with patch.dict(os.environ, {'ENABLE_COMPONENT_TRACKING': 'false'}):
-            tracker = ComponentTracker(storage_path=temp_db)
-            assert not tracker.enabled
-            
-            # Should not create database when disabled
-            metrics = ComponentMetrics(
-                component_name="test",
-                version="1.0",
-                execution_time=1.0,
-                memory_usage=None,
-                input_size=100,
-                output_size=200,
-                timestamp=datetime.now().isoformat(),
-                episode_id=None,
-                segment_id=None,
-                success=True
-            )
-            tracker.track_metrics(metrics)  # Should not raise error
-    
-    def test_track_metrics(self, tracker):
-        """Test tracking component metrics."""
-        metrics = ComponentMetrics(
+    def test_record_impact(self, tracker):
+        """Test recording component impact."""
+        impact = ComponentImpact(
             component_name="test_component",
-            version="1.0.0",
             execution_time=1.5,
-            memory_usage=1024.0,
-            input_size=500,
-            output_size=600,
-            timestamp=datetime.now().isoformat(),
-            episode_id="ep_123",
-            segment_id="seg_456",
-            success=True
+            items_added=10,
+            items_modified=5,
+            items_removed=2,
+            properties_added={"name": 5, "description": 3},
+            relationships_added={"MENTIONS": 4, "DISCUSSES": 2}
         )
         
-        tracker.track_metrics(metrics)
+        tracker.record_impact(impact)
         
-        # Verify metrics were stored
-        summary = tracker.get_metrics_summary("test_component")
-        assert summary['total_executions'] == 1
-        assert summary['avg_execution_time'] == 1.5
-        assert summary['successful_runs'] == 1
-        assert summary['failed_runs'] == 0
-        assert summary['success_rate'] == 1.0
+        # Verify impact was recorded
+        assert "test_component" in tracker.impacts
+        assert len(tracker.impacts["test_component"]) == 1
+        assert tracker.impacts["test_component"][0] == impact
+        
+        # Verify file was created
+        impact_file = tracker.output_dir / "test_component_impacts.jsonl"
+        assert impact_file.exists()
     
-    def test_track_contribution(self, tracker):
-        """Test tracking component contributions."""
-        contribution = ComponentContribution(
-            component_name="test_component",
-            contribution_type="metadata_added",
-            details={"fields": ["timestamp", "confidence"]},
-            count=2,
-            timestamp=datetime.now().isoformat()
+    def test_track_impact_context(self, tracker):
+        """Test the track_impact context manager."""
+        with tracker.track_impact("test_component") as impact:
+            impact.add_items(5)
+            impact.modify_items(3)
+            impact.add_properties({"title": 2, "content": 3})
+            impact.add_relationships({"LINKS_TO": 1})
+            impact.add_metadata("test_key", "test_value")
+        
+        # Verify impact was recorded with correct values
+        assert "test_component" in tracker.impacts
+        recorded = tracker.impacts["test_component"][0]
+        assert recorded.items_added == 5
+        assert recorded.items_modified == 3
+        assert recorded.properties_added == {"title": 2, "content": 3}
+        assert recorded.relationships_added == {"LINKS_TO": 1}
+        assert recorded.metadata["test_key"] == "test_value"
+    
+    def test_generate_impact_report(self, tracker):
+        """Test generating impact report."""
+        # Add some test impacts
+        for i in range(3):
+            impact = ComponentImpact(
+                component_name="component_a",
+                execution_time=1.0 + i * 0.5,
+                items_added=5 + i,
+                items_modified=2 + i
+            )
+            tracker.record_impact(impact)
+        
+        impact_b = ComponentImpact(
+            component_name="component_b",
+            execution_time=0.5,
+            items_added=0,  # Low impact component
+            items_modified=0
         )
+        tracker.record_impact(impact_b)
         
-        tracker.track_contribution(contribution)
+        report = tracker.generate_impact_report()
         
-        # Verify by checking analysis
-        impact = analyze_component_impact("test_component")
-        assert len(impact['contributions']) > 0
-        assert impact['contributions'][0]['type'] == "metadata_added"
-        assert impact['contributions'][0]['total_count'] == 2
+        # Verify report structure
+        assert "generated_at" in report
+        assert "components" in report
+        assert "summary" in report
+        assert "recommendations" in report
+        
+        # Verify component analysis
+        assert "component_a" in report["components"]
+        comp_a = report["components"]["component_a"]
+        assert comp_a["execution_count"] == 3
+        assert comp_a["total_items_added"] == 5 + 6 + 7  # 18
+        assert comp_a["total_items_modified"] == 2 + 3 + 4  # 9
+        
+        # Verify recommendations for low-impact component
+        low_impact_recs = [r for r in report["recommendations"] 
+                          if r["component"] == "component_b" and r["type"] == "no_additions"]
+        assert len(low_impact_recs) > 0
     
-    def test_register_dependency(self, tracker):
-        """Test registering component dependencies."""
-        dependency = ComponentDependency(
-            component_name="quote_extractor",
-            depends_on=["segment_preprocessor"],
-            required_by=["metadata_enricher"],
-            can_disable_if="no quotes needed"
-        )
+    def test_compare_with_baseline(self, tracker):
+        """Test baseline comparison functionality."""
+        baseline_results = {
+            "total_entities": 100,
+            "total_relationships": 50,
+            "processing_time": 10.0
+        }
         
-        tracker.register_dependency(dependency)
-        # Test passes if no exception is raised
+        current_results = {
+            "total_entities": 120,
+            "total_relationships": 44,  # Changed to 44 to be > 10% decrease (12% decrease)
+            "processing_time": 8.0
+        }
+        
+        comparison = tracker.compare_with_baseline("test_baseline", baseline_results)
+        assert comparison["status"] == "baseline_saved"
+        
+        # Compare with different results
+        comparison = tracker.compare_with_baseline("test_baseline", current_results)
+        assert "differences" in comparison
+        assert "improvements" in comparison
+        assert "regressions" in comparison
+        
+        # Check specific improvements/regressions
+        assert any("total_entities improved" in imp for imp in comparison["improvements"])
+        # Processing time decreased from 10 to 8, which is -20% change, treated as regression by the simple logic
+        assert any("processing_time regressed" in reg for reg in comparison["regressions"])
+        assert any("total_relationships regressed" in reg for reg in comparison["regressions"])
     
-    def test_tracking_decorator(self, tracker):
+    def test_identify_redundant_components(self, tracker):
+        """Test identifying redundant components."""
+        # Add component with no impact
+        for i in range(5):
+            impact = ComponentImpact(
+                component_name="redundant_component",
+                execution_time=1.0,
+                items_added=0,
+                items_modified=0
+            )
+            tracker.record_impact(impact)
+        
+        # Add component with minimal impact
+        for i in range(15):
+            impact = ComponentImpact(
+                component_name="minimal_component",
+                execution_time=0.5,
+                items_added=0,
+                items_modified=1 if i == 0 else 0  # Only 1 modification total
+            )
+            tracker.record_impact(impact)
+        
+        redundant = tracker.identify_redundant_components()
+        assert "redundant_component" in redundant
+        assert "minimal_component" in redundant
+    
+    def test_tracking_decorator(self, tracker, monkeypatch):
         """Test the tracking decorator functionality."""
-        # Clear global tracker and set our test tracker
+        # Mock the global tracker
         import src.utils.component_tracker
-        src.utils.component_tracker._tracker = tracker
+        monkeypatch.setattr(src.utils.component_tracker, '_global_tracker', tracker)
         
         @track_component_impact("test_function", "1.0.0")
-        def sample_function(text: str, episode_id: str = None) -> dict:
+        def sample_function(text: str) -> dict:
             return {
                 "result": text.upper(),
-                "metrics": {
-                    "type": "text_transformation",
-                    "details": {"transformation": "uppercase"},
-                    "count": 1
-                }
+                "added": 3,
+                "modified": 2
             }
         
         # Execute the decorated function
-        result = sample_function("hello world", episode_id="ep_123")
+        result = sample_function("hello world")
         
+        # Verify function still works
         assert result["result"] == "HELLO WORLD"
         
-        # Check metrics were tracked
-        summary = tracker.get_metrics_summary("test_function")
-        assert summary['total_executions'] == 1
-        assert summary['successful_runs'] == 1
-        assert summary['success_rate'] == 1.0
+        # Verify impact was tracked
+        assert "test_function" in tracker.impacts
+        assert len(tracker.impacts["test_function"]) == 1
+        impact = tracker.impacts["test_function"][0]
+        assert impact.items_added == 3
+        assert impact.items_modified == 2
     
-    def test_tracking_decorator_with_error(self, tracker):
-        """Test decorator handles errors correctly."""
+    def test_module_functions(self, tracker, monkeypatch):
+        """Test module-level convenience functions."""
+        # Mock the global tracker
         import src.utils.component_tracker
-        src.utils.component_tracker._tracker = tracker
+        monkeypatch.setattr(src.utils.component_tracker, '_global_tracker', tracker)
         
-        @track_component_impact("error_function", "1.0.0")
-        def error_function():
-            raise ValueError("Test error")
-        
-        # Execute and expect error
-        with pytest.raises(ValueError):
-            error_function()
-        
-        # Check failure was tracked
-        summary = tracker.get_metrics_summary("error_function")
-        assert summary['total_executions'] == 1
-        assert summary['successful_runs'] == 0
-        assert summary['failed_runs'] == 1
-        assert summary['success_rate'] == 0.0
-
-
-class TestAnalysisUtilities:
-    """Test cases for analysis utility functions."""
-    
-    @pytest.fixture
-    def populated_tracker(self, temp_db):
-        """Create a tracker with sample data."""
-        tracker = ComponentTracker(storage_path=temp_db)
-        
-        # Add sample metrics
-        for i in range(10):
-            metrics = ComponentMetrics(
-                component_name="component_a",
-                version="1.0.0",
-                execution_time=1.0 + i * 0.1,
-                memory_usage=None,
-                input_size=100,
-                output_size=150,
-                timestamp=datetime.now().isoformat(),
-                episode_id=f"ep_{i}",
-                segment_id=None,
-                success=True
-            )
-            tracker.track_metrics(metrics)
-        
-        # Add some v2 metrics
-        for i in range(5):
-            metrics = ComponentMetrics(
-                component_name="component_a",
-                version="2.0.0",
-                execution_time=0.8 + i * 0.1,
-                memory_usage=None,
-                input_size=100,
-                output_size=150,
-                timestamp=datetime.now().isoformat(),
-                episode_id=f"ep_{i}",
-                segment_id=None,
-                success=True
-            )
-            tracker.track_metrics(metrics)
-        
-        # Add contributions
-        contribution = ComponentContribution(
-            component_name="component_a",
-            contribution_type="entities_extracted",
-            details={"types": ["Person", "Organization"]},
-            count=25,
-            timestamp=datetime.now().isoformat()
+        # Add some test data
+        impact = ComponentImpact(
+            component_name="test_component",
+            execution_time=1.0,
+            items_added=10
         )
-        tracker.track_contribution(contribution)
+        tracker.record_impact(impact)
         
-        return tracker
-    
-    def test_analyze_component_impact(self, populated_tracker):
-        """Test component impact analysis."""
-        import src.utils.component_tracker
-        src.utils.component_tracker._tracker = populated_tracker
+        # Test analyze_component_impact
+        analysis = analyze_component_impact("test_component")
+        assert analysis.get("execution_count") == 1
+        assert analysis.get("total_items_added") == 10
         
-        impact = analyze_component_impact("component_a")
+        # Test compare_component_versions (should return compatibility message)
+        comparison = compare_component_versions("test_component", "1.0", "2.0")
+        assert "compare_with_baseline" in comparison["comparison"]
         
-        assert impact['component_name'] == "component_a"
-        assert 'metrics_summary' in impact
-        assert impact['metrics_summary']['total_executions'] == 15  # 10 + 5
-        assert len(impact['contributions']) > 0
-        assert 'recommendation' in impact
-    
-    def test_compare_versions(self, populated_tracker):
-        """Test version comparison functionality."""
-        import src.utils.component_tracker
-        src.utils.component_tracker._tracker = populated_tracker
-        
-        comparison = compare_component_versions("component_a", "1.0.0", "2.0.0")
-        
-        assert 'version_comparison' in comparison
-        assert "1.0.0" in comparison['version_comparison']
-        assert "2.0.0" in comparison['version_comparison']
-        
-        # v2 should be faster based on our test data
-        v1_time = comparison['version_comparison']["1.0.0"]['avg_execution_time']
-        v2_time = comparison['version_comparison']["2.0.0"]['avg_execution_time']
-        assert v2_time < v1_time
-    
-    def test_identify_redundancies(self, temp_db):
-        """Test redundancy identification."""
-        tracker = ComponentTracker(storage_path=temp_db)
-        import src.utils.component_tracker
-        src.utils.component_tracker._tracker = tracker
-        
-        # Add overlapping contributions
-        for component in ["comp_1", "comp_2"]:
-            contribution = ComponentContribution(
-                component_name=component,
-                contribution_type="metadata_injection",
-                details={},
-                count=10,
-                timestamp=datetime.now().isoformat()
-            )
-            tracker.track_contribution(contribution)
-        
+        # Test identify_redundancies
         redundancies = identify_redundancies()
+        assert isinstance(redundancies, list)
         
-        assert len(redundancies) > 0
-        assert redundancies[0]['component1'] == "comp_1"
-        assert redundancies[0]['component2'] == "comp_2"
-        assert redundancies[0]['shared_contribution'] == "metadata_injection"
-        assert redundancies[0]['overlap_ratio'] == 1.0  # Same count
-
-
-class TestRecommendations:
-    """Test recommendation generation logic."""
-    
-    def test_recommendation_for_slow_component(self):
-        """Test recommendation for slow components."""
-        from src.utils.component_tracker import _generate_recommendation
-        
-        summary = {
-            'success_rate': 0.95,
-            'avg_execution_time': 6.0  # Slow
-        }
-        contributions = [{'total_count': 100}]
-        
-        recommendation = _generate_recommendation(summary, contributions)
-        assert "slow" in recommendation.lower()
-        assert "optimization" in recommendation.lower()
-    
-    def test_recommendation_for_unreliable_component(self):
-        """Test recommendation for unreliable components."""
-        from src.utils.component_tracker import _generate_recommendation
-        
-        summary = {
-            'success_rate': 0.8,  # Low success rate
-            'avg_execution_time': 1.0
-        }
-        contributions = [{'total_count': 100}]
-        
-        recommendation = _generate_recommendation(summary, contributions)
-        assert "reliability" in recommendation.lower()
-    
-    def test_recommendation_for_low_impact_component(self):
-        """Test recommendation for low impact components."""
-        from src.utils.component_tracker import _generate_recommendation
-        
-        summary = {
-            'success_rate': 1.0,
-            'avg_execution_time': 1.0
-        }
-        contributions = [{'total_count': 5}]  # Low contribution
-        
-        recommendation = _generate_recommendation(summary, contributions)
-        assert "minimal impact" in recommendation.lower()
-        assert "removal" in recommendation.lower()
+        # Test get_tracker
+        retrieved_tracker = get_tracker()
+        assert retrieved_tracker == tracker

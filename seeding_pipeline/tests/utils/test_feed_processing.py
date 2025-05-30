@@ -26,27 +26,53 @@ def mock_feed():
     """Create a mock feed object."""
     feed = Mock()
     feed.bozo = False
-    feed.feed = Mock()
+    feed.feed = MagicMock()
     feed.feed.title = "Test Podcast"
     feed.feed.subtitle = "A test podcast description"
     feed.feed.link = "https://example.com/podcast"
     feed.feed.language = "en"
     feed.feed.author = "Test Author"
+    # Mock categories - make them empty lists to avoid iteration errors
+    feed.feed.categories = []
+    # Configure get method for feed.feed
+    feed.feed.get.side_effect = lambda key, default="": {
+        "title": "Test Podcast",
+        "subtitle": "A test podcast description",
+        "link": "https://example.com/podcast",
+        "language": "en",
+        "author": "Test Author"
+    }.get(key, default)
     
-    # Mock entries
-    entry1 = Mock()
+    # Mock entries - use MagicMock for better attribute handling
+    entry1 = MagicMock()
     entry1.title = "Episode 1"
     entry1.summary = "First episode"
     entry1.published = "2023-01-01T00:00:00Z"
     entry1.id = "ep1"
     entry1.links = [Mock(href="https://example.com/ep1.mp3", type="audio/mpeg")]
+    # Configure get method for entry1
+    entry1.get.side_effect = lambda key, default=None: {
+        "title": "Episode 1",
+        "summary": "First episode",
+        "published": "2023-01-01T00:00:00Z",
+        "id": "ep1",
+        "link": "https://example.com/podcast/ep1"
+    }.get(key, default)
     
-    entry2 = Mock()
+    entry2 = MagicMock()
     entry2.title = "Episode 2"
     entry2.description = "Second episode"
     entry2.updated = "2023-01-02T00:00:00Z"
     entry2.guid = "ep2"
     entry2.enclosures = [Mock(href="https://example.com/ep2.mp3", type="audio/mpeg")]
+    # Configure get method for entry2
+    entry2.get.side_effect = lambda key, default=None: {
+        "title": "Episode 2",
+        "description": "Second episode",
+        "updated": "2023-01-02T00:00:00Z",
+        "guid": "ep2",
+        "link": "https://example.com/podcast/ep2"
+    }.get(key, default)
     
     feed.entries = [entry1, entry2]
     return feed
@@ -131,26 +157,30 @@ class TestFeedExtraction:
         feed.feed.image = Mock(href="https://example.com/image.jpg")
         assert _extract_feed_image(feed) == "https://example.com/image.jpg"
         
-        # Test with image.url
-        feed.feed.image = Mock(url="https://example.com/image2.jpg")
-        del feed.feed.image.href
+        # Test with image.url (no href attribute)
+        feed = Mock()
+        feed.feed = Mock()
+        image_mock = Mock(url="https://example.com/image2.jpg", spec=['url'])
+        feed.feed.image = image_mock
         assert _extract_feed_image(feed) == "https://example.com/image2.jpg"
         
-        # Test with iTunes image
-        feed.feed = Mock(itunes_image="https://example.com/itunes.jpg")
+        # Test with iTunes image (no regular image)
+        feed = Mock()
+        feed.feed = Mock(itunes_image="https://example.com/itunes.jpg", spec=['itunes_image'])
         assert _extract_feed_image(feed) == "https://example.com/itunes.jpg"
     
     def test_extract_categories(self):
         """Test category extraction."""
+        # Test iTunes category
         feed = Mock()
-        feed.feed = Mock()
-        
-        # iTunes category
+        feed.feed = Mock(spec=['itunes_category'])
         feed.feed.itunes_category = "Technology"
         categories = _extract_categories(feed)
         assert "Technology" in categories
         
-        # Regular categories
+        # Test regular categories
+        feed = Mock()
+        feed.feed = Mock(spec=['categories'])
         feed.feed.categories = [("Business",), "Education"]
         categories = _extract_categories(feed)
         assert "Business" in categories

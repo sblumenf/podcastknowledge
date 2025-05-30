@@ -19,7 +19,6 @@ from ..core.models import (
 )
 from ..core.exceptions import PodcastProcessingError
 from ..providers.graph.base import GraphProvider
-from ..seeding.checkpoint import CheckpointManager
 
 logger = logging.getLogger(__name__)
 
@@ -103,7 +102,7 @@ class DataMigrator:
         self.graph_provider = graph_provider
         self.checkpoint_dir = checkpoint_dir
         self.batch_size = batch_size
-        self.checkpoint_manager = CheckpointManager(checkpoint_dir / "migration")
+        # Removed CheckpointManager - using direct file operations
         
         # Create checkpoint directory
         self.checkpoint_dir.mkdir(parents=True, exist_ok=True)
@@ -132,9 +131,17 @@ class DataMigrator:
         logger.info(f"Starting {'dry run' if dry_run else 'full'} migration")
         
         # Load checkpoint if exists
-        checkpoint = self.checkpoint_manager.load_checkpoint("migration_progress")
+        checkpoint_file = self.checkpoint_dir / "migration_progress.json"
+        checkpoint = None
+        if checkpoint_file.exists():
+            try:
+                with open(checkpoint_file, 'r') as f:
+                    checkpoint = json.load(f)
+                    logger.info("Resuming from checkpoint")
+            except Exception as e:
+                logger.warning(f"Failed to load checkpoint: {e}")
+        
         if checkpoint:
-            logger.info("Resuming from checkpoint")
             progress = self._restore_progress(checkpoint)
         
         try:
@@ -160,10 +167,12 @@ class DataMigrator:
         
         # Save final checkpoint
         if not dry_run:
-            self.checkpoint_manager.save_checkpoint(
-                "migration_progress",
-                self._save_progress(progress)
-            )
+            checkpoint_file = self.checkpoint_dir / "migration_progress.json"
+            try:
+                with open(checkpoint_file, 'w') as f:
+                    json.dump(self._save_progress(progress), f, indent=2)
+            except Exception as e:
+                logger.error(f"Failed to save checkpoint: {e}")
         
         return progress
     
@@ -227,10 +236,12 @@ class DataMigrator:
                 
                 # Save checkpoint
                 if not dry_run and progress.processed_items % 1000 == 0:
-                    self.checkpoint_manager.save_checkpoint(
-                        "migration_progress",
-                        {"podcasts": progress.to_dict()}
-                    )
+                    checkpoint_file = self.checkpoint_dir / "migration_progress.json"
+                    try:
+                        with open(checkpoint_file, 'w') as f:
+                            json.dump({"podcasts": progress.to_dict()}, f, indent=2)
+                    except Exception as e:
+                        logger.error(f"Failed to save checkpoint: {e}")
             
             progress.status = MigrationStatus.COMPLETED
             
@@ -311,10 +322,12 @@ class DataMigrator:
                 
                 # Save checkpoint periodically
                 if not dry_run and progress.processed_items % 1000 == 0:
-                    self.checkpoint_manager.save_checkpoint(
-                        "migration_progress",
-                        {"episodes": progress.to_dict()}
-                    )
+                    checkpoint_file = self.checkpoint_dir / "migration_progress.json"
+                    try:
+                        with open(checkpoint_file, 'w') as f:
+                            json.dump({"episodes": progress.to_dict()}, f, indent=2)
+                    except Exception as e:
+                        logger.error(f"Failed to save checkpoint: {e}")
             
             progress.status = MigrationStatus.COMPLETED
             

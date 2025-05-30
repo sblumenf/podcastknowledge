@@ -326,9 +326,10 @@ class ResponseParser:
         response = re.sub(r'```\s*', '', response)
         
         # Try to find JSON array or object
+        # Check for objects first as they might contain arrays
         patterns = [
-            r'(\[[\s\S]*\])',  # JSON array
             r'(\{[\s\S]*\})',  # JSON object
+            r'(\[[\s\S]*\])',  # JSON array
         ]
         
         for pattern in patterns:
@@ -386,9 +387,9 @@ class ResponseParser:
         entity = Entity(
             id=f"entity_{idx}_{name.lower().replace(' ', '_')}_{datetime.now().timestamp()}",
             name=name,
-            type=entity_type.value,
+            entity_type=entity_type,
             description=item.get('description', ''),
-            first_mentioned=datetime.now().isoformat(),
+            first_mentioned=None,  # Will be set later
             mention_count=item.get('frequency', 1),
             bridge_score=item.get('importance', 5) / 10.0 if 'importance' in item else 0.5,
             is_peripheral=item.get('importance', 5) < 3 if 'importance' in item else False,
@@ -408,14 +409,24 @@ class ResponseParser:
         insight_type = self._map_insight_type(item.get('type', 'factual'))
         
         # Create insight
+        # Split content into title and description if possible
+        if ':' in content:
+            title, description = content.split(':', 1)
+            title = title.strip()
+            description = description.strip()
+        else:
+            title = content[:50] + "..." if len(content) > 50 else content
+            description = content
+            
         insight = Insight(
             id=f"insight_{idx}_{datetime.now().timestamp()}",
-            insight_type=insight_type.value,
-            content=content,
+            title=title,
+            description=description,
+            insight_type=insight_type,
             confidence_score=float(item.get('confidence', 0.7)),
-            extracted_from_segment="",  # Will be set by caller
+            extracted_from_segment=None,  # Will be set by caller
             is_bridge_insight=False,  # Will be determined later
-            timestamp=datetime.now().isoformat()
+            timestamp=datetime.now()
         )
         
         return insight
@@ -435,10 +446,13 @@ class ResponseParser:
             id=f"quote_{idx}_{datetime.now().timestamp()}",
             text=text,
             speaker=item.get('speaker', 'Unknown'),
-            quote_type=quote_type.value,
-            context=item.get('context', ''),
-            timestamp=datetime.now().isoformat(),
-            segment_id=""  # Will be set by caller
+            quote_type=quote_type,
+            context=item.get('context', None),
+            impact_score=0.5,  # Default impact score
+            word_count=len(text.split()),
+            estimated_timestamp=None,
+            segment_id=None,  # Will be set by caller
+            episode_id=None   # Will be set by caller
         )
         
         return quote

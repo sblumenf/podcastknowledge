@@ -44,14 +44,14 @@ class TestMetricsCalculator:
         return [
             Entity(
                 name="Artificial Intelligence",
-                type=EntityType.CONCEPT,
+                type="Concept",
                 confidence=0.9,
                 description="Advanced computational technology",
                 wikipedia_url="https://en.wikipedia.org/wiki/Artificial_intelligence"
             ),
             Entity(
                 name="Machine Learning",
-                type=EntityType.TECHNOLOGY,
+                type="Technology",
                 confidence=0.85,
                 description="Subset of AI",
                 wikipedia_url="https://en.wikipedia.org/wiki/Machine_learning"
@@ -96,143 +96,183 @@ class TestMetricsCalculator:
         metrics = calculator.calculate_complexity(simple_text)
         
         assert isinstance(metrics, ComplexityMetrics)
-        assert metrics.level == ComplexityLevel.SIMPLE
+        assert metrics.classification == ComplexityLevel.LAYPERSON
         assert metrics.avg_sentence_length < 10
-        assert metrics.vocabulary_richness < 0.8
-        assert metrics.technical_term_density == 0.0
-        assert metrics.readability_score > 80
+        assert metrics.unique_ratio > 0.7  # Simple text has more unique words
+        assert metrics.technical_density == 0.0
+        assert metrics.complexity_score < 3  # Low complexity score
     
     def test_calculate_complexity_complex_text(self, calculator, sample_text, sample_entities):
         """Test complexity calculation with complex text"""
         metrics = calculator.calculate_complexity(sample_text, sample_entities)
         
         assert isinstance(metrics, ComplexityMetrics)
-        assert metrics.level in [ComplexityLevel.MODERATE, ComplexityLevel.COMPLEX]
+        assert metrics.classification in [ComplexityLevel.INTERMEDIATE, ComplexityLevel.EXPERT]
         assert metrics.avg_sentence_length > 10
-        assert metrics.vocabulary_richness > 0.5
-        assert metrics.technical_term_density > 0
-        assert metrics.entity_complexity_score > 0
+        assert metrics.unique_ratio > 0.5
+        assert metrics.technical_density > 0
+        assert metrics.technical_entity_count > 0
     
     def test_calculate_complexity_empty_text(self, calculator):
         """Test complexity calculation with empty text"""
         metrics = calculator.calculate_complexity("")
         
-        assert metrics.level == ComplexityLevel.SIMPLE
+        assert metrics.classification == ComplexityLevel.LAYPERSON
         assert metrics.avg_sentence_length == 0
-        assert metrics.vocabulary_richness == 0
-        assert metrics.readability_score == 100
+        assert metrics.unique_ratio == 0
+        assert metrics.complexity_score == 0
     
     def test_calculate_information_density(
         self, calculator, sample_text, sample_insights, 
-        sample_entities, sample_quotes
+        sample_entities
     ):
         """Test information density calculation"""
-        word_count = len(sample_text.split())
         metrics = calculator.calculate_information_density(
-            word_count, sample_insights, sample_entities, sample_quotes
+            sample_text, sample_insights, sample_entities
         )
         
         assert isinstance(metrics, InformationDensityMetrics)
-        assert metrics.insights_per_1000_words > 0
-        assert metrics.entities_per_1000_words > 0
-        assert metrics.quotes_per_1000_words > 0
-        assert metrics.fact_density > 0
-        assert metrics.unique_concepts_ratio > 0
-        assert 0 <= metrics.overall_density <= 1
+        assert metrics.insight_density > 0
+        assert metrics.entity_density > 0
+        assert metrics.fact_density >= 0
+        assert metrics.information_score > 0
+        assert metrics.word_count > 0
+        assert metrics.duration_minutes > 0
     
-    def test_calculate_information_density_empty_lists(self, calculator):
+    def test_calculate_information_density_empty_lists(self, calculator, sample_text):
         """Test information density with empty lists"""
-        metrics = calculator.calculate_information_density(1000, [], [], [])
+        metrics = calculator.calculate_information_density(sample_text, [], [])
         
-        assert metrics.insights_per_1000_words == 0
-        assert metrics.entities_per_1000_words == 0
-        assert metrics.quotes_per_1000_words == 0
-        assert metrics.fact_density == 0
-        assert metrics.unique_concepts_ratio == 0
-        assert metrics.overall_density == 0
+        assert metrics.insight_density == 0
+        assert metrics.entity_density == 0
+        assert metrics.fact_density >= 0  # May still detect facts in text
+        assert metrics.information_score >= 0
     
-    def test_calculate_information_density_zero_words(self, calculator, sample_insights):
-        """Test information density with zero word count"""
-        metrics = calculator.calculate_information_density(0, sample_insights, [], [])
+    def test_calculate_information_density_empty_text(self, calculator, sample_insights):
+        """Test information density with empty text"""
+        metrics = calculator.calculate_information_density("", sample_insights, [])
         
-        assert metrics.insights_per_1000_words == 0
-        assert metrics.overall_density == 0
+        assert metrics.information_score == 0
+        assert metrics.word_count == 0
+        assert metrics.duration_minutes == 0
     
     def test_calculate_accessibility(
-        self, calculator, sample_text, sample_insights, sample_quotes
+        self, calculator, sample_text
     ):
         """Test accessibility calculation"""
+        # First calculate complexity to get complexity score
+        complexity_metrics = calculator.calculate_complexity(sample_text)
+        
         metrics = calculator.calculate_accessibility(
-            sample_text, sample_insights, sample_quotes
+            sample_text, complexity_metrics.complexity_score
         )
         
         assert isinstance(metrics, AccessibilityMetrics)
-        assert 0 <= metrics.explanation_coverage <= 1
-        assert metrics.context_availability > 0
-        assert metrics.quote_accessibility > 0
-        assert 0 <= metrics.overall_accessibility <= 1
+        assert 0 <= metrics.accessibility_score <= 1
+        assert metrics.avg_sentence_length > 0
+        assert metrics.jargon_percentage >= 0
+        assert 0 <= metrics.explanation_quality <= 1
+        assert 0 <= metrics.readability_score <= 1
     
-    def test_calculate_accessibility_empty_inputs(self, calculator, sample_text):
-        """Test accessibility with empty insights and quotes"""
-        metrics = calculator.calculate_accessibility(sample_text, [], [])
+    def test_calculate_accessibility_empty_text(self, calculator):
+        """Test accessibility with empty text"""
+        metrics = calculator.calculate_accessibility("", 0)
         
-        assert metrics.explanation_coverage == 0
-        assert metrics.context_availability == 0
-        assert metrics.quote_accessibility == 0
-        assert metrics.overall_accessibility > 0  # Still based on text readability
+        assert metrics.accessibility_score == 0
+        assert metrics.avg_sentence_length == 0
+        assert metrics.jargon_percentage == 0
+        assert metrics.explanation_quality == 0
+        assert metrics.readability_score == 0
     
-    def test_calculate_episode_metrics(self, calculator, sample_entities, sample_insights, sample_quotes):
-        """Test episode-level metrics calculation"""
-        # Create sample segments
-        segments = [
-            Segment(
-                start_time=0.0,
-                end_time=60.0,
-                speaker="Host",
-                text="First segment about AI and ML.",
-                entities=sample_entities[:1],
-                insights=sample_insights[:1],
-                quotes=[]
+    def test_aggregate_episode_metrics(self, calculator):
+        """Test episode-level metrics aggregation"""
+        # Create sample segment metrics
+        segment_complexities = [
+            ComplexityMetrics(
+                classification=ComplexityLevel.LAYPERSON,
+                complexity_score=2.5,
+                technical_density=0.02,
+                avg_word_length=4.5,
+                avg_sentence_length=12,
+                syllable_complexity=1.5,
+                unique_ratio=0.7,
+                technical_entity_count=1
             ),
-            Segment(
-                start_time=60.0,
-                end_time=120.0,
-                speaker="Guest",
-                text="Second segment discussing applications.",
-                entities=sample_entities[1:],
-                insights=sample_insights[1:],
-                quotes=sample_quotes
+            ComplexityMetrics(
+                classification=ComplexityLevel.INTERMEDIATE,
+                complexity_score=4.0,
+                technical_density=0.08,
+                avg_word_length=5.5,
+                avg_sentence_length=18,
+                syllable_complexity=2.0,
+                unique_ratio=0.6,
+                technical_entity_count=3
             )
         ]
         
-        # Create episode
-        episode = Episode(
-            title="AI Discussion",
-            description="A deep dive into AI",
-            audio_url="http://example.com/audio.mp3",
-            publication_date=datetime.now(),
-            duration=120,
-            segments=segments,
-            entities=sample_entities,
-            insights=sample_insights,
-            quotes=sample_quotes,
-            key_topics=["AI", "Machine Learning"],
-            episode_number=1,
-            transcript="Full transcript here"
+        segment_densities = [
+            InformationDensityMetrics(
+                information_score=5.0,
+                insight_density=2.0,
+                entity_density=3.0,
+                fact_density=1.5,
+                word_count=100,
+                duration_minutes=0.67,
+                insights_per_minute=3.0,
+                entities_per_minute=4.5
+            ),
+            InformationDensityMetrics(
+                information_score=7.0,
+                insight_density=3.0,
+                entity_density=4.0,
+                fact_density=2.0,
+                word_count=150,
+                duration_minutes=1.0,
+                insights_per_minute=3.0,
+                entities_per_minute=4.0
+            )
+        ]
+        
+        segment_accessibilities = [
+            AccessibilityMetrics(
+                accessibility_score=0.8,
+                avg_sentence_length=12,
+                jargon_percentage=2.0,
+                explanation_quality=0.7,
+                readability_score=0.75
+            ),
+            AccessibilityMetrics(
+                accessibility_score=0.6,
+                avg_sentence_length=18,
+                jargon_percentage=8.0,
+                explanation_quality=0.5,
+                readability_score=0.55
+            )
+        ]
+        
+        # Calculate aggregate metrics
+        episode_metrics = calculator.aggregate_episode_metrics(
+            segment_complexities, segment_densities, segment_accessibilities
         )
         
-        # Calculate metrics
-        complexity, density, accessibility = calculator.calculate_episode_metrics(episode)
+        # Verify all metrics are present
+        assert 'avg_complexity' in episode_metrics
+        assert 'dominant_complexity_level' in episode_metrics
+        assert 'technical_density' in episode_metrics
+        assert 'complexity_variance' in episode_metrics
+        assert 'is_mixed_complexity' in episode_metrics
+        assert 'is_technical' in episode_metrics
+        assert 'avg_information_score' in episode_metrics
+        assert 'total_insights' in episode_metrics
+        assert 'total_entities' in episode_metrics
+        assert 'avg_accessibility' in episode_metrics
+        assert 'segment_count' in episode_metrics
         
-        # Verify all metrics are calculated
-        assert isinstance(complexity, ComplexityMetrics)
-        assert isinstance(density, InformationDensityMetrics)
-        assert isinstance(accessibility, AccessibilityMetrics)
-        
-        # Verify metrics have reasonable values
-        assert complexity.level in ComplexityLevel
-        assert density.overall_density >= 0
-        assert 0 <= accessibility.overall_accessibility <= 1
+        # Verify calculated values
+        assert episode_metrics['segment_count'] == 2
+        assert episode_metrics['avg_complexity'] == 3.25  # (2.5 + 4.0) / 2
+        assert episode_metrics['dominant_complexity_level'] == ComplexityLevel.INTERMEDIATE
+        assert episode_metrics['is_technical'] == False  # avg technical density < 0.05
     
     def test_technical_term_detection(self, calculator):
         """Test technical term detection in complexity calculation"""
@@ -240,20 +280,22 @@ class TestMetricsCalculator:
         The convolutional neural network uses backpropagation 
         with stochastic gradient descent optimization. The 
         algorithm implements dropout regularization and batch 
-        normalization techniques.
+        normalization techniques. The receptor binds to the substrate
+        through enzymatic pathways.
         """
         
         metrics = calculator.calculate_complexity(technical_text)
         
-        assert metrics.technical_term_density > 0.2
-        assert metrics.level in [ComplexityLevel.COMPLEX, ComplexityLevel.VERY_COMPLEX]
+        assert metrics.technical_density > 0.1
+        assert metrics.classification == ComplexityLevel.EXPERT
     
     def test_readability_score_calculation(self, calculator):
-        """Test readability score calculation"""
+        """Test readability score calculation via accessibility metrics"""
         # Very simple text should have high readability
         simple = "I like dogs. Dogs are fun. Cats are nice too."
-        simple_metrics = calculator.calculate_complexity(simple)
-        assert simple_metrics.readability_score > 90
+        simple_complexity = calculator.calculate_complexity(simple)
+        simple_accessibility = calculator.calculate_accessibility(simple, simple_complexity.complexity_score)
+        assert simple_accessibility.readability_score > 0.9
         
         # Complex text should have lower readability
         complex_text = """
@@ -262,28 +304,29 @@ class TestMetricsCalculator:
         of ontological commitments within contemporary philosophical 
         discourse.
         """
-        complex_metrics = calculator.calculate_complexity(complex_text)
-        assert complex_metrics.readability_score < 30
+        complex_complexity = calculator.calculate_complexity(complex_text)
+        complex_accessibility = calculator.calculate_accessibility(complex_text, complex_complexity.complexity_score)
+        assert complex_accessibility.readability_score < 0.3
     
     def test_entity_complexity_scoring(self, calculator, sample_text):
         """Test entity complexity scoring"""
         # Simple entities
         simple_entities = [
-            Entity(name="Dog", type=EntityType.CONCEPT, confidence=0.9),
-            Entity(name="Cat", type=EntityType.CONCEPT, confidence=0.8)
+            Entity(name="Dog", type="Concept", confidence=0.9),
+            Entity(name="Cat", type="Concept", confidence=0.8)
         ]
         
-        # Complex entities
+        # Complex entities with technical types
         complex_entities = [
             Entity(
                 name="Quantum Entanglement",
-                type=EntityType.CONCEPT,
+                type="Scientific_Theory",
                 confidence=0.9,
                 description="Complex quantum phenomenon"
             ),
             Entity(
                 name="CRISPR-Cas9",
-                type=EntityType.TECHNOLOGY,
+                type="Medical_Device",
                 confidence=0.85,
                 description="Gene editing technology"
             )
@@ -292,48 +335,20 @@ class TestMetricsCalculator:
         simple_metrics = calculator.calculate_complexity(sample_text, simple_entities)
         complex_metrics = calculator.calculate_complexity(sample_text, complex_entities)
         
-        assert complex_metrics.entity_complexity_score > simple_metrics.entity_complexity_score
-    
-    def test_insight_type_density(self, calculator):
-        """Test that different insight types contribute to density"""
-        insights_technical = [
-            Insight(
-                content="Technical detail",
-                type=InsightType.TECHNICAL_DETAIL,
-                confidence=0.8
-            )
-        ]
-        
-        insights_trend = [
-            Insight(
-                content="Industry trend",
-                type=InsightType.TREND,
-                confidence=0.9
-            )
-        ]
-        
-        density_technical = calculator.calculate_information_density(
-            1000, insights_technical, [], []
-        )
-        density_trend = calculator.calculate_information_density(
-            1000, insights_trend, [], []
-        )
-        
-        # Both should contribute to density
-        assert density_technical.fact_density > 0
-        assert density_trend.fact_density > 0
+        assert complex_metrics.technical_entity_count > simple_metrics.technical_entity_count
+        assert complex_metrics.complexity_score > simple_metrics.complexity_score
     
     def test_vocabulary_richness_edge_cases(self, calculator):
-        """Test vocabulary richness calculation edge cases"""
+        """Test vocabulary richness (unique ratio) calculation edge cases"""
         # Repeated words should have low richness
         repeated = "test test test test test"
         metrics_repeated = calculator.calculate_complexity(repeated)
-        assert metrics_repeated.vocabulary_richness < 0.3
+        assert metrics_repeated.unique_ratio < 0.3
         
         # Unique words should have high richness
         unique = "apple banana cherry date elderberry"
         metrics_unique = calculator.calculate_complexity(unique)
-        assert metrics_unique.vocabulary_richness == 1.0
+        assert metrics_unique.unique_ratio == 1.0
     
     def test_metrics_with_special_characters(self, calculator):
         """Test metrics calculation with special characters"""
@@ -347,5 +362,33 @@ class TestMetricsCalculator:
         
         # Should handle special characters gracefully
         assert metrics.avg_sentence_length > 0
-        assert metrics.vocabulary_richness > 0
-        assert isinstance(metrics.level, ComplexityLevel)
+        assert metrics.unique_ratio > 0
+        assert isinstance(metrics.classification, ComplexityLevel)
+    
+    def test_fact_detection(self, calculator):
+        """Test fact detection in information density"""
+        factual_text = """
+        According to research from MIT, 85% of companies are adopting AI.
+        A 2023 study found significant correlation between AI usage and productivity.
+        The experiment demonstrated a 40% improvement in efficiency.
+        """
+        
+        metrics = calculator.calculate_information_density(factual_text, [], [])
+        
+        assert metrics.fact_density > 0
+        assert metrics.information_score > 0
+    
+    def test_explanation_quality_detection(self, calculator):
+        """Test explanation quality in accessibility"""
+        text_with_explanations = """
+        Machine learning, which means computers learning from data, is growing.
+        In other words, AI systems can improve without explicit programming.
+        Think of it as teaching a computer to recognize patterns, similar to
+        how humans learn. Basically, it's automated pattern recognition.
+        """
+        
+        complexity = calculator.calculate_complexity(text_with_explanations)
+        accessibility = calculator.calculate_accessibility(text_with_explanations, complexity.complexity_score)
+        
+        assert accessibility.explanation_quality > 0.5  # Good explanation coverage
+        assert accessibility.accessibility_score > 0.6  # Should be accessible

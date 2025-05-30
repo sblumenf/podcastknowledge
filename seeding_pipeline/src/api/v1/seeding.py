@@ -100,9 +100,9 @@ class PodcastKnowledgePipeline(_PipelineImpl):
         """
         # Apply extraction mode to config
         if extraction_mode == "schemaless":
-            self._config.use_schemaless_extraction = True
+            self.config.use_schemaless_extraction = True
         else:
-            self._config.use_schemaless_extraction = False
+            self.config.use_schemaless_extraction = False
             
         # Handle any v1-specific transformations
         result = super().seed_podcast(
@@ -135,9 +135,9 @@ class PodcastKnowledgePipeline(_PipelineImpl):
         """
         # Apply extraction mode to config
         if extraction_mode == "schemaless":
-            self._config.use_schemaless_extraction = True
+            self.config.use_schemaless_extraction = True
         else:
-            self._config.use_schemaless_extraction = False
+            self.config.use_schemaless_extraction = False
             
         # Handle any v1-specific transformations
         result = super().seed_podcasts(
@@ -204,7 +204,7 @@ class PodcastKnowledgePipeline(_PipelineImpl):
         
         # Use checkpoint dir from config if not provided
         if checkpoint_dir is None:
-            checkpoint_dir = getattr(self._config, 'checkpoint_dir', 'checkpoints')
+            checkpoint_dir = getattr(self.config, 'checkpoint_dir', 'checkpoints')
         
         # Initialize checkpoint reader
         checkpoint = ProgressCheckpoint(

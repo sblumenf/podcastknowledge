@@ -181,7 +181,7 @@ class BaseGraphProvider(GraphProvider, HealthCheckable, ABC):
         properties = {
             'id': entity.id,
             'name': entity.name,
-            'type': entity.type,
+            'type': entity.entity_type.value if entity.entity_type else None,
             'description': entity.description,
             'first_mentioned': entity.first_mentioned,
             'mention_count': entity.mention_count,

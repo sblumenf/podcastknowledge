@@ -12,7 +12,7 @@ from src.processing.strategies import ExtractedData
 from src.processing.strategies.fixed_schema_strategy import FixedSchemaStrategy
 from src.processing.strategies.schemaless_strategy import SchemalessStrategy
 from src.processing.strategies.dual_mode_strategy import DualModeStrategy
-from src.core.models import Segment, Entity, Insight, Quote, Podcast, Episode
+from src.core.models import Segment, Entity, Insight, Quote, Podcast, Episode, EntityType, InsightType, QuoteType
 from src.processing.extraction import ExtractionResult
 
 
@@ -41,13 +41,13 @@ class TestFixedSchemaStrategy:
         
         # Create test data
         test_entities = [
-            Entity(id='1', name='Test Entity', type='PERSON')
+            Entity(id='1', name='Test Entity', entity_type=EntityType.PERSON)
         ]
         test_quotes = [
-            Quote(id='1', text='Test quote', speaker='Speaker 1', type='INSIGHTFUL')
+            Quote(id='1', text='Test quote', speaker='Speaker 1', quote_type=QuoteType.INSIGHTFUL)
         ]
         test_insights = [
-            Insight(id='1', content='Test insight', type='FACTUAL')
+            Insight(id='1', title='Test Insight', description='Test insight description', insight_type=InsightType.FACTUAL)
         ]
         
         mock_extractor.extract_all.return_value = ExtractionResult(
@@ -227,7 +227,7 @@ class TestDualModeStrategy:
         
         # Setup fixed result
         fixed_entities = [
-            Entity(id='1', name='Fixed Entity', type='PERSON')
+            Entity(id='1', name='Fixed Entity', entity_type=EntityType.PERSON)
         ]
         fixed_quotes = [
             Quote(id='1', text='Fixed quote', speaker='Speaker 1', type='INSIGHTFUL')
@@ -247,8 +247,8 @@ class TestDualModeStrategy:
         
         # Setup schemaless result
         schemaless_entities = [
-            Entity(id='2', name='Schemaless Entity', type='CONCEPT'),
-            Entity(id='3', name='fixed entity', type='PERSON')  # Duplicate (lowercase)
+            Entity(id='2', name='Schemaless Entity', entity_type=EntityType.CONCEPT),
+            Entity(id='3', name='fixed entity', entity_type=EntityType.PERSON)  # Duplicate (lowercase)
         ]
         schemaless_relationships = [
             {'source': '1', 'target': '2', 'type': 'RELATED'}

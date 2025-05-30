@@ -55,8 +55,8 @@ class TestKnowledgeExtractor:
         
         assert len(entities) == 4
         assert all(isinstance(e, Entity) for e in entities)
-        assert any(e.name == "Dr. Jane Smith" and e.type == EntityType.PERSON for e in entities)
-        assert any(e.name == "artificial intelligence" and e.type == EntityType.TECHNOLOGY for e in entities)
+        assert any(e.name == "Dr. Jane Smith" and e.entity_type == EntityType.PERSON for e in entities)
+        assert any(e.name == "artificial intelligence" and e.entity_type == EntityType.TECHNOLOGY for e in entities)
         
         # Verify prompt was called
         mock_llm_provider.complete.assert_called_once()
@@ -90,8 +90,8 @@ class TestKnowledgeExtractor:
     def test_extract_insights_success(self, extractor, mock_llm_provider, sample_text):
         """Test successful insight extraction"""
         sample_entities = [
-            Entity(name="AI", type=EntityType.TECHNOLOGY, confidence=0.9),
-            Entity(name="healthcare", type=EntityType.CONCEPT, confidence=0.8)
+            Entity(name="AI", entity_type=EntityType.TECHNOLOGY, confidence=0.9),
+            Entity(name="healthcare", entity_type=EntityType.CONCEPT, confidence=0.8)
         ]
         
         mock_response = """
@@ -133,7 +133,7 @@ class TestKnowledgeExtractor:
     
     def test_extract_topics_success(self, extractor, mock_llm_provider, sample_text):
         """Test successful topic extraction"""
-        sample_entities = [Entity(name="AI", type=EntityType.TECHNOLOGY, confidence=0.9)]
+        sample_entities = [Entity(name="AI", entity_type=EntityType.TECHNOLOGY, confidence=0.9)]
         sample_insights = [Insight(content="AI transforms healthcare", type=InsightType.TREND, confidence=0.8)]
         
         mock_response = """
@@ -264,7 +264,7 @@ class TestKnowledgeExtractor:
         assert "Entity Types to Extract" in entity_prompt
         
         # Test insight prompt
-        entities = [Entity(name="AI", type=EntityType.TECHNOLOGY, confidence=0.9)]
+        entities = [Entity(name="AI", entity_type=EntityType.TECHNOLOGY, confidence=0.9)]
         insight_prompt = extractor._build_insight_prompt(sample_text, entities)
         assert "extract key insights" in insight_prompt
         assert "AI" in insight_prompt
@@ -285,7 +285,7 @@ class TestKnowledgeExtractor:
         entities = extractor._parse_entity_response(entity_response)
         assert len(entities) == 1
         assert entities[0].name == "Test Entity"
-        assert entities[0].type == EntityType.CONCEPT
+        assert entities[0].entity_type == EntityType.CONCEPT
         
         # Test insight parsing
         insight_response = "1. **Key insight** - This is an important finding"

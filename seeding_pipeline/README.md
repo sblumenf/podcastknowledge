@@ -5,6 +5,9 @@ A modular, production-ready system for transforming podcast audio into structure
 [![Python Version](https://img.shields.io/badge/python-3.9%2B-blue)](https://www.python.org/downloads/)
 [![Neo4j Version](https://img.shields.io/badge/neo4j-5.14%2B-green)](https://neo4j.com/)
 [![License](https://img.shields.io/badge/license-MIT-orange)](LICENSE)
+[![codecov](https://codecov.io/gh/yourusername/podcast-kg-pipeline/branch/main/graph/badge.svg)](https://codecov.io/gh/yourusername/podcast-kg-pipeline)
+[![CI](https://github.com/yourusername/podcast-kg-pipeline/workflows/CI/badge.svg)](https://github.com/yourusername/podcast-kg-pipeline/actions)
+[![Coverage Status](https://img.shields.io/badge/coverage-8.43%25-red.svg)](htmlcov/index.html)
 
 ## Overview
 

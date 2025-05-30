@@ -79,6 +79,7 @@ class GeminiProvider(BaseLLMProvider):
         # Check rate limits
         if not self.rate_limiter.can_make_request(self.model_name, estimated_tokens):
             raise RateLimitError(
+                "gemini",
                 f"Rate limit exceeded for model {self.model_name}. "
                 "Please wait before making another request."
             )
