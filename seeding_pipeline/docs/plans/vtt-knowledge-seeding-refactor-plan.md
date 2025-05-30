@@ -33,7 +33,7 @@ This plan transforms the current podcast processing pipeline into a streamlined 
   - Validation: Feature matrix reviewed and complete
 
 ### 1.2 Architecture Design
-- [ ] **Design new entry point architecture**
+- [x] **Design new entry point architecture**
   - Purpose: Define how VTT files flow through the system
   - Steps:
     1. Create architecture diagram for VTT → Knowledge → Neo4j flow
@@ -42,7 +42,7 @@ This plan transforms the current podcast processing pipeline into a streamlined 
     4. Plan batch processing approach
   - Validation: Architecture diagram and interface specs complete
 
-- [ ] **Design test strategy**
+- [x] **Design test strategy**
   - Purpose: Ensure comprehensive test coverage
   - Steps:
     1. Define test categories (unit, integration, e2e)
