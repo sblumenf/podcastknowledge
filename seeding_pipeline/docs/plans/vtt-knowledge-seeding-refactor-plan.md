@@ -54,7 +54,7 @@ This plan transforms the current podcast processing pipeline into a streamlined 
 ## Phase 2: Core Refactoring (5 days)
 
 ### 2.1 Remove Audio/RSS Components
-- [ ] **Remove audio providers**
+- [x] **Remove audio providers**
   - Purpose: Eliminate Whisper and audio processing
   - Steps:
     1. Delete `src/providers/audio/` directory
@@ -63,7 +63,7 @@ This plan transforms the current podcast processing pipeline into a streamlined 
     4. Remove audio-related configuration options
   - Validation: No audio imports remain, tests pass
 
-- [ ] **Remove RSS feed processing**
+- [x] **Remove RSS feed processing**
   - Purpose: Eliminate podcast feed functionality
   - Steps:
     1. Delete `src/utils/feed_processing.py`
@@ -72,7 +72,7 @@ This plan transforms the current podcast processing pipeline into a streamlined 
     4. Clean up feed-related tests
   - Validation: No RSS functionality remains
 
-- [ ] **Clean up audio dependencies**
+- [x] **Clean up audio dependencies**
   - Purpose: Remove ML/audio libraries
   - Steps:
     1. Remove from requirements.txt: torch, whisper, faster-whisper, pyannote

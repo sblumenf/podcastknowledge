@@ -267,13 +267,6 @@ class SeedingConfig(PipelineConfig):
                 missing.append("openai")
                 
         # Check other dependencies
-            
-        try:
-            import pyannote.audio
-            available.append("pyannote.audio")
-        except ImportError:
-            if self.enable_graph_enhancements:
-                missing.append("pyannote.audio")
                 
         return missing
 
