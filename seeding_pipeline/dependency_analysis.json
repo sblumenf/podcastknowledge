@@ -1,0 +1,1521 @@
+{
+  "total_dependencies": 114,
+  "categories": {
+    "other": [
+      {
+        "dependency": "__version__",
+        "used_in": [
+          "src/__init__.py",
+          "src/tracing/tracer.py",
+          "src/api/v1/seeding.py"
+        ],
+        "file_count": 3
+      },
+      {
+        "dependency": "seeding",
+        "used_in": [
+          "src/api/v1/__init__.py",
+          "src/api/app.py",
+          "src/__init__.py",
+          "src/api/v1/seeding.py"
+        ],
+        "file_count": 4
+      },
+      {
+        "dependency": "core",
+        "used_in": [
+          "src/processing/adapters/schemaless_adapter.py",
+          "src/__init__.py",
+          "src/tracing/tracer.py",
+          "src/migration/validators.py",
+          "src/migration/compatibility.py",
+          "src/api/slo_tracking.py",
+          "src/api/app.py",
+          "src/api/v1/seeding.py",
+          "src/migration/data_migrator.py",
+          "src/api/health.py",
+          "src/seeding/checkpoint_compatibility.py",
+          "src/migration/schema_manager.py",
+          "src/utils/feature_flag_utils.py",
+          "src/processing/importance_scoring.py",
+          "src/providers/audio/base.py",
+          "src/processing/segmentation.py",
+          "src/processing/adapters/fixed_schema_adapter.py",
+          "src/providers/audio/whisper.py",
+          "src/utils/performance_decorator.py",
+          "src/api/v1/slo.py"
+        ],
+        "file_count": 20
+      },
+      {
+        "dependency": "os",
+        "used_in": [
+          "src/providers/graph/enhancements.py",
+          "src/seeding/batch_processor.py",
+          "src/seeding/orchestrator.py",
+          "src/api/app.py",
+          "src/utils/feed_processing.py",
+          "src/utils/resources.py",
+          "src/core/config.py",
+          "src/factories/provider_factory.py",
+          "src/providers/audio/whisper.py",
+          "src/tracing/tracer.py",
+          "src/tracing/config.py",
+          "src/utils/logging.py",
+          "src/core/plugin_discovery.py",
+          "src/seeding/checkpoint.py",
+          "src/core/env_config.py",
+          "src/seeding/components/pipeline_executor.py",
+          "src/core/feature_flags.py",
+          "src/utils/feature_flag_utils.py"
+        ],
+        "file_count": 18
+      },
+      {
+        "dependency": "asyncio",
+        "used_in": [
+          "src/api/app.py",
+          "src/tracing/middleware.py",
+          "src/seeding/concurrency.py",
+          "src/api/health.py",
+          "src/providers/graph/schemaless_neo4j.py",
+          "src/tracing/tracer.py",
+          "src/api/slo_tracking.py"
+        ],
+        "file_count": 7
+      },
+      {
+        "dependency": "typing",
+        "used_in": [
+          "src/utils/logging_enhanced.py",
+          "src/processing/schemaless_preprocessor.py",
+          "src/utils/patterns.py",
+          "src/utils/validation.py",
+          "src/processing/discourse_flow.py",
+          "src/utils/error_handling.py",
+          "src/migration/compatibility.py",
+          "src/seeding/components/pipeline_executor.py",
+          "src/providers/graph/enhancements.py",
+          "src/utils/resources.py",
+          "src/core/plugin_discovery.py",
+          "src/providers/audio/base.py",
+          "src/processing/segmentation.py",
+          "src/processing/strategies/schemaless_strategy.py",
+          "src/seeding/components/storage_coordinator.py",
+          "src/core/error_budget.py",
+          "src/processing/parsers.py",
+          "src/factories/provider_factory.py",
+          "src/utils/component_tracker.py",
+          "src/tracing/tracer.py",
+          "src/core/exceptions.py",
+          "src/providers/llm/gemini.py",
+          "src/seeding/components/provider_coordinator.py",
+          "src/processing/strategies/dual_mode_strategy.py",
+          "src/core/models.py",
+          "src/providers/llm/base.py",
+          "src/providers/embeddings/sentence_transformer.py",
+          "src/migration/query_translator.py",
+          "src/seeding/orchestrator.py",
+          "src/providers/audio/mock.py",
+          "src/seeding/concurrency.py",
+          "src/api/health.py",
+          "src/processing/strategies/extraction_factory.py",
+          "src/providers/embeddings/sentence_transformer_adapter.py",
+          "src/utils/feature_flag_utils.py",
+          "src/processing/adapters/fixed_schema_adapter.py",
+          "src/providers/audio/whisper.py",
+          "src/utils/performance_decorator.py",
+          "src/processing/extraction.py",
+          "src/providers/llm/gemini_adapter.py",
+          "src/core/extraction_interface.py",
+          "src/tracing/config.py",
+          "src/providers/embeddings/base.py",
+          "src/utils/deprecation.py",
+          "src/utils/performance_profiling.py",
+          "src/tracing/middleware.py",
+          "src/utils/memory.py",
+          "src/processing/episode_flow.py",
+          "src/providers/graph/neo4j.py",
+          "src/migration/validators.py",
+          "src/processing/metrics.py",
+          "src/core/feature_flags.py",
+          "src/seeding/components/checkpoint_manager.py",
+          "src/api/slo_tracking.py",
+          "src/processing/graph_analysis.py",
+          "src/utils/feed_processing.py",
+          "src/api/metrics_integration.py",
+          "src/api/app.py",
+          "src/utils/text_processing.py",
+          "src/api/v1/seeding.py",
+          "src/processing/complexity_analysis.py",
+          "src/providers/health.py",
+          "src/seeding/components/signal_manager.py",
+          "src/migration/result_standardizer.py",
+          "src/processing/importance_scoring.py",
+          "src/processing/strategies/fixed_schema_strategy.py",
+          "src/seeding/checkpoint.py",
+          "src/processing/prompts.py",
+          "src/api/v1/slo.py",
+          "src/processing/schemaless_entity_resolution.py",
+          "src/processing/schemaless_quote_extractor.py",
+          "src/processing/adapters/schemaless_adapter.py",
+          "src/seeding/batch_processor.py",
+          "src/core/interfaces.py",
+          "src/tracing/instrumentation.py",
+          "src/api/metrics.py",
+          "src/providers/graph/base.py",
+          "src/utils/rate_limiting.py",
+          "src/utils/debugging.py",
+          "src/core/config.py",
+          "src/processing/emergent_themes.py",
+          "src/utils/logging.py",
+          "src/processing/strategies/__init__.py",
+          "src/providers/embeddings/mock.py",
+          "src/providers/graph/memory.py",
+          "src/providers/graph/compatible_neo4j.py",
+          "src/migration/data_migrator.py",
+          "src/processing/entity_resolution.py",
+          "src/seeding/checkpoint_compatibility.py",
+          "src/core/env_config.py",
+          "src/migration/schema_manager.py",
+          "src/utils/retry.py",
+          "src/providers/llm/mock.py",
+          "src/providers/graph/schemaless_neo4j.py",
+          "src/providers/graph/metadata_enricher.py"
+        ],
+        "file_count": 95
+      },
+      {
+        "dependency": "contextlib",
+        "used_in": [
+          "src/api/app.py",
+          "src/core/interfaces.py",
+          "src/providers/graph/compatible_neo4j.py",
+          "src/providers/graph/memory.py",
+          "src/utils/performance_profiling.py",
+          "src/utils/debugging.py",
+          "src/tracing/middleware.py",
+          "src/seeding/concurrency.py",
+          "src/providers/graph/schemaless_neo4j.py",
+          "src/utils/memory.py",
+          "src/tracing/tracer.py",
+          "src/utils/resources.py",
+          "src/providers/graph/neo4j.py",
+          "src/providers/graph/base.py"
+        ],
+        "file_count": 14
+      },
+      {
+        "dependency": "tracing",
+        "used_in": [
+          "src/api/app.py",
+          "src/providers/audio/whisper.py"
+        ],
+        "file_count": 2
+      },
+      {
+        "dependency": "health",
+        "used_in": [
+          "src/api/app.py"
+        ],
+        "file_count": 1
+      },
+      {
+        "dependency": "metrics",
+        "used_in": [
+          "src/api/metrics_integration.py",
+          "src/api/app.py"
+        ],
+        "file_count": 2
+      },
+      {
+        "dependency": "utils",
+        "used_in": [
+          "src/core/error_budget.py",
+          "src/api/app.py",
+          "src/api/metrics.py",
+          "src/utils/deprecation.py",
+          "src/utils/performance_profiling.py",
+          "src/api/health.py",
+          "src/utils/component_tracker.py",
+          "src/utils/performance_decorator.py",
+          "src/core/feature_flags.py",
+          "src/api/v1/slo.py",
+          "src/api/slo_tracking.py",
+          "src/utils/feature_flag_utils.py"
+        ],
+        "file_count": 12
+      },
+      {
+        "dependency": "v1",
+        "used_in": [
+          "src/api/app.py"
+        ],
+        "file_count": 1
+      },
+      {
+        "dependency": "time",
+        "used_in": [
+          "src/core/error_budget.py",
+          "src/seeding/batch_processor.py",
+          "src/utils/logging_enhanced.py",
+          "src/utils/component_tracker.py",
+          "src/api/metrics.py",
+          "src/utils/performance_profiling.py",
+          "src/utils/rate_limiting.py",
+          "src/utils/debugging.py",
+          "src/tracing/middleware.py",
+          "src/utils/error_handling.py",
+          "src/utils/logging.py",
+          "src/api/slo_tracking.py",
+          "src/utils/feed_processing.py",
+          "src/api/metrics_integration.py",
+          "src/utils/resources.py",
+          "src/seeding/concurrency.py",
+          "src/api/health.py",
+          "src/providers/health.py",
+          "src/utils/retry.py",
+          "src/providers/graph/schemaless_neo4j.py",
+          "src/seeding/checkpoint.py",
+          "src/utils/performance_decorator.py"
+        ],
+        "file_count": 22
+      },
+      {
+        "dependency": "datetime",
+        "used_in": [
+          "src/core/error_budget.py",
+          "src/seeding/batch_processor.py",
+          "src/core/interfaces.py",
+          "src/utils/logging_enhanced.py",
+          "src/providers/graph/metadata_enricher.py",
+          "src/processing/parsers.py",
+          "src/factories/provider_factory.py",
+          "src/utils/component_tracker.py",
+          "src/api/metrics.py",
+          "src/utils/validation.py",
+          "src/utils/deprecation.py",
+          "src/utils/performance_profiling.py",
+          "src/utils/debugging.py",
+          "src/utils/error_handling.py",
+          "src/core/models.py",
+          "src/utils/logging.py",
+          "src/migration/validators.py",
+          "src/seeding/components/pipeline_executor.py",
+          "src/api/slo_tracking.py",
+          "src/seeding/orchestrator.py",
+          "src/utils/feed_processing.py",
+          "src/providers/audio/mock.py",
+          "src/utils/resources.py",
+          "src/api/v1/seeding.py",
+          "src/migration/data_migrator.py",
+          "src/api/health.py",
+          "src/seeding/checkpoint_compatibility.py",
+          "src/providers/health.py",
+          "src/migration/schema_manager.py",
+          "src/utils/retry.py",
+          "src/migration/result_standardizer.py",
+          "src/providers/audio/base.py",
+          "src/providers/graph/schemaless_neo4j.py",
+          "src/seeding/checkpoint.py",
+          "src/utils/performance_decorator.py",
+          "src/processing/prompts.py",
+          "src/api/v1/slo.py",
+          "src/processing/extraction.py",
+          "src/processing/schemaless_quote_extractor.py"
+        ],
+        "file_count": 39
+      },
+      {
+        "dependency": "enum",
+        "used_in": [
+          "src/processing/graph_analysis.py",
+          "src/core/error_budget.py",
+          "src/providers/health.py",
+          "src/migration/data_migrator.py",
+          "src/utils/debugging.py",
+          "src/seeding/concurrency.py",
+          "src/api/health.py",
+          "src/core/models.py",
+          "src/seeding/checkpoint.py",
+          "src/core/exceptions.py",
+          "src/processing/prompts.py",
+          "src/migration/schema_manager.py",
+          "src/core/feature_flags.py",
+          "src/utils/retry.py",
+          "src/api/metrics.py"
+        ],
+        "file_count": 15
+      },
+      {
+        "dependency": "redis",
+        "used_in": [
+          "src/api/health.py"
+        ],
+        "file_count": 1
+      },
+      {
+        "dependency": "providers",
+        "used_in": [
+          "src/migration/data_migrator.py",
+          "src/api/health.py",
+          "src/migration/validators.py",
+          "src/migration/schema_manager.py",
+          "src/migration/compatibility.py"
+        ],
+        "file_count": 5
+      },
+      {
+        "dependency": "factories",
+        "used_in": [
+          "src/api/health.py"
+        ],
+        "file_count": 1
+      },
+      {
+        "dependency": "flask",
+        "used_in": [
+          "src/api/health.py",
+          "src/api/metrics.py"
+        ],
+        "file_count": 2
+      },
+      {
+        "dependency": "neo4j_graphrag",
+        "used_in": [
+          "src/api/health.py",
+          "src/providers/graph/schemaless_neo4j.py"
+        ],
+        "file_count": 2
+      },
+      {
+        "dependency": "collections",
+        "used_in": [
+          "src/processing/graph_analysis.py",
+          "src/providers/audio/base.py",
+          "src/providers/graph/memory.py",
+          "src/processing/discourse_flow.py",
+          "src/utils/rate_limiting.py",
+          "src/processing/emergent_themes.py",
+          "src/seeding/concurrency.py",
+          "src/seeding/components/pipeline_executor.py",
+          "src/utils/component_tracker.py",
+          "src/processing/complexity_analysis.py",
+          "src/processing/episode_flow.py",
+          "src/utils/patterns.py",
+          "src/utils/validation.py",
+          "src/providers/health.py",
+          "src/processing/metrics.py",
+          "src/processing/schemaless_entity_resolution.py",
+          "src/api/metrics.py",
+          "src/migration/result_standardizer.py"
+        ],
+        "file_count": 18
+      },
+      {
+        "dependency": "functools",
+        "used_in": [
+          "src/seeding/batch_processor.py",
+          "src/utils/logging_enhanced.py",
+          "src/tracing/instrumentation.py",
+          "src/utils/component_tracker.py",
+          "src/tracing/tracer.py",
+          "src/utils/patterns.py",
+          "src/api/metrics.py",
+          "src/utils/deprecation.py",
+          "src/utils/performance_profiling.py",
+          "src/utils/debugging.py",
+          "src/tracing/middleware.py",
+          "src/utils/error_handling.py",
+          "src/utils/memory.py",
+          "src/utils/logging.py",
+          "src/core/feature_flags.py",
+          "src/api/slo_tracking.py",
+          "src/api/v1/seeding.py",
+          "src/utils/retry.py",
+          "src/utils/performance_decorator.py",
+          "src/processing/extraction.py"
+        ],
+        "file_count": 20
+      },
+      {
+        "dependency": "threading",
+        "used_in": [
+          "src/seeding/batch_processor.py",
+          "src/seeding/concurrency.py",
+          "src/providers/graph/neo4j.py",
+          "src/seeding/checkpoint.py",
+          "src/providers/health.py",
+          "src/api/metrics.py"
+        ],
+        "file_count": 6
+      },
+      {
+        "dependency": "api",
+        "used_in": [
+          "src/core/error_budget.py",
+          "src/utils/performance_profiling.py",
+          "src/utils/component_tracker.py",
+          "src/utils/performance_decorator.py",
+          "src/api/v1/slo.py",
+          "src/api/slo_tracking.py"
+        ],
+        "file_count": 6
+      },
+      {
+        "dependency": "warnings",
+        "used_in": [
+          "src/utils/memory.py",
+          "src/utils/deprecation.py",
+          "src/api/v1/seeding.py"
+        ],
+        "file_count": 3
+      },
+      {
+        "dependency": "interfaces",
+        "used_in": [
+          "src/core/__init__.py"
+        ],
+        "file_count": 1
+      },
+      {
+        "dependency": "exceptions",
+        "used_in": [
+          "src/core/config.py",
+          "src/core/__init__.py"
+        ],
+        "file_count": 2
+      },
+      {
+        "dependency": "models",
+        "used_in": [
+          "src/core/__init__.py"
+        ],
+        "file_count": 1
+      },
+      {
+        "dependency": "config",
+        "used_in": [
+          "src/core/__init__.py"
+        ],
+        "file_count": 1
+      },
+      {
+        "dependency": "feature_flags",
+        "used_in": [
+          "src/core/__init__.py"
+        ],
+        "file_count": 1
+      },
+      {
+        "dependency": "dataclasses",
+        "used_in": [
+          "src/core/error_budget.py",
+          "src/seeding/batch_processor.py",
+          "src/core/interfaces.py",
+          "src/processing/parsers.py",
+          "src/utils/component_tracker.py",
+          "src/core/extraction_interface.py",
+          "src/tracing/config.py",
+          "src/processing/schemaless_preprocessor.py",
+          "src/utils/patterns.py",
+          "src/seeding/components/provider_coordinator.py",
+          "src/utils/performance_profiling.py",
+          "src/utils/debugging.py",
+          "src/core/config.py",
+          "src/core/models.py",
+          "src/providers/llm/base.py",
+          "src/migration/validators.py",
+          "src/processing/strategies/__init__.py",
+          "src/processing/metrics.py",
+          "src/migration/compatibility.py",
+          "src/core/feature_flags.py",
+          "src/processing/graph_analysis.py",
+          "src/migration/data_migrator.py",
+          "src/processing/entity_resolution.py",
+          "src/seeding/concurrency.py",
+          "src/processing/complexity_analysis.py",
+          "src/migration/schema_manager.py",
+          "src/providers/health.py",
+          "src/processing/segmentation.py",
+          "src/seeding/checkpoint.py",
+          "src/utils/performance_decorator.py",
+          "src/processing/prompts.py",
+          "src/providers/graph/metadata_enricher.py",
+          "src/processing/schemaless_entity_resolution.py",
+          "src/processing/extraction.py",
+          "src/processing/schemaless_quote_extractor.py"
+        ],
+        "file_count": 35
+      },
+      {
+        "dependency": "pathlib",
+        "used_in": [
+          "src/seeding/orchestrator.py",
+          "src/providers/audio/base.py",
+          "src/utils/feed_processing.py",
+          "src/utils/performance_profiling.py",
+          "src/utils/resources.py",
+          "src/migration/data_migrator.py",
+          "src/core/config.py",
+          "src/providers/graph/schemaless_neo4j.py",
+          "src/providers/audio/whisper.py",
+          "src/utils/component_tracker.py",
+          "src/seeding/checkpoint_compatibility.py",
+          "src/core/plugin_discovery.py",
+          "src/seeding/checkpoint.py",
+          "src/utils/logging.py",
+          "src/migration/compatibility.py",
+          "src/utils/feature_flag_utils.py"
+        ],
+        "file_count": 16
+      },
+      {
+        "dependency": "json",
+        "used_in": [
+          "src/processing/adapters/schemaless_adapter.py",
+          "src/core/error_budget.py",
+          "src/providers/llm/gemini_adapter.py",
+          "src/providers/llm/mock.py",
+          "src/utils/performance_profiling.py",
+          "src/migration/data_migrator.py",
+          "src/utils/debugging.py",
+          "src/processing/parsers.py",
+          "src/core/config.py",
+          "src/utils/component_tracker.py",
+          "src/seeding/checkpoint_compatibility.py",
+          "src/seeding/checkpoint.py",
+          "src/utils/logging.py",
+          "src/utils/performance_decorator.py",
+          "src/migration/compatibility.py",
+          "src/processing/extraction.py",
+          "src/utils/feature_flag_utils.py"
+        ],
+        "file_count": 17
+      },
+      {
+        "dependency": "langchain_google_genai",
+        "used_in": [
+          "src/core/config.py",
+          "src/providers/llm/gemini.py"
+        ],
+        "file_count": 2
+      },
+      {
+        "dependency": "abc",
+        "used_in": [
+          "src/providers/audio/base.py",
+          "src/core/interfaces.py",
+          "src/utils/rate_limiting.py",
+          "src/providers/llm/base.py",
+          "src/providers/embeddings/base.py",
+          "src/providers/graph/base.py"
+        ],
+        "file_count": 6
+      },
+      {
+        "dependency": "importlib",
+        "used_in": [
+          "src/migration/compatibility.py",
+          "src/factories/provider_factory.py",
+          "src/core/plugin_discovery.py"
+        ],
+        "file_count": 3
+      },
+      {
+        "dependency": "inspect",
+        "used_in": [
+          "src/utils/debugging.py",
+          "src/core/plugin_discovery.py"
+        ],
+        "file_count": 2
+      },
+      {
+        "dependency": "logging",
+        "used_in": [
+          "src/processing/adapters/schemaless_adapter.py",
+          "src/providers/llm/gemini_adapter.py",
+          "src/seeding/batch_processor.py",
+          "src/utils/logging_enhanced.py",
+          "src/tracing/instrumentation.py",
+          "src/processing/parsers.py",
+          "src/factories/provider_factory.py",
+          "src/tracing/tracer.py",
+          "src/processing/schemaless_preprocessor.py",
+          "src/utils/patterns.py",
+          "src/providers/llm/gemini.py",
+          "src/utils/validation.py",
+          "src/seeding/components/provider_coordinator.py",
+          "src/processing/strategies/dual_mode_strategy.py",
+          "src/processing/discourse_flow.py",
+          "src/utils/debugging.py",
+          "src/processing/emergent_themes.py",
+          "src/utils/error_handling.py",
+          "src/utils/memory.py",
+          "src/processing/episode_flow.py",
+          "src/providers/graph/neo4j.py",
+          "src/utils/logging.py",
+          "src/migration/validators.py",
+          "src/processing/metrics.py",
+          "src/migration/compatibility.py",
+          "src/providers/embeddings/sentence_transformer.py",
+          "src/seeding/components/checkpoint_manager.py",
+          "src/seeding/components/pipeline_executor.py",
+          "src/providers/graph/memory.py",
+          "src/migration/query_translator.py",
+          "src/processing/graph_analysis.py",
+          "src/providers/graph/enhancements.py",
+          "src/seeding/orchestrator.py",
+          "src/utils/feed_processing.py",
+          "src/providers/graph/compatible_neo4j.py",
+          "src/utils/resources.py",
+          "src/migration/data_migrator.py",
+          "src/utils/text_processing.py",
+          "src/seeding/concurrency.py",
+          "src/processing/complexity_analysis.py",
+          "src/seeding/checkpoint_compatibility.py",
+          "src/core/plugin_discovery.py",
+          "src/migration/schema_manager.py",
+          "src/providers/health.py",
+          "src/processing/strategies/extraction_factory.py",
+          "src/seeding/components/signal_manager.py",
+          "src/providers/embeddings/sentence_transformer_adapter.py",
+          "src/utils/retry.py",
+          "src/migration/result_standardizer.py",
+          "src/processing/importance_scoring.py",
+          "src/providers/audio/base.py",
+          "src/processing/segmentation.py",
+          "src/processing/adapters/fixed_schema_adapter.py",
+          "src/processing/strategies/fixed_schema_strategy.py",
+          "src/providers/graph/schemaless_neo4j.py",
+          "src/providers/audio/whisper.py",
+          "src/processing/strategies/schemaless_strategy.py",
+          "src/seeding/checkpoint.py",
+          "src/seeding/components/storage_coordinator.py",
+          "src/processing/prompts.py",
+          "src/providers/graph/metadata_enricher.py",
+          "src/processing/schemaless_entity_resolution.py",
+          "src/processing/extraction.py",
+          "src/processing/schemaless_quote_extractor.py"
+        ],
+        "file_count": 64
+      },
+      {
+        "dependency": "src",
+        "used_in": [
+          "src/providers/llm/gemini_adapter.py",
+          "src/seeding/batch_processor.py",
+          "src/processing/parsers.py",
+          "src/factories/provider_factory.py",
+          "src/processing/schemaless_preprocessor.py",
+          "src/providers/llm/gemini.py",
+          "src/providers/embeddings/base.py",
+          "src/providers/graph/base.py",
+          "src/utils/validation.py",
+          "src/seeding/components/provider_coordinator.py",
+          "src/processing/strategies/dual_mode_strategy.py",
+          "src/processing/discourse_flow.py",
+          "src/processing/emergent_themes.py",
+          "src/utils/error_handling.py",
+          "src/processing/episode_flow.py",
+          "src/providers/graph/neo4j.py",
+          "src/providers/llm/base.py",
+          "src/processing/strategies/__init__.py",
+          "src/processing/metrics.py",
+          "src/seeding/components/pipeline_executor.py",
+          "src/providers/embeddings/sentence_transformer.py",
+          "src/providers/embeddings/mock.py",
+          "src/seeding/components/checkpoint_manager.py",
+          "src/providers/graph/memory.py",
+          "src/processing/graph_analysis.py",
+          "src/providers/graph/enhancements.py",
+          "src/providers/audio/mock.py",
+          "src/seeding/orchestrator.py",
+          "src/providers/graph/compatible_neo4j.py",
+          "src/processing/entity_resolution.py",
+          "src/processing/complexity_analysis.py",
+          "src/providers/health.py",
+          "src/processing/strategies/extraction_factory.py",
+          "src/providers/embeddings/sentence_transformer_adapter.py",
+          "src/providers/llm/mock.py",
+          "src/processing/strategies/fixed_schema_strategy.py",
+          "src/providers/graph/schemaless_neo4j.py",
+          "src/processing/strategies/schemaless_strategy.py",
+          "src/seeding/checkpoint.py",
+          "src/seeding/components/storage_coordinator.py",
+          "src/processing/prompts.py",
+          "src/providers/graph/metadata_enricher.py",
+          "src/processing/schemaless_entity_resolution.py",
+          "src/processing/extraction.py",
+          "src/processing/schemaless_quote_extractor.py"
+        ],
+        "file_count": 45
+      },
+      {
+        "dependency": "query_translator",
+        "used_in": [
+          "src/migration/__init__.py"
+        ],
+        "file_count": 1
+      },
+      {
+        "dependency": "result_standardizer",
+        "used_in": [
+          "src/migration/__init__.py"
+        ],
+        "file_count": 1
+      },
+      {
+        "dependency": "re",
+        "used_in": [
+          "src/migration/query_translator.py",
+          "src/utils/feed_processing.py",
+          "src/providers/graph/memory.py",
+          "src/providers/graph/compatible_neo4j.py",
+          "src/processing/segmentation.py",
+          "src/utils/text_processing.py",
+          "src/processing/entity_resolution.py",
+          "src/processing/parsers.py",
+          "src/utils/debugging.py",
+          "src/processing/complexity_analysis.py",
+          "src/processing/schemaless_preprocessor.py",
+          "src/utils/patterns.py",
+          "src/utils/validation.py",
+          "src/processing/metrics.py",
+          "src/processing/schemaless_entity_resolution.py",
+          "src/processing/extraction.py",
+          "src/processing/schemaless_quote_extractor.py"
+        ],
+        "file_count": 17
+      },
+      {
+        "dependency": "hashlib",
+        "used_in": [
+          "src/utils/feed_processing.py",
+          "src/providers/llm/mock.py",
+          "src/migration/data_migrator.py",
+          "src/utils/component_tracker.py",
+          "src/seeding/checkpoint.py",
+          "src/migration/validators.py",
+          "src/providers/embeddings/mock.py",
+          "src/processing/extraction.py"
+        ],
+        "file_count": 8
+      },
+      {
+        "dependency": "segmentation",
+        "used_in": [
+          "src/processing/__init__.py"
+        ],
+        "file_count": 1
+      },
+      {
+        "dependency": "strategies",
+        "used_in": [
+          "src/processing/__init__.py"
+        ],
+        "file_count": 1
+      },
+      {
+        "dependency": "statistics",
+        "used_in": [
+          "src/processing/complexity_analysis.py",
+          "src/processing/metrics.py"
+        ],
+        "file_count": 2
+      },
+      {
+        "dependency": "math",
+        "used_in": [
+          "src/processing/complexity_analysis.py",
+          "src/processing/importance_scoring.py",
+          "src/providers/embeddings/mock.py",
+          "src/providers/embeddings/base.py"
+        ],
+        "file_count": 4
+      },
+      {
+        "dependency": "colorsys",
+        "used_in": [
+          "src/processing/discourse_flow.py"
+        ],
+        "file_count": 1
+      },
+      {
+        "dependency": "community",
+        "used_in": [
+          "src/processing/emergent_themes.py"
+        ],
+        "file_count": 1
+      },
+      {
+        "dependency": "difflib",
+        "used_in": [
+          "src/processing/entity_resolution.py",
+          "src/processing/schemaless_entity_resolution.py",
+          "src/utils/text_processing.py"
+        ],
+        "file_count": 3
+      },
+      {
+        "dependency": "itertools",
+        "used_in": [
+          "src/processing/graph_analysis.py"
+        ],
+        "file_count": 1
+      },
+      {
+        "dependency": "fixed_schema_adapter",
+        "used_in": [
+          "src/processing/adapters/__init__.py"
+        ],
+        "file_count": 1
+      },
+      {
+        "dependency": "schemaless_adapter",
+        "used_in": [
+          "src/processing/adapters/__init__.py"
+        ],
+        "file_count": 1
+      },
+      {
+        "dependency": "extraction",
+        "used_in": [
+          "src/processing/adapters/fixed_schema_adapter.py"
+        ],
+        "file_count": 1
+      },
+      {
+        "dependency": "audio",
+        "used_in": [
+          "src/providers/__init__.py"
+        ],
+        "file_count": 1
+      },
+      {
+        "dependency": "base",
+        "used_in": [
+          "src/providers/audio/__init__.py",
+          "src/providers/audio/whisper.py"
+        ],
+        "file_count": 2
+      },
+      {
+        "dependency": "mock",
+        "used_in": [
+          "src/providers/audio/__init__.py"
+        ],
+        "file_count": 1
+      },
+      {
+        "dependency": "uuid",
+        "used_in": [
+          "src/utils/logging_enhanced.py",
+          "src/providers/audio/mock.py",
+          "src/providers/graph/memory.py"
+        ],
+        "file_count": 3
+      },
+      {
+        "dependency": "gc",
+        "used_in": [
+          "src/utils/debugging.py",
+          "src/providers/audio/whisper.py",
+          "src/utils/memory.py"
+        ],
+        "file_count": 3
+      },
+      {
+        "dependency": "random",
+        "used_in": [
+          "src/providers/embeddings/mock.py",
+          "src/utils/retry.py"
+        ],
+        "file_count": 2
+      },
+      {
+        "dependency": "nest_asyncio",
+        "used_in": [
+          "src/providers/graph/schemaless_neo4j.py"
+        ],
+        "file_count": 1
+      },
+      {
+        "dependency": "queue",
+        "used_in": [
+          "src/seeding/batch_processor.py",
+          "src/seeding/concurrency.py",
+          "src/providers/graph/neo4j.py"
+        ],
+        "file_count": 3
+      },
+      {
+        "dependency": "multiprocessing",
+        "used_in": [
+          "src/seeding/batch_processor.py",
+          "src/seeding/concurrency.py"
+        ],
+        "file_count": 2
+      },
+      {
+        "dependency": "concurrent",
+        "used_in": [
+          "src/seeding/batch_processor.py",
+          "src/seeding/concurrency.py"
+        ],
+        "file_count": 2
+      },
+      {
+        "dependency": "signal",
+        "used_in": [
+          "src/seeding/orchestrator.py",
+          "src/seeding/batch_processor.py",
+          "src/utils/error_handling.py",
+          "src/seeding/components/signal_manager.py",
+          "src/utils/retry.py"
+        ],
+        "file_count": 5
+      },
+      {
+        "dependency": "pickle",
+        "used_in": [
+          "src/seeding/checkpoint.py",
+          "src/utils/resources.py"
+        ],
+        "file_count": 2
+      },
+      {
+        "dependency": "gzip",
+        "used_in": [
+          "src/seeding/checkpoint.py"
+        ],
+        "file_count": 1
+      },
+      {
+        "dependency": "shutil",
+        "used_in": [
+          "src/seeding/checkpoint.py",
+          "src/utils/resources.py"
+        ],
+        "file_count": 2
+      },
+      {
+        "dependency": "tempfile",
+        "used_in": [
+          "src/seeding/checkpoint.py",
+          "src/utils/resources.py"
+        ],
+        "file_count": 2
+      },
+      {
+        "dependency": "zipfile",
+        "used_in": [
+          "src/seeding/checkpoint.py"
+        ],
+        "file_count": 1
+      },
+      {
+        "dependency": "fcntl",
+        "used_in": [
+          "src/seeding/concurrency.py"
+        ],
+        "file_count": 1
+      },
+      {
+        "dependency": "errno",
+        "used_in": [
+          "src/seeding/concurrency.py"
+        ],
+        "file_count": 1
+      },
+      {
+        "dependency": "sys",
+        "used_in": [
+          "src/seeding/orchestrator.py",
+          "src/utils/debugging.py",
+          "src/utils/logging.py",
+          "src/seeding/components/signal_manager.py",
+          "src/utils/feature_flag_utils.py"
+        ],
+        "file_count": 5
+      },
+      {
+        "dependency": "orchestrator",
+        "used_in": [
+          "src/seeding/__init__.py"
+        ],
+        "file_count": 1
+      },
+      {
+        "dependency": "signal_manager",
+        "used_in": [
+          "src/seeding/components/__init__.py"
+        ],
+        "file_count": 1
+      },
+      {
+        "dependency": "provider_coordinator",
+        "used_in": [
+          "src/seeding/components/__init__.py"
+        ],
+        "file_count": 1
+      },
+      {
+        "dependency": "checkpoint_manager",
+        "used_in": [
+          "src/seeding/components/__init__.py"
+        ],
+        "file_count": 1
+      },
+      {
+        "dependency": "pipeline_executor",
+        "used_in": [
+          "src/seeding/components/__init__.py"
+        ],
+        "file_count": 1
+      },
+      {
+        "dependency": "storage_coordinator",
+        "used_in": [
+          "src/seeding/components/__init__.py"
+        ],
+        "file_count": 1
+      },
+      {
+        "dependency": "tracer",
+        "used_in": [
+          "src/tracing/middleware.py",
+          "src/tracing/__init__.py",
+          "src/tracing/instrumentation.py"
+        ],
+        "file_count": 3
+      },
+      {
+        "dependency": "middleware",
+        "used_in": [
+          "src/tracing/__init__.py",
+          "src/tracing/instrumentation.py"
+        ],
+        "file_count": 2
+      },
+      {
+        "dependency": "instrumentation",
+        "used_in": [
+          "src/tracing/__init__.py"
+        ],
+        "file_count": 1
+      },
+      {
+        "dependency": "traceback",
+        "used_in": [
+          "src/utils/debugging.py",
+          "src/utils/logging.py"
+        ],
+        "file_count": 2
+      },
+      {
+        "dependency": "urllib",
+        "used_in": [
+          "src/utils/feed_processing.py"
+        ],
+        "file_count": 1
+      },
+      {
+        "dependency": "dateutil",
+        "used_in": [
+          "src/utils/feed_processing.py",
+          "src/utils/validation.py"
+        ],
+        "file_count": 2
+      },
+      {
+        "dependency": "pythonjsonlogger",
+        "used_in": [
+          "src/utils/logging.py"
+        ],
+        "file_count": 1
+      },
+      {
+        "dependency": "contextvars",
+        "used_in": [
+          "src/utils/logging_enhanced.py"
+        ],
+        "file_count": 1
+      },
+      {
+        "dependency": "matplotlib",
+        "used_in": [
+          "src/utils/memory.py"
+        ],
+        "file_count": 1
+      },
+      {
+        "dependency": "tracemalloc",
+        "used_in": [
+          "src/utils/performance_profiling.py",
+          "src/utils/performance_decorator.py"
+        ],
+        "file_count": 2
+      },
+      {
+        "dependency": "cProfile",
+        "used_in": [
+          "src/utils/performance_profiling.py"
+        ],
+        "file_count": 1
+      },
+      {
+        "dependency": "pstats",
+        "used_in": [
+          "src/utils/performance_profiling.py"
+        ],
+        "file_count": 1
+      },
+      {
+        "dependency": "io",
+        "used_in": [
+          "src/utils/performance_profiling.py"
+        ],
+        "file_count": 1
+      },
+      {
+        "dependency": "atexit",
+        "used_in": [
+          "src/utils/resources.py"
+        ],
+        "file_count": 1
+      },
+      {
+        "dependency": "weakref",
+        "used_in": [
+          "src/utils/resources.py"
+        ],
+        "file_count": 1
+      },
+      {
+        "dependency": "string",
+        "used_in": [
+          "src/utils/text_processing.py"
+        ],
+        "file_count": 1
+      },
+      {
+        "dependency": "unicodedata",
+        "used_in": [
+          "src/utils/text_processing.py"
+        ],
+        "file_count": 1
+      }
+    ],
+    "api_web": [
+      {
+        "dependency": "fastapi",
+        "used_in": [
+          "src/api/metrics_integration.py",
+          "src/api/app.py",
+          "src/api/health.py",
+          "src/api/v1/slo.py",
+          "src/api/metrics.py"
+        ],
+        "file_count": 5
+      },
+      {
+        "dependency": "uvicorn",
+        "used_in": [
+          "src/api/app.py"
+        ],
+        "file_count": 1
+      }
+    ],
+    "database": [
+      {
+        "dependency": "neo4j",
+        "used_in": [
+          "src/providers/graph/neo4j.py",
+          "src/api/health.py",
+          "src/tracing/instrumentation.py",
+          "src/providers/graph/schemaless_neo4j.py"
+        ],
+        "file_count": 4
+      }
+    ],
+    "core_utilities": [
+      {
+        "dependency": "psutil",
+        "used_in": [
+          "src/seeding/batch_processor.py",
+          "src/utils/resources.py",
+          "src/utils/memory.py",
+          "src/utils/logging.py",
+          "src/utils/performance_decorator.py",
+          "src/api/metrics.py"
+        ],
+        "file_count": 6
+      },
+      {
+        "dependency": "yaml",
+        "used_in": [
+          "src/core/error_budget.py",
+          "src/core/config.py",
+          "src/factories/provider_factory.py",
+          "src/providers/graph/schemaless_neo4j.py",
+          "src/api/v1/slo.py",
+          "src/utils/feature_flag_utils.py"
+        ],
+        "file_count": 6
+      },
+      {
+        "dependency": "dotenv",
+        "used_in": [
+          "src/core/config.py"
+        ],
+        "file_count": 1
+      },
+      {
+        "dependency": "numpy",
+        "used_in": [
+          "src/processing/graph_analysis.py",
+          "src/processing/importance_scoring.py",
+          "src/processing/discourse_flow.py",
+          "src/processing/emergent_themes.py",
+          "src/processing/episode_flow.py"
+        ],
+        "file_count": 5
+      },
+      {
+        "dependency": "networkx",
+        "used_in": [
+          "src/processing/graph_analysis.py",
+          "src/processing/importance_scoring.py",
+          "src/processing/emergent_themes.py"
+        ],
+        "file_count": 3
+      },
+      {
+        "dependency": "scipy",
+        "used_in": [
+          "src/processing/graph_analysis.py",
+          "src/processing/emergent_themes.py",
+          "src/processing/episode_flow.py"
+        ],
+        "file_count": 3
+      }
+    ],
+    "audio_processing": [
+      {
+        "dependency": "whisper",
+        "used_in": [
+          "src/providers/audio/__init__.py",
+          "src/core/config.py",
+          "src/providers/audio/whisper.py",
+          "src/tracing/instrumentation.py"
+        ],
+        "file_count": 4
+      },
+      {
+        "dependency": "pyannote",
+        "used_in": [
+          "src/core/config.py",
+          "src/providers/audio/whisper.py"
+        ],
+        "file_count": 2
+      },
+      {
+        "dependency": "faster_whisper",
+        "used_in": [
+          "src/core/config.py",
+          "src/providers/audio/whisper.py"
+        ],
+        "file_count": 2
+      },
+      {
+        "dependency": "torch",
+        "used_in": [
+          "src/providers/audio/whisper.py",
+          "src/utils/resources.py",
+          "src/utils/memory.py"
+        ],
+        "file_count": 3
+      }
+    ],
+    "llm_ai": [
+      {
+        "dependency": "openai",
+        "used_in": [
+          "src/core/config.py",
+          "src/providers/embeddings/sentence_transformer.py"
+        ],
+        "file_count": 2
+      },
+      {
+        "dependency": "langchain",
+        "used_in": [
+          "src/tracing/instrumentation.py"
+        ],
+        "file_count": 1
+      }
+    ],
+    "rss_feed": [
+      {
+        "dependency": "feedparser",
+        "used_in": [
+          "src/utils/feed_processing.py",
+          "src/core/config.py"
+        ],
+        "file_count": 2
+      }
+    ],
+    "embeddings": [
+      {
+        "dependency": "sentence_transformers",
+        "used_in": [
+          "src/providers/embeddings/sentence_transformer.py"
+        ],
+        "file_count": 1
+      }
+    ],
+    "monitoring": [
+      {
+        "dependency": "opentelemetry",
+        "used_in": [
+          "src/tracing/middleware.py",
+          "src/tracing/instrumentation.py",
+          "src/tracing/tracer.py"
+        ],
+        "file_count": 3
+      }
+    ]
+  },
+  "removal_candidates": {
+    "full_removal": [
+      "audio_processing",
+      "rss_feed",
+      "monitoring"
+    ],
+    "keep": [
+      "database",
+      "llm_ai",
+      "embeddings",
+      "core_utilities"
+    ],
+    "partial_removal": {
+      "api_web": "Keep minimal API for health checks and status"
+    }
+  },
+  "dependency_usage_summary": {
+    "__version__": 3,
+    "seeding": 4,
+    "core": 20,
+    "os": 18,
+    "asyncio": 7,
+    "typing": 95,
+    "contextlib": 14,
+    "fastapi": 5,
+    "uvicorn": 1,
+    "tracing": 2,
+    "health": 1,
+    "metrics": 2,
+    "utils": 12,
+    "v1": 1,
+    "time": 22,
+    "datetime": 39,
+    "enum": 15,
+    "neo4j": 4,
+    "redis": 1,
+    "providers": 5,
+    "factories": 1,
+    "flask": 2,
+    "neo4j_graphrag": 2,
+    "psutil": 6,
+    "collections": 18,
+    "functools": 20,
+    "threading": 6,
+    "api": 6,
+    "yaml": 6,
+    "warnings": 3,
+    "interfaces": 1,
+    "exceptions": 2,
+    "models": 1,
+    "config": 1,
+    "feature_flags": 1,
+    "dataclasses": 35,
+    "pathlib": 16,
+    "json": 17,
+    "dotenv": 1,
+    "whisper": 4,
+    "langchain_google_genai": 2,
+    "openai": 2,
+    "feedparser": 2,
+    "pyannote": 2,
+    "faster_whisper": 2,
+    "abc": 6,
+    "importlib": 3,
+    "inspect": 2,
+    "logging": 64,
+    "src": 45,
+    "query_translator": 1,
+    "result_standardizer": 1,
+    "re": 17,
+    "hashlib": 8,
+    "segmentation": 1,
+    "strategies": 1,
+    "statistics": 2,
+    "math": 4,
+    "numpy": 5,
+    "colorsys": 1,
+    "networkx": 3,
+    "scipy": 3,
+    "community": 1,
+    "difflib": 3,
+    "itertools": 1,
+    "fixed_schema_adapter": 1,
+    "schemaless_adapter": 1,
+    "extraction": 1,
+    "audio": 1,
+    "base": 2,
+    "mock": 1,
+    "uuid": 3,
+    "torch": 3,
+    "gc": 3,
+    "random": 2,
+    "sentence_transformers": 1,
+    "nest_asyncio": 1,
+    "queue": 3,
+    "multiprocessing": 2,
+    "concurrent": 2,
+    "signal": 5,
+    "pickle": 2,
+    "gzip": 1,
+    "shutil": 2,
+    "tempfile": 2,
+    "zipfile": 1,
+    "fcntl": 1,
+    "errno": 1,
+    "sys": 5,
+    "orchestrator": 1,
+    "signal_manager": 1,
+    "provider_coordinator": 1,
+    "checkpoint_manager": 1,
+    "pipeline_executor": 1,
+    "storage_coordinator": 1,
+    "tracer": 3,
+    "middleware": 2,
+    "instrumentation": 1,
+    "opentelemetry": 3,
+    "langchain": 1,
+    "traceback": 2,
+    "urllib": 1,
+    "dateutil": 2,
+    "pythonjsonlogger": 1,
+    "contextvars": 1,
+    "matplotlib": 1,
+    "tracemalloc": 2,
+    "cProfile": 1,
+    "pstats": 1,
+    "io": 1,
+    "atexit": 1,
+    "weakref": 1,
+    "string": 1,
+    "unicodedata": 1
+  }
+}
