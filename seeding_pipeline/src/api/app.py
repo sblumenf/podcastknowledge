@@ -76,100 +76,48 @@ async def root():
     }
 
 
-@app.post("/api/v1/seed/podcast", tags=["seeding"])
-async def seed_podcast(request: Request, podcast_config: Dict[str, Any]):
-    """
-    Seed a single podcast into the knowledge graph.
-    
-    Args:
-        podcast_config: Configuration containing:
-            - id: Unique podcast identifier
-            - rss_url: RSS feed URL
-            - name: Podcast name (optional)
-            - max_episodes: Maximum episodes to process (default: 1)
-    """
-    pipeline = request.app.state.pipeline
-    
+@app.get("/api/v1/vtt/status", tags=["vtt"])
+async def get_vtt_processing_status(request: Request):
+    """Get VTT processing status and statistics."""
     try:
-        # Run seeding in background task
-        loop = asyncio.get_event_loop()
-        result = await loop.run_in_executor(
-            None,
-            pipeline.seed_podcast,
-            podcast_config,
-            podcast_config.get("max_episodes", 1)
-        )
+        # Get checkpoint information
+        checkpoint_dir = getattr(request.app.state.config, 'checkpoint_dir', 'checkpoints')
+        
+        # Count processed VTT files
+        from pathlib import Path
+        import json
+        
+        checkpoint_path = Path(checkpoint_dir)
+        processed_files = []
+        
+        if checkpoint_path.exists():
+            for checkpoint_file in checkpoint_path.glob("*.json"):
+                try:
+                    with open(checkpoint_file, 'r') as f:
+                        data = json.load(f)
+                        if 'vtt_file' in data:
+                            processed_files.append({
+                                "file": data['vtt_file'],
+                                "processed_at": data.get('timestamp', 'unknown'),
+                                "segments": data.get('segment_count', 0)
+                            })
+                except Exception:
+                    pass
         
         return {
             "status": "success",
-            "result": result
+            "processed_files_count": len(processed_files),
+            "processed_files": processed_files,
+            "checkpoint_directory": str(checkpoint_path)
         }
     except Exception as e:
-        logger.error(f"Failed to seed podcast: {e}")
+        logger.error(f"Failed to get VTT status: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=str(e)
         )
 
 
-@app.post("/api/v1/seed/podcasts", tags=["seeding"])
-async def seed_podcasts(request: Request, podcast_configs: List[Dict[str, Any]]):
-    """
-    Seed multiple podcasts into the knowledge graph.
-    
-    Args:
-        podcast_configs: List of podcast configurations
-    """
-    pipeline = request.app.state.pipeline
-    
-    try:
-        # Run seeding in background task
-        loop = asyncio.get_event_loop()
-        result = await loop.run_in_executor(
-            None,
-            pipeline.seed_podcasts,
-            podcast_configs
-        )
-        
-        return {
-            "status": "success",
-            "result": result
-        }
-    except Exception as e:
-        logger.error(f"Failed to seed podcasts: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=str(e)
-        )
-
-
-@app.get("/api/v1/status/{podcast_id}", tags=["status"])
-async def get_podcast_status(request: Request, podcast_id: str):
-    """Get processing status for a podcast."""
-    pipeline = request.app.state.pipeline
-    
-    try:
-        # Get checkpoint status
-        checkpoint = pipeline.checkpoint
-        completed_episodes = checkpoint.get_completed_episodes()
-        
-        # Filter for this podcast
-        podcast_episodes = [
-            ep for ep in completed_episodes 
-            if ep.startswith(f"{podcast_id}_")
-        ]
-        
-        return {
-            "podcast_id": podcast_id,
-            "episodes_completed": len(podcast_episodes),
-            "episode_ids": podcast_episodes
-        }
-    except Exception as e:
-        logger.error(f"Failed to get podcast status: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=str(e)
-        )
 
 
 @app.get("/api/v1/graph/stats", tags=["graph"])
