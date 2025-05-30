@@ -18,4 +18,6 @@ Verify Phase $ARGUMENTS implementation by checking the actual code, not just the
 
 Use "think hard" to thoroughly test each feature against requirements.
 
+Any progress tracking or reporting documents that you produce should be placed in the same folder as the plan document from $ARGUMENTS.
+
 Begin code verification for Phase $ARGUMENTS.

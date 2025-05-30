@@ -18,4 +18,6 @@ Implement Phase $ARGUMENTS from the provided implementation plan:
 
 6. **Summary**: After all todos are implemented and marked complete, provide a summary of what was accomplished.
 
+Any progress tracking or reporting documents that you produce should be placed in the same folder as the plan document from $ARGUMENTS.
+
 Begin implementation of Phase $ARGUMENTS.
