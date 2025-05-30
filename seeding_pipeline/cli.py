@@ -18,7 +18,7 @@ import fnmatch
 # Add src to path for imports
 sys.path.insert(0, str(Path(__file__).parent))
 
-from src.seeding import PodcastKnowledgePipeline
+from src.seeding import PodcastKnowledgePipeline as VTTKnowledgePipeline
 from src.core.config import PipelineConfig
 from src.core.exceptions import PipelineError
 from src.processing.vtt_parser import VTTParser
@@ -133,7 +133,7 @@ def process_vtt(args: argparse.Namespace) -> int:
             config = PipelineConfig.from_env()
         
         # Initialize pipeline
-        pipeline = PodcastKnowledgePipeline(config)
+        pipeline = VTTKnowledgePipeline(config)
         
         # Find VTT files
         folder = Path(args.folder)

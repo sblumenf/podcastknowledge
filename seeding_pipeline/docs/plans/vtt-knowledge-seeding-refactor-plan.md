@@ -270,7 +270,7 @@ This plan transforms the current podcast processing pipeline into a streamlined 
 ## Phase 6: Documentation and Finalization (2 days)
 
 ### 6.1 Documentation Updates
-- [ ] **Update README for VTT focus**
+- [x] **Update README for VTT focus**
   - Purpose: Clear project documentation
   - Steps:
     1. Rewrite README with VTT workflow
@@ -279,7 +279,7 @@ This plan transforms the current podcast processing pipeline into a streamlined 
     4. Include quickstart guide
   - Validation: New users can start quickly
 
-- [ ] **Create migration guide**
+- [x] **Create migration guide**
   - Purpose: Help users transition from old version
   - Steps:
     1. Document removed features

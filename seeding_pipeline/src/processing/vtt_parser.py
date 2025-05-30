@@ -38,7 +38,7 @@ class VTTParser:
         r'<v\s+([^>]+)>'
     )
     
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize VTT parser."""
         self.cues: List[VTTCue] = []
     
