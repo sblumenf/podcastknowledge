@@ -164,7 +164,7 @@ class PipelineConfig:
         if not config_path.exists():
             raise ConfigurationError(f"Configuration file not found: {config_path}")
             
-        with open(config_path, 'r') as f:
+        with open(config_path, 'r', encoding='utf-8') as f:
             if config_path.suffix in ['.yaml', '.yml']:
                 if not YAML_AVAILABLE:
                     raise ConfigurationError("YAML support not available. Install PyYAML: pip install pyyaml")

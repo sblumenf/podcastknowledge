@@ -93,7 +93,7 @@ async def get_vtt_processing_status(request: Request):
         if checkpoint_path.exists():
             for checkpoint_file in checkpoint_path.glob("*.json"):
                 try:
-                    with open(checkpoint_file, 'r') as f:
+                    with open(checkpoint_file, 'r', encoding='utf-8') as f:
                         data = json.load(f)
                         if 'vtt_file' in data:
                             processed_files.append({
