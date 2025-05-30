@@ -1,24 +1,30 @@
 #!/usr/bin/env python3
-"""Command Line Interface for Podcast Knowledge Graph Pipeline.
+"""Command Line Interface for VTT Knowledge Graph Pipeline.
 
-This CLI provides batch processing commands for seeding podcast knowledge graphs.
-No interactive prompts - all parameters must be provided via command line.
+This CLI provides batch processing commands for transforming VTT transcript files
+into structured knowledge graphs using AI-powered analysis.
 """
 
 import argparse
 import json
 import sys
 import os
+import hashlib
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
+from datetime import datetime
+import fnmatch
 
 # Add src to path for imports
 sys.path.insert(0, str(Path(__file__).parent))
 
 from src.seeding import PodcastKnowledgePipeline
-from src.core.config import Config
-from src.core.exceptions import PodcastKGError
+from src.core.config import PipelineConfig
+from src.core.exceptions import PipelineError
+from src.processing.vtt_parser import VTTParser
+from src.seeding.transcript_ingestion import TranscriptIngestionManager
 from src.utils.logging import setup_logging as setup_structured_logging, get_logger
+from src.seeding.checkpoint import ProgressCheckpoint
 
 
 def setup_logging(verbose: bool = False, log_file: Optional[str] = None) -> None:
@@ -39,121 +45,217 @@ def setup_logging(verbose: bool = False, log_file: Optional[str] = None) -> None
     )
 
 
-def load_podcast_configs(config_path: Path) -> List[Dict[str, Any]]:
-    """Load podcast configurations from JSON file.
+def get_file_hash(file_path: Path) -> str:
+    """Calculate MD5 hash of a file for change detection."""
+    hash_md5 = hashlib.md5()
+    with open(file_path, "rb") as f:
+        for chunk in iter(lambda: f.read(4096), b""):
+            hash_md5.update(chunk)
+    return hash_md5.hexdigest()
+
+
+def find_vtt_files(folder: Path, pattern: str = "*.vtt", recursive: bool = False) -> List[Path]:
+    """Find VTT files in a folder matching the given pattern.
     
-    Expected format:
-    [
-        {
-            "name": "Podcast Name",
-            "rss_url": "https://example.com/feed.xml",
-            "category": "Technology"
-        },
-        ...
-    ]
+    Args:
+        folder: Directory to search
+        pattern: Glob pattern for file matching (default: *.vtt)
+        recursive: Whether to search subdirectories
+        
+    Returns:
+        List of VTT file paths
+    """
+    vtt_files = []
+    
+    if recursive:
+        # Use rglob for recursive search
+        for file_path in folder.rglob(pattern):
+            if file_path.is_file():
+                vtt_files.append(file_path)
+    else:
+        # Use glob for non-recursive search
+        for file_path in folder.glob(pattern):
+            if file_path.is_file():
+                vtt_files.append(file_path)
+    
+    return sorted(vtt_files)  # Sort for consistent ordering
+
+
+def validate_vtt_file(file_path: Path) -> Tuple[bool, Optional[str]]:
+    """Validate a VTT file.
+    
+    Args:
+        file_path: Path to VTT file
+        
+    Returns:
+        Tuple of (is_valid, error_message)
     """
     try:
-        with open(config_path, 'r') as f:
-            configs = json.load(f)
+        # Check if file exists
+        if not file_path.exists():
+            return False, f"File does not exist: {file_path}"
         
-        if not isinstance(configs, list):
-            configs = [configs]
+        # Check if file is readable
+        if not file_path.is_file():
+            return False, f"Not a file: {file_path}"
         
-        # Validate each config has required fields
-        for config in configs:
-            if 'rss_url' not in config:
-                raise ValueError(f"Missing 'rss_url' in config: {config}")
+        # Check file extension
+        if file_path.suffix.lower() != '.vtt':
+            return False, f"Not a VTT file: {file_path}"
         
-        return configs
+        # Try to read first few lines to check format
+        with open(file_path, 'r', encoding='utf-8') as f:
+            first_line = f.readline().strip()
+            # VTT files should start with WEBVTT
+            if not first_line.startswith('WEBVTT'):
+                return False, f"Invalid VTT format (missing WEBVTT header): {file_path}"
+        
+        return True, None
+        
     except Exception as e:
-        raise ValueError(f"Failed to load podcast configs: {e}")
+        return False, f"Error validating file {file_path}: {str(e)}"
 
 
-def seed_podcasts(args: argparse.Namespace) -> int:
-    """Seed knowledge graph with podcasts.
+def process_vtt(args: argparse.Namespace) -> int:
+    """Process VTT transcript files into knowledge graph.
     
     Returns:
         Exit code (0 for success, 1 for failure)
     """
+    logger = get_logger(__name__)
+    
     try:
         # Load configuration
         config = None
         if args.config:
-            config = Config.from_file(args.config)
+            config = PipelineConfig.from_file(args.config)
         else:
-            config = Config()
-        
-        # Apply extraction mode from CLI
-        if args.extraction_mode == 'schemaless':
-            config.use_schemaless_extraction = True
-        else:
-            config.use_schemaless_extraction = False
-            
-        # Apply migration mode
-        if args.migration_mode:
-            config.migration_mode = True
-            print("Migration mode enabled: will process with both fixed and schemaless extraction")
+            config = PipelineConfig.from_env()
         
         # Initialize pipeline
         pipeline = PodcastKnowledgePipeline(config)
         
-        # Load podcast configurations
-        if args.podcast_config:
-            podcast_configs = load_podcast_configs(Path(args.podcast_config))
-        elif args.rss_url:
-            # Single podcast from command line
-            podcast_configs = [{
-                'name': args.name or 'Unnamed Podcast',
-                'rss_url': args.rss_url,
-                'category': args.category or 'General'
-            }]
-        else:
-            raise ValueError("Either --podcast-config or --rss-url must be provided")
+        # Find VTT files
+        folder = Path(args.folder)
+        if not folder.exists():
+            print(f"Error: Folder does not exist: {folder}", file=sys.stderr)
+            return 1
         
-        # Process podcasts
-        print(f"Starting knowledge graph seeding for {len(podcast_configs)} podcast(s)...")
+        if not folder.is_dir():
+            print(f"Error: Not a directory: {folder}", file=sys.stderr)
+            return 1
         
-        result = pipeline.seed_podcasts(
-            podcast_configs=podcast_configs,
-            max_episodes_each=args.max_episodes,
-            use_large_context=args.large_context
-        )
+        print(f"Scanning for VTT files in: {folder}")
+        print(f"  Pattern: {args.pattern}")
+        print(f"  Recursive: {args.recursive}")
+        
+        vtt_files = find_vtt_files(folder, args.pattern, args.recursive)
+        
+        if not vtt_files:
+            print(f"No VTT files found matching pattern '{args.pattern}'")
+            return 0
+        
+        print(f"\nFound {len(vtt_files)} VTT file(s)")
+        
+        # Dry run - just show what would be processed
+        if args.dry_run:
+            print("\nDRY RUN - Files that would be processed:")
+            for i, file_path in enumerate(vtt_files, 1):
+                is_valid, error = validate_vtt_file(file_path)
+                status = "✓ Valid" if is_valid else f"✗ Invalid: {error}"
+                print(f"  {i}. {file_path.relative_to(folder)} - {status}")
+            return 0
+        
+        # Initialize checkpoint if enabled
+        checkpoint = None
+        if not args.no_checkpoint:
+            checkpoint_dir = Path(args.checkpoint_dir)
+            checkpoint_dir.mkdir(exist_ok=True, parents=True)
+            checkpoint = ProgressCheckpoint(
+                checkpoint_dir=str(checkpoint_dir),
+                extraction_mode='vtt'
+            )
+        
+        # Process files
+        processed = 0
+        failed = 0
+        skipped = 0
+        
+        print("\nProcessing VTT files...")
+        for i, file_path in enumerate(vtt_files, 1):
+            print(f"\n[{i}/{len(vtt_files)}] Processing: {file_path.name}")
+            
+            # Validate file
+            is_valid, error = validate_vtt_file(file_path)
+            if not is_valid:
+                print(f"  ✗ Skipping invalid file: {error}")
+                logger.error(f"Invalid VTT file: {file_path} - {error}")
+                failed += 1
+                continue
+            
+            # Check if already processed (via checkpoint)
+            if checkpoint:
+                file_hash = get_file_hash(file_path)
+                if checkpoint.is_vtt_processed(str(file_path), file_hash):
+                    print(f"  ✓ Already processed (same content)")
+                    skipped += 1
+                    continue
+            
+            try:
+                # Create ingestion manager
+                ingestion_manager = TranscriptIngestionManager(
+                    pipeline=pipeline,
+                    checkpoint=checkpoint
+                )
+                
+                # Process the VTT file
+                result = ingestion_manager.process_vtt_file(
+                    vtt_file=str(file_path),
+                    metadata={
+                        'source': 'cli',
+                        'file_name': file_path.name,
+                        'file_path': str(file_path),
+                        'processed_at': datetime.now().isoformat()
+                    }
+                )
+                
+                if result['success']:
+                    print(f"  ✓ Success - {result['segments_processed']} segments processed")
+                    processed += 1
+                    
+                    # Save checkpoint
+                    if checkpoint:
+                        checkpoint.mark_vtt_processed(
+                            str(file_path),
+                            file_hash,
+                            result['segments_processed']
+                        )
+                else:
+                    print(f"  ✗ Failed: {result.get('error', 'Unknown error')}")
+                    failed += 1
+                    
+            except Exception as e:
+                print(f"  ✗ Error: {str(e)}")
+                logger.error(f"Failed to process {file_path}: {str(e)}", exc_info=True)
+                failed += 1
+                
+                if not args.skip_errors:
+                    print("\nAborting due to error. Use --skip-errors to continue on errors.")
+                    break
         
         # Print summary
-        print("\nSeeding Summary:")
-        print(f"  Start time: {result['start_time']}")
-        print(f"  End time: {result['end_time']}")
-        print(f"  Extraction mode: {result.get('extraction_mode', 'fixed')}")
-        print(f"  Podcasts processed: {result['podcasts_processed']}")
-        print(f"  Episodes processed: {result['episodes_processed']}")
-        print(f"  Episodes failed: {result['episodes_failed']}")
+        print("\n" + "="*50)
+        print("Processing Summary:")
+        print(f"  Total files found: {len(vtt_files)}")
+        print(f"  Successfully processed: {processed}")
+        print(f"  Failed: {failed}")
+        print(f"  Skipped (already processed): {skipped}")
         
-        # Add schemaless-specific metrics if available
-        if result.get('extraction_mode') == 'schemaless':
-            print(f"  Total entities: {result.get('total_entities', 0)}")
-            print(f"  Total relationships: {result.get('total_relationships', 0)}")
-            if result.get('discovered_types'):
-                print(f"  Discovered entity types: {len(result['discovered_types'])}")
+        if failed > 0:
+            print("\nSome files failed to process. Check logs for details.")
+            return 1 if processed == 0 else 0
         
-        # Calculate processing time
-        from datetime import datetime
-        start = datetime.fromisoformat(result['start_time'])
-        end = datetime.fromisoformat(result['end_time'])
-        processing_time = (end - start).total_seconds()
-        print(f"  Processing time: {processing_time:.2f} seconds")
-        
-        # Show discovered schema if requested
-        if args.schema_discovery and result.get('discovered_types'):
-            print("\nDiscovered Entity Types:")
-            for entity_type in sorted(result['discovered_types']):
-                print(f"  - {entity_type}")
-        
-        # Check for failures
-        if result['episodes_failed'] > 0:
-            print("\nWarning: Some episodes failed to process. Check logs for details.")
-            return 1 if result['episodes_processed'] == 0 else 0
-        
-        print("\nKnowledge graph seeding completed successfully!")
+        print("\nVTT processing completed successfully!")
         return 0
         
     except Exception as e:
@@ -168,117 +270,95 @@ def seed_podcasts(args: argparse.Namespace) -> int:
             pipeline.cleanup()
 
 
-def health_check(args: argparse.Namespace) -> int:
-    """Check health of all pipeline components.
-    
-    Returns:
-        Exit code (0 for healthy, 1 for unhealthy)
-    """
-    try:
-        # Load configuration
-        config = None
-        if args.config:
-            config = Config.from_file(args.config)
-        else:
-            config = Config()
-        
-        # Initialize pipeline
-        pipeline = PodcastKnowledgePipeline(config)
-        
-        print("Checking pipeline component health...")
-        
-        # Initialize components
-        if not pipeline.initialize_components(use_large_context=args.large_context):
-            print("Failed to initialize components", file=sys.stderr)
-            return 1
-        
-        print("\nAll components are healthy!")
-        return 0
-        
-    except Exception as e:
-        print(f"Health check failed: {e}", file=sys.stderr)
-        if args.verbose:
-            import traceback
-            traceback.print_exc()
-        return 1
-    finally:
-        # Cleanup
-        if 'pipeline' in locals():
-            pipeline.cleanup()
-
-
-def validate_config(args: argparse.Namespace) -> int:
-    """Validate configuration file.
-    
-    Returns:
-        Exit code (0 for valid, 1 for invalid)
-    """
-    try:
-        config = Config.from_file(args.config)
-        
-        print(f"Configuration loaded from: {args.config}")
-        print("\nConfiguration summary:")
-        print(f"  Neo4j URI: {config.neo4j_uri}")
-        print(f"  Model name: {config.model_name}")
-        print(f"  Batch size: {config.batch_size}")
-        print(f"  Max workers: {config.max_workers}")
-        print(f"  Checkpoint enabled: {config.checkpoint_enabled}")
-        
-        print("\nConfiguration is valid!")
-        return 0
-        
-    except Exception as e:
-        print(f"Configuration validation failed: {e}", file=sys.stderr)
-        return 1
-
-
-def schema_stats(args: argparse.Namespace) -> int:
-    """Show schema statistics from schemaless extraction.
+def checkpoint_status(args: argparse.Namespace) -> int:
+    """Show checkpoint status and processing history.
     
     Returns:
         Exit code (0 for success, 1 for failure)
     """
     try:
-        from src.seeding.checkpoint import ProgressCheckpoint
+        checkpoint_dir = Path(args.checkpoint_dir)
+        if not checkpoint_dir.exists():
+            print(f"Checkpoint directory does not exist: {checkpoint_dir}")
+            return 0
         
         # Initialize checkpoint reader
         checkpoint = ProgressCheckpoint(
-            checkpoint_dir=args.checkpoint_dir,
-            extraction_mode='schemaless'
+            checkpoint_dir=str(checkpoint_dir),
+            extraction_mode='vtt'
         )
         
-        # Get schema statistics
-        stats = checkpoint.get_schema_statistics()
+        # Get processed files
+        processed_files = checkpoint.get_processed_vtt_files()
         
-        if stats.get('message'):
-            print(stats['message'])
-            return 1
+        if not processed_files:
+            print("No VTT files have been processed yet.")
+            return 0
         
-        print("Schema Discovery Statistics:")
-        print(f"  Total entity types discovered: {stats['total_types_discovered']}")
-        print(f"  Evolution entries: {stats['evolution_entries']}")
+        print(f"Checkpoint Status ({checkpoint_dir}):")
+        print(f"  Total files processed: {len(processed_files)}")
+        print("\nProcessed Files:")
         
-        if stats['first_discovery']:
-            print(f"  First discovery: {stats['first_discovery']}")
-        if stats['latest_discovery']:
-            print(f"  Latest discovery: {stats['latest_discovery']}")
-        
-        if stats['entity_types']:
-            print("\nEntity Types:")
-            for entity_type in stats['entity_types']:
-                print(f"  - {entity_type}")
-        
-        if stats['discovery_timeline']:
-            print("\nRecent Discoveries:")
-            for entry in stats['discovery_timeline']:
-                print(f"  {entry['date']} - Episode {entry['episode']} - {entry['count']} new types")
-                for new_type in entry['new_types']:
-                    print(f"    - {new_type}")
+        for file_info in sorted(processed_files, key=lambda x: x.get('processed_at', '')):
+            print(f"\n  File: {file_info['file']}")
+            print(f"    Hash: {file_info['hash'][:16]}...")
+            print(f"    Segments: {file_info.get('segments', 'unknown')}")
+            print(f"    Processed at: {file_info.get('processed_at', 'unknown')}")
         
         return 0
         
     except Exception as e:
-        print(f"Failed to get schema statistics: {e}", file=sys.stderr)
+        print(f"Failed to get checkpoint status: {e}", file=sys.stderr)
+        if args.verbose:
+            import traceback
+            traceback.print_exc()
+        return 1
+
+
+def checkpoint_clean(args: argparse.Namespace) -> int:
+    """Clean checkpoint data.
+    
+    Returns:
+        Exit code (0 for success, 1 for failure)
+    """
+    try:
+        checkpoint_dir = Path(args.checkpoint_dir)
+        if not checkpoint_dir.exists():
+            print(f"Checkpoint directory does not exist: {checkpoint_dir}")
+            return 0
+        
+        # Confirm before cleaning
+        if not args.force:
+            response = input(f"Are you sure you want to clean all checkpoints in {checkpoint_dir}? [y/N] ")
+            if response.lower() != 'y':
+                print("Cancelled.")
+                return 0
+        
+        # Clean checkpoint files
+        checkpoint_files = list(checkpoint_dir.glob("*.json"))
+        
+        if args.pattern:
+            # Filter by pattern if provided
+            checkpoint_files = [f for f in checkpoint_files if fnmatch.fnmatch(f.name, args.pattern)]
+        
+        if not checkpoint_files:
+            print("No checkpoint files found to clean.")
+            return 0
+        
+        print(f"Cleaning {len(checkpoint_files)} checkpoint file(s)...")
+        
+        for checkpoint_file in checkpoint_files:
+            try:
+                checkpoint_file.unlink()
+                print(f"  ✓ Removed: {checkpoint_file.name}")
+            except Exception as e:
+                print(f"  ✗ Failed to remove {checkpoint_file.name}: {e}")
+        
+        print("\nCheckpoint cleanup completed.")
+        return 0
+        
+    except Exception as e:
+        print(f"Failed to clean checkpoints: {e}", file=sys.stderr)
         if args.verbose:
             import traceback
             traceback.print_exc()
@@ -288,33 +368,30 @@ def schema_stats(args: argparse.Namespace) -> int:
 def main() -> int:
     """Main CLI entry point."""
     parser = argparse.ArgumentParser(
-        description='Podcast Knowledge Graph Pipeline - Batch Processing CLI',
+        description='VTT Knowledge Graph Pipeline - Transform transcripts into structured knowledge',
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  # Seed a single podcast with fixed schema
-  %(prog)s seed --rss-url https://example.com/feed.xml --max-episodes 5
+  # Process all VTT files in a folder
+  %(prog)s process-vtt --folder /path/to/vtt/files
   
-  # Seed with schemaless extraction
-  %(prog)s seed --rss-url https://example.com/feed.xml --extraction-mode schemaless --schema-discovery
+  # Process with specific pattern
+  %(prog)s process-vtt --folder /path/to/vtt --pattern "episode_*.vtt"
   
-  # Seed multiple podcasts from config file
-  %(prog)s seed --podcast-config podcasts.json --max-episodes 10
+  # Recursive processing
+  %(prog)s process-vtt --folder /path/to/vtt --recursive
   
-  # Migration mode - process with both fixed and schemaless
-  %(prog)s seed --podcast-config podcasts.json --migration-mode
+  # Dry run to see what would be processed
+  %(prog)s process-vtt --folder /path/to/vtt --dry-run
   
-  # Use custom configuration
-  %(prog)s seed --config config/prod.yml --podcast-config podcasts.json
+  # Continue on errors
+  %(prog)s process-vtt --folder /path/to/vtt --skip-errors
   
-  # Check component health
-  %(prog)s health --config config/prod.yml
+  # View checkpoint status
+  %(prog)s checkpoint-status
   
-  # Validate configuration
-  %(prog)s validate-config --config config/prod.yml
-  
-  # View schema discovery statistics
-  %(prog)s schema-stats --checkpoint-dir checkpoints
+  # Clean checkpoints
+  %(prog)s checkpoint-clean --force
         """
     )
     
@@ -331,134 +408,120 @@ Examples:
         help='Path to configuration file (YAML)'
     )
     
+    parser.add_argument(
+        '--log-file',
+        type=str,
+        help='Path to log file'
+    )
+    
     # Subcommands
     subparsers = parser.add_subparsers(
         dest='command',
         help='Available commands'
     )
     
-    # Seed command
-    seed_parser = subparsers.add_parser(
-        'seed',
-        help='Seed knowledge graph with podcasts'
+    # Process VTT command (main command)
+    vtt_parser = subparsers.add_parser(
+        'process-vtt',
+        help='Process VTT transcript files into knowledge graph'
     )
     
-    # Input options (mutually exclusive)
-    input_group = seed_parser.add_mutually_exclusive_group(required=True)
-    input_group.add_argument(
-        '--podcast-config',
-        type=str,
-        help='Path to JSON file with podcast configurations'
-    )
-    input_group.add_argument(
-        '--rss-url',
-        type=str,
-        help='RSS URL for a single podcast'
-    )
-    
-    # Additional options for single podcast
-    seed_parser.add_argument(
-        '--name',
-        type=str,
-        help='Podcast name (used with --rss-url)'
-    )
-    seed_parser.add_argument(
-        '--category',
-        type=str,
-        help='Podcast category (used with --rss-url)'
-    )
-    
-    # Processing options
-    seed_parser.add_argument(
-        '--max-episodes',
-        type=int,
-        default=10,
-        help='Maximum episodes to process per podcast (default: 10)'
-    )
-    seed_parser.add_argument(
-        '--large-context',
-        action='store_true',
-        help='Use large context models (more accurate but slower)'
-    )
-    
-    # Schemaless extraction options
-    seed_parser.add_argument(
-        '--extraction-mode',
-        type=str,
-        choices=['fixed', 'schemaless'],
-        default='fixed',
-        help='Extraction mode: fixed schema or schemaless (default: fixed)'
-    )
-    seed_parser.add_argument(
-        '--schema-discovery',
-        action='store_true',
-        help='Show discovered entity types after processing (schemaless mode only)'
-    )
-    seed_parser.add_argument(
-        '--migration-mode',
-        action='store_true',
-        help='Enable dual processing mode for migration (processes with both fixed and schemaless)'
-    )
-    
-    # Health command
-    health_parser = subparsers.add_parser(
-        'health',
-        help='Check health of pipeline components'
-    )
-    health_parser.add_argument(
-        '--large-context',
-        action='store_true',
-        help='Check large context model availability'
-    )
-    
-    # Validate config command
-    validate_parser = subparsers.add_parser(
-        'validate-config',
-        help='Validate configuration file'
-    )
-    validate_parser.add_argument(
-        '--config',
+    vtt_parser.add_argument(
+        '--folder',
         type=str,
         required=True,
-        help='Path to configuration file to validate'
+        help='Folder containing VTT files'
     )
     
-    # Schema statistics command
-    schema_parser = subparsers.add_parser(
-        'schema-stats',
-        help='Show schema statistics from schemaless extraction'
+    vtt_parser.add_argument(
+        '--pattern',
+        type=str,
+        default='*.vtt',
+        help='File pattern to match (default: *.vtt)'
     )
-    schema_parser.add_argument(
+    
+    vtt_parser.add_argument(
+        '--recursive',
+        action='store_true',
+        help='Search for VTT files recursively in subdirectories'
+    )
+    
+    vtt_parser.add_argument(
+        '--dry-run',
+        action='store_true',
+        help='Show what would be processed without actually processing'
+    )
+    
+    vtt_parser.add_argument(
+        '--skip-errors',
+        action='store_true',
+        help='Continue processing even if some files fail'
+    )
+    
+    vtt_parser.add_argument(
+        '--no-checkpoint',
+        action='store_true',
+        help='Disable checkpoint tracking'
+    )
+    
+    vtt_parser.add_argument(
+        '--checkpoint-dir',
+        type=str,
+        default='checkpoints',
+        help='Directory for checkpoint files (default: checkpoints)'
+    )
+    
+    # Checkpoint status command
+    status_parser = subparsers.add_parser(
+        'checkpoint-status',
+        help='Show checkpoint status and processing history'
+    )
+    
+    status_parser.add_argument(
         '--checkpoint-dir',
         type=str,
         default='checkpoints',
         help='Directory containing checkpoint files (default: checkpoints)'
     )
     
+    # Checkpoint clean command
+    clean_parser = subparsers.add_parser(
+        'checkpoint-clean',
+        help='Clean checkpoint data'
+    )
+    
+    clean_parser.add_argument(
+        '--checkpoint-dir',
+        type=str,
+        default='checkpoints',
+        help='Directory containing checkpoint files (default: checkpoints)'
+    )
+    
+    clean_parser.add_argument(
+        '--pattern',
+        type=str,
+        help='Pattern for checkpoint files to clean (e.g., "vtt_*.json")'
+    )
+    
+    clean_parser.add_argument(
+        '--force',
+        action='store_true',
+        help='Skip confirmation prompt'
+    )
+    
     # Parse arguments
     args = parser.parse_args()
     
-    # Validate flag combinations
-    if hasattr(args, 'migration_mode') and hasattr(args, 'extraction_mode'):
-        if args.migration_mode and args.extraction_mode != 'fixed':
-            parser.error("--migration-mode requires --extraction-mode to be 'fixed' or omitted")
-    
-    if hasattr(args, 'schema_discovery') and hasattr(args, 'extraction_mode'):
-        if args.schema_discovery and args.extraction_mode == 'fixed':
-            parser.error("--schema-discovery only works with --extraction-mode schemaless")
-    
     # Set up logging
-    setup_logging(args.verbose)
+    setup_logging(args.verbose, args.log_file if hasattr(args, 'log_file') else None)
     
     # Execute command
-    if args.command == 'seed':
-        return seed_podcasts(args)
-    elif args.command == 'health':
-        return health_check(args)
-    elif args.command == 'validate-config':
-        return validate_config(args)
-    elif args.command == 'schema-stats':
-        return schema_stats(args)
+    if args.command == 'process-vtt':
+        return process_vtt(args)
+    elif args.command == 'checkpoint-status':
+        return checkpoint_status(args)
+    elif args.command == 'checkpoint-clean':
+        return checkpoint_clean(args)
     else:
         parser.print_help()
         return 1
