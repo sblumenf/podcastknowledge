@@ -180,45 +180,55 @@ class PodcastKnowledgePipeline:
         cleanup_memory()
         logger.info("Pipeline cleanup completed")
     
-    @trace_method(name="pipeline.seed_podcast")
-    def seed_podcast(self, 
-                    podcast_config: Dict[str, Any],
-                    max_episodes: int = 1,
-                    use_large_context: bool = True) -> Dict[str, Any]:
-        """Seed knowledge graph with a single podcast.
+    @trace_method(name="pipeline.process_vtt_directory")
+    def process_vtt_directory(self, 
+                            directory_path: str,
+                            pattern: str = "*.vtt",
+                            recursive: bool = False,
+                            use_large_context: bool = True) -> Dict[str, Any]:
+        """Process VTT files from a directory.
         
         Args:
-            podcast_config: Podcast configuration with RSS URL
-            max_episodes: Maximum episodes to process
+            directory_path: Path to directory containing VTT files
+            pattern: File pattern to match (default: *.vtt)
+            recursive: Whether to search subdirectories
             use_large_context: Whether to use large context models
             
         Returns:
             Processing summary
         """
-        return self.seed_podcasts(
-            [podcast_config],
-            max_episodes_each=max_episodes,
+        from src.seeding.transcript_ingestion import TranscriptIngestion
+        
+        ingestion = TranscriptIngestion(self.config)
+        vtt_files = ingestion.scan_directory(
+            Path(directory_path),
+            pattern=pattern,
+            recursive=recursive
+        )
+        
+        return self.process_vtt_files(
+            vtt_files,
             use_large_context=use_large_context
         )
     
-    @trace_method(name="pipeline.seed_podcasts")
-    def seed_podcasts(self,
-                     podcast_configs: Union[Dict[str, Any], List[Dict[str, Any]]],
-                     max_episodes_each: int = 10,
-                     use_large_context: bool = True) -> Dict[str, Any]:
-        """Seed knowledge graph with multiple podcasts.
+    @trace_method(name="pipeline.process_vtt_files")
+    def process_vtt_files(self,
+                         vtt_files: List[Any],
+                         use_large_context: bool = True) -> Dict[str, Any]:
+        """Process multiple VTT files into knowledge graph.
         
         Args:
-            podcast_configs: List of podcast configurations or single config
-            max_episodes_each: Episodes to process per podcast
+            vtt_files: List of VTTFile objects to process
             use_large_context: Whether to use large context models
             
         Returns:
             Summary dict with processing statistics
         """
-        # Ensure podcast_configs is a list
-        if isinstance(podcast_configs, dict):
-            podcast_configs = [podcast_configs]
+        from src.seeding.transcript_ingestion import TranscriptIngestion
+        
+        # Ensure vtt_files is a list
+        if not isinstance(vtt_files, list):
+            vtt_files = [vtt_files]
         
         # Initialize components if not already done
         if not self.llm_provider:
@@ -227,9 +237,8 @@ class PodcastKnowledgePipeline:
         
         summary = {
             'start_time': datetime.now().isoformat(),
-            'podcasts_processed': 0,
-            'episodes_processed': 0,
-            'episodes_failed': 0,
+            'files_processed': 0,
+            'files_failed': 0,
             'total_segments': 0,
             'total_insights': 0,
             'total_entities': 0,
@@ -239,26 +248,39 @@ class PodcastKnowledgePipeline:
             'errors': []
         }
         
+        ingestion = TranscriptIngestion(self.config)
+        
         try:
-            for podcast_config in podcast_configs:
+            for vtt_file in vtt_files:
                 if self._shutdown_requested:
                     logger.info("Shutdown requested, stopping processing")
                     break
                 
                 try:
-                    result = self._process_podcast(
-                        podcast_config,
-                        max_episodes_each,
-                        use_large_context
-                    )
+                    result = ingestion.process_vtt_file(vtt_file)
                     
-                    # Update summary
-                    summary['podcasts_processed'] += 1
-                    summary['episodes_processed'] += result['episodes_processed']
-                    summary['episodes_failed'] += result['episodes_failed']
-                    summary['total_segments'] += result['total_segments']
-                    summary['total_insights'] += result['total_insights']
-                    summary['total_entities'] += result['total_entities']
+                    if result['status'] == 'success':
+                        # Process the segments through knowledge extraction
+                        if hasattr(self, 'processor') and self.processor:
+                            extraction_result = self.processor.process_segments(
+                                result['segments'],
+                                podcast_name=vtt_file.podcast_name,
+                                episode_title=vtt_file.episode_title
+                            )
+                            
+                            # Update summary with extraction results
+                            summary['total_insights'] += len(extraction_result.get('insights', []))
+                            summary['total_entities'] += len(extraction_result.get('entities', []))
+                            summary['total_relationships'] += len(extraction_result.get('relationships', []))
+                        
+                        summary['files_processed'] += 1
+                        summary['total_segments'] += result.get('segment_count', 0)
+                    else:
+                        summary['files_failed'] += 1
+                        summary['errors'].append({
+                            'file': str(vtt_file.path),
+                            'error': result.get('error', 'Unknown error')
+                        })
                     
                     # Add schemaless-specific metrics
                     if result.get('extraction_mode') == 'schemaless':
@@ -267,9 +289,10 @@ class PodcastKnowledgePipeline:
                             summary['discovered_types'].update(result['discovered_types'])
                     
                 except Exception as e:
-                    logger.error(f"Failed to process podcast: {e}")
+                    logger.error(f"Failed to process VTT file: {e}")
+                    summary['files_failed'] += 1
                     summary['errors'].append({
-                        'podcast': podcast_config.get('id', 'unknown'),
+                        'file': str(vtt_file.path) if hasattr(vtt_file, 'path') else 'unknown',
                         'error': str(e)
                     })
             
@@ -282,102 +305,13 @@ class PodcastKnowledgePipeline:
             
             # Log final schema discovery summary if in schemaless mode
             if summary['extraction_mode'] == 'schemaless' and summary['discovered_types']:
-                logger.info(f"Overall Schema Discovery - Found {len(summary['discovered_types'])} unique entity types across all podcasts")
+                logger.info(f"Overall Schema Discovery - Found {len(summary['discovered_types'])} unique entity types across all VTT files")
             
             return summary
             
         finally:
             # Always cleanup
             self.cleanup()
-    
-    def _process_podcast(self,
-                        podcast_config: Dict[str, Any],
-                        max_episodes: int,
-                        use_large_context: bool) -> Dict[str, Any]:
-        """Process a single podcast.
-        
-        Args:
-            podcast_config: Podcast configuration
-            max_episodes: Maximum episodes to process
-            use_large_context: Whether to use large context
-            
-        Returns:
-            Processing results
-        """
-        logger.info(f"Processing podcast: {podcast_config.get('name', podcast_config['id'])}")
-        
-        # Fetch podcast feed
-        podcast_info = fetch_podcast_feed(podcast_config, max_episodes)
-        
-        result = {
-            'episodes_processed': 0,
-            'episodes_failed': 0,
-            'total_segments': 0,
-            'total_insights': 0,
-            'total_entities': 0,
-            'total_relationships': 0,
-            'discovered_types': set(),
-            'extraction_mode': 'schemaless' if getattr(self.config, 'use_schemaless_extraction', False) else 'fixed'
-        }
-        
-        # Process each episode
-        for episode in podcast_info['episodes']:
-            if self._shutdown_requested:
-                break
-            
-            try:
-                episode_result = self._process_episode(
-                    podcast_config,
-                    episode,
-                    use_large_context
-                )
-                
-                result['episodes_processed'] += 1
-                result['total_segments'] += episode_result.get('segments', 0)
-                result['total_insights'] += episode_result.get('insights', 0)
-                result['total_entities'] += episode_result.get('entities', 0)
-                
-                # Add schemaless-specific metrics
-                if episode_result.get('mode') == 'schemaless':
-                    result['total_relationships'] += episode_result.get('relationships', 0)
-                    if 'discovered_types' in episode_result:
-                        result['discovered_types'].update(episode_result['discovered_types'])
-                
-            except Exception as e:
-                logger.error(f"Failed to process episode '{episode['title']}': {e}")
-                result['episodes_failed'] += 1
-        
-        # Convert discovered types set to sorted list for JSON serialization
-        if isinstance(result['discovered_types'], set):
-            result['discovered_types'] = sorted(list(result['discovered_types']))
-        
-        # Log schema discovery summary if in schemaless mode
-        if result['extraction_mode'] == 'schemaless' and result['discovered_types']:
-            logger.info(f"Schema Discovery Summary - Found {len(result['discovered_types'])} unique entity types: {result['discovered_types']}")
-        
-        return result
-    
-    @trace_method(name="pipeline.process_episode")
-    def _process_episode(self,
-                        podcast_config: Dict[str, Any],
-                        episode: Dict[str, Any],
-                        use_large_context: bool) -> Dict[str, Any]:
-        """Process a single episode.
-        
-        Args:
-            podcast_config: Podcast configuration
-            episode: Episode information
-            use_large_context: Whether to use large context
-            
-        Returns:
-            Episode processing results
-        """
-        # Delegate to pipeline executor
-        return self.pipeline_executor.process_episode(
-            podcast_config,
-            episode,
-            use_large_context
-        )
     
     def resume_from_checkpoints(self) -> Dict[str, Any]:
         """Resume processing from checkpoints after interruption.

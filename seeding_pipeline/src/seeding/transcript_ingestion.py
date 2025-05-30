@@ -372,3 +372,73 @@ class TranscriptIngestion:
             Hex digest of file hash
         """
         return self._calculate_file_hash(Path(file_path))
+
+
+class TranscriptIngestionManager:
+    """Manager class that bridges between CLI and TranscriptIngestion.
+    
+    This provides the interface expected by the CLI while using
+    TranscriptIngestion internally.
+    """
+    
+    def __init__(self, pipeline: Any, checkpoint: Optional[Any] = None):
+        """Initialize ingestion manager.
+        
+        Args:
+            pipeline: Knowledge pipeline instance
+            checkpoint: Optional checkpoint manager
+        """
+        self.pipeline = pipeline
+        self.checkpoint = checkpoint
+        self.ingestion = TranscriptIngestion(pipeline.config)
+    
+    def process_vtt_file(self, vtt_file: str, metadata: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        """Process a VTT file and return results.
+        
+        Args:
+            vtt_file: Path to VTT file
+            metadata: Optional metadata
+            
+        Returns:
+            Dictionary with processing results including:
+            - success: bool
+            - segments_processed: int (if successful)
+            - error: str (if failed)
+        """
+        try:
+            # Create VTTFile object
+            vtt_file_obj = self.ingestion._create_vtt_file(Path(vtt_file))
+            if not vtt_file_obj:
+                return {
+                    'success': False,
+                    'error': 'Failed to create VTTFile object'
+                }
+            
+            # Process the file
+            result = self.ingestion.process_vtt_file(vtt_file_obj, self.checkpoint)
+            
+            # Transform result to expected format
+            if result['status'] == 'success':
+                return {
+                    'success': True,
+                    'segments_processed': result['segment_count'],
+                    'segments': result.get('segments', []),
+                    'episode': result.get('episode', {})
+                }
+            elif result['status'] == 'skipped':
+                return {
+                    'success': False,
+                    'error': f"Skipped: {result.get('reason', 'Unknown reason')}"
+                }
+            else:
+                return {
+                    'success': False,
+                    'error': result.get('error', 'Unknown error')
+                }
+                
+        except Exception as e:
+            logger.error(f"Failed to process VTT file {vtt_file}: {e}")
+            return {
+                'success': False,
+                'error': str(e)
+            }
