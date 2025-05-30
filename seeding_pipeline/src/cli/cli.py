@@ -29,7 +29,7 @@ from src.seeding.checkpoint import ProgressCheckpoint
 
 def setup_logging(verbose: bool = False, log_file: Optional[str] = None) -> None:
     """Set up structured logging configuration."""
-    level = "DEBUG" if verbose else os.environ.get("PODCAST_KG_LOG_LEVEL", "INFO")
+    level = "DEBUG" if verbose else os.environ.get("VTT_KG_LOG_LEVEL", "INFO")
     
     # Create logs directory if needed
     if log_file:
@@ -39,7 +39,7 @@ def setup_logging(verbose: bool = False, log_file: Optional[str] = None) -> None
     setup_structured_logging(
         level=level,
         log_file=log_file,
-        json_format=os.environ.get("PODCAST_KG_LOG_FORMAT", "json").lower() == "json",
+        json_format=os.environ.get("VTT_KG_LOG_FORMAT", "json").lower() == "json",
         add_context=True,
         add_performance=verbose
     )
