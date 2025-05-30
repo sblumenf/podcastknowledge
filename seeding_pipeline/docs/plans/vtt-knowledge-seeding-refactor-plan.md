@@ -131,7 +131,7 @@ This plan transforms the current podcast processing pipeline into a streamlined 
 ## Phase 3: Monitoring and Infrastructure Cleanup (3 days)
 
 ### 3.1 Simplify Monitoring
-- [ ] **Remove distributed tracing**
+- [x] **Remove distributed tracing**
   - Purpose: Eliminate Jaeger/OpenTelemetry overhead
   - Steps:
     1. Delete `src/tracing/` directory
@@ -140,7 +140,7 @@ This plan transforms the current podcast processing pipeline into a streamlined 
     4. Keep basic logging for debugging
   - Validation: No tracing imports, logging still works
 
-- [ ] **Streamline metrics collection**
+- [x] **Streamline metrics collection**
   - Purpose: Keep only essential metrics
   - Steps:
     1. Remove Prometheus exporters
@@ -149,7 +149,7 @@ This plan transforms the current podcast processing pipeline into a streamlined 
     4. Update metric collection to use logging
   - Validation: Basic metrics logged, no external systems
 
-- [ ] **Simplify health checks**
+- [x] **Simplify health checks**
   - Purpose: Maintain basic health monitoring
   - Steps:
     1. Create simple health check for Neo4j connection
@@ -159,7 +159,7 @@ This plan transforms the current podcast processing pipeline into a streamlined 
   - Validation: Health checks work without API
 
 ### 3.2 Optimize API Layer
-- [ ] **Remove unnecessary API endpoints**
+- [x] **Remove unnecessary API endpoints**
   - Purpose: Keep only essential APIs
   - Steps:
     1. Remove podcast seeding endpoints
@@ -168,7 +168,7 @@ This plan transforms the current podcast processing pipeline into a streamlined 
     4. Simplify API structure
   - Validation: Minimal API serves core needs
 
-- [ ] **Create lightweight deployment option**
+- [x] **Create lightweight deployment option**
   - Purpose: Enable easy deployment when needed
   - Steps:
     1. Create simple Dockerfile for VTT processor
