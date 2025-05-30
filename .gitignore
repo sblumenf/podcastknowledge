@@ -8,3 +8,14 @@ venv/
 coverage.xml
 htmlcov/
 .pytest_cache/
+
+# Test output files
+test_collection.txt
+test_results_initial.txt
+test_timings.txt
+failed_tests.txt
+test_inventory.txt
+coverage_baseline.txt
+
+# Duplicate directories
+podcastknowledge/
