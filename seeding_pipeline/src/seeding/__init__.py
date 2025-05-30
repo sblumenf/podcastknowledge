@@ -1,5 +1,5 @@
-"""Seeding module for podcast knowledge graph pipeline."""
+"""Seeding module for VTT knowledge extraction pipeline."""
 
-from .orchestrator import PodcastKnowledgePipeline
+from .orchestrator import VTTKnowledgeExtractor
 
-__all__ = ['PodcastKnowledgePipeline']
+__all__ = ['VTTKnowledgeExtractor']

@@ -33,11 +33,12 @@ from src.seeding.components import (
 logger = get_logger(__name__)
 
 
-class PodcastKnowledgePipeline:
-    """Master orchestrator for the podcast knowledge extraction pipeline.
+class VTTKnowledgeExtractor:
+    """Master orchestrator for VTT transcript knowledge extraction.
     
     This class coordinates all components of the pipeline using dependency injection
-    and provides the main API for seeding the knowledge graph.
+    and provides the main API for extracting knowledge from VTT files and seeding
+    the knowledge graph.
     """
     
     def __init__(self, config: Optional[Union[PipelineConfig, SeedingConfig]] = None):

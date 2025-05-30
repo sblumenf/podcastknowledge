@@ -1,21 +1,20 @@
-"""Podcast Knowledge Graph Pipeline - Modular Implementation.
+"""VTT Knowledge Extraction Pipeline - Streamlined Implementation.
 
 Main API:
-    - PodcastKnowledgePipeline: Main pipeline orchestrator
-    - seed_podcast: Seed knowledge graph with a single podcast
-    - seed_podcasts: Seed knowledge graph with multiple podcasts
+    - VTTKnowledgeExtractor: Main pipeline orchestrator for VTT processing
+    - extract_vtt_knowledge: Extract knowledge from a single VTT file
+    - extract_vtt_directory: Extract knowledge from directory of VTT files
 """
 
 from .__version__ import __version__, __version_info__, __api_version__
-from .seeding import PodcastKnowledgePipeline
+from .seeding import VTTKnowledgeExtractor
 
 # Convenience functions
-def seed_podcast(podcast_config, max_episodes=1, use_large_context=True, config=None):
-    """Seed knowledge graph with a single podcast.
+def extract_vtt_knowledge(vtt_file_path, use_large_context=True, config=None):
+    """Extract knowledge from a single VTT file.
     
     Args:
-        podcast_config: Podcast configuration with RSS URL
-        max_episodes: Maximum episodes to process
+        vtt_file_path: Path to VTT file
         use_large_context: Whether to use large context models
         config: Optional configuration object
     
@@ -23,23 +22,26 @@ def seed_podcast(podcast_config, max_episodes=1, use_large_context=True, config=
         Processing summary dict
     """
     from .core.config import Config
+    from pathlib import Path
     
     if config is None:
         config = Config()
     
-    pipeline = PodcastKnowledgePipeline(config)
+    pipeline = VTTKnowledgeExtractor(config)
     try:
-        return pipeline.seed_podcast(podcast_config, max_episodes, use_large_context)
+        return pipeline.process_vtt_files([Path(vtt_file_path)], use_large_context)
     finally:
         pipeline.cleanup()
 
 
-def seed_podcasts(podcast_configs, max_episodes_each=10, use_large_context=True, config=None):
-    """Seed knowledge graph with multiple podcasts.
+def extract_vtt_directory(directory_path, pattern="*.vtt", recursive=False, 
+                         use_large_context=True, config=None):
+    """Extract knowledge from VTT files in a directory.
     
     Args:
-        podcast_configs: List of podcast configurations
-        max_episodes_each: Episodes to process per podcast
+        directory_path: Path to directory containing VTT files
+        pattern: File pattern to match (default: *.vtt)
+        recursive: Whether to search subdirectories
         use_large_context: Whether to use large context models
         config: Optional configuration object
     
@@ -51,9 +53,11 @@ def seed_podcasts(podcast_configs, max_episodes_each=10, use_large_context=True,
     if config is None:
         config = Config()
     
-    pipeline = PodcastKnowledgePipeline(config)
+    pipeline = VTTKnowledgeExtractor(config)
     try:
-        return pipeline.seed_podcasts(podcast_configs, max_episodes_each, use_large_context)
+        return pipeline.process_vtt_directory(
+            directory_path, pattern, recursive, use_large_context
+        )
     finally:
         pipeline.cleanup()
 
@@ -62,7 +66,7 @@ __all__ = [
     '__version__',
     '__version_info__',
     '__api_version__',
-    'PodcastKnowledgePipeline',
-    'seed_podcast',
-    'seed_podcasts',
+    'VTTKnowledgeExtractor',
+    'extract_vtt_knowledge',
+    'extract_vtt_directory',
 ]

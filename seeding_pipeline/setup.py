@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Setup script for Podcast Knowledge Graph Pipeline.
+"""Setup script for VTT Knowledge Extraction Pipeline.
 
 This setup.py exists for backward compatibility.
 The project is primarily configured through pyproject.toml.
@@ -18,14 +18,14 @@ with open(this_directory / "src" / "__version__.py") as f:
     exec(f.read(), version)
 
 setup(
-    name="podcast-kg-pipeline",
+    name="vtt-knowledge-extractor",
     version=version['__version__'],
-    author="Podcast KG Team",
+    author="VTT KG Team",
     author_email="team@example.com",
-    description="Modular podcast knowledge graph seeding pipeline",
+    description="VTT transcript knowledge extraction and graph seeding pipeline",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/yourusername/podcast-kg-pipeline",
+    url="https://github.com/yourusername/vtt-knowledge-extractor",
     packages=find_packages(exclude=["tests", "tests.*", "scripts", "scripts.*"]),
     classifiers=[
         "Development Status :: 3 - Alpha",
@@ -37,6 +37,7 @@ setup(
         "Programming Language :: Python :: 3.11",
         "Topic :: Software Development :: Libraries :: Python Modules",
         "Topic :: Scientific/Engineering :: Artificial Intelligence",
+        "Topic :: Text Processing :: Linguistic",
     ],
     python_requires=">=3.9",
     install_requires=[
@@ -66,8 +67,8 @@ setup(
     },
     entry_points={
         "console_scripts": [
-            "podcast-kg=cli:main",
-            "podcast-kg-seed=cli:main",  # Alias for compatibility
+            "vtt-extract=src.cli.cli:main",
+            "vtt-knowledge=src.cli.cli:main",  # Alias for clarity
         ],
     },
     include_package_data=True,
