@@ -17,7 +17,6 @@ from src.processing.discourse_flow import DiscourseFlowTracker
 from src.processing.emergent_themes import EmergentThemeDetector
 from src.processing.episode_flow import EpisodeFlowAnalyzer
 from src.core.config import PipelineConfig
-from src.tracing import trace_method, add_span_attributes
 
 logger = logging.getLogger(__name__)
 
@@ -50,7 +49,6 @@ class ProviderCoordinator:
         self.emergent_theme_detector: Optional[EmergentThemeDetector] = None
         self.episode_flow_analyzer: Optional[EpisodeFlowAnalyzer] = None
     
-    @trace_method(name="provider_coordinator.initialize_providers")
     def initialize_providers(self, use_large_context: bool = True) -> bool:
         """Initialize all providers and processing components.
         
@@ -136,7 +134,6 @@ class ProviderCoordinator:
             logger.error(f"Failed to initialize providers: {e}")
             return False
     
-    @trace_method(name="provider_coordinator.check_health")
     def check_health(self) -> bool:
         """Verify all providers are healthy.
         

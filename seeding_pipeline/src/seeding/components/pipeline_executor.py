@@ -9,7 +9,6 @@ from src.core.models import Podcast, Episode, Segment
 from src.core.interfaces import TranscriptSegment
 from src.core.exceptions import PipelineError
 from src.utils.memory import cleanup_memory
-from src.tracing import create_span, add_span_attributes
 from src.utils.logging import get_logger
 
 logger = get_logger(__name__)

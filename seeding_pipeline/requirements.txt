@@ -26,13 +26,3 @@ fastapi==0.104.1
 uvicorn[standard]==0.24.0
 pydantic==2.5.0
 
-# Distributed Tracing
-opentelemetry-api==1.21.0
-opentelemetry-sdk==1.21.0
-opentelemetry-instrumentation==0.42b0
-opentelemetry-exporter-jaeger==1.21.0
-opentelemetry-instrumentation-redis==0.42b0
-opentelemetry-instrumentation-requests==0.42b0
-opentelemetry-instrumentation-urllib3==0.42b0
-opentelemetry-instrumentation-logging==0.42b0
-opentelemetry-propagator-b3==1.21.0

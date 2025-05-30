@@ -6,7 +6,6 @@ from typing import Dict, Any, List, Optional
 from src.providers.graph.base import GraphProvider
 from src.providers.graph.enhancements import GraphEnhancements
 from src.core.models import Entity
-from src.tracing import trace_method, create_span, add_span_attributes
 from src.utils.logging import get_logger
 
 logger = get_logger(__name__)
@@ -27,7 +26,6 @@ class StorageCoordinator:
         self.graph_enhancer = graph_enhancer
         self.config = config
     
-    @trace_method(name="storage.store_all")
     def store_all(self, podcast_config: Dict[str, Any],
                   episode: Dict[str, Any],
                   segments: List[Dict[str, Any]],
@@ -42,39 +40,38 @@ class StorageCoordinator:
             extraction_result: Extraction results
             resolved_entities: Resolved entities
         """
-        with create_span("graph_storage"):
-            logger.info("Saving to knowledge graph...")
-            
-            # Store podcast
-            self._store_podcast(podcast_config)
-            
-            # Store episode
-            self._store_episode(episode, extraction_result)
-            
-            # Create podcast-episode relationship
-            self._create_podcast_episode_relationship(podcast_config['id'], episode['id'])
-            
-            # Store segments
-            self._store_segments(episode['id'], segments)
-            
-            # Store insights
-            self._store_insights(episode['id'], extraction_result.get('insights', []))
-            
-            # Store entities
-            self._store_entities(episode['id'], resolved_entities)
-            
-            # Store quotes
-            self._store_quotes(episode['id'], extraction_result.get('quotes', []))
-            
-            # Store emergent themes
-            self._store_emergent_themes(episode['id'], 
-                                      extraction_result.get('emergent_themes', {}),
-                                      resolved_entities)
-            
-            # Enhance graph if configured
-            if getattr(self.config, 'enhance_graph', True):
-                logger.info("Enhancing knowledge graph...")
-                self.graph_enhancer.enhance_episode(episode['id'])
+        logger.info("Saving to knowledge graph...")
+        
+        # Store podcast
+        self._store_podcast(podcast_config)
+        
+        # Store episode
+        self._store_episode(episode, extraction_result)
+        
+        # Create podcast-episode relationship
+        self._create_podcast_episode_relationship(podcast_config['id'], episode['id'])
+        
+        # Store segments
+        self._store_segments(episode['id'], segments)
+        
+        # Store insights
+        self._store_insights(episode['id'], extraction_result.get('insights', []))
+        
+        # Store entities
+        self._store_entities(episode['id'], resolved_entities)
+        
+        # Store quotes
+        self._store_quotes(episode['id'], extraction_result.get('quotes', []))
+        
+        # Store emergent themes
+        self._store_emergent_themes(episode['id'], 
+                                  extraction_result.get('emergent_themes', {}),
+                                  resolved_entities)
+        
+        # Enhance graph if configured
+        if getattr(self.config, 'enhance_graph', True):
+            logger.info("Enhancing knowledge graph...")
+            self.graph_enhancer.enhance_episode(episode['id'])
     
     def _store_podcast(self, podcast_config: Dict[str, Any]):
         """Store podcast node.

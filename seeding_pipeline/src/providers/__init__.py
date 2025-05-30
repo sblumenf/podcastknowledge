@@ -1,9 +1,5 @@
 """Provider implementations for podcast knowledge pipeline."""
 
-from .audio import BaseAudioProvider, WhisperAudioProvider, MockAudioProvider
+# Empty __init__.py - providers are loaded dynamically
 
-__all__ = [
-    "BaseAudioProvider",
-    "WhisperAudioProvider",
-    "MockAudioProvider",
-]
+__all__ = []

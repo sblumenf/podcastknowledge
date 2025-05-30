@@ -1,40 +1,41 @@
 """Examples for using different providers in the Podcast Knowledge Graph Pipeline."""
 
-from src.providers.audio.whisper import WhisperAudioProvider
 from src.providers.llm.gemini import GeminiProvider
 from src.providers.graph.neo4j import Neo4jGraphProvider
 from src.providers.embeddings.sentence_transformer import SentenceTransformerEmbeddingProvider
 from src.core.models import Podcast, Episode, Segment, Insight
+from src.processing.vtt_parser import VTTParser
+from src.seeding.transcript_ingestion import TranscriptIngestion
 
 
-def example_audio_provider():
-    """Example: Using the Whisper audio provider."""
-    print("=== Audio Provider Example ===")
+def example_vtt_processing():
+    """Example: Processing VTT transcript files."""
+    print("=== VTT Processing Example ===")
     
-    # Initialize provider
-    audio_provider = WhisperAudioProvider(
-        model_size="base",  # Options: tiny, base, small, medium, large
-        device="cuda",      # Use GPU if available
-        compute_type="float16"  # Faster computation
+    # Initialize VTT parser
+    parser = VTTParser()
+    
+    # Parse a VTT file
+    vtt_file = "path/to/transcript.vtt"
+    segments = parser.parse_file(vtt_file)
+    print(f"Parsed {len(segments)} segments from VTT file")
+    
+    # Show first few segments
+    for i, segment in enumerate(segments[:3]):
+        print(f"  Segment {i}: {segment.speaker} at {segment.start:.1f}s: {segment.text[:50]}...")
+    
+    # Process entire directory
+    ingestion = TranscriptIngestion()
+    results = ingestion.process_directory(
+        directory="path/to/vtt/files",
+        pattern="*.vtt",
+        recursive=True
     )
     
-    # Check health
-    health = audio_provider.health_check()
-    print(f"Provider health: {health['status']}")
+    print(f"Processed {results['processed_count']} VTT files")
+    print(f"Total segments: {results['total_segments']}")
     
-    # Transcribe audio
-    audio_file = "path/to/podcast/episode.mp3"
-    transcript = audio_provider.transcribe(audio_file)
-    print(f"Transcript length: {len(transcript)} characters")
-    
-    # Get speaker diarization
-    segments = audio_provider.diarize(audio_file)
-    print(f"Found {len(segments)} speaker segments")
-    
-    for i, segment in enumerate(segments[:3]):
-        print(f"  Segment {i}: Speaker {segment.speaker} at {segment.start:.1f}s")
-    
-    return transcript, segments
+    return segments
 
 
 def example_llm_provider():
@@ -196,8 +197,8 @@ def example_provider_composition():
     """Example: Composing multiple providers together."""
     print("\n=== Provider Composition Example ===")
     
-    # Initialize all providers
-    audio_provider = WhisperAudioProvider(model_size="base")
+    # Initialize providers
+    vtt_parser = VTTParser()
     llm_provider = GeminiProvider(api_key="your-key")
     graph_provider = Neo4jGraphProvider(
         uri="bolt://localhost:7687",
@@ -206,12 +207,13 @@ def example_provider_composition():
     )
     embedding_provider = SentenceTransformerEmbeddingProvider()
     
-    # Process a podcast episode
-    audio_file = "episode.mp3"
+    # Process a VTT transcript
+    vtt_file = "episode_transcript.vtt"
     
-    # Step 1: Transcribe
-    print("1. Transcribing audio...")
-    transcript = audio_provider.transcribe(audio_file)
+    # Step 1: Parse VTT
+    print("1. Parsing VTT transcript...")
+    segments = vtt_parser.parse_file(vtt_file)
+    transcript = " ".join([seg.text for seg in segments])
     
     # Step 2: Extract insights
     print("2. Extracting insights...")
@@ -254,18 +256,18 @@ def example_error_handling():
     """Example: Handling provider errors gracefully."""
     print("\n=== Error Handling Example ===")
     
-    from src.core.exceptions import ProviderError, AudioProcessingError
+    from src.core.exceptions import ProviderError, ProcessingError
     
-    # Example: Handle audio processing errors
-    audio_provider = WhisperAudioProvider()
+    # Example: Handle VTT parsing errors
+    vtt_parser = VTTParser()
     
     try:
-        # Try to process a non-existent file
-        transcript = audio_provider.transcribe("non_existent.mp3")
-    except AudioProcessingError as e:
-        print(f"Audio processing failed: {e}")
+        # Try to parse a non-existent file
+        segments = vtt_parser.parse_file("non_existent.vtt")
+    except (FileNotFoundError, ProcessingError) as e:
+        print(f"VTT parsing failed: {e}")
         # Fallback action
-        transcript = "[Transcription failed]"
+        segments = []
     
     # Example: Handle LLM errors with retry
     from src.utils.retry import with_retry
@@ -308,11 +310,11 @@ def example_custom_configuration():
     # Create custom configuration
     config = Config()
     
-    # Audio configuration
-    config.audio_provider = "whisper"
-    config.whisper_model_size = "large"
-    config.whisper_device = "cuda"
-    config.enable_diarization = True
+    # VTT processing configuration
+    config.vtt_directory = "/path/to/vtt/files"
+    config.vtt_pattern = "*.vtt"
+    config.merge_consecutive_segments = True
+    config.segment_merge_threshold = 2.0
     
     # LLM configuration
     config.llm_provider = "gemini"
@@ -328,15 +330,19 @@ def example_custom_configuration():
     # Create providers from configuration
     factory = ProviderFactory()
     
-    audio_provider = factory.create_provider("audio", config)
     llm_provider = factory.create_provider("llm", config)
     graph_provider = factory.create_provider("graph", config)
     
-    print(f"Created {config.audio_provider} audio provider")
     print(f"Created {config.llm_provider} LLM provider") 
     print(f"Created {config.graph_provider} graph provider")
     
-    return audio_provider, llm_provider, graph_provider
+    # Create VTT processing components
+    vtt_parser = VTTParser(
+        merge_consecutive=config.merge_consecutive_segments,
+        merge_threshold=config.segment_merge_threshold
+    )
+    
+    return vtt_parser, llm_provider, graph_provider
 
 
 if __name__ == "__main__":
@@ -350,9 +356,9 @@ if __name__ == "__main__":
     
     # Run examples (will fail without proper setup, but shows the API)
     try:
-        example_audio_provider()
+        example_vtt_processing()
     except Exception as e:
-        print(f"Audio example failed (expected without audio file): {e}")
+        print(f"VTT example failed (expected without VTT file): {e}")
     
     try:
         example_llm_provider()

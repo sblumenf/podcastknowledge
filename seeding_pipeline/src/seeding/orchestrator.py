@@ -25,12 +25,6 @@ from src.utils.memory import cleanup_memory, monitor_memory
 from src.utils.resources import ProgressCheckpoint
 from src.providers.graph.enhancements import GraphEnhancements
 from src.utils.logging import get_logger, log_execution_time, log_error_with_context, log_metric
-from src.tracing import (
-    init_tracing, trace_method, trace_async, add_span_attributes,
-    record_exception, set_span_status, create_span, get_current_span,
-    trace_business_operation, instrument_all
-)
-from src.tracing.config import TracingConfig
 
 # Import new components
 from src.seeding.components import (
@@ -93,9 +87,6 @@ class PodcastKnowledgePipeline:
         
         # Initialize logging
         self._setup_logging()
-        
-        # Initialize distributed tracing
-        self._setup_tracing()
     
     def _setup_logging(self):
         """Set up comprehensive logging."""
@@ -114,43 +105,6 @@ class PodcastKnowledgePipeline:
             file_handler.setFormatter(logging.Formatter(log_format))
             logging.getLogger().addHandler(file_handler)
     
-    def _setup_tracing(self):
-        """Initialize distributed tracing."""
-        tracing_config = TracingConfig.from_env()
-        
-        # Initialize OpenTelemetry tracer
-        init_tracing(
-            service_name=tracing_config.service_name,
-            jaeger_host=tracing_config.jaeger_host,
-            jaeger_port=tracing_config.jaeger_port,
-            config=self.config,
-            enable_console=tracing_config.console_export,
-        )
-        
-        # Enable auto-instrumentation based on config
-        if tracing_config.instrument_neo4j:
-            from src.tracing.instrumentation import instrument_neo4j
-            instrument_neo4j()
-        
-        if tracing_config.instrument_redis:
-            from src.tracing.instrumentation import instrument_redis
-            instrument_redis()
-        
-        if tracing_config.instrument_requests:
-            from src.tracing.instrumentation import instrument_requests
-            instrument_requests()
-        
-        if tracing_config.instrument_langchain:
-            from src.tracing.instrumentation import instrument_langchain
-            instrument_langchain()
-        
-        if tracing_config.instrument_whisper:
-            from src.tracing.instrumentation import instrument_whisper
-            instrument_whisper()
-        
-        logger.info("Distributed tracing initialized")
-    
-    @trace_method(name="pipeline.initialize_components")
     def initialize_components(self, use_large_context: bool = True) -> bool:
         """Initialize all pipeline components.
         

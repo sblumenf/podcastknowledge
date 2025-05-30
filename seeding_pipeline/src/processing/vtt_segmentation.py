@@ -1,7 +1,7 @@
 """
-Segmentation module for podcast transcript processing.
+VTT-based segmentation module for transcript processing.
 
-This module handles the segmentation and post-processing of podcast transcripts,
+This module handles the segmentation and post-processing of VTT transcripts,
 including advertisement detection and sentiment analysis.
 """
 
@@ -12,7 +12,6 @@ from dataclasses import dataclass
 
 from ..core import constants
 from ..core.models import TranscriptSegment
-
 
 logger = logging.getLogger(__name__)
 
@@ -27,17 +26,17 @@ class SegmentMetadata:
     duration_seconds: float = 0.0
 
 
-class EnhancedPodcastSegmenter:
+class VTTSegmenter:
     """
-    Enhanced podcast segmenter with advanced features.
+    VTT transcript segmenter with advanced features.
     
-    This class processes transcript segments and adds metadata
+    This class processes VTT transcript segments and adds metadata
     such as advertisement detection and sentiment analysis.
     """
     
     def __init__(self, config: Optional[Dict[str, Any]] = None):
         """
-        Initialize podcast segmenter with configuration.
+        Initialize VTT segmenter with configuration.
         
         Args:
             config: Configuration dictionary with parameters:
@@ -46,36 +45,33 @@ class EnhancedPodcastSegmenter:
                 - ad_detection_enabled: Enable advertisement detection
                 - use_semantic_boundaries: Use semantic boundaries for segmentation
         """
-        
         # Default configuration
         default_config = {
             'min_segment_tokens': constants.MIN_SEGMENT_TOKENS,
             'max_segment_tokens': constants.MAX_SEGMENT_TOKENS,
             'ad_detection_enabled': True,
             'use_semantic_boundaries': True,
-            'min_speakers': 1,
-            'max_speakers': 10
         }
         
         self.config = default_config.copy()
         if config:
             self.config.update(config)
             
-        logger.info(f"Initialized EnhancedPodcastSegmenter with config: {self.config}")
+        logger.info(f"Initialized VTTSegmenter with config: {self.config}")
         
     def process_segments(self, segments: List[TranscriptSegment]) -> Dict[str, Any]:
         """
-        Process transcript segments.
+        Process VTT transcript segments.
         
         Args:
-            segments: List of transcript segments
+            segments: List of transcript segments from VTT parser
             
         Returns:
             Dictionary with processing results:
                 - transcript: List of processed transcript segments
                 - metadata: Additional processing metadata
         """
-        logger.info(f"Processing {len(segments)} transcript segments")
+        logger.info(f"Processing {len(segments)} VTT segments")
         
         if not segments:
             logger.warning("No segments to process")
@@ -125,7 +121,8 @@ class EnhancedPodcastSegmenter:
             }
             
             # Detect advertisements
-            segment_dict["is_advertisement"] = self._detect_advertisement(segment.text)
+            if self.config.get('ad_detection_enabled', True):
+                segment_dict["is_advertisement"] = self._detect_advertisement(segment.text)
             
             # Analyze sentiment
             segment_dict["sentiment"] = self._analyze_segment_sentiment(segment.text)
@@ -144,14 +141,18 @@ class EnhancedPodcastSegmenter:
         Returns:
             Boolean indicating if segment is an advertisement
         """
-        if not self.config.get('ad_detection_enabled', True):
-            return False
-            
         # Convert to lowercase for matching
         text_lower = text.lower()
         
         # Check for common ad markers
-        for marker in constants.AD_MARKERS:
+        ad_markers = [
+            "brought to you by", "sponsored by", "thanks to our sponsor",
+            "visit our sponsor", "check out", "promo code", "discount code",
+            "special offer", "limited time", "sign up today", "free trial",
+            "our partners at", "today's sponsor", "this episode is sponsored"
+        ]
+        
+        for marker in ad_markers:
             if marker in text_lower:
                 logger.debug(f"Advertisement detected: '{marker}' found in text")
                 return True
@@ -203,9 +204,12 @@ class EnhancedPodcastSegmenter:
             score = (positive_count - negative_count) / total
             
         # Determine polarity using thresholds
-        if score > constants.SENTIMENT_THRESHOLDS["positive"]:
+        positive_threshold = 0.1
+        negative_threshold = -0.1
+        
+        if score > positive_threshold:
             polarity = "positive"
-        elif score < constants.SENTIMENT_THRESHOLDS["negative"]:
+        elif score < negative_threshold:
             polarity = "negative"
         else:
             polarity = "neutral"

@@ -9,7 +9,6 @@ from queue import Queue
 from src.providers.graph.base import BaseGraphProvider
 from src.core.exceptions import ProviderError, ConnectionError
 from src.core.plugin_discovery import provider_plugin
-from src.tracing import trace_method, add_span_attributes, trace_database
 
 
 logger = logging.getLogger(__name__)

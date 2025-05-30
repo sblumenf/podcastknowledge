@@ -241,7 +241,7 @@ class TranscriptIngestion:
         """
         # Calculate duration from segments
         if segments:
-            duration = segments[-1].end_time
+            duration = segments[-1].end
         else:
             duration = 0.0
         
@@ -343,3 +343,32 @@ class TranscriptIngestion:
                 return first_line.startswith('WEBVTT')
         except Exception:
             return False
+    
+    def process_file(self, file_path: Union[str, Path]) -> Dict[str, Any]:
+        """Process a single VTT file by path.
+        
+        Args:
+            file_path: Path to VTT file
+            
+        Returns:
+            Processing result dictionary
+        """
+        file_path = Path(file_path)
+        vtt_file = self._create_vtt_file(file_path)
+        if not vtt_file:
+            return {
+                'status': 'error',
+                'error': f'Failed to create VTTFile from {file_path}'
+            }
+        return self.process_vtt_file(vtt_file)
+    
+    def _compute_file_hash(self, file_path: Union[str, Path]) -> str:
+        """Compute SHA256 hash of file (alias for _calculate_file_hash).
+        
+        Args:
+            file_path: Path to file
+            
+        Returns:
+            Hex digest of file hash
+        """
+        return self._calculate_file_hash(Path(file_path))

@@ -12,8 +12,6 @@ import uvicorn
 
 from ..core.config import PipelineConfig
 from ..seeding import PodcastKnowledgePipeline
-from ..tracing import init_tracing, TracingMiddleware, trace_request
-from ..tracing.config import TracingConfig
 from .health import create_health_endpoints
 from .metrics import setup_metrics
 from ..utils.logging import get_logger
@@ -26,14 +24,6 @@ async def lifespan(app: FastAPI):
     """Application lifespan manager."""
     # Startup
     logger.info("Starting Podcast Knowledge Pipeline API...")
-    
-    # Initialize tracing
-    tracing_config = TracingConfig.from_env()
-    init_tracing(
-        service_name="podcast-kg-api",
-        config=tracing_config,
-    )
-    logger.info("Distributed tracing initialized")
     
     # Initialize pipeline
     config = PipelineConfig.from_env()
@@ -68,42 +58,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Add distributed tracing middleware
-@app.middleware("http")
-async def tracing_middleware(request: Request, call_next):
-    """Add distributed tracing to all requests."""
-    # Extract trace context from headers
-    from ..tracing import extract_context, inject_context, create_span
-    
-    # Extract trace context from incoming request
-    trace_headers = {}
-    for header, value in request.headers.items():
-        if header.lower().startswith("traceparent") or header.lower().startswith("tracestate"):
-            trace_headers[header] = value
-    
-    context = extract_context(trace_headers)
-    
-    # Create span for this request
-    with create_span(
-        f"{request.method} {request.url.path}",
-        attributes={
-            "http.method": request.method,
-            "http.url": str(request.url),
-            "http.path": request.url.path,
-            "http.scheme": request.url.scheme,
-            "http.host": request.url.hostname,
-            "http.user_agent": request.headers.get("user-agent", ""),
-        }
-    ) as span:
-        try:
-            response = await call_next(request)
-            span.set_attribute("http.status_code", response.status_code)
-            return response
-        except Exception as e:
-            span.record_exception(e)
-            span.set_status(trace.Status(trace.StatusCode.ERROR, str(e)))
-            raise
-
 
 # Add health endpoints
 create_health_endpoints(app)
@@ -117,7 +71,6 @@ app.include_router(slo_router, prefix="/api/v1")
 
 
 @app.get("/", tags=["root"])
-@trace_request("GET", "/")
 async def root():
     """Root endpoint."""
     return {
@@ -128,7 +81,6 @@ async def root():
 
 
 @app.post("/api/v1/seed/podcast", tags=["seeding"])
-@trace_request("POST", "/api/v1/seed/podcast")
 async def seed_podcast(request: Request, podcast_config: Dict[str, Any]):
     """
     Seed a single podcast into the knowledge graph.
@@ -165,7 +117,6 @@ async def seed_podcast(request: Request, podcast_config: Dict[str, Any]):
 
 
 @app.post("/api/v1/seed/podcasts", tags=["seeding"])
-@trace_request("POST", "/api/v1/seed/podcasts")
 async def seed_podcasts(request: Request, podcast_configs: List[Dict[str, Any]]):
     """
     Seed multiple podcasts into the knowledge graph.
@@ -197,7 +148,6 @@ async def seed_podcasts(request: Request, podcast_configs: List[Dict[str, Any]])
 
 
 @app.get("/api/v1/status/{podcast_id}", tags=["status"])
-@trace_request("GET", "/api/v1/status/{podcast_id}")
 async def get_podcast_status(request: Request, podcast_id: str):
     """Get processing status for a podcast."""
     pipeline = request.app.state.pipeline
@@ -227,7 +177,6 @@ async def get_podcast_status(request: Request, podcast_id: str):
 
 
 @app.get("/api/v1/graph/stats", tags=["graph"])
-@trace_request("GET", "/api/v1/graph/stats")
 async def get_graph_stats(request: Request):
     """Get knowledge graph statistics."""
     pipeline = request.app.state.pipeline
