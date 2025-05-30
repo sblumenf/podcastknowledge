@@ -110,7 +110,7 @@ This plan transforms the current podcast processing pipeline into a streamlined 
   - Validation: Pipeline processes VTT segments end-to-end
 
 ### 2.3 Simplify Configuration
-- [ ] **Consolidate configuration files**
+- [x] **Consolidate configuration files**
   - Purpose: Simplify configuration management
   - Steps:
     1. Merge essential configs into single `config.yml`
@@ -119,7 +119,7 @@ This plan transforms the current podcast processing pipeline into a streamlined 
     4. Update config validation logic
   - Validation: Single config file handles all settings
 
-- [ ] **Update environment configuration**
+- [x] **Update environment configuration**
   - Purpose: Streamline environment variables
   - Steps:
     1. Remove audio service environment variables
