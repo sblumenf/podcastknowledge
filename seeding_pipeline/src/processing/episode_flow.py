@@ -7,7 +7,7 @@ import numpy as np
 from scipy.spatial.distance import cosine
 
 from src.core.models import Entity, Segment
-from src.providers.embeddings.base import EmbeddingProvider
+# Provider imports removed - using services directly
 from src.utils.logging import get_logger
 
 logger = get_logger(__name__)
@@ -20,7 +20,7 @@ class EpisodeFlowAnalyzer:
     Works entirely within episode boundaries.
     """
     
-    def __init__(self, embedding_provider: Optional[EmbeddingProvider] = None):
+    def __init__(self, embedding_provider: Optional[Any] = None):
         """
         Initialize the episode flow analyzer.
         

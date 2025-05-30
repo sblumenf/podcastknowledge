@@ -10,8 +10,7 @@ from typing import Dict, Any, Optional, Union
 
 from src.processing.strategies import ExtractionStrategy
 from src.processing.strategies.schemaless_strategy import SchemalessStrategy
-from src.core.interfaces import LLMProvider
-from src.providers.graph.base import GraphProvider
+# Provider imports removed - using services directly
 from src.core.exceptions import ConfigurationError
 
 logger = logging.getLogger(__name__)
@@ -27,8 +26,8 @@ class ExtractionFactory:
     def create_strategy(
         cls,
         mode: str,
-        llm_provider: Optional[LLMProvider] = None,
-        graph_provider: Optional[GraphProvider] = None,
+        llm_provider: Optional[Any] = None,
+        graph_provider: Optional[Any] = None,
         podcast_id: Optional[str] = None,
         episode_id: Optional[str] = None,
         config: Optional[Dict[str, Any]] = None
@@ -94,8 +93,8 @@ class ExtractionFactory:
     def create_from_config(
         cls,
         config: Dict[str, Any],
-        llm_provider: Optional[LLMProvider] = None,
-        graph_provider: Optional[GraphProvider] = None
+        llm_provider: Optional[Any] = None,
+        graph_provider: Optional[Any] = None
     ) -> ExtractionStrategy:
         """
         Create extraction strategy from configuration dictionary.

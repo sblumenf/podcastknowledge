@@ -63,7 +63,7 @@ This plan transforms the over-engineered podcast knowledge pipeline into a strea
 ## Phase 2: Remove Provider Pattern (3 days)
 
 ### 2.1 Create Direct Service Implementations
-- [ ] **Create LLM service**
+- [x] **Create LLM service**
   - Purpose: Direct Gemini API client without provider abstraction
   - Steps:
     1. Create `src/services/llm.py`
@@ -73,7 +73,7 @@ This plan transforms the over-engineered podcast knowledge pipeline into a strea
     5. Remove adapter layer completely
   - Validation: Direct API calls work without providers
 
-- [ ] **Create graph storage service**
+- [x] **Create graph storage service**
   - Purpose: Direct Neo4j client without provider abstraction
   - Steps:
     1. Create `src/services/graph_storage.py`
@@ -83,7 +83,7 @@ This plan transforms the over-engineered podcast knowledge pipeline into a strea
     5. Remove schemaless_neo4j duplicate
   - Validation: Direct Neo4j operations work
 
-- [ ] **Create embeddings service**
+- [x] **Create embeddings service**
   - Purpose: Direct sentence transformer without provider abstraction
   - Steps:
     1. Create `src/services/embeddings.py`
@@ -94,7 +94,7 @@ This plan transforms the over-engineered podcast knowledge pipeline into a strea
   - Validation: Embeddings generation works directly
 
 ### 2.2 Remove Provider Infrastructure
-- [ ] **Delete provider factories**
+- [x] **Delete provider factories**
   - Purpose: Remove unnecessary abstraction layer
   - Steps:
     1. Delete `src/factories/provider_factory.py`
@@ -103,7 +103,7 @@ This plan transforms the over-engineered podcast knowledge pipeline into a strea
     4. Remove factory configuration loading
   - Validation: No factory imports remain
 
-- [ ] **Delete provider base classes**
+- [x] **Delete provider base classes**
   - Purpose: Remove abstract interfaces
   - Steps:
     1. Delete all `base.py` files in provider subdirectories
@@ -112,7 +112,7 @@ This plan transforms the over-engineered podcast knowledge pipeline into a strea
     4. Remove `src/providers/` directory entirely
   - Validation: No provider imports in codebase
 
-- [ ] **Update dependency injection**
+- [x] **Update dependency injection**
   - Purpose: Use direct service instantiation
   - Steps:
     1. Update `src/seeding/orchestrator.py` to create services directly

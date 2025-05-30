@@ -8,8 +8,7 @@ import networkx as nx
 from scipy.spatial.distance import cosine
 
 from src.core.models import Entity, Insight, Segment
-from src.providers.llm.base import LLMProvider
-from src.providers.embeddings.base import EmbeddingProvider
+# Provider imports removed - using services directly
 from src.utils.logging import get_logger
 
 logger = get_logger(__name__)
@@ -22,8 +21,8 @@ class EmergentThemeDetector:
     Discovers what the conversation is "really about" beyond surface topics.
     """
     
-    def __init__(self, embedding_provider: Optional[EmbeddingProvider] = None, 
-                 llm_provider: Optional[LLMProvider] = None):
+    def __init__(self, embedding_provider: Optional[Any] = None, 
+                 llm_provider: Optional[Any] = None):
         """
         Initialize the emergent theme detector.
         

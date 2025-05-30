@@ -10,7 +10,7 @@ from typing import Dict, Any, Optional, List
 
 from src.processing.strategies import ExtractedData
 from src.core.models import Segment, Entity, Insight, Quote
-from src.providers.graph.base import GraphProvider
+# Provider imports removed - using services directly
 
 logger = logging.getLogger(__name__)
 
@@ -25,7 +25,7 @@ class SchemalessStrategy:
     
     def __init__(
         self,
-        graph_provider: GraphProvider,
+        graph_provider: Any,  # GraphStorageService
         podcast_id: str,
         episode_id: str
     ):

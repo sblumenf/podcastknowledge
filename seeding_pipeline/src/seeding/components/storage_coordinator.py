@@ -3,8 +3,7 @@
 import logging
 from typing import Dict, Any, List, Optional
 
-from src.providers.graph.base import GraphProvider
-from src.providers.graph.enhancements import GraphEnhancements
+# Provider imports removed - using services directly
 from src.core.models import Entity
 from src.utils.logging import get_logger
 
@@ -14,7 +13,7 @@ logger = get_logger(__name__)
 class StorageCoordinator:
     """Coordinates all storage operations to the knowledge graph."""
     
-    def __init__(self, graph_provider: GraphProvider, graph_enhancer: GraphEnhancements, config):
+    def __init__(self, graph_provider: Any, graph_enhancer: Any, config):
         """Initialize storage coordinator.
         
         Args:

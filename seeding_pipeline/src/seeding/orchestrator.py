@@ -10,10 +10,7 @@ import logging
 
 from src.core.config import PipelineConfig, SeedingConfig
 from src.core.exceptions import PipelineError, ConfigurationError
-from src.factories.provider_factory import ProviderFactory
-from src.providers.llm.base import LLMProvider
-from src.providers.graph.base import GraphProvider
-from src.providers.embeddings.base import EmbeddingProvider
+from src.services import LLMService, GraphStorageService, EmbeddingsService
 from src.processing.segmentation import EnhancedPodcastSegmenter
 from src.processing.extraction import KnowledgeExtractor
 from src.processing.entity_resolution import EntityResolver
@@ -52,21 +49,19 @@ class PodcastKnowledgePipeline:
             config: Pipeline or seeding configuration
         """
         self.config = config or SeedingConfig()
-        self.factory = ProviderFactory()
-        
         # Initialize components
         self.signal_manager = SignalManager()
-        self.provider_coordinator = ProviderCoordinator(self.factory, self.config)
+        self.provider_coordinator = ProviderCoordinator(self.config)
         self.checkpoint_manager = CheckpointManager(self.config)
         
         # The pipeline executor and storage coordinator will be initialized after providers
         self.pipeline_executor = None
         self.storage_coordinator = None
         
-        # Provider instances - maintain references for backward compatibility
-        self.llm_provider: Optional[LLMProvider] = None
-        self.graph_provider: Optional[GraphProvider] = None
-        self.embedding_provider: Optional[EmbeddingProvider] = None
+        # Service instances - maintain references for backward compatibility
+        self.llm_service: Optional[LLMService] = None
+        self.graph_service: Optional[GraphStorageService] = None
+        self.embedding_service: Optional[EmbeddingsService] = None
         
         # Processing components - maintain references for backward compatibility
         self.segmenter: Optional[EnhancedPodcastSegmenter] = None
@@ -121,9 +116,9 @@ class PodcastKnowledgePipeline:
                 return False
             
             # Set up backward compatibility references
-            self.llm_provider = self.provider_coordinator.llm_provider
-            self.graph_provider = self.provider_coordinator.graph_provider
-            self.embedding_provider = self.provider_coordinator.embedding_provider
+            self.llm_service = self.provider_coordinator.llm_service
+            self.graph_service = self.provider_coordinator.graph_service
+            self.embedding_service = self.provider_coordinator.embedding_service
             
             self.segmenter = self.provider_coordinator.segmenter
             self.knowledge_extractor = self.provider_coordinator.knowledge_extractor
