@@ -21,7 +21,6 @@ google-generativeai==0.3.2
 sentence-transformers==2.2.2
 
 # Data Processing
-feedparser==6.0.10
 tqdm==4.66.1
 
 # Utilities

@@ -7,7 +7,6 @@ from datetime import datetime
 
 from src.core.models import Podcast, Episode, Segment
 from src.core.exceptions import PipelineError
-from src.utils.feed_processing import download_episode_audio
 from src.utils.memory import cleanup_memory
 from src.tracing import create_span, add_span_attributes
 from src.utils.logging import get_logger

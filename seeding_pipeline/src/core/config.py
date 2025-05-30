@@ -267,11 +267,6 @@ class SeedingConfig(PipelineConfig):
                 missing.append("openai")
                 
         # Check other dependencies
-        try:
-            import feedparser
-            available.append("feedparser")
-        except ImportError:
-            missing.append("feedparser")
             
         try:
             import pyannote.audio
