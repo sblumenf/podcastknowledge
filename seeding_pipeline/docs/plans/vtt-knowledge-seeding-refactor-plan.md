@@ -220,7 +220,7 @@ This plan transforms the current podcast processing pipeline into a streamlined 
 ## Phase 5: Testing Suite Development (3 days)
 
 ### 5.1 Unit Tests
-- [ ] **Create VTT parser tests**
+- [x] **Create VTT parser tests**
   - Purpose: Ensure reliable VTT parsing
   - Steps:
     1. Create test VTT files with various formats
@@ -229,7 +229,7 @@ This plan transforms the current podcast processing pipeline into a streamlined 
     4. Test malformed file handling
   - Validation: 100% coverage of VTT parser
 
-- [ ] **Test knowledge extraction pipeline**
+- [x] **Test knowledge extraction pipeline**
   - Purpose: Verify extraction works with VTT segments
   - Steps:
     1. Create mock VTT segments
@@ -239,7 +239,7 @@ This plan transforms the current podcast processing pipeline into a streamlined 
   - Validation: Extraction tests pass with VTT data
 
 ### 5.2 Integration Tests
-- [ ] **Create end-to-end VTT processing tests**
+- [x] **Create end-to-end VTT processing tests**
   - Purpose: Verify complete pipeline flow
   - Steps:
     1. Create sample VTT files with known content
@@ -248,7 +248,7 @@ This plan transforms the current podcast processing pipeline into a streamlined 
     4. Check entity and relationship creation
   - Validation: E2E tests demonstrate full functionality
 
-- [ ] **Test batch processing scenarios**
+- [x] **Test batch processing scenarios**
   - Purpose: Ensure robust batch handling
   - Steps:
     1. Test folder with mixed file types
@@ -258,7 +258,7 @@ This plan transforms the current podcast processing pipeline into a streamlined 
   - Validation: Batch processing is reliable
 
 ### 5.3 Performance Tests
-- [ ] **Create performance benchmarks**
+- [x] **Create performance benchmarks**
   - Purpose: Establish performance baselines
   - Steps:
     1. Create benchmark VTT files of various sizes
@@ -325,13 +325,13 @@ This plan transforms the current podcast processing pipeline into a streamlined 
 - **RAG optimized**: All features support future RAG use
 
 ### Validation Checklist
-- [ ] VTT files process successfully
-- [ ] Knowledge extraction produces expected entities
-- [ ] Neo4j graph structure is correct
+- [x] VTT files process successfully
+- [x] Knowledge extraction produces expected entities
+- [x] Neo4j graph structure is correct
 - [x] Tests provide confidence in changes
 - [x] Documentation is complete and accurate
 - [x] No RSS/audio code remains
-- [ ] Deployment works in Docker
+- [x] Deployment works in Docker
 
 ## Technology Requirements
 
@@ -375,3 +375,15 @@ This plan transforms the current podcast processing pipeline into a streamlined 
 - Testing happens continuously, not just in Phase 5
 - Documentation updates happen alongside code changes
 - Regular commits with clear messages for tracking progress
+
+## Post-Implementation Integration Fix
+
+During validation, an integration gap was discovered between VTT parsing and knowledge extraction. This was resolved by:
+1. Connecting orchestrator to pipeline_executor (was using non-existent self.processor)
+2. Fixing method call from extract_knowledge to extract_from_segments
+3. Adding missing tracing imports with fallback implementations
+4. Correcting segment field mapping (start_time → start, end_time → end)
+
+The fix ensures the complete flow works: VTT File → Parse → Knowledge Extraction → Graph Storage
+
+See `docs/VTT_INTEGRATION_FIX.md` for detailed documentation of this fix.

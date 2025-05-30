@@ -261,17 +261,29 @@ class PodcastKnowledgePipeline:
                     
                     if result['status'] == 'success':
                         # Process the segments through knowledge extraction
-                        if hasattr(self, 'processor') and self.processor:
-                            extraction_result = self.processor.process_segments(
+                        if self.pipeline_executor:
+                            # Create podcast and episode data structures
+                            podcast_config = {
+                                'id': f"podcast_{vtt_file.podcast_name.lower().replace(' ', '_')}",
+                                'name': vtt_file.podcast_name,
+                                'description': ''
+                            }
+                            
+                            episode_data = result['episode']
+                            
+                            # Process segments through pipeline executor
+                            extraction_result = self.pipeline_executor.process_vtt_segments(
+                                podcast_config,
+                                episode_data,
                                 result['segments'],
-                                podcast_name=vtt_file.podcast_name,
-                                episode_title=vtt_file.episode_title
+                                use_large_context=use_large_context
                             )
                             
                             # Update summary with extraction results
-                            summary['total_insights'] += len(extraction_result.get('insights', []))
-                            summary['total_entities'] += len(extraction_result.get('entities', []))
-                            summary['total_relationships'] += len(extraction_result.get('relationships', []))
+                            if extraction_result:
+                                summary['total_insights'] += len(extraction_result.get('insights', []))
+                                summary['total_entities'] += len(extraction_result.get('entities', []))
+                                summary['total_relationships'] += len(extraction_result.get('relationships', []))
                         
                         summary['files_processed'] += 1
                         summary['total_segments'] += result.get('segment_count', 0)

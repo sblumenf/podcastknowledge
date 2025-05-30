@@ -11,6 +11,21 @@ from src.core.exceptions import PipelineError
 from src.utils.memory import cleanup_memory
 from src.utils.logging import get_logger
 
+# Add tracing imports with fallback
+try:
+    from src.tracing.tracer import create_span, add_span_attributes
+except ImportError:
+    # Fallback for when tracing is not available
+    def create_span(name, attributes=None):
+        from contextlib import contextmanager
+        @contextmanager
+        def noop():
+            yield
+        return noop()
+    
+    def add_span_attributes(attributes):
+        pass
+
 logger = get_logger(__name__)
 
 
@@ -122,14 +137,10 @@ class PipelineExecutor:
         }):
             # Extract knowledge
             logger.info("Extracting knowledge...")
-            extraction_result = self.knowledge_extractor.extract_knowledge(
+            extraction_result = self.knowledge_extractor.extract_from_segments(
                 segments,
-                episode_metadata={
-                    'title': episode['title'],
-                    'description': episode.get('description', ''),
-                    'podcast_name': podcast_config.get('name', '')
-                },
-                use_large_context=use_large_context
+                podcast_name=podcast_config.get('name', ''),
+                episode_title=episode['title']
             )
             
             add_span_attributes({
@@ -816,8 +827,8 @@ class PipelineExecutor:
                 segment_dict = {
                     'id': segment.id,
                     'text': segment.text,
-                    'start_time': segment.start_time,
-                    'end_time': segment.end_time,
+                    'start': segment.start_time,  # Changed from 'start_time'
+                    'end': segment.end_time,      # Changed from 'end_time'
                     'speaker': segment.speaker,
                     'confidence': segment.confidence,
                     'segment_index': i,
