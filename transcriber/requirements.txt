@@ -9,3 +9,5 @@ python-dotenv>=1.0.0
 
 # Retry logic with exponential backoff
 tenacity>=8.0.0
+# YAML configuration parsing
+PyYAML>=6.0.0
