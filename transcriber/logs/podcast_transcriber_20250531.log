@@ -1,0 +1,13 @@
+2025-05-31 01:18:05 - podcast_transcriber - INFO - Logging system initialized
+2025-05-31 01:18:05 - podcast_transcriber - INFO - Log level: INFO
+2025-05-31 01:18:05 - podcast_transcriber - INFO - Log directory: /home/sergeblumenfeld/podcastknowledge/transcriber/logs
+2025-05-31 01:18:05 - podcast_transcriber - INFO - Testing INFO level logging
+2025-05-31 01:18:05 - podcast_transcriber - WARNING - Testing WARNING level logging
+2025-05-31 01:18:05 - podcast_transcriber - ERROR - Testing ERROR level logging
+2025-05-31 01:18:05 - podcast_transcriber - INFO - Progress: 1/10 (10.0%) - Starting episode: Episode 1: Introduction to AI
+2025-05-31 01:18:05 - podcast_transcriber - INFO - Progress: 1/10 (10.0%) - Completed episode: Episode 1: Introduction to AI
+2025-05-31 01:18:05 - podcast_transcriber - ERROR - ValueError: Simulated error for testing | Context: episode=test_episode.mp3, api_key=key_1, retry_count=2
+Traceback (most recent call last):
+  File "/home/sergeblumenfeld/podcastknowledge/transcriber/test_logging.py", line 34, in test_logging
+    raise ValueError("Simulated error for testing")
+ValueError: Simulated error for testing

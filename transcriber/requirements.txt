@@ -1,0 +1,11 @@
+# RSS Feed parsing
+feedparser>=6.0.0
+
+# Google Gemini API client
+google-generativeai>=0.3.0
+
+# Environment variable management
+python-dotenv>=1.0.0
+
+# Retry logic with exponential backoff
+tenacity>=8.0.0
