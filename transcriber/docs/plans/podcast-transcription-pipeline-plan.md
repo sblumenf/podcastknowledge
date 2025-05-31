@@ -141,7 +141,7 @@ Build a standalone CLI application in the `/transcriber` folder that processes p
   - Validation: Correctly identify speakers in test transcripts
 
 ### Task 3.3: VTT Generator
-- [ ] Create VTT file generation with metadata
+- [x] Create VTT file generation with metadata
   - Purpose: Output properly formatted WebVTT files
   - Context7 Documentation: Review WebVTT specification and formatting requirements
   - Steps:
