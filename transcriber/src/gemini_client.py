@@ -17,6 +17,12 @@ from google import genai
 from google.genai import types
 
 from utils.logging import get_logger, log_api_request
+from retry_wrapper import (
+    with_retry_and_circuit_breaker,
+    QuotaExceededException,
+    CircuitBreakerOpenException,
+    should_skip_episode
+)
 
 logger = get_logger('gemini_client')
 
@@ -203,64 +209,95 @@ class RateLimitedGeminiClient:
         if not client:
             raise Exception("No API keys available")
         
+        # Check if we should skip this episode to preserve quota
+        tracker = self.usage_trackers[key_index]
+        if should_skip_episode(tracker.requests_today):
+            logger.warning(f"Skipping episode to preserve daily quota")
+            return None
+        
         logger.info(f"Starting transcription for: {episode_metadata.get('title', 'Unknown')}")
         logger.info(f"Using API key {key_index + 1}")
         
+        # Use the retry wrapper for the actual API call
+        try:
+            transcript = await self._transcribe_with_retry(
+                client, key_index, audio_url, episode_metadata
+            )
+            return transcript
+        except (QuotaExceededException, CircuitBreakerOpenException) as e:
+            logger.error(f"Cannot retry transcription: {e}")
+            tracker.is_available = False
+            return None
+        except Exception as e:
+            logger.error(f"Transcription failed: {str(e)}")
+            if "quota" in str(e).lower():
+                tracker.is_available = False
+            return None
+    
+    @with_retry_and_circuit_breaker('transcribe_audio', max_attempts=2)
+    async def _transcribe_with_retry(self, client: genai.Client, key_index: int, 
+                                   audio_url: str, episode_metadata: Dict[str, Any]) -> str:
+        """Internal method that performs the actual transcription with retry logic.
+        
+        Args:
+            client: Gemini client instance
+            key_index: Index of the API key being used
+            audio_url: URL of the audio file
+            episode_metadata: Episode information
+            
+        Returns:
+            VTT-formatted transcript
+            
+        Raises:
+            Exception: If transcription fails
+        """
         # Build transcription prompt
         prompt = self._build_transcription_prompt(episode_metadata)
         
-        try:
-            # Estimate tokens (rough estimate: 2000 tokens per minute of audio)
-            duration_str = episode_metadata.get('duration', '0:00')
-            duration_minutes = self._parse_duration(duration_str)
-            estimated_tokens = int(duration_minutes * 2000)
-            
-            # Check if we'll exceed token limits
-            tracker = self.usage_trackers[key_index]
-            if tracker.tokens_today + estimated_tokens > RATE_LIMITS['tpd']:
-                logger.warning(f"Would exceed daily token limit with this request")
-                tracker.is_available = False
-                return None
-            
-            # Make the API call
-            start_time = time.time()
-            
-            response = await client.aio.models.generate_content(
-                model=self.model_name,
-                contents=[
-                    prompt,
-                    types.Part.from_uri(
-                        file_uri=audio_url,
-                        mime_type='audio/mpeg'
-                    )
-                ],
-                config=types.GenerateContentConfig(
-                    max_output_tokens=8192,  # Maximum for transcripts
-                    temperature=0.1,  # Low temperature for accuracy
+        # Estimate tokens (rough estimate: 2000 tokens per minute of audio)
+        duration_str = episode_metadata.get('duration', '0:00')
+        duration_minutes = self._parse_duration(duration_str)
+        estimated_tokens = int(duration_minutes * 2000)
+        
+        # Check if we'll exceed token limits
+        tracker = self.usage_trackers[key_index]
+        if tracker.tokens_today + estimated_tokens > RATE_LIMITS['tpd']:
+            raise QuotaExceededException("Would exceed daily token limit with this request")
+        
+        # Make the API call
+        start_time = time.time()
+        
+        response = await client.aio.models.generate_content(
+            model=self.model_name,
+            contents=[
+                prompt,
+                types.Part.from_uri(
+                    file_uri=audio_url,
+                    mime_type='audio/mpeg'
                 )
+            ],
+            config=types.GenerateContentConfig(
+                max_output_tokens=8192,  # Maximum for transcripts
+                temperature=0.1,  # Low temperature for accuracy
             )
-            
-            elapsed_time = time.time() - start_time
-            
-            # Extract transcript
-            transcript = response.text
-            
-            # Update usage tracking
-            # Note: Actual token count would come from response metadata if available
-            tracker.update_usage(estimated_tokens)
-            log_api_request(key_index + 1, 'transcribe_audio', estimated_tokens)
-            
-            self._save_usage_state()
-            
-            logger.info(f"Transcription completed in {elapsed_time:.1f}s")
-            return transcript
-            
-        except Exception as e:
-            logger.error(f"Transcription failed: {str(e)}")
-            # Mark key as temporarily unavailable if it's a quota error
-            if "quota" in str(e).lower():
-                self.usage_trackers[key_index].is_available = False
-            return None
+        )
+        
+        elapsed_time = time.time() - start_time
+        
+        # Extract transcript
+        transcript = response.text
+        if not transcript:
+            raise Exception("Empty transcript returned from API")
+        
+        # Update usage tracking
+        # Note: Actual token count would come from response metadata if available
+        tracker.update_usage(estimated_tokens)
+        log_api_request(key_index + 1, 'transcribe_audio', estimated_tokens)
+        
+        self._save_usage_state()
+        
+        logger.info(f"Transcription completed in {elapsed_time:.1f}s")
+        return transcript
     
     async def identify_speakers(self, transcript: str, episode_metadata: Dict[str, Any]) -> Dict[str, str]:
         """Identify speakers in transcript based on context.
@@ -276,54 +313,86 @@ class RateLimitedGeminiClient:
         if not client:
             raise Exception("No API keys available")
         
+        # Check if we should skip this to preserve quota
+        tracker = self.usage_trackers[key_index]
+        if should_skip_episode(tracker.requests_today):
+            logger.warning(f"Skipping speaker identification to preserve daily quota")
+            return {}
+        
         logger.info("Starting speaker identification")
         logger.info(f"Using API key {key_index + 1}")
         
-        # Build speaker identification prompt
-        prompt = self._build_speaker_identification_prompt(transcript, episode_metadata)
-        
+        # Use the retry wrapper for the actual API call
         try:
-            # Estimate tokens (prompt + transcript analysis)
-            estimated_tokens = len(prompt.split()) * 2  # Rough estimate
-            
-            tracker = self.usage_trackers[key_index]
-            if tracker.tokens_today + estimated_tokens > RATE_LIMITS['tpd']:
-                logger.warning(f"Would exceed daily token limit with this request")
-                tracker.is_available = False
-                return {}
-            
-            # Make the API call
-            response = await client.aio.models.generate_content(
-                model=self.model_name,
-                contents=prompt,
-                config=types.GenerateContentConfig(
-                    max_output_tokens=1024,
-                    temperature=0.3,  # Some creativity for inference
-                    response_mime_type='application/json',
-                )
+            speaker_mapping = await self._identify_speakers_with_retry(
+                client, key_index, transcript, episode_metadata
             )
-            
-            # Parse response
-            try:
-                speaker_mapping = json.loads(response.text)
-            except json.JSONDecodeError:
-                logger.error("Failed to parse speaker identification response as JSON")
-                speaker_mapping = {}
-            
-            # Update usage tracking
-            tracker.update_usage(estimated_tokens)
-            log_api_request(key_index + 1, 'identify_speakers', estimated_tokens)
-            
-            self._save_usage_state()
-            
-            logger.info(f"Identified speakers: {speaker_mapping}")
             return speaker_mapping
-            
+        except (QuotaExceededException, CircuitBreakerOpenException) as e:
+            logger.error(f"Cannot retry speaker identification: {e}")
+            tracker.is_available = False
+            return {}
         except Exception as e:
             logger.error(f"Speaker identification failed: {str(e)}")
             if "quota" in str(e).lower():
-                self.usage_trackers[key_index].is_available = False
+                tracker.is_available = False
             return {}
+    
+    @with_retry_and_circuit_breaker('identify_speakers', max_attempts=2)
+    async def _identify_speakers_with_retry(self, client: genai.Client, key_index: int,
+                                          transcript: str, episode_metadata: Dict[str, Any]) -> Dict[str, str]:
+        """Internal method that performs speaker identification with retry logic.
+        
+        Args:
+            client: Gemini client instance
+            key_index: Index of the API key being used
+            transcript: VTT transcript with generic labels
+            episode_metadata: Episode information
+            
+        Returns:
+            Dictionary mapping speaker labels to names
+            
+        Raises:
+            Exception: If identification fails
+        """
+        # Build speaker identification prompt
+        prompt = self._build_speaker_identification_prompt(transcript, episode_metadata)
+        
+        # Estimate tokens (prompt + transcript analysis)
+        estimated_tokens = len(prompt.split()) * 2  # Rough estimate
+        
+        tracker = self.usage_trackers[key_index]
+        if tracker.tokens_today + estimated_tokens > RATE_LIMITS['tpd']:
+            raise QuotaExceededException("Would exceed daily token limit with this request")
+        
+        # Make the API call
+        response = await client.aio.models.generate_content(
+            model=self.model_name,
+            contents=prompt,
+            config=types.GenerateContentConfig(
+                max_output_tokens=1024,
+                temperature=0.3,  # Some creativity for inference
+                response_mime_type='application/json',
+            )
+        )
+        
+        # Parse response
+        try:
+            speaker_mapping = json.loads(response.text)
+            if not isinstance(speaker_mapping, dict):
+                raise ValueError("Response is not a dictionary")
+        except (json.JSONDecodeError, ValueError) as e:
+            logger.error(f"Failed to parse speaker identification response: {e}")
+            raise Exception("Invalid response format from API")
+        
+        # Update usage tracking
+        tracker.update_usage(estimated_tokens)
+        log_api_request(key_index + 1, 'identify_speakers', estimated_tokens)
+        
+        self._save_usage_state()
+        
+        logger.info(f"Identified speakers: {speaker_mapping}")
+        return speaker_mapping
     
     def _build_transcription_prompt(self, metadata: Dict[str, Any]) -> str:
         """Build prompt for audio transcription."""
