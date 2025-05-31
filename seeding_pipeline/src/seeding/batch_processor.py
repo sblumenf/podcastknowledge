@@ -12,7 +12,7 @@ import time
 from datetime import datetime
 
 from src.core.exceptions import BatchProcessingError
-from src.utils.memory import monitor_memory, cleanup_memory
+from src.utils.memory import cleanup_memory
 
 logger = logging.getLogger(__name__)
 

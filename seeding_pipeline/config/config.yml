@@ -1,0 +1,71 @@
+# VTT Knowledge Extraction Configuration
+# All settings in one place for simplified VTT processing
+
+# VTT Processing
+vtt:
+  input_directory: "./transcripts"
+  file_pattern: "*.vtt"
+  recursive: true
+  min_segment_duration: 2.0
+  merge_short_segments: true
+
+# Text Processing
+processing:
+  min_segment_tokens: 150
+  max_segment_tokens: 800
+  
+# Knowledge Extraction  
+extraction:
+  confidence_threshold: 0.7
+  entity_resolution_threshold: 0.85
+  max_properties_per_node: 50
+  max_entities_per_segment: 10
+  min_insight_length: 20
+  min_quote_length: 10
+
+# Models
+models:
+  llm: "gemini-2.0-flash"
+  embeddings: "sentence-transformers/all-mpnet-base-v2"
+  
+# Neo4j Database
+neo4j:
+  # URI and credentials from environment variables:
+  # NEO4J_URI, NEO4J_USERNAME, NEO4J_PASSWORD
+  database: "neo4j"
+  connection_timeout: 30
+  max_connection_pool_size: 50
+
+# Output and Checkpoints
+paths:
+  output_dir: "./output"
+  checkpoint_dir: "./checkpoints"
+  
+# Performance
+performance:
+  batch_size: 10
+  embedding_batch_size: 50
+  max_concurrent_jobs: 4
+  memory_cleanup_interval: 5
+  
+# Rate Limiting
+rate_limits:
+  llm_requests_per_minute: 60
+  llm_tokens_per_minute: 150000
+  
+# Retry Settings  
+retry:
+  max_attempts: 3
+  base_delay: 1.0
+  exponential_backoff: true
+  
+# Progress Display
+display:
+  show_progress_bar: true
+  verbose_logging: false
+  
+# Feature Flags
+features:
+  enable_checkpoints: true
+  enable_entity_resolution: true
+  enable_debug_mode: false

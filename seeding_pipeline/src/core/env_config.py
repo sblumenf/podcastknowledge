@@ -115,16 +115,6 @@ class EnvironmentConfig:
                 False,
                 "Enable schemaless entity extraction"
             ),
-            "ENABLE_TRACING": cls.get_bool(
-                "ENABLE_TRACING",
-                False,
-                "Enable distributed tracing with Jaeger"
-            ),
-            "ENABLE_METRICS": cls.get_bool(
-                "ENABLE_METRICS",
-                False,
-                "Enable Prometheus metrics collection"
-            ),
             
             # Performance Settings
             "SCHEMALESS_CONFIDENCE_THRESHOLD": cls.get_float(
@@ -165,23 +155,6 @@ class EnvironmentConfig:
                 "MAX_MEMORY_GB",
                 4.0,
                 "Maximum memory usage in GB"
-            ),
-            
-            # Tracing Configuration
-            "JAEGER_AGENT_HOST": cls.get_optional(
-                "JAEGER_AGENT_HOST",
-                "localhost",
-                "Jaeger agent hostname"
-            ),
-            "JAEGER_AGENT_PORT": cls.get_int(
-                "JAEGER_AGENT_PORT",
-                6831,
-                "Jaeger agent port"
-            ),
-            "SERVICE_NAME": cls.get_optional(
-                "SERVICE_NAME",
-                "podcast-kg-pipeline",
-                "Service name for tracing"
             ),
         }
     

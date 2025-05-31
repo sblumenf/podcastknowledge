@@ -242,7 +242,7 @@ This plan transforms the over-engineered podcast knowledge pipeline into a strea
     4. Update test imports if needed
   - Validation: Each test concept has one file
 
-- [ ] **Remove provider tests**
+- [x] **Remove provider tests**
   - Purpose: Tests match new architecture
   - Steps:
     1. Delete all provider-specific tests
@@ -252,7 +252,7 @@ This plan transforms the over-engineered podcast knowledge pipeline into a strea
   - Validation: Tests cover services, not providers
 
 ### 5.2 Simplify Configuration
-- [ ] **Create single config file**
+- [x] **Create single config file**
   - Purpose: All settings in one place
   - Steps:
     1. Merge essential settings into single config.yml
@@ -261,7 +261,7 @@ This plan transforms the over-engineered podcast knowledge pipeline into a strea
     4. Flatten nested configuration structure
   - Validation: One config file contains all settings
 
-- [ ] **Remove legacy configurations**
+- [x] **Remove legacy configurations**
   - Purpose: No confusion from old settings
   - Steps:
     1. Delete RSS/audio related settings
@@ -271,7 +271,7 @@ This plan transforms the over-engineered podcast knowledge pipeline into a strea
   - Validation: Config focused on VTT processing
 
 ### 5.3 Remove Monitoring and Telemetry
-- [ ] **Remove tracing infrastructure**
+- [x] **Remove tracing infrastructure**
   - Purpose: Eliminate unnecessary monitoring complexity
   - Steps:
     1. Remove `@trace_method` decorators throughout codebase

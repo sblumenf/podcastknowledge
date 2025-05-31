@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run the Podcast Knowledge Pipeline API with distributed tracing."""
+"""Run the VTT Knowledge Pipeline API."""
 
 import os
 import sys

@@ -16,7 +16,7 @@ from src.processing.segmentation import VTTTranscriptSegmenter
 from src.extraction import KnowledgeExtractor, EntityResolver
 # Analytics components removed in Phase 3.3.1
 from src.processing.episode_flow import EpisodeFlowAnalyzer
-from src.utils.memory import cleanup_memory, monitor_memory
+from src.utils.memory import cleanup_memory
 from src.utils.resources import ProgressCheckpoint
 # GraphEnhancements removed with provider pattern
 from src.utils.logging import get_logger, log_execution_time, log_error_with_context, log_metric
@@ -153,7 +153,6 @@ class VTTKnowledgeExtractor:
             logger.error(f"✗ Failed to initialize pipeline components: {e}")
             return False
     
-    @trace_method(name="pipeline.verify_components_health")
     def _verify_components_health(self) -> bool:
         """Verify all components are healthy."""
         # Delegate to provider coordinator
@@ -170,7 +169,6 @@ class VTTKnowledgeExtractor:
         cleanup_memory()
         logger.info("Pipeline cleanup completed")
     
-    @trace_method(name="pipeline.process_vtt_directory")
     def process_vtt_directory(self, 
                             directory_path: str,
                             pattern: str = "*.vtt",
@@ -201,7 +199,6 @@ class VTTKnowledgeExtractor:
             use_large_context=use_large_context
         )
     
-    @trace_method(name="pipeline.process_vtt_files")
     def process_vtt_files(self,
                          vtt_files: List[Any],
                          use_large_context: bool = True) -> Dict[str, Any]:
