@@ -1,4 +1,4 @@
-"""Provider coordination component for managing all pipeline providers."""
+"""Service coordination component for managing all pipeline services."""
 
 from dataclasses import asdict
 from typing import Dict, Any, Optional
@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 
 class ProviderCoordinator:
-    """Coordinates initialization and management of all pipeline providers."""
+    """Coordinates initialization and management of all pipeline services."""
     
     def __init__(self, config: PipelineConfig):
         """Initialize the provider coordinator.
@@ -39,7 +39,7 @@ class ProviderCoordinator:
         self.episode_flow_analyzer: Optional[EpisodeFlowAnalyzer] = None
     
     def initialize_providers(self, use_large_context: bool = True) -> bool:
-        """Initialize all providers and processing components.
+        """Initialize all services and processing components.
         
         Args:
             use_large_context: Whether to use large context models
@@ -48,7 +48,7 @@ class ProviderCoordinator:
             True if initialization successful
         """
         try:
-            logger.info("Initializing pipeline providers...")
+            logger.info("Initializing pipeline services...")
             
             # Log extraction mode (always schemaless now)
             logger.info("🔄 Initializing services in SCHEMALESS extraction mode")
@@ -56,7 +56,7 @@ class ProviderCoordinator:
             logger.info(f"  - Max properties per node: {getattr(self.config, 'max_properties_per_node', 50)}")
             logger.info(f"  - Relationship normalization: {getattr(self.config, 'relationship_normalization', True)}")
             
-            # Convert config to dict for providers
+            # Convert config to dict for services
             config_dict = asdict(self.config) if hasattr(self.config, '__dataclass_fields__') else self.config
             
             # Initialize services directly
@@ -115,38 +115,6 @@ class ProviderCoordinator:
         except Exception as e:
             logger.error(f"Failed to initialize providers: {e}")
             return False
-    
-    def check_health(self) -> bool:
-        """Verify all providers are healthy.
-        
-        Returns:
-            True if all providers healthy, False otherwise
-        """
-        components = [
-            ('LLM Service', self.llm_service),
-            ('Graph Service', self.graph_service),
-            ('Embedding Service', self.embedding_service)
-        ]
-        
-        all_healthy = True
-        for name, component in components:
-            if component is None:
-                logger.error(f"{name} not initialized")
-                all_healthy = False
-                continue
-                
-            try:
-                health = component.health_check()
-                if not health.get('healthy', False):
-                    logger.error(f"{name} unhealthy: {health}")
-                    all_healthy = False
-                else:
-                    logger.info(f"{name} healthy")
-            except Exception as e:
-                logger.error(f"{name} health check failed: {e}")
-                all_healthy = False
-        
-        return all_healthy
     
     def cleanup(self):
         """Close all services and clean up resources."""

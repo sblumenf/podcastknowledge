@@ -308,31 +308,3 @@ class GraphStorageService:
             'total_entities': sum(self._entity_counts) if self._entity_counts else 0,
             'total_relationships': sum(self._relationship_counts) if self._relationship_counts else 0
         }
-        
-    def health_check(self) -> Dict[str, Any]:
-        """Check service health.
-        
-        Returns:
-            Health status dictionary
-        """
-        try:
-            self.connect()
-            
-            # Try a simple query
-            with self.session() as session:
-                result = session.run("MATCH (n) RETURN count(n) AS count LIMIT 1")
-                count = result.single()["count"]
-                
-            return {
-                'healthy': True,
-                'service': 'GraphStorageService',
-                'database': self.database,
-                'node_count': count
-            }
-        except Exception as e:
-            return {
-                'healthy': False,
-                'service': 'GraphStorageService',
-                'database': self.database,
-                'error': str(e)
-            }

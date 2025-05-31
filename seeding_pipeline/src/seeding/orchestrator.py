@@ -138,9 +138,6 @@ class VTTKnowledgeExtractor:
                 self.storage_coordinator
             )
             
-            # Verify all components are healthy
-            if not self._verify_components_health():
-                raise PipelineError("Component health check failed")
             
             logger.info("✓ All pipeline components initialized successfully")
             return True
@@ -148,11 +145,6 @@ class VTTKnowledgeExtractor:
         except Exception as e:
             logger.error(f"✗ Failed to initialize pipeline components: {e}")
             return False
-    
-    def _verify_components_health(self) -> bool:
-        """Verify all components are healthy."""
-        # Delegate to provider coordinator
-        return self.provider_coordinator.check_health()
     
     def cleanup(self):
         """Clean up resources and close connections."""

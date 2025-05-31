@@ -94,13 +94,13 @@ WEBVTT
 ┌─────────────────────────────────────────────────────────────────┐
 │                          CLI Interface                            │
 ├─────────────────────────────────────────────────────────────────┤
-│                    Pipeline Orchestrator                          │
+│                   VTT Knowledge Extractor                         │
 ├─────────────────────────────────────────────────────────────────┤
-│   VTT Parser    │   Knowledge    │    Graph       │   Utility    │
-│ & Segmentation  │  Extraction    │  Operations    │  Functions   │
+│   VTT Parser    │   Knowledge    │    Entity      │   Utility    │
+│ & Segmentation  │  Extraction    │  Resolution    │  Functions   │
 ├─────────────────────────────────────────────────────────────────┤
-│                     Provider Interfaces                           │
-│              LLMProvider    │    GraphProvider    │  Embeddings  │
+│                      Direct Services                              │
+│      LLM Service    │    Graph Storage   │  Embeddings Service  │
 ├─────────────────────────────────────────────────────────────────┤
 │                    Core Models & Config                           │
 └─────────────────────────────────────────────────────────────────┘
@@ -149,9 +149,11 @@ vtt_knowledge_pipeline/
 ├── src/
 │   ├── api/             # REST API endpoints
 │   ├── core/            # Core models and configuration
-│   ├── providers/       # LLM and Graph providers
-│   ├── processing/      # VTT parsing and knowledge extraction
-│   ├── seeding/         # Pipeline orchestration and ingestion
+│   ├── extraction/      # Knowledge extraction components
+│   ├── processing/      # VTT parsing and segmentation
+│   ├── seeding/         # Pipeline orchestration
+│   ├── services/        # Direct service implementations
+│   ├── storage/         # Graph storage operations
 │   └── utils/           # Utility functions
 ├── tests/               # Comprehensive test suite
 ├── docs/                # Documentation
@@ -252,15 +254,6 @@ flake8 src/ tests/
 # Type checking
 mypy src/
 ```
-
-## Migration from Podcast Pipeline
-
-If migrating from the previous podcast-focused version:
-
-1. Export any existing knowledge graphs
-2. Convert audio transcripts to VTT format
-3. Process VTT files through this pipeline
-4. See [Migration Guide](docs/migration/README.md) for details
 
 ## Contributing
 

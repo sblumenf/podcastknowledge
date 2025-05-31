@@ -216,32 +216,3 @@ class EmbeddingsService:
         similarities.sort(key=lambda x: x[1], reverse=True)
         
         return similarities[:top_k]
-        
-    def health_check(self) -> Dict[str, Any]:
-        """Check service health.
-        
-        Returns:
-            Health status dictionary
-        """
-        try:
-            self._ensure_model()
-            
-            # Try to generate a test embedding
-            test_text = "This is a test sentence."
-            embedding = self.generate_embedding(test_text)
-            
-            return {
-                'healthy': True,
-                'service': 'EmbeddingsService',
-                'model': self.model_name,
-                'dimension': self.dimension,
-                'device': self.device,
-                'test_embedding_size': len(embedding) if embedding else 0
-            }
-        except Exception as e:
-            return {
-                'healthy': False,
-                'service': 'EmbeddingsService',
-                'model': self.model_name,
-                'error': str(e)
-            }

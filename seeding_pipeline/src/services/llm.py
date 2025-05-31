@@ -187,28 +187,3 @@ class LLMService:
             Dict with rate limit information
         """
         return self.rate_limiter.get_status()
-        
-    def health_check(self) -> Dict[str, Any]:
-        """Check service health.
-        
-        Returns:
-            Health status dictionary
-        """
-        try:
-            self._ensure_client()
-            # Try a simple completion
-            test_response = self.complete("Hello, please respond with 'OK'")
-            
-            return {
-                'healthy': True,
-                'service': 'LLMService',
-                'model': self.model_name,
-                'test_response': test_response[:50] if test_response else None
-            }
-        except Exception as e:
-            return {
-                'healthy': False,
-                'service': 'LLMService',
-                'model': self.model_name,
-                'error': str(e)
-            }
