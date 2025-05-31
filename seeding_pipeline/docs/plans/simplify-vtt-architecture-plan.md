@@ -233,7 +233,7 @@ This plan transforms the over-engineered podcast knowledge pipeline into a strea
 ## Phase 5: Clean Up Tests and Config (2 days)
 
 ### 5.1 Consolidate Test Files
-- [ ] **Remove duplicate tests**
+- [x] **Remove duplicate tests**
   - Purpose: Single version of each test
   - Steps:
     1. Identify all test files with _comprehensive, _old, _complete suffixes

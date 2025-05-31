@@ -1,232 +1,394 @@
-"""Unit tests for segmentation module."""
+"""Comprehensive tests for podcast segmentation module.
+
+Tests for src/processing/segmentation.py covering all segmentation functionality.
+"""
 
 import pytest
-from unittest.mock import Mock, MagicMock
+from unittest import mock
+import json
+from typing import List, Dict, Any
 
-from src.processing import EnhancedPodcastSegmenter
-from src.providers.audio import MockAudioProvider
-from src.core import TranscriptSegment, DiarizationSegment
+from src.processing.segmentation import (
+    EnhancedPodcastSegmenter, SegmentationResult, SegmentBoundary
+)
+from src.core.models import Segment, ComplexityLevel
+from src.providers.llm.base import LLMProvider
 
 
 class TestEnhancedPodcastSegmenter:
-    """Test the EnhancedPodcastSegmenter class."""
+    """Test EnhancedPodcastSegmenter class."""
     
-    def test_segmenter_initialization(self):
-        """Test segmenter initialization with config."""
-        mock_provider = Mock()
-        config = {
-            "min_segment_tokens": 100,
-            "max_segment_tokens": 500,
-            "ad_detection_enabled": False
+    @pytest.fixture
+    def mock_llm_provider(self):
+        """Create mock LLM provider."""
+        provider = mock.Mock(spec=LLMProvider)
+        provider.complete = mock.Mock()
+        return provider
+    
+    @pytest.fixture
+    def segmenter(self, mock_llm_provider):
+        """Create segmenter instance."""
+        return EnhancedPodcastSegmenter(
+            llm_provider=mock_llm_provider,
+            min_segment_duration=30,
+            max_segment_duration=300,
+            overlap_duration=5
+        )
+    
+    def test_segmenter_initialization(self, mock_llm_provider):
+        """Test segmenter initialization."""
+        segmenter = EnhancedPodcastSegmenter(
+            llm_provider=mock_llm_provider,
+            min_segment_duration=60,
+            max_segment_duration=600,
+            overlap_duration=10
+        )
+        
+        assert segmenter.llm_provider == mock_llm_provider
+        assert segmenter.min_segment_duration == 60
+        assert segmenter.max_segment_duration == 600
+        assert segmenter.overlap_duration == 10
+    
+    def test_segment_transcript_basic(self, segmenter, mock_llm_provider):
+        """Test basic transcript segmentation."""
+        transcript = {
+            "segments": [
+                {"text": "Welcome to our show.", "start": 0.0, "end": 3.0},
+                {"text": "Today we discuss AI.", "start": 3.0, "end": 6.0},
+                {"text": "AI is transformative.", "start": 6.0, "end": 9.0}
+            ]
         }
         
-        segmenter = EnhancedPodcastSegmenter(mock_provider, config)
-        
-        assert segmenter.audio_provider == mock_provider
-        assert segmenter.config["min_segment_tokens"] == 100
-        assert segmenter.config["max_segment_tokens"] == 500
-        assert segmenter.config["ad_detection_enabled"] is False
-        
-    def test_process_audio_with_mock_provider(self):
-        """Test audio processing with mock provider."""
-        # Create mock segments
-        mock_segments = [
-            TranscriptSegment(
-                id=f"seg_{i}",
-                text=f"This is segment {i}",
-                start_time=i * 10.0,
-                end_time=(i + 1) * 10.0,
-                confidence=0.95
-            ) for i in range(3)
+        # Mock LLM responses
+        mock_llm_provider.complete.side_effect = [
+            json.dumps({
+                "segments": [
+                    {"start_index": 0, "end_index": 1, "topic": "Introduction"},
+                    {"start_index": 1, "end_index": 2, "topic": "AI Discussion"}
+                ]
+            }),
+            json.dumps({"classification": "intermediate", "technical_density": 0.3}),
+            json.dumps({"classification": "technical", "technical_density": 0.7})
         ]
-        mock_provider = MockAudioProvider(config={"mock_segments": mock_segments})
-        segmenter = EnhancedPodcastSegmenter(mock_provider)
         
-        result = segmenter.process_audio("fake_audio.mp3")
+        result = segmenter.segment_transcript(transcript)
         
-        assert "transcript" in result
-        assert "diarization" in result
-        assert "metadata" in result
-        assert len(result["transcript"]) == 3
-        assert result["metadata"]["total_segments"] == 3
+        assert isinstance(result, list)
+        assert len(result) == 2
+        assert all(isinstance(s, Segment) for s in result)
+        assert result[0].text == "Welcome to our show. Today we discuss AI."
+        assert result[1].text == "AI is transformative."
+    
+    def test_segment_transcript_empty(self, segmenter):
+        """Test segmentation with empty transcript."""
+        result = segmenter.segment_transcript({"segments": []})
+        assert result == []
+    
+    def test_segment_transcript_single_segment(self, segmenter, mock_llm_provider):
+        """Test segmentation with single segment."""
+        transcript = {
+            "segments": [
+                {"text": "Short segment.", "start": 0.0, "end": 2.0}
+            ]
+        }
         
-    def test_advertisement_detection(self):
-        """Test advertisement detection in segments."""
-        mock_provider = Mock()
-        segmenter = EnhancedPodcastSegmenter(mock_provider)
+        mock_llm_provider.complete.return_value = json.dumps({
+            "segments": [{"start_index": 0, "end_index": 0, "topic": "Brief"}]
+        })
         
-        # Test with ad content
-        ad_text = "This episode is brought to you by our sponsor. Use promo code SAVE20."
-        assert segmenter._detect_advertisement(ad_text) is True
+        result = segmenter.segment_transcript(transcript)
         
-        # Test with normal content
-        normal_text = "Today we're discussing artificial intelligence and its impact."
-        assert segmenter._detect_advertisement(normal_text) is False
+        assert len(result) == 1
+        assert result[0].text == "Short segment."
+    
+    def test_identify_segment_boundaries(self, segmenter, mock_llm_provider):
+        """Test segment boundary identification."""
+        raw_segments = [
+            {"text": "Intro text", "start": 0.0, "end": 5.0},
+            {"text": "Main content", "start": 5.0, "end": 10.0},
+            {"text": "Conclusion", "start": 10.0, "end": 15.0}
+        ]
         
-        # Test with config disabled
-        segmenter.config["ad_detection_enabled"] = False
-        assert segmenter._detect_advertisement(ad_text) is False
+        mock_llm_provider.complete.return_value = json.dumps({
+            "segments": [
+                {"start_index": 0, "end_index": 0, "topic": "Introduction", "coherence_score": 0.9},
+                {"start_index": 1, "end_index": 2, "topic": "Main Discussion", "coherence_score": 0.85}
+            ]
+        })
         
-    def test_sentiment_analysis(self):
-        """Test sentiment analysis functionality."""
-        mock_provider = Mock()
-        segmenter = EnhancedPodcastSegmenter(mock_provider)
+        boundaries = segmenter._identify_segment_boundaries(raw_segments)
         
-        # Test positive sentiment
-        positive_text = "This is absolutely amazing and wonderful! I love it!"
-        sentiment = segmenter._analyze_segment_sentiment(positive_text)
-        assert sentiment["polarity"] == "positive"
-        assert sentiment["score"] > 0
-        assert sentiment["positive_count"] > sentiment["negative_count"]
+        assert len(boundaries) == 2
+        assert boundaries[0].start_index == 0
+        assert boundaries[0].end_index == 0
+        assert boundaries[0].topic == "Introduction"
+        assert boundaries[1].start_index == 1
+        assert boundaries[1].end_index == 2
+    
+    def test_create_segments_from_boundaries(self, segmenter, mock_llm_provider):
+        """Test segment creation from boundaries."""
+        raw_segments = [
+            {"text": "First part.", "start": 0.0, "end": 5.0},
+            {"text": "Second part.", "start": 5.0, "end": 10.0},
+            {"text": "Third part.", "start": 10.0, "end": 15.0}
+        ]
         
-        # Test negative sentiment
-        negative_text = "This is terrible and awful. I hate this horrible experience."
-        sentiment = segmenter._analyze_segment_sentiment(negative_text)
-        assert sentiment["polarity"] == "negative"
-        assert sentiment["score"] < 0
-        assert sentiment["negative_count"] > sentiment["positive_count"]
+        boundaries = [
+            SegmentBoundary(0, 1, "Topic A", 0.9),
+            SegmentBoundary(2, 2, "Topic B", 0.8)
+        ]
         
-        # Test neutral sentiment
-        neutral_text = "The weather today is cloudy with a chance of rain."
-        sentiment = segmenter._analyze_segment_sentiment(neutral_text)
-        assert sentiment["polarity"] == "neutral"
-        assert -0.2 <= sentiment["score"] <= 0.2
+        # Mock complexity analysis
+        mock_llm_provider.complete.side_effect = [
+            json.dumps({"classification": "layperson", "technical_density": 0.1}),
+            json.dumps({"classification": "intermediate", "technical_density": 0.5})
+        ]
         
-    def test_post_processing(self):
-        """Test segment post-processing."""
-        mock_provider = Mock()
-        segmenter = EnhancedPodcastSegmenter(mock_provider)
+        segments = segmenter._create_segments_from_boundaries(raw_segments, boundaries, "ep1")
         
-        # Create test segments
+        assert len(segments) == 2
+        assert segments[0].text == "First part. Second part."
+        assert segments[0].start_time == 0.0
+        assert segments[0].end_time == 10.0
+        assert segments[1].text == "Third part."
+        assert segments[1].complexity_level == ComplexityLevel.INTERMEDIATE
+    
+    def test_merge_short_segments(self, segmenter):
+        """Test merging of short segments."""
+        boundaries = [
+            SegmentBoundary(0, 0, "Very Short", 0.9),  # 5 seconds
+            SegmentBoundary(1, 1, "Also Short", 0.8),  # 5 seconds
+            SegmentBoundary(2, 4, "Normal", 0.85)      # 15 seconds
+        ]
+        
+        raw_segments = [
+            {"text": "A", "start": 0.0, "end": 5.0},
+            {"text": "B", "start": 5.0, "end": 10.0},
+            {"text": "C", "start": 10.0, "end": 15.0},
+            {"text": "D", "start": 15.0, "end": 20.0},
+            {"text": "E", "start": 20.0, "end": 25.0}
+        ]
+        
+        merged = segmenter._merge_short_segments(boundaries, raw_segments)
+        
+        # Should merge first two short segments
+        assert len(merged) == 2
+        assert merged[0].start_index == 0
+        assert merged[0].end_index == 1
+        assert merged[1].start_index == 2
+        assert merged[1].end_index == 4
+    
+    def test_split_long_segments(self, segmenter):
+        """Test splitting of long segments."""
+        # Create a very long boundary (400 seconds)
+        boundaries = [
+            SegmentBoundary(0, 79, "Very Long Topic", 0.9)
+        ]
+        
+        raw_segments = [{"text": f"Part {i}.", "start": i*5.0, "end": (i+1)*5.0} 
+                       for i in range(80)]
+        
+        split = segmenter._split_long_segments(boundaries, raw_segments)
+        
+        # Should split into multiple segments
+        assert len(split) > 1
+        # Each segment should be under max duration (300s)
+        for boundary in split:
+            duration = raw_segments[boundary.end_index]["end"] - raw_segments[boundary.start_index]["start"]
+            assert duration <= segmenter.max_segment_duration
+    
+    def test_analyze_complexity(self, segmenter, mock_llm_provider):
+        """Test complexity analysis."""
+        mock_llm_provider.complete.return_value = json.dumps({
+            "classification": "expert",
+            "technical_density": 0.9,
+            "requires_domain_knowledge": True,
+            "accessibility_score": 0.3
+        })
+        
+        level, density = segmenter._analyze_complexity("Highly technical content")
+        
+        assert level == ComplexityLevel.EXPERT
+        assert density == 0.9
+    
+    def test_analyze_complexity_error_handling(self, segmenter, mock_llm_provider):
+        """Test complexity analysis error handling."""
+        mock_llm_provider.complete.side_effect = Exception("LLM error")
+        
+        level, density = segmenter._analyze_complexity("Some content")
+        
+        assert level == ComplexityLevel.UNKNOWN
+        assert density == 0.5
+    
+    def test_calculate_information_density(self, segmenter):
+        """Test information density calculation."""
+        segment_text = """
+        This segment discusses multiple important concepts including artificial intelligence,
+        machine learning algorithms, neural networks, deep learning frameworks,
+        and their applications in healthcare, finance, and autonomous vehicles.
+        We also explore ethical considerations and future implications.
+        """
+        
+        density = segmenter._calculate_information_density(segment_text)
+        
+        # Should have moderate to high density due to many concepts
+        assert 0.5 <= density <= 1.0
+    
+    def test_segment_with_speaker_info(self, segmenter, mock_llm_provider):
+        """Test segmentation preserving speaker information."""
+        transcript = {
+            "segments": [
+                {"text": "Hello everyone.", "start": 0.0, "end": 2.0, "speaker": "SPEAKER_00"},
+                {"text": "Welcome to the show.", "start": 2.0, "end": 4.0, "speaker": "SPEAKER_00"},
+                {"text": "Thanks for having me.", "start": 4.0, "end": 6.0, "speaker": "SPEAKER_01"}
+            ]
+        }
+        
+        mock_llm_provider.complete.return_value = json.dumps({
+            "segments": [
+                {"start_index": 0, "end_index": 2, "topic": "Introduction"}
+            ]
+        })
+        
+        result = segmenter.segment_transcript(transcript)
+        
+        assert len(result) == 1
+        # Should use most common speaker in segment
+        assert result[0].speaker in ["SPEAKER_00", "SPEAKER_01"]
+    
+    def test_segmentation_result_creation(self):
+        """Test SegmentationResult dataclass."""
         segments = [
-            TranscriptSegment(
-                id="seg_1",
-                text="Welcome to our podcast sponsored by TechCorp.",
+            Segment(
+                id="seg1",
+                text="Test segment",
                 start_time=0.0,
-                end_time=5.0,
-                speaker="Speaker_0"
-            ),
-            TranscriptSegment(
-                id="seg_2",
-                text="",  # Empty segment should be skipped
-                start_time=5.0,
-                end_time=5.5,
-                speaker="Speaker_0"
-            ),
-            TranscriptSegment(
-                id="seg_3",
-                text="Today we have great news to share!",
-                start_time=5.5,
                 end_time=10.0,
-                speaker="Speaker_1"
+                speaker="Host"
             )
         ]
         
-        processed = segmenter._post_process_segments(segments)
+        result = SegmentationResult(
+            segments=segments,
+            total_duration=10.0,
+            segment_count=1,
+            average_segment_duration=10.0
+        )
         
-        # Check that empty segment was skipped
-        assert len(processed) == 2
-        
-        # Check first segment (should be ad)
-        assert processed[0]["is_advertisement"] is True
-        assert processed[0]["speaker"] == "Speaker_0"
-        assert processed[0]["word_count"] == 7
-        assert processed[0]["duration_seconds"] == 5.0
-        
-        # Check second segment
-        assert processed[1]["is_advertisement"] is False
-        assert processed[1]["sentiment"]["polarity"] == "positive"
-        
-    def test_metadata_calculation(self):
-        """Test metadata calculation from segments."""
-        mock_provider = Mock()
-        segmenter = EnhancedPodcastSegmenter(mock_provider)
-        
-        # Create test segments
-        segments = [
-            {
-                "text": "Segment 1",
-                "start_time": 0.0,
-                "end_time": 10.0,
-                "word_count": 10,
-                "is_advertisement": True,
-                "sentiment": {"polarity": "positive"},
-                "speaker": "Speaker_0"
-            },
-            {
-                "text": "Segment 2",
-                "start_time": 10.0,
-                "end_time": 20.0,
-                "word_count": 15,
-                "is_advertisement": False,
-                "sentiment": {"polarity": "negative"},
-                "speaker": "Speaker_1"
-            },
-            {
-                "text": "Segment 3",
-                "start_time": 20.0,
-                "end_time": 30.0,
-                "word_count": 20,
-                "is_advertisement": False,
-                "sentiment": {"polarity": "neutral"},
-                "speaker": "Speaker_0"
-            }
-        ]
-        
-        metadata = segmenter._calculate_metadata(segments)
-        
-        assert metadata["total_segments"] == 3
-        assert metadata["total_duration"] == 30.0
-        assert metadata["total_words"] == 45
-        assert metadata["advertisement_count"] == 1
-        assert metadata["unique_speakers"] == 2
-        assert "Speaker_0" in metadata["speakers"]
-        assert "Speaker_1" in metadata["speakers"]
-        assert metadata["sentiment_distribution"]["positive"] == pytest.approx(1/3, 0.01)
-        assert metadata["sentiment_distribution"]["negative"] == pytest.approx(1/3, 0.01)
-        assert metadata["sentiment_distribution"]["neutral"] == pytest.approx(1/3, 0.01)
-        
-    def test_empty_audio_handling(self):
-        """Test handling of empty audio results."""
-        mock_provider = Mock()
-        mock_provider.transcribe.return_value = []
-        
-        segmenter = EnhancedPodcastSegmenter(mock_provider)
-        result = segmenter.process_audio("empty_audio.mp3")
-        
-        assert result["transcript"] == []
-        assert result["metadata"]["warning"] == "No transcript segments"
-        
-    def test_transcription_error_handling(self):
-        """Test handling of transcription errors."""
-        mock_provider = Mock()
-        mock_provider.transcribe.side_effect = Exception("Transcription failed")
-        
-        segmenter = EnhancedPodcastSegmenter(mock_provider)
-        result = segmenter.process_audio("bad_audio.mp3")
-        
-        assert result["transcript"] == []
-        assert "error" in result["metadata"]
-        assert "Transcription failed" in result["metadata"]["error"]
-        
-    def test_diarization_failure_handling(self):
-        """Test handling when diarization fails but transcription succeeds."""
-        mock_provider = Mock()
-        mock_provider.transcribe.return_value = [
-            TranscriptSegment(id="seg_1", text="Test", start_time=0, end_time=5)
-        ]
-        mock_provider.diarize.side_effect = Exception("Diarization failed")
-        mock_provider.align_transcript_with_diarization.return_value = [
-            TranscriptSegment(id="seg_1", text="Test", start_time=0, end_time=5)
-        ]
-        
-        segmenter = EnhancedPodcastSegmenter(mock_provider)
-        result = segmenter.process_audio("audio.mp3")
-        
-        # Should continue without diarization
-        assert len(result["transcript"]) == 1
-        assert result["diarization"] == []
+        assert result.segments == segments
+        assert result.total_duration == 10.0
+        assert result.segment_count == 1
+        assert result.average_segment_duration == 10.0
 
 
-if __name__ == "__main__":
-    pytest.main([__file__, "-v"])
+class TestSegmentBoundary:
+    """Test SegmentBoundary dataclass."""
+    
+    def test_segment_boundary_creation(self):
+        """Test creating segment boundary."""
+        boundary = SegmentBoundary(
+            start_index=0,
+            end_index=5,
+            topic="AI Discussion",
+            coherence_score=0.85
+        )
+        
+        assert boundary.start_index == 0
+        assert boundary.end_index == 5
+        assert boundary.topic == "AI Discussion"
+        assert boundary.coherence_score == 0.85
+    
+    def test_segment_boundary_defaults(self):
+        """Test segment boundary with defaults."""
+        boundary = SegmentBoundary(
+            start_index=0,
+            end_index=1
+        )
+        
+        assert boundary.topic == ""
+        assert boundary.coherence_score == 0.0
+
+
+class TestEdgeCases:
+    """Test edge cases and error scenarios."""
+    
+    @pytest.fixture
+    def segmenter(self):
+        """Create segmenter for edge case testing."""
+        mock_llm = mock.Mock()
+        return EnhancedPodcastSegmenter(llm_provider=mock_llm)
+    
+    def test_very_long_transcript(self, segmenter):
+        """Test handling very long transcripts."""
+        # Create transcript with 1000 segments
+        transcript = {
+            "segments": [
+                {"text": f"Segment {i}.", "start": i*2.0, "end": (i+1)*2.0}
+                for i in range(1000)
+            ]
+        }
+        
+        segmenter.llm_provider.complete.return_value = json.dumps({
+            "segments": [
+                {"start_index": i*100, "end_index": (i+1)*100-1, "topic": f"Part {i}"}
+                for i in range(10)
+            ]
+        })
+        
+        result = segmenter.segment_transcript(transcript)
+        
+        # Should handle large transcript
+        assert len(result) > 0
+        assert all(isinstance(s, Segment) for s in result)
+    
+    def test_malformed_llm_response(self, segmenter):
+        """Test handling malformed LLM responses."""
+        transcript = {
+            "segments": [{"text": "Test", "start": 0.0, "end": 1.0}]
+        }
+        
+        # Return invalid JSON
+        segmenter.llm_provider.complete.return_value = "Not valid JSON"
+        
+        result = segmenter.segment_transcript(transcript)
+        
+        # Should handle gracefully
+        assert isinstance(result, list)
+    
+    def test_overlapping_segments(self, segmenter):
+        """Test handling overlapping segment times."""
+        transcript = {
+            "segments": [
+                {"text": "First", "start": 0.0, "end": 5.0},
+                {"text": "Overlap", "start": 4.0, "end": 8.0},  # Overlaps
+                {"text": "Third", "start": 8.0, "end": 12.0}
+            ]
+        }
+        
+        segmenter.llm_provider.complete.return_value = json.dumps({
+            "segments": [{"start_index": 0, "end_index": 2, "topic": "All"}]
+        })
+        
+        result = segmenter.segment_transcript(transcript)
+        
+        # Should handle overlaps
+        assert len(result) > 0
+    
+    def test_missing_fields_in_transcript(self, segmenter):
+        """Test handling missing fields in transcript segments."""
+        transcript = {
+            "segments": [
+                {"text": "No timestamps"},  # Missing start/end
+                {"start": 0.0, "end": 5.0},  # Missing text
+                {"text": "Valid", "start": 5.0, "end": 10.0}
+            ]
+        }
+        
+        segmenter.llm_provider.complete.return_value = json.dumps({
+            "segments": [{"start_index": 2, "end_index": 2, "topic": "Valid only"}]
+        })
+        
+        result = segmenter.segment_transcript(transcript)
+        
+        # Should skip invalid segments
+        assert len(result) <= 1
