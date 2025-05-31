@@ -16,38 +16,18 @@ import time
 import pytest
 
 from src.utils.logging import (
-    # Core logging classes
-    StructuredLogger,
-    LogContext,
-    LogFormatter,
-    JSONFormatter,
-    ColoredFormatter,
-    
-    # Log handlers
-    RotatingFileHandler,
-    TimedRotatingFileHandler,
-    AsyncHandler,
-    BufferedHandler,
-    FilteredHandler,
-    
-    # Utilities
+    # Actually available functions
     get_logger,
-    configure_logging,
-    set_log_level,
-    add_handler,
-    remove_handler,
-    
-    # Context managers
-    log_context,
-    log_performance,
-    log_error_context,
-    
-    # Decorators
-    log_calls,
-    log_exceptions,
-    log_performance_decorator,
-    
-    # Filters
+    log_execution_time,
+    log_error_with_context,
+    log_metric,
+    setup_logging,
+    setup_structured_logging,
+    generate_correlation_id,
+    get_correlation_id,
+    set_correlation_id,
+    with_correlation_id,
+    StructuredFormatter
     LevelFilter,
     NameFilter,
     ContextFilter,

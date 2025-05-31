@@ -7,6 +7,7 @@ Implement Phase $ARGUMENTS from the provided implementation plan:
    - Implement the feature/change described
    - Mark the todo item as complete (e.g., `- [x] Task description`)
    - Commit changes after each significant step
+   - Push changes to GitHub after each commit with a descriptive message
 
 2. **No deviation**: Implement exactly what's specified in the plan. Do not add extra features or optimizations not explicitly mentioned.
 
@@ -16,8 +17,13 @@ Implement Phase $ARGUMENTS from the provided implementation plan:
 
 5. **Sequential execution**: Complete todo items in order
 
-6. **Summary**: After all todos are implemented and marked complete, provide a summary of what was accomplished.
+6. **Version control**: After completing all items in the phase:
+   - Ensure all changes are committed with descriptive messages
+   - Push all commits to the appropriate GitHub branch
+   - Include the phase number in commit messages (e.g., "Phase $ARGUMENTS: Implement feature X")
+
+7. **Summary**: After all todos are implemented and marked complete, provide a summary of what was accomplished.
 
 Any progress tracking or reporting documents that you produce should be placed in the same folder as the plan document from $ARGUMENTS.
 
-Begin implementation of Phase $ARGUMENTS.
+Begin implementation of Phase $ARGUMENTS.....

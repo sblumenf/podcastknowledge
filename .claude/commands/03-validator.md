@@ -11,7 +11,12 @@ Verify Phase $ARGUMENTS implementation by checking the actual code, not just the
 
 3. **Update plan**: Only after verifying implementation, ensure all completed items are marked `[x]`
 
-4. **Report**:
+4. **Version control**:
+   - Commit any plan updates with message "Phase $ARGUMENTS: Validation updates"
+   - Push changes to GitHub to maintain synchronized state
+   - Ensure all validation findings are documented in the commit message
+
+5. **Report**:
    - List what was verified as working
    - Flag any missing or incorrect implementations
    - State clearly: "Ready for Phase X" or "Issues found: [list]"
@@ -20,4 +25,4 @@ Use "think hard" to thoroughly test each feature against requirements.
 
 Any progress tracking or reporting documents that you produce should be placed in the same folder as the plan document from $ARGUMENTS.
 
-Begin code verification for Phase $ARGUMENTS.
+Begin code verification for Phase $ARGUMENTS.....

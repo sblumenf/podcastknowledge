@@ -24,9 +24,15 @@ Validate full implementation and complete the plan: $ARGUMENTS
      - Add completion date to the plan document
    - If issues found, list them and keep plan in active folder
 
-5. **Final confirmation**:
+5. **Version control finalization**:
+   - Commit all final changes with message "Finalize implementation of $ARGUMENTS"
+   - Include summary of completed work in commit message
+   - Push all changes to GitHub
+   - Create a tag for the completed milestone if appropriate (e.g., "v1.0-$ARGUMENTS-complete")
+
+6. **Final confirmation**:
    Provide plain English summary:
    - "The [plan name] has been successfully completed. The system now [describe what works]."
    - OR "The plan cannot be marked complete. Missing: [list issues]."
 
-Begin comprehensive validation of: $ARGUMENTS
+Begin comprehensive validation of: $ARGUMENTS...

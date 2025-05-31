@@ -5,8 +5,8 @@ from typing import Dict, Any, List, Optional
 import asyncio
 import os
 
-from ..core.config import PipelineConfig
-from ..seeding import PodcastKnowledgePipeline
+from ..core.config import SeedingConfig as PipelineConfig
+from ..seeding import VTTKnowledgeExtractor as PodcastKnowledgePipeline
 from ..utils.logging import get_logger
 from .health import create_health_endpoints
 from .metrics import setup_metrics
@@ -125,7 +125,7 @@ async def get_graph_stats(request: Request):
     
     try:
         # Query graph for statistics
-        graph_provider = pipeline.graph_provider
+        graph_provider = pipeline.graph_service
         
         stats = {}
         

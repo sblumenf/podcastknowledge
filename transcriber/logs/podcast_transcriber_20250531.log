@@ -11,3 +11,45 @@ Traceback (most recent call last):
   File "/home/sergeblumenfeld/podcastknowledge/transcriber/test_logging.py", line 34, in test_logging
     raise ValueError("Simulated error for testing")
 ValueError: Simulated error for testing
+2025-05-31 12:12:39 - podcast_transcriber - INFO - Logging system initialized
+2025-05-31 12:12:39 - podcast_transcriber - INFO - Log level: INFO
+2025-05-31 12:12:39 - podcast_transcriber - INFO - Log directory: /home/sergeblumenfeld/podcastknowledge/transcriber/logs
+2025-05-31 12:12:39 - podcast_transcriber.progress_tracker - ERROR - Failed to load progress file: Expecting value: line 1 column 1 (char 0)
+2025-05-31 12:12:39 - podcast_transcriber.progress_tracker - WARNING - Starting with empty progress state
+2025-05-31 12:12:39 - podcast_transcriber.progress_tracker - INFO - Progress tracker initialized with 0 episodes
+2025-05-31 12:12:39 - podcast_transcriber.progress_tracker - INFO - Episode 'Episode 1: Introduction' marked as in-progress (attempt #1)
+2025-05-31 12:12:39 - podcast_transcriber.progress_tracker - INFO - Episode 'Episode 1: Introduction' marked as completed in 180.5s
+2025-05-31 12:12:39 - podcast_transcriber.progress_tracker - INFO - Episode 'Episode 2: Deep Dive' marked as in-progress (attempt #1)
+2025-05-31 12:12:39 - podcast_transcriber.progress_tracker - WARNING - Episode 'Episode 2: Deep Dive' marked as failed: API quota exceeded
+2025-05-31 12:12:39 - podcast_transcriber.progress_tracker - INFO - Episode '' marked as in-progress (attempt #1)
+2025-05-31 12:12:39 - podcast_transcriber.progress_tracker - WARNING - Episode '' marked as failed: Processing interrupted - marked for retry
+2025-05-31 12:12:39 - podcast_transcriber.progress_tracker - INFO - Cleaned up 1 interrupted episodes
+2025-05-31 12:12:39 - podcast_transcriber.progress_tracker - INFO - Progress tracker initialized with 3 episodes
+2025-05-31 15:55:25 - podcast_transcriber - INFO - Logging system initialized
+2025-05-31 15:55:25 - podcast_transcriber - INFO - Log level: INFO
+2025-05-31 15:55:25 - podcast_transcriber - INFO - Log directory: /home/sergeblumenfeld/podcastknowledge/transcriber/logs
+2025-05-31 15:59:01 - podcast_transcriber - INFO - Logging system initialized
+2025-05-31 15:59:01 - podcast_transcriber - INFO - Log level: INFO
+2025-05-31 15:59:01 - podcast_transcriber - INFO - Log directory: /home/sergeblumenfeld/podcastknowledge/transcriber/logs
+2025-05-31 15:59:01 - podcast_transcriber.file_organizer - INFO - Created episode file: Test_Podcast/2024-01-15_Same_Title.vtt
+2025-05-31 15:59:01 - podcast_transcriber.file_organizer - INFO - Created episode file: Test_Podcast/2024-01-15_Same_Title_001.vtt
+2025-05-31 16:01:41 - podcast_transcriber - INFO - Logging system initialized
+2025-05-31 16:01:41 - podcast_transcriber - INFO - Log level: INFO
+2025-05-31 16:01:41 - podcast_transcriber - INFO - Log directory: /home/sergeblumenfeld/podcastknowledge/transcriber/logs
+2025-05-31 16:01:41 - podcast_transcriber.metadata_index - INFO - No existing index found, starting with empty index
+2025-05-31 16:01:41 - podcast_transcriber.metadata_index - INFO - Added episode to index: First Episode
+2025-05-31 16:01:41 - podcast_transcriber.metadata_index - INFO - Added episode to index: Second Episode
+2025-05-31 16:04:24 - podcast_transcriber - INFO - Logging system initialized
+2025-05-31 16:04:24 - podcast_transcriber - INFO - Log level: INFO
+2025-05-31 16:04:24 - podcast_transcriber - INFO - Log directory: /home/sergeblumenfeld/podcastknowledge/transcriber/logs
+2025-05-31 16:04:24 - podcast_transcriber.metadata_index - INFO - No existing index found, starting with empty index
+2025-05-31 16:04:24 - podcast_transcriber.metadata_index - INFO - Added episode to index: First Episode
+2025-05-31 16:04:24 - podcast_transcriber.metadata_index - INFO - Added episode to index: Second Episode
+2025-05-31 16:04:24 - podcast_transcriber.metadata_index - INFO - Added episode to index: Third Episode
+2025-05-31 16:06:44 - podcast_transcriber - INFO - Logging system initialized
+2025-05-31 16:06:44 - podcast_transcriber - INFO - Log level: INFO
+2025-05-31 16:06:44 - podcast_transcriber - INFO - Log directory: /home/sergeblumenfeld/podcastknowledge/transcriber/logs
+2025-05-31 16:06:44 - podcast_transcriber.metadata_index - INFO - No existing index found, starting with empty index
+2025-05-31 16:06:44 - podcast_transcriber.metadata_index - INFO - Added episode to index: Test Episode 1
+2025-05-31 16:06:44 - podcast_transcriber.metadata_index - INFO - Added episode to index: Test Episode 2
+2025-05-31 16:06:44 - podcast_transcriber.metadata_index - INFO - Exported 2 episodes to CSV: /tmp/tmp42s80zti/test_export.csv

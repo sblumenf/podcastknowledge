@@ -44,7 +44,27 @@ jobs:
         NEO4J_USER: neo4j
         NEO4J_PASSWORD: password
       run: |
-        pytest -v --cov=src --cov-report=xml --cov-report=html
+        # Run tests and capture result
+        pytest -v --cov=src --cov-report=xml --cov-report=html --tb=short || TEST_RESULT=$?
+        
+        # Check if failures match known issues
+        if [ ! -z "$TEST_RESULT" ] && [ $TEST_RESULT -ne 0 ]; then
+          echo "Tests failed with exit code $TEST_RESULT"
+          echo "Checking against known issues..."
+          python scripts/manage_known_issues.py check || true
+          echo "Review KNOWN_ISSUES.md for documented limitations"
+          # For now, still fail the build but with context
+          exit $TEST_RESULT
+        fi
+    
+    - name: Run performance tests
+      env:
+        NEO4J_URI: bolt://localhost:7687
+        NEO4J_USER: neo4j
+        NEO4J_PASSWORD: password
+      run: |
+        pytest tests/performance -v
+      continue-on-error: true  # Make performance tests non-blocking initially
     
     - name: Upload coverage reports
       uses: codecov/codecov-action@v3

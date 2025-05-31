@@ -11,7 +11,7 @@ import logging
 import re
 
 from ..core import constants
-from ..core.models import TranscriptSegment
+from ..core.interfaces import TranscriptSegment
 logger = logging.getLogger(__name__)
 
 

@@ -35,4 +35,6 @@ Generate a detailed implementation plan using "ultrathink" for: $ARGUMENTS
 
 7. **New tech rule**: Any new frameworks/databases/models require explicit human confirmation
 
+8. **Documentation review**: Make sure that there is an explicit reference to use the context7 MCP tool for documenation for each task.
+
 Think hard about the entire plan - the architecture, implementation sequence, potential challenges, and how all pieces fit together. Create the plan for: $ARGUMENTS
