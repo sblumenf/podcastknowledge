@@ -1,12 +1,14 @@
 """Tests for concurrency management utilities."""
 
-import pytest
+from unittest.mock import Mock, patch, MagicMock
 import asyncio
+import os
+import tempfile
 import threading
 import time
-import tempfile
-import os
-from unittest.mock import Mock, patch, MagicMock
+
+import pytest
+
 from src.seeding.concurrency import (
     Priority,
     Job,

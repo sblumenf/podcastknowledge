@@ -4,10 +4,9 @@ This module provides text utility functions that complement the main
 preprocessing and extraction modules without duplicating their functionality.
 """
 
-import re
 from typing import List, Dict, Any, Optional
 import logging
-
+import re
 logger = logging.getLogger(__name__)
 
 

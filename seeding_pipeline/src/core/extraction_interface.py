@@ -5,10 +5,8 @@ This module defines the protocol that both fixed schema and schemaless
 extraction modes must implement, enabling seamless switching between modes.
 """
 
-from typing import Protocol, List, Dict, Any, Optional
 from dataclasses import dataclass
-
-
+from typing import Protocol, List, Dict, Any, Optional
 @dataclass
 class Segment:
     """Represents a transcript segment."""

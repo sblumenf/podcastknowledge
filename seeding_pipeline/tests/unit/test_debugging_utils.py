@@ -1,11 +1,12 @@
 """Tests for debugging utilities - matches actual API."""
 
-import pytest
-import logging
-import json
-from unittest.mock import Mock, patch, MagicMock
 from datetime import datetime
 from pathlib import Path
+from unittest.mock import Mock, patch, MagicMock
+import json
+import logging
+
+import pytest
 
 from src.utils.debugging import (
     ErrorSeverity,

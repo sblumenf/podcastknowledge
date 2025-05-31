@@ -4,24 +4,25 @@ Tests for src/seeding/orchestrator.py focusing on unit-level testing
 with mocked dependencies.
 """
 
-import pytest
-from unittest import mock
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, Any, List, Optional
+from unittest import mock
 import logging
 
-from src.seeding.orchestrator import PodcastKnowledgePipeline
+import pytest
+
 from src.core.config import PipelineConfig, SeedingConfig
 from src.core.exceptions import PipelineError, ConfigurationError
 from src.factories.provider_factory import ProviderFactory
-from src.providers.audio.base import AudioProvider
-from src.providers.llm.base import LLMProvider
-from src.providers.graph.base import GraphProvider
-from src.providers.embeddings.base import EmbeddingProvider
-from src.processing.segmentation import EnhancedPodcastSegmenter
 from src.processing.extraction import KnowledgeExtractor
+from src.processing.segmentation import EnhancedPodcastSegmenter
+from src.providers.audio.base import AudioProvider
+from src.providers.embeddings.base import EmbeddingProvider
+from src.providers.graph.base import GraphProvider
+from src.providers.llm.base import LLMProvider
 from src.seeding.components import (
+from src.seeding.orchestrator import PodcastKnowledgePipeline
     SignalManager, ProviderCoordinator, CheckpointManager,
     PipelineExecutor, StorageCoordinator
 )

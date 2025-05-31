@@ -4,12 +4,11 @@ Provides basic thread pool functionality for parallel VTT file processing.
 Removed complex job queuing, deadlock detection, and priority systems as part of Phase 3.3.2.
 """
 
-import threading
-import logging
-from typing import Any, Callable, List, Optional
 from concurrent.futures import ThreadPoolExecutor, Future
 from contextlib import contextmanager
-
+from typing import Any, Callable, List, Optional
+import logging
+import threading
 logger = logging.getLogger(__name__)
 
 

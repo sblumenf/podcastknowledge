@@ -3,9 +3,10 @@
 Tests for src/processing/graph_analysis.py covering all graph analysis functionality.
 """
 
-import pytest
-from unittest import mock
 from typing import List, Dict, Any, Set
+from unittest import mock
+
+import pytest
 
 from src.processing.graph_analysis import (
     GraphAnalyzer, AnalysisResult, NodeMetrics, GraphMetrics,

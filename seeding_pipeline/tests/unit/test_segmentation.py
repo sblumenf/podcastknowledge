@@ -3,10 +3,11 @@
 Tests for src/processing/segmentation.py covering all segmentation functionality.
 """
 
-import pytest
+from typing import List, Dict, Any
 from unittest import mock
 import json
-from typing import List, Dict, Any
+
+import pytest
 
 from src.processing.segmentation import (
     EnhancedPodcastSegmenter, SegmentationResult, SegmentBoundary

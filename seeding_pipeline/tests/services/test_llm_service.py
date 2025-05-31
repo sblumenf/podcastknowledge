@@ -1,10 +1,10 @@
 """Tests for LLM service implementation."""
 
-import pytest
 from unittest.mock import Mock, patch, MagicMock
+
+import pytest
+
 from src.services.llm import LLMService
-
-
 class TestLLMService:
     """Test suite for LLMService."""
     

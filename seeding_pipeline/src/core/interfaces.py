@@ -6,12 +6,10 @@ ensuring consistent behavior across different implementations.
 """
 
 from abc import ABC, abstractmethod
-from typing import Protocol, Dict, Any, List, Optional, Tuple, Union
+from contextlib import AbstractContextManager
 from dataclasses import dataclass
 from datetime import datetime
-from contextlib import AbstractContextManager
-
-
+from typing import Protocol, Dict, Any, List, Optional, Tuple, Union
 # Base protocol for health checks
 class HealthCheckable(Protocol):
     """Protocol for components that support health checks."""

@@ -6,6 +6,7 @@ string representations, and severity levels.
 """
 
 import pytest
+
 from src.core.exceptions import (
     ErrorSeverity,
     PodcastProcessingError,

@@ -1,9 +1,11 @@
 """Tests for batch processing utilities."""
 
-import pytest
-import time
-import threading
 from unittest.mock import Mock, patch
+import threading
+import time
+
+import pytest
+
 from src.seeding.batch_processor import (
     BatchItem,
     BatchResult,

@@ -1,18 +1,17 @@
 """Tests for signal handling and graceful shutdown."""
 
-import signal
-import time
-import threading
-import pytest
-import tempfile
-import os
-from unittest.mock import Mock, patch, MagicMock
 from multiprocessing import Process, Queue
+from unittest.mock import Mock, patch, MagicMock
+import os
+import signal
+import tempfile
+import threading
+import time
 
-from src.seeding.orchestrator import PodcastKnowledgePipeline
+import pytest
+
 from src.core.config import Config
-
-
+from src.seeding.orchestrator import PodcastKnowledgePipeline
 class TestSignalHandling:
     """Test signal handling and graceful shutdown scenarios."""
     

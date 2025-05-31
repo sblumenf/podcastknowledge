@@ -1,21 +1,19 @@
 """FastAPI application with distributed tracing support."""
 
-import os
-import asyncio
-from typing import Dict, Any, List, Optional
 from contextlib import asynccontextmanager
+from typing import Dict, Any, List, Optional
+import asyncio
+import os
 
+from ..core.config import PipelineConfig
+from ..seeding import PodcastKnowledgePipeline
+from ..utils.logging import get_logger
+from .health import create_health_endpoints
+from .metrics import setup_metrics
 from fastapi import FastAPI, HTTPException, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 import uvicorn
-
-from ..core.config import PipelineConfig
-from ..seeding import PodcastKnowledgePipeline
-from .health import create_health_endpoints
-from .metrics import setup_metrics
-from ..utils.logging import get_logger
-
 logger = get_logger(__name__)
 
 

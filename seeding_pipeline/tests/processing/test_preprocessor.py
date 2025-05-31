@@ -2,9 +2,10 @@
 Unit tests for schemaless preprocessor.
 """
 
-import pytest
 from datetime import datetime
 from unittest.mock import patch, MagicMock
+
+import pytest
 
 from src.processing.preprocessor import (
     TextPreprocessor,

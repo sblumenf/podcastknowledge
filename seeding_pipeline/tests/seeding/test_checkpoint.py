@@ -1,16 +1,16 @@
 """Tests for enhanced checkpoint management."""
 
-import pytest
+from datetime import datetime, timedelta
+import json
 import os
+import pickle
 import tempfile
 import time
+
 import gzip
-import pickle
-import json
-from datetime import datetime, timedelta
+import pytest
+
 from src.seeding.checkpoint import ProgressCheckpoint, CheckpointVersion, CheckpointMetadata
-
-
 class TestProgressCheckpoint:
     """Tests for enhanced ProgressCheckpoint."""
     

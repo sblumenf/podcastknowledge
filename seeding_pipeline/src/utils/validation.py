@@ -1,12 +1,12 @@
 """Validation utilities for data integrity and input sanitization."""
 
-import re
-import logging
+from collections import defaultdict
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Union, Tuple
-from collections import defaultdict
-from src.utils.text_processing import normalize_entity_name, calculate_name_similarity
+import logging
+import re
 
+from src.utils.text_processing import normalize_entity_name, calculate_name_similarity
 logger = logging.getLogger(__name__)
 
 

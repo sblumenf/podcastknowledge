@@ -5,16 +5,15 @@ This module provides streamlined extraction focused on schemaless processing
 without the complexity of the old fixed-schema approach.
 """
 
-import re
-import json
-import logging
-from typing import Dict, Any, List, Optional, Tuple
 from dataclasses import dataclass
 from datetime import datetime
+from typing import Dict, Any, List, Optional, Tuple
+import json
+import logging
+import re
 
-from src.utils.component_tracker import track_component_impact, ComponentContribution, get_tracker
 from src.core.models import Segment
-
+from src.utils.component_tracker import track_component_impact, ComponentContribution, get_tracker
 logger = logging.getLogger(__name__)
 
 

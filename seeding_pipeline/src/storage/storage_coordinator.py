@@ -1,12 +1,10 @@
 """Storage coordination component for managing graph database operations."""
 
-import logging
 from typing import Dict, Any, List, Optional
+import logging
 
-# Provider imports removed - using services directly
 from src.core.models import Entity
 from src.utils.logging import get_logger
-
 logger = get_logger(__name__)
 
 

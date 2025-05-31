@@ -4,11 +4,12 @@
 # The test expects many classes and functions that don't exist in the actual module.
 # Commenting out until the test can be properly rewritten.
 """
-import pytest
+from typing import Optional, Type
 from unittest.mock import Mock, patch, MagicMock
 import logging
-from typing import Optional, Type
 import traceback
+
+import pytest
 
 from src.utils.error_handling import (
     PodcastKGError,

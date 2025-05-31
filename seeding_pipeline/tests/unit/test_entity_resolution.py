@@ -1,13 +1,12 @@
 """Tests for schemaless entity resolution component."""
 
-import pytest
-from unittest.mock import Mock, patch, mock_open
-import yaml
 from typing import List, Dict, Any
+from unittest.mock import Mock, patch, mock_open
+
+import pytest
+import yaml
 
 from src.processing.entity_resolution import EntityResolver, EntityResolutionConfig
-
-
 class TestSchemalessEntityResolver:
     """Test suite for SchemalessEntityResolver."""
 

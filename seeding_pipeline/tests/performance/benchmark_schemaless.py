@@ -1,21 +1,19 @@
 """Performance benchmarks for schemaless vs fixed schema processing."""
 
-import time
-import asyncio
-import statistics
-from typing import Dict, List, Any
 from dataclasses import dataclass
+from typing import Dict, List, Any
 from unittest.mock import MagicMock, AsyncMock
+import asyncio
+import time
 
 import pytest
+import statistics
 
-from src.providers.graph.schemaless_neo4j import SchemalessNeo4jProvider
-from src.providers.graph.neo4j import Neo4jProvider
 from src.core.models import Segment, Episode, Podcast
-from src.providers.llm.mock import MockLLMProvider
 from src.providers.embeddings.mock import MockEmbeddingProvider
-
-
+from src.providers.graph.neo4j import Neo4jProvider
+from src.providers.graph.schemaless_neo4j import SchemalessNeo4jProvider
+from src.providers.llm.mock import MockLLMProvider
 @dataclass
 class BenchmarkResult:
     """Container for benchmark results."""

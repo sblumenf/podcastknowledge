@@ -3,17 +3,16 @@
 Compares actual outputs against known good outputs to detect regressions.
 """
 
-import json
-import pytest
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 from unittest.mock import Mock, patch
+import json
+
+from neo4j import GraphDatabase
+import pytest
 
 from src.api.v1 import seed_podcast
 from src.core.config import Config
-from neo4j import GraphDatabase
-
-
 class TestGoldenOutputs:
     """Test against golden (expected) outputs."""
     

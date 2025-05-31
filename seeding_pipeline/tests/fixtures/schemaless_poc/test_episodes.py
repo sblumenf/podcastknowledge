@@ -5,10 +5,8 @@ This module defines 5 diverse podcast episodes from different domains
 to test SimpleKGPipeline's extraction capabilities.
 """
 
-import json
 from typing import List, Dict, Any
-
-
+import json
 # Define diverse test episodes representing different domains
 TEST_EPISODES = [
     {

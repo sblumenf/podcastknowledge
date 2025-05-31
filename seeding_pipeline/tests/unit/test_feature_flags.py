@@ -5,9 +5,11 @@ This module tests the actual feature flag system implementation including
 flag management, caching, decorators, and configuration.
 """
 
-import pytest
-import os
 from unittest.mock import Mock, patch, MagicMock
+import os
+
+import pytest
+
 from src.core.feature_flags import (
     FeatureFlag,
     FlagConfig,

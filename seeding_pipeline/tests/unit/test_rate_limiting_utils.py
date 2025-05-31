@@ -1,11 +1,12 @@
 """Tests for rate limiting utilities."""
 
-import pytest
-import time
-import asyncio
-from unittest.mock import Mock, patch, MagicMock
 from datetime import datetime, timedelta
+from unittest.mock import Mock, patch, MagicMock
+import asyncio
 import threading
+import time
+
+import pytest
 
 from src.utils.rate_limiting import (
     RateLimiter,

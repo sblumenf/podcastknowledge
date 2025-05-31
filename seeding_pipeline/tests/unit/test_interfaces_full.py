@@ -8,10 +8,11 @@ This test suite covers:
 - Edge cases and error scenarios
 """
 
+from contextlib import AbstractContextManager
 from typing import Dict, Any, List, Optional
 from unittest import mock
+
 import pytest
-from contextlib import AbstractContextManager
 
 from src.core.interfaces import (
     # Protocols

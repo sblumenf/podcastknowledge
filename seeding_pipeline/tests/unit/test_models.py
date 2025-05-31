@@ -11,8 +11,9 @@ This test suite covers:
 
 from datetime import datetime
 from typing import Dict, Any
-import pytest
 import json
+
+import pytest
 
 from src.core.models import (
     # Enums

@@ -1,7 +1,8 @@
 """Tests for health check functionality."""
 
-import pytest
 from unittest.mock import patch, MagicMock
+
+import pytest
 
 from src.api.health import (
     HealthChecker, HealthStatus, ComponentHealth,

@@ -4,16 +4,16 @@ Consolidated entity resolution and matching functionality.
 This module handles entity resolution and deduplication for both structured Entity objects
 and dictionary-based entities from schemaless extraction.
 """
-import re
-import difflib
-from typing import List, Dict, Optional, Tuple, Any, Set, Union
-from dataclasses import dataclass
 from collections import defaultdict
+from dataclasses import dataclass
+from typing import List, Dict, Optional, Tuple, Any, Set, Union
 import logging
+import re
+
+import difflib
 
 from src.core.models import Entity, EntityType
 from src.utils.component_tracker import track_component_impact, ComponentContribution, get_tracker
-
 logger = logging.getLogger(__name__)
 
 

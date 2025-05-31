@@ -1,24 +1,23 @@
 """Performance benchmark tests for the pipeline."""
 
-import time
-import json
-import pytest
-import tempfile
-import os
-import psutil
-import gc
+from datetime import datetime
 from pathlib import Path
 from typing import Dict, Any, List
 from unittest.mock import Mock, patch
-from datetime import datetime
-import numpy as np
+import gc
+import json
+import os
+import tempfile
+import time
 
-from src.seeding.orchestrator import PodcastKnowledgePipeline
+import numpy as np
+import psutil
+import pytest
+
 from src.core.config import Config
 from src.processing.extraction import KnowledgeExtractor
+from src.seeding.orchestrator import PodcastKnowledgePipeline
 from src.utils.memory import MemoryMonitor
-
-
 class PerformanceMetrics:
     """Collect and analyze performance metrics."""
     

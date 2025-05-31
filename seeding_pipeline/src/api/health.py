@@ -5,18 +5,15 @@ This module provides simple health and readiness checks for monitoring
 and orchestration systems (Kubernetes, Docker, etc.).
 """
 
-import time
 from datetime import datetime
-from typing import Dict, Any
 from enum import Enum
-
-from neo4j import GraphDatabase
-from neo4j.exceptions import ServiceUnavailable
+from typing import Dict, Any
+import time
 
 from ..core.config import PipelineConfig
 from ..utils.resources import get_system_resources
-
-
+from neo4j import GraphDatabase
+from neo4j.exceptions import ServiceUnavailable
 class HealthStatus(Enum):
     """Health check status levels."""
     HEALTHY = "healthy"

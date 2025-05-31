@@ -1,16 +1,15 @@
 """Simplified pipeline execution component for VTT processing."""
 
-import os
-import logging
-from typing import Dict, Any, List, Optional
 from datetime import datetime
+from typing import Dict, Any, List, Optional
+import logging
+import os
 
-from src.core.models import Podcast, Episode, Segment
-from src.core.interfaces import TranscriptSegment
 from src.core.exceptions import PipelineError
-from src.utils.memory import cleanup_memory
+from src.core.interfaces import TranscriptSegment
+from src.core.models import Podcast, Episode, Segment
 from src.utils.logging import get_logger
-
+from src.utils.memory import cleanup_memory
 # Add tracing imports with fallback
 try:
     from src.tracing.tracer import create_span, add_span_attributes

@@ -1,14 +1,14 @@
 """Minimal integration test for schemaless mode functionality."""
 
-import pytest
 from unittest.mock import Mock, patch, MagicMock
-from src.factories.provider_factory import ProviderFactory
+
+import pytest
+
 from src.core.config import Config
+from src.factories.provider_factory import ProviderFactory
+from src.providers.embeddings.base import BaseEmbeddingProvider
 from src.providers.graph.schemaless_neo4j import SchemalessNeo4jProvider
 from src.providers.llm.base import BaseLLMProvider
-from src.providers.embeddings.base import BaseEmbeddingProvider
-
-
 class TestMinimalSchemaless:
     """Test basic schemaless mode functionality end-to-end."""
     

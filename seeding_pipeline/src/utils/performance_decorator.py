@@ -4,18 +4,17 @@ Performance profiling decorator for component analysis.
 This module provides decorators to track performance metrics for individual components.
 """
 
-import time
-import functools
-import psutil
-import tracemalloc
-from typing import Any, Callable, Dict, Optional
 from dataclasses import dataclass
 from datetime import datetime
+from typing import Any, Callable, Dict, Optional
+import functools
+import time
 
-from ..utils.logging import get_logger
-from ..utils.component_tracker import get_component_tracker
 from ..api.metrics import get_metrics_collector
-
+from ..utils.component_tracker import get_component_tracker
+from ..utils.logging import get_logger
+import psutil
+import tracemalloc
 logger = get_logger(__name__)
 
 

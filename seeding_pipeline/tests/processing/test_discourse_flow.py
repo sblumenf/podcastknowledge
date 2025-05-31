@@ -1,14 +1,13 @@
 """Tests for discourse flow tracking functionality."""
 
-import pytest
-from unittest.mock import Mock, MagicMock
 from datetime import datetime
+from unittest.mock import Mock, MagicMock
+
 import numpy as np
+import pytest
 
-from src.processing.discourse_flow import DiscourseFlowTracker
 from src.core.models import Entity, Segment, Insight, InsightType
-
-
+from src.processing.discourse_flow import DiscourseFlowTracker
 class TestDiscourseFlowTracker:
     """Test suite for DiscourseFlowTracker class."""
     

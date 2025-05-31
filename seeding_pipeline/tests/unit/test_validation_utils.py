@@ -1,8 +1,9 @@
 """Tests for validation utilities."""
 
-import pytest
 from datetime import datetime
 from unittest.mock import Mock, patch
+
+import pytest
 
 from src.utils.validation import (
     validate_text_input,

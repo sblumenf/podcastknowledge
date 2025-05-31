@@ -1,13 +1,13 @@
 """Performance tests for pattern matching utilities."""
 
-import time
+from typing import List
 import random
 import string
-from typing import List
+import time
+
 import pytest
+
 from src.utils.patterns import PatternLibrary, OptimizedPatternMatcher
-
-
 def generate_test_text(size: int, pattern_density: float = 0.1) -> str:
     """Generate test text with controlled pattern density."""
     words = []

@@ -8,7 +8,6 @@ Main API:
 
 from .__version__ import __version__, __version_info__, __api_version__
 from .seeding import VTTKnowledgeExtractor
-
 # Convenience functions
 def extract_vtt_knowledge(vtt_file_path, use_large_context=True, config=None):
     """Extract knowledge from a single VTT file.

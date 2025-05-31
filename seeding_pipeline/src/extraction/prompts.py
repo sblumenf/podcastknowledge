@@ -1,14 +1,12 @@
 """Prompt management and building for LLM interactions."""
 
-import logging
-from typing import Dict, Any, List, Optional
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
+from typing import Dict, Any, List, Optional
+import logging
 
 from src.core.models import Entity, Insight
-
-
 logger = logging.getLogger(__name__)
 
 

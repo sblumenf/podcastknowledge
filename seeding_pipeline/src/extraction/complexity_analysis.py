@@ -1,17 +1,16 @@
 """
 Advanced complexity analysis functionality
 """
-import re
-import logging
-from typing import Dict, Any, List, Optional, Tuple, Set
-from dataclasses import dataclass
-from statistics import mean, stdev
 from collections import Counter
+from dataclasses import dataclass
+from typing import Dict, Any, List, Optional, Tuple, Set
+import logging
 import math
+import re
+
+from statistics import mean, stdev
 
 from src.core.models import Entity, Insight, Quote, ComplexityLevel, EntityType
-
-
 logger = logging.getLogger(__name__)
 
 

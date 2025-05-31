@@ -1,8 +1,9 @@
 """
 Tests for complexity analysis functionality
 """
-import pytest
 from typing import List
+
+import pytest
 
 from src.core.models import Entity, Insight, Quote, EntityType, InsightType, QuoteType, ComplexityLevel
 from src.processing.complexity_analysis import (

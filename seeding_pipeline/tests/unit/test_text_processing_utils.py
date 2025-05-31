@@ -1,7 +1,8 @@
 """Tests for text processing utilities."""
 
-import pytest
 from typing import List, Dict
+
+import pytest
 
 from src.utils.text_processing import (
     clean_segment_text,

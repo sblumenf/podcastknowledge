@@ -5,10 +5,11 @@ This module tests the SLO error budget tracking, burn rate calculation,
 and alerting mechanisms.
 """
 
-import pytest
 from datetime import datetime, timedelta
 from unittest.mock import Mock, patch, MagicMock
 import json
+
+import pytest
 
 from src.core.error_budget import (
     BurnRateWindow,

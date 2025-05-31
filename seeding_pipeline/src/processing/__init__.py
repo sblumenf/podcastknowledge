@@ -1,9 +1,8 @@
 """Processing modules for VTT knowledge pipeline."""
 
-from .segmentation import VTTTranscriptSegmenter, SegmentMetadata
-from .metrics import MetricsCalculator
 from .episode_flow import EpisodeFlowAnalyzer
-
+from .metrics import MetricsCalculator
+from .segmentation import VTTTranscriptSegmenter, SegmentMetadata
 __all__ = [
     "VTTTranscriptSegmenter",
     "SegmentMetadata",

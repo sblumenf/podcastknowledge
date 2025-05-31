@@ -1,15 +1,14 @@
 """VTT (WebVTT) file parser for processing transcript files."""
 
-import re
-import logging
-from pathlib import Path
-from typing import List, Dict, Any, Optional, Tuple
 from dataclasses import dataclass
 from datetime import timedelta
+from pathlib import Path
+from typing import List, Dict, Any, Optional, Tuple
+import logging
+import re
 
-from src.core.interfaces import TranscriptSegment
 from src.core.exceptions import ValidationError
-
+from src.core.interfaces import TranscriptSegment
 logger = logging.getLogger(__name__)
 
 

@@ -1,15 +1,14 @@
 """Tests for multi-factor importance scoring module."""
 
-import pytest
-import numpy as np
-import networkx as nx
 from datetime import datetime
 import math
 
-from src.processing.importance_scoring import ImportanceScorer
+import networkx as nx
+import numpy as np
+import pytest
+
 from src.core.models import Entity, Insight, Segment, EntityType, InsightType
-
-
+from src.processing.importance_scoring import ImportanceScorer
 class TestImportanceScorer:
     """Test suite for ImportanceScorer class."""
     

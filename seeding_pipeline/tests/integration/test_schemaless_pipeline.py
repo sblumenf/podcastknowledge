@@ -1,17 +1,16 @@
 """Integration tests for schemaless pipeline end-to-end processing."""
 
-import pytest
-import asyncio
 from datetime import datetime
 from unittest.mock import patch, MagicMock, AsyncMock
+import asyncio
 
+import pytest
+
+from src.core.config import Config
+from src.core.models import Podcast, Episode, Segment, ProcessingResult
+from src.providers.embeddings.mock import MockEmbeddingProvider
 from src.providers.graph.schemaless_neo4j import SchemalessNeo4jProvider
 from src.providers.llm.mock import MockLLMProvider
-from src.providers.embeddings.mock import MockEmbeddingProvider
-from src.core.models import Podcast, Episode, Segment, ProcessingResult
-from src.core.config import Config
-
-
 @pytest.mark.integration
 class TestSchemalessIntegration:
     """End-to-end integration tests for schemaless pipeline."""

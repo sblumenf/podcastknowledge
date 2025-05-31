@@ -1,12 +1,13 @@
 """Comprehensive tests for retry utilities."""
 
-import pytest
+from datetime import datetime, timedelta
 from typing import Optional, Callable, Any, List, Dict
 from unittest.mock import Mock, patch, call
-import time
 import asyncio
-from datetime import datetime, timedelta
 import random
+import time
+
+import pytest
 
 from src.utils.retry import (
     RetryError,

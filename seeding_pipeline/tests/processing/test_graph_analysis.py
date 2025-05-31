@@ -1,12 +1,13 @@
 """
 Tests for graph analysis functionality
 """
-import pytest
-from unittest.mock import Mock, MagicMock, patch
 from typing import List, Tuple
+from unittest.mock import Mock, MagicMock, patch
 
-from src.core.models import Entity, Insight, EntityType, InsightType
+import pytest
+
 from src.core.interfaces import LLMProvider
+from src.core.models import Entity, Insight, EntityType, InsightType
 from src.processing.graph_analysis import (
     GraphAnalyzer, DiscourseType, CentralityResult, CommunityResult,
     PeripheralConcept, DiscourseStructure, DiversityMetrics,

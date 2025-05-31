@@ -1,11 +1,11 @@
 """Tests for embeddings service implementation."""
 
-import pytest
-import numpy as np
 from unittest.mock import Mock, patch, MagicMock
+
+import numpy as np
+import pytest
+
 from src.services.embeddings import EmbeddingsService
-
-
 class TestEmbeddingsService:
     """Test suite for EmbeddingsService."""
     

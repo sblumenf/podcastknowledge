@@ -5,15 +5,13 @@ This module handles the segmentation and post-processing of VTT transcripts,
 including advertisement detection and sentiment analysis.
 """
 
-import re
-import logging
-from typing import List, Dict, Any, Optional
 from dataclasses import dataclass
+from typing import List, Dict, Any, Optional
+import logging
+import re
 
 from ..core import constants
 from ..core.interfaces import TranscriptSegment
-
-
 logger = logging.getLogger(__name__)
 
 

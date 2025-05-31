@@ -1,20 +1,19 @@
 """Tests for checkpoint recovery scenarios."""
 
-import json
-import pytest
-import tempfile
-import os
-import shutil
+from datetime import datetime
 from pathlib import Path
 from unittest.mock import Mock, patch, MagicMock
-from datetime import datetime
+import json
+import os
+import shutil
+import tempfile
 
-from src.seeding.checkpoint import ProgressCheckpoint
-from src.seeding.orchestrator import PodcastKnowledgePipeline
+import pytest
+
 from src.core.config import Config
 from src.core.exceptions import CheckpointError
-
-
+from src.seeding.checkpoint import ProgressCheckpoint
+from src.seeding.orchestrator import PodcastKnowledgePipeline
 class TestCheckpointRecovery:
     """Test checkpoint recovery and compatibility scenarios."""
     

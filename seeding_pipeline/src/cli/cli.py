@@ -5,16 +5,16 @@ This CLI provides batch processing commands for transforming VTT transcript file
 into structured knowledge graphs using AI-powered analysis.
 """
 
-import argparse
-import json
-import sys
-import os
-import hashlib
+from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
-from datetime import datetime
-import fnmatch
+import argparse
+import hashlib
+import json
+import os
+import sys
 
+import fnmatch
 # Add src to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
 

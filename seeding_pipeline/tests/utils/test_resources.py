@@ -1,11 +1,13 @@
 """Tests for resource management utilities."""
 
+from unittest.mock import Mock, patch, MagicMock
 import os
 import shutil
 import tempfile
 import time
+
 import pytest
-from unittest.mock import Mock, patch, MagicMock
+
 from src.utils.resources import (
     TempFileManager,
     temp_file,

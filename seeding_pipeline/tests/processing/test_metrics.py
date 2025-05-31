@@ -1,9 +1,10 @@
 """
 Tests for metrics calculation functionality
 """
-import pytest
-from typing import List
 from datetime import datetime
+from typing import List
+
+import pytest
 
 from src.core.models import (
     Entity, Insight, Quote, Episode, Segment,

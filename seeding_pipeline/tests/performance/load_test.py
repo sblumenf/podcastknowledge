@@ -8,23 +8,22 @@ Tests system behavior under heavy load, including:
 - Database connection pooling validation
 """
 
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from datetime import datetime, timedelta
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple
 import argparse
 import gc
 import json
 import logging
 import os
 import sys
-import time
 import threading
+import time
 import traceback
-from concurrent.futures import ThreadPoolExecutor, as_completed
-from datetime import datetime, timedelta
-from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
 
-import psutil
 from neo4j import GraphDatabase
-
+import psutil
 # Add parent directories to path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 

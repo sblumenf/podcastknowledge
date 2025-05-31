@@ -1,14 +1,14 @@
 """Integration tests for the pipeline orchestrator."""
 
-import pytest
-import tempfile
-import os
 from unittest.mock import Mock, patch, MagicMock
-from src.seeding.orchestrator import PodcastKnowledgePipeline
+import os
+import tempfile
+
+import pytest
+
 from src.core.config import SeedingConfig
 from src.core.exceptions import PipelineError
-
-
+from src.seeding.orchestrator import PodcastKnowledgePipeline
 @pytest.fixture
 def mock_providers():
     """Create mock providers for testing."""

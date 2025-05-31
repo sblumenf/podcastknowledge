@@ -1,11 +1,10 @@
 """Checkpoint management component for the pipeline."""
 
-import logging
 from typing import Any, Dict, List, Optional
+import logging
 
-from src.seeding.checkpoint import ProgressCheckpoint
 from src.core.config import PipelineConfig
-
+from src.seeding.checkpoint import ProgressCheckpoint
 logger = logging.getLogger(__name__)
 
 

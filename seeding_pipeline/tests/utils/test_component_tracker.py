@@ -2,12 +2,13 @@
 Unit tests for component tracking system.
 """
 
-import os
-import tempfile
-import pytest
 from datetime import datetime
 from pathlib import Path
 from unittest.mock import patch, MagicMock
+import os
+import tempfile
+
+import pytest
 
 from src.utils.component_tracker import (
     ComponentTracker,

@@ -1,12 +1,11 @@
 """
 Tests for prompt management functionality
 """
-import pytest
 from datetime import datetime
 
+import pytest
+
 from src.processing.prompts import PromptBuilder, PromptTemplate
-
-
 class TestPromptTemplate:
     """Test suite for PromptTemplate class"""
     

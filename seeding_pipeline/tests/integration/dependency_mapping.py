@@ -1,13 +1,11 @@
 """Dependency mapping for extraction.py and other core modules."""
 
-import json
-import ast
-import os
+from collections import defaultdict
 from pathlib import Path
 from typing import Dict, List, Set, Tuple
-from collections import defaultdict
-
-
+import ast
+import json
+import os
 class DependencyMapper:
     """Map dependencies and usage patterns in the codebase."""
     

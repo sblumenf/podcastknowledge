@@ -1,11 +1,10 @@
 """Tests for simplified memory management utilities."""
 
-import pytest
 from unittest.mock import patch, MagicMock
 
+import pytest
+
 from src.utils.memory import cleanup_memory, get_memory_usage
-
-
 class TestMemoryUtils:
     """Test simple memory management utilities."""
     

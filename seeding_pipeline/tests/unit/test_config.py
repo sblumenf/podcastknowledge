@@ -11,18 +11,17 @@ This test suite covers:
 - Inheritance and specialized configs
 """
 
-import os
-import json
-import tempfile
+from dataclasses import FrozenInstanceError
 from pathlib import Path
 from unittest import mock
+import json
+import os
+import tempfile
+
 import pytest
-from dataclasses import FrozenInstanceError
 
 from src.core.config import PipelineConfig, SeedingConfig, YAML_AVAILABLE
 from src.core.exceptions import ConfigurationError
-
-
 class TestPipelineConfig:
     """Test suite for PipelineConfig class."""
     

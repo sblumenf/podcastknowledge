@@ -5,17 +5,17 @@ This module provides comprehensive text preprocessing including metadata injecti
 cleaning, normalization, and enhancement for downstream knowledge extraction.
 """
 
+from dataclasses import dataclass
+from typing import Dict, Any, Optional, List, Tuple
+import logging
 import re
 import string
-import unicodedata
+
 import difflib
-from typing import Dict, Any, Optional, List, Tuple
-from dataclasses import dataclass
-import logging
+import unicodedata
 
-from src.utils.component_tracker import track_component_impact, ComponentContribution, get_tracker
 from src.core.models import Segment
-
+from src.utils.component_tracker import track_component_impact, ComponentContribution, get_tracker
 logger = logging.getLogger(__name__)
 
 

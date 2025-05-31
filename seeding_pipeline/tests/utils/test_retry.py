@@ -1,12 +1,13 @@
 """Comprehensive tests for retry and resilience utilities."""
 
-import pytest
-import time
+from datetime import datetime, timedelta
+from typing import Any, List
+from unittest.mock import patch, MagicMock, call
 import random
 import signal
-from datetime import datetime, timedelta
-from unittest.mock import patch, MagicMock, call
-from typing import Any, List
+import time
+
+import pytest
 
 from src.utils.retry import (
     ExponentialBackoff,

@@ -1,10 +1,9 @@
 """Direct embeddings service for text embedding generation."""
 
-import logging
 from typing import List, Dict, Any, Optional, Tuple
+import logging
 
 from src.core.exceptions import ProviderError
-
 logger = logging.getLogger(__name__)
 
 

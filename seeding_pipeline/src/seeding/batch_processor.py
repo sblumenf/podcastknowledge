@@ -1,19 +1,18 @@
 """Batch processing utilities for efficient parallel podcast processing."""
 
-import os
+from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor, as_completed
+from dataclasses import dataclass
+from datetime import datetime
+from queue import Queue
+from typing import List, Dict, Any, Callable, Optional, Union, Tuple
 import logging
 import multiprocessing as mp
-from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor, as_completed
-from typing import List, Dict, Any, Callable, Optional, Union, Tuple
-from dataclasses import dataclass
-from queue import Queue
+import os
 import threading
 import time
-from datetime import datetime
 
 from src.core.exceptions import BatchProcessingError
 from src.utils.memory import cleanup_memory
-
 logger = logging.getLogger(__name__)
 
 

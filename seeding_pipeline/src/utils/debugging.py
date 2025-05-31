@@ -1,17 +1,15 @@
 """Enhanced error handling and debugging utilities."""
 
-import logging
-import traceback
-import functools
-import sys
-import json
-from datetime import datetime
-from typing import Any, Dict, Optional, Callable, Type, List, Union
 from contextlib import contextmanager
 from dataclasses import dataclass, field
+from datetime import datetime
 from enum import Enum
-
-
+from typing import Any, Dict, Optional, Callable, Type, List, Union
+import functools
+import json
+import logging
+import sys
+import traceback
 class ErrorSeverity(Enum):
     """Error severity levels."""
     LOW = "low"

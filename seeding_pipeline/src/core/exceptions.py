@@ -7,8 +7,6 @@ Each exception includes severity levels to guide error handling strategies.
 
 from enum import Enum
 from typing import Optional, Any
-
-
 class ErrorSeverity(Enum):
     """Error severity levels for guiding error handling."""
     CRITICAL = "critical"  # System must stop

@@ -1,14 +1,13 @@
 """Tests for enhanced structural gap analysis functionality."""
 
-import pytest
-import numpy as np
-import networkx as nx
 from datetime import datetime
 
-from src.processing.graph_analysis import GraphAnalyzer, StructuralGap
+import networkx as nx
+import numpy as np
+import pytest
+
 from src.core.models import Entity, Insight, EntityType, InsightType
-
-
+from src.processing.graph_analysis import GraphAnalyzer, StructuralGap
 class TestEnhancedGapAnalysis:
     """Test suite for enhanced gap analysis features."""
     

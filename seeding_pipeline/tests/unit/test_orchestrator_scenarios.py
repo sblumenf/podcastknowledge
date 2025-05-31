@@ -4,20 +4,19 @@ Tests for src/seeding/orchestrator.py focusing on real-world scenarios
 and integration between components.
 """
 
-import pytest
-from unittest import mock
 from datetime import datetime
-import json
 from typing import Dict, Any, List
-import tempfile
+from unittest import mock
+import json
 import os
+import tempfile
 
-from src.seeding.orchestrator import PodcastKnowledgePipeline
+import pytest
+
 from src.core.config import SeedingConfig
 from src.core.exceptions import PipelineError
 from src.core.models import Entity, Insight, Quote, EntityType
-
-
+from src.seeding.orchestrator import PodcastKnowledgePipeline
 class TestEndToEndScenarios:
     """Test complete end-to-end pipeline scenarios."""
     

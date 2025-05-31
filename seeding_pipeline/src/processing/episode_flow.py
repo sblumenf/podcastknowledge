@@ -1,15 +1,14 @@
 """Within-episode discourse flow analysis."""
 
-import logging
-from typing import List, Dict, Any, Optional, Tuple
 from collections import defaultdict, Counter
-import numpy as np
+from typing import List, Dict, Any, Optional, Tuple
+import logging
+
 from scipy.spatial.distance import cosine
+import numpy as np
 
 from src.core.models import Entity, Segment
-# Provider imports removed - using services directly
 from src.utils.logging import get_logger
-
 logger = get_logger(__name__)
 
 

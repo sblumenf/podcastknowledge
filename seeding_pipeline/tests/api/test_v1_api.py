@@ -1,8 +1,9 @@
 """Tests for API v1 functionality and versioning."""
 
-import pytest
-import warnings
 from unittest.mock import Mock, patch, MagicMock
+import warnings
+
+import pytest
 
 from src.api.v1 import (
     seed_podcast,

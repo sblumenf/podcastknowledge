@@ -1,15 +1,14 @@
 """Tests for VTT parser functionality."""
 
-import pytest
 from pathlib import Path
-import tempfile
 import os
+import tempfile
 
-from src.processing.vtt_parser import VTTParser, VTTCue
-from src.core.interfaces import TranscriptSegment
+import pytest
+
 from src.core.exceptions import ValidationError
-
-
+from src.core.interfaces import TranscriptSegment
+from src.processing.vtt_parser import VTTParser, VTTCue
 class TestVTTParser:
     """Test suite for VTT parser."""
     

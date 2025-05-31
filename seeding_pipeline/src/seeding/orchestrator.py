@@ -1,28 +1,24 @@
 """Main orchestrator for the podcast knowledge extraction pipeline."""
 
+from datetime import datetime
+from pathlib import Path
+from typing import Dict, Any, Optional, List, Union
+import logging
 import os
 import signal
 import sys
-from typing import Dict, Any, Optional, List, Union
-from datetime import datetime
-from pathlib import Path
-import logging
 
 from src.core.config import PipelineConfig, SeedingConfig
 from src.core.exceptions import PipelineError, ConfigurationError
+from src.extraction import KnowledgeExtractor, EntityResolver
+from src.processing.episode_flow import EpisodeFlowAnalyzer
+from src.processing.segmentation import VTTTranscriptSegmenter
+from src.seeding.components import (
 from src.services import LLMService, EmbeddingsService
 from src.storage import GraphStorageService
-from src.processing.segmentation import VTTTranscriptSegmenter
-from src.extraction import KnowledgeExtractor, EntityResolver
-# Analytics components removed in Phase 3.3.1
-from src.processing.episode_flow import EpisodeFlowAnalyzer
+from src.utils.logging import get_logger, log_execution_time, log_error_with_context, log_metric
 from src.utils.memory import cleanup_memory
 from src.utils.resources import ProgressCheckpoint
-# GraphEnhancements removed with provider pattern
-from src.utils.logging import get_logger, log_execution_time, log_error_with_context, log_metric
-
-# Import new components
-from src.seeding.components import (
     SignalManager,
     ProviderCoordinator,
     CheckpointManager,

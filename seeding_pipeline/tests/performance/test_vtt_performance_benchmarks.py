@@ -1,24 +1,23 @@
 """Performance benchmarks for VTT processing pipeline."""
 
-import pytest
-import tempfile
-import shutil
-import time
-import psutil
-import json
-import statistics
-from pathlib import Path
-from unittest.mock import Mock, patch
-from typing import Dict, List, Any
 from datetime import datetime
+from pathlib import Path
+from typing import Dict, List, Any
+from unittest.mock import Mock, patch
 import gc
+import json
+import shutil
+import tempfile
+import time
+
+import psutil
+import pytest
+import statistics
 
 from src.core.config import PipelineConfig
-from src.seeding.transcript_ingestion import TranscriptIngestion
-from src.processing.vtt_parser import VTTParser
 from src.processing.extraction import KnowledgeExtractor
-
-
+from src.processing.vtt_parser import VTTParser
+from src.seeding.transcript_ingestion import TranscriptIngestion
 class TestVTTPerformanceBenchmarks:
     """Performance benchmarks for VTT processing."""
     

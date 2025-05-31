@@ -1,19 +1,18 @@
 """Domain diversity tests for schemaless extraction."""
 
-import pytest
-import asyncio
+from collections import defaultdict
 from typing import List, Dict, Any
 from unittest.mock import MagicMock, AsyncMock, patch
-from collections import defaultdict
+import asyncio
 
-from src.providers.graph.schemaless_neo4j import SchemalessNeo4jProvider
+import pytest
+
 from src.core.models import Segment
-from src.providers.llm.mock import MockLLMProvider
 from src.providers.embeddings.mock import MockEmbeddingProvider
 from src.providers.graph.metadata_enricher import SchemalessMetadataEnricher
+from src.providers.graph.schemaless_neo4j import SchemalessNeo4jProvider
+from src.providers.llm.mock import MockLLMProvider
 from tests.fixtures.domain_fixtures import DomainFixtures
-
-
 class DomainDiversityTester:
     """Test schemaless extraction across diverse domains."""
 

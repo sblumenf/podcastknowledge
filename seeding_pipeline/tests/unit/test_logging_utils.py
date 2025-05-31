@@ -1,12 +1,13 @@
 """Tests for logging utilities - matches actual API."""
 
-import pytest
-import logging
-import json
-import time
-from unittest.mock import Mock, patch, MagicMock
 from io import StringIO
+from unittest.mock import Mock, patch, MagicMock
+import json
+import logging
 import sys
+import time
+
+import pytest
 
 from src.utils.logging import (
     StructuredFormatter,

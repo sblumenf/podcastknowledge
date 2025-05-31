@@ -4,14 +4,14 @@ Utilities for managing feature flags in the podcast knowledge pipeline.
 This module provides CLI tools and utilities for feature flag management.
 """
 
+from pathlib import Path
+from typing import Dict, Any, Optional
+import json
 import os
 import sys
-from typing import Dict, Any, Optional
-from pathlib import Path
-import json
-import yaml
 
 from ..core.feature_flags import (
+import yaml
     FeatureFlag, 
     get_feature_flag_manager,
     get_all_flags

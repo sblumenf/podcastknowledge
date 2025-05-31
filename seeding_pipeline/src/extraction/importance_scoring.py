@@ -10,14 +10,13 @@ This module implements sophisticated importance calculation that considers:
 - Cross-reference score (how often referenced by other entities/insights)
 """
 
+from typing import List, Dict, Optional, Tuple, Any
 import logging
 import math
-from typing import List, Dict, Optional, Tuple, Any
-import numpy as np
-import networkx as nx
 
 from ..core.models import Entity, Insight, Segment
-
+import networkx as nx
+import numpy as np
 logger = logging.getLogger(__name__)
 
 

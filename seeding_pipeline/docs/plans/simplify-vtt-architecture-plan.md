@@ -292,7 +292,7 @@ This plan transforms the over-engineered podcast knowledge pipeline into a strea
 ## Phase 6: Final Cleanup and Documentation (1 day)
 
 ### 6.1 Remove Dead Code
-- [ ] **Clean up imports**
+- [x] **Clean up imports**
   - Purpose: No unused imports
   - Steps:
     1. Run isort to organize imports
@@ -301,7 +301,7 @@ This plan transforms the over-engineered podcast knowledge pipeline into a strea
     4. Delete empty __init__.py files where not needed
   - Validation: Clean import structure
 
-- [ ] **Delete migration code**
+- [x] **Delete migration code**
   - Purpose: Remove transition helpers
   - Steps:
     1. Delete `src/migration/` directory

@@ -7,12 +7,11 @@ This module implements a hybrid configuration system that loads:
 - Defaults from code
 """
 
-import os
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Optional, Dict, Any, List, Union
 import json
-
+import os
 try:
     import yaml
     YAML_AVAILABLE = True

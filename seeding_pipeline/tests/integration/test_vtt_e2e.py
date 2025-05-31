@@ -1,23 +1,22 @@
 """End-to-end tests for VTT processing pipeline."""
 
-import pytest
-import tempfile
-import shutil
 from pathlib import Path
 from unittest.mock import Mock, MagicMock, patch
 import json
 import os
+import shutil
+import tempfile
 
-from src.seeding import PodcastKnowledgePipeline
+import pytest
+
 from src.core.config import PipelineConfig
-from src.processing.vtt_parser import VTTParser
-from src.seeding.transcript_ingestion import TranscriptIngestionManager
 from src.core.models import Entity, EntityType, Relationship, RelationshipType
+from src.processing.vtt_parser import VTTParser
+from src.providers.embeddings.base import EmbeddingProvider
 from src.providers.graph.base import GraphProvider
 from src.providers.llm.base import LLMProvider
-from src.providers.embeddings.base import EmbeddingProvider
-
-
+from src.seeding import PodcastKnowledgePipeline
+from src.seeding.transcript_ingestion import TranscriptIngestionManager
 class TestVTTEndToEnd:
     """End-to-end tests for VTT processing pipeline."""
     

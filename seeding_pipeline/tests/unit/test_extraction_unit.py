@@ -4,11 +4,12 @@ Tests for src/processing/extraction.py focusing on unit-level testing
 with mocked dependencies.
 """
 
-import pytest
-from unittest import mock
 from datetime import datetime
-import json
 from typing import Dict, Any, List
+from unittest import mock
+import json
+
+import pytest
 
 from src.processing.extraction import (
     KnowledgeExtractor, ExtractionResult, create_extractor

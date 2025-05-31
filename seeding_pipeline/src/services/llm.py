@@ -1,11 +1,10 @@
 """Direct LLM service for Gemini API interaction."""
 
-import logging
 from typing import Dict, Any, Optional, List
+import logging
 
 from src.core.exceptions import ProviderError, RateLimitError
 from src.utils.rate_limiting import WindowedRateLimiter
-
 logger = logging.getLogger(__name__)
 
 

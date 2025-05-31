@@ -2,11 +2,10 @@
 Pytest configuration and shared fixtures.
 """
 
-import os
-import pytest
 from pathlib import Path
+import os
 
-
+import pytest
 @pytest.fixture(scope="session")
 def project_root():
     """Get the project root directory."""

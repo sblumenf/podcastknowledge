@@ -1,9 +1,10 @@
 """Tests for retry utilities."""
 
-import pytest
-import time
-from unittest.mock import Mock, patch, call
 from datetime import datetime, timedelta
+from unittest.mock import Mock, patch, call
+import time
+
+import pytest
 
 from src.utils.retry import (
     ExponentialBackoff,

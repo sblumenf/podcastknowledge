@@ -1,12 +1,13 @@
 """
 Tests for entity resolution functionality
 """
-import pytest
-from unittest.mock import Mock, MagicMock
 from typing import List
+from unittest.mock import Mock, MagicMock
 
-from src.core.models import Entity, EntityType
+import pytest
+
 from src.core.interfaces import EmbeddingProvider
+from src.core.models import Entity, EntityType
 from src.processing.entity_resolution import (
     EntityResolver, EntityMatch, EntityRelationship,
     VectorEntityMatcher

@@ -5,11 +5,12 @@ This module tests all metric types, the metrics collector,
 decorators, and Prometheus export functionality.
 """
 
-import pytest
-import time
-import threading
-from unittest.mock import Mock, patch, MagicMock
 from datetime import datetime
+from unittest.mock import Mock, patch, MagicMock
+import threading
+import time
+
+import pytest
 
 from src.api.metrics import (
     MetricType,

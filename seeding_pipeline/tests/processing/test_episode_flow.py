@@ -1,13 +1,12 @@
 """Tests for episode flow analysis functionality."""
 
-import pytest
 from unittest.mock import Mock, MagicMock
+
 import numpy as np
+import pytest
 
-from src.processing.episode_flow import EpisodeFlowAnalyzer
 from src.core.models import Entity, Segment
-
-
+from src.processing.episode_flow import EpisodeFlowAnalyzer
 class TestEpisodeFlowAnalyzer:
     """Test suite for EpisodeFlowAnalyzer class."""
     

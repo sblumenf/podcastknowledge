@@ -1,15 +1,14 @@
 """Metrics and scoring functionality for content analysis."""
 
-import re
-import logging
-from typing import Dict, Any, List, Optional, Tuple
-from dataclasses import dataclass
-from statistics import mean, stdev
 from collections import Counter
+from dataclasses import dataclass
+from typing import Dict, Any, List, Optional, Tuple
+import logging
+import re
+
+from statistics import mean, stdev
 
 from src.core.models import Entity, Insight, ComplexityLevel
-
-
 logger = logging.getLogger(__name__)
 
 

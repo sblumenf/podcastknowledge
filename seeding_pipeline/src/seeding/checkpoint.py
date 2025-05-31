@@ -1,22 +1,22 @@
 """Enhanced checkpoint management for resumable podcast processing."""
 
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta
+from enum import Enum
+from pathlib import Path
+from threading import Lock
+from typing import Any, Dict, List, Optional, Tuple, Union
+import hashlib
+import json
+import logging
 import os
 import pickle
-import gzip
-import json
 import shutil
 import time
-import logging
-from datetime import datetime, timedelta
-from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, Union
-from dataclasses import dataclass, field
-from enum import Enum
-from threading import Lock
-import hashlib
+
+import gzip
 
 from src.utils.resources import ProgressCheckpoint as BaseProgressCheckpoint
-
 logger = logging.getLogger(__name__)
 
 

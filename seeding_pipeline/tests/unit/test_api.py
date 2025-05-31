@@ -1,11 +1,6 @@
 """Comprehensive tests for API module."""
 
 import pytest
-
-# NOTE: The API module doesn't have a create_app factory function
-# This test file needs to be refactored to work with the direct app instance
-# Commenting out for now
-
 """
 import pytest
 from unittest.mock import Mock, patch, MagicMock, AsyncMock

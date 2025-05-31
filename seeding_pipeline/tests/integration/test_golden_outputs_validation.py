@@ -1,19 +1,18 @@
 """Golden output tests for validating extraction consistency."""
 
-import json
-import pytest
-import tempfile
-import os
+from datetime import datetime
 from pathlib import Path
 from typing import Dict, Any, List
 from unittest.mock import Mock, patch
-from datetime import datetime
+import json
+import os
+import tempfile
 
-from src.seeding.orchestrator import PodcastKnowledgePipeline
+import pytest
+
 from src.core.config import Config
 from src.processing.extraction import KnowledgeExtractor
-
-
+from src.seeding.orchestrator import PodcastKnowledgePipeline
 class TestGoldenOutputs:
     """Test extraction outputs against golden reference data."""
     
@@ -175,8 +174,7 @@ class TestGoldenOutputs:
             ]
         })
     
-    # @pytest.mark.integration
-    # def test_create_golden_output_fixed_schema(
+    def test_create_golden_output_fixed_schema(
         self, golden_outputs_dir, sample_segments, mock_llm_fixed_response
     ):
         """Create golden output for fixed schema extraction."""
@@ -270,8 +268,7 @@ class TestGoldenOutputs:
                 assert 'relationships' in extraction
                 assert 'discovered_types' in extraction
     
-    # @pytest.mark.integration
-    # def test_compare_with_golden_output_fixed_schema(
+    def test_compare_with_golden_output_fixed_schema(
         self, golden_outputs_dir, sample_segments, mock_llm_fixed_response
     ):
         """Compare current extraction with golden output for fixed schema."""
@@ -388,8 +385,7 @@ class TestGoldenOutputs:
         assert len(loaded['fixed_schema']['entity_types']) == 6
         assert len(loaded['fixed_schema']['relationship_types']) == 6
     
-    # @pytest.mark.integration
-    # def test_migration_mode_golden_output(
+    def test_migration_mode_golden_output(
         self, golden_outputs_dir, sample_segments, 
         mock_llm_fixed_response, mock_llm_schemaless_response
     ):

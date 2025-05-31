@@ -1,19 +1,18 @@
 """Tests for knowledge extraction from VTT transcript segments."""
 
-import pytest
-from unittest.mock import Mock, MagicMock, patch
-from typing import List, Dict, Any
-
-from src.core.models import Entity, Insight, Quote, EntityType, InsightType, QuoteType
-from src.core.interfaces import TranscriptSegment, LLMProvider
-from src.processing.vtt_parser import VTTParser
-from src.processing.extraction import KnowledgeExtractor, ExtractionResult
-from src.seeding.transcript_ingestion import TranscriptIngestion, VTTFile
 from pathlib import Path
-import tempfile
+from typing import List, Dict, Any
+from unittest.mock import Mock, MagicMock, patch
 import os
+import tempfile
 
+import pytest
 
+from src.core.interfaces import TranscriptSegment, LLMProvider
+from src.core.models import Entity, Insight, Quote, EntityType, InsightType, QuoteType
+from src.processing.extraction import KnowledgeExtractor, ExtractionResult
+from src.processing.vtt_parser import VTTParser
+from src.seeding.transcript_ingestion import TranscriptIngestion, VTTFile
 class TestVTTKnowledgeExtraction:
     """Test suite for knowledge extraction from VTT segments."""
     

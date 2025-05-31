@@ -1,14 +1,13 @@
 """Direct graph storage service for Neo4j interaction."""
 
-import logging
-from typing import Dict, Any, List, Optional, Tuple
 from contextlib import contextmanager
-import threading
 from datetime import datetime
+from typing import Dict, Any, List, Optional, Tuple
+import logging
+import threading
 
 from src.core.exceptions import ProviderError, ConnectionError
 from src.core.models import Podcast, Episode, Segment
-
 logger = logging.getLogger(__name__)
 
 

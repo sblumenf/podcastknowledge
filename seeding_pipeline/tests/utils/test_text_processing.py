@@ -1,9 +1,10 @@
 """Comprehensive tests for text processing utilities."""
 
-import pytest
-import re
-from unittest.mock import patch, MagicMock
 from typing import List, Dict, Any
+from unittest.mock import patch, MagicMock
+import re
+
+import pytest
 
 from src.utils.text_processing import (
     clean_segment_text,

@@ -1,19 +1,16 @@
 """Provider coordination component for managing all pipeline providers."""
 
-import logging
-from typing import Dict, Any, Optional
 from dataclasses import asdict
+from typing import Dict, Any, Optional
+import logging
 
-from src.services import LLMService, EmbeddingsService
-from src.storage import GraphStorageService
-from src.processing.segmentation import VTTTranscriptSegmenter
-from src.extraction import KnowledgeExtractor, EntityResolver
-# Analytics components removed in Phase 3.3.1
-# Graph enhancements removed with provider pattern
-from src.processing.episode_flow import EpisodeFlowAnalyzer
 from src.core.config import PipelineConfig
 from src.core.exceptions import ConfigurationError
-
+from src.extraction import KnowledgeExtractor, EntityResolver
+from src.processing.episode_flow import EpisodeFlowAnalyzer
+from src.processing.segmentation import VTTTranscriptSegmenter
+from src.services import LLMService, EmbeddingsService
+from src.storage import GraphStorageService
 logger = logging.getLogger(__name__)
 
 

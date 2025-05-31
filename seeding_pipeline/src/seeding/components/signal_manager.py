@@ -1,10 +1,9 @@
 """Signal management component for graceful shutdown handling."""
 
+from typing import Optional, Callable
+import logging
 import signal
 import sys
-import logging
-from typing import Optional, Callable
-
 logger = logging.getLogger(__name__)
 
 

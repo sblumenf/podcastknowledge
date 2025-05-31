@@ -5,17 +5,16 @@ These tests run the extraction pipeline with different component configurations
 to measure the impact of each enhancement.
 """
 
-import pytest
-import json
 from pathlib import Path
 from typing import Dict, Any, List
+import json
 
-from src.core.feature_flags import FeatureFlag, set_flag, get_all_flags
+import pytest
+
 from src.core.config import PipelineConfig
-from src.utils.component_tracker import get_component_tracker
+from src.core.feature_flags import FeatureFlag, set_flag, get_all_flags
 from src.seeding import PodcastKnowledgePipeline
-
-
+from src.utils.component_tracker import get_component_tracker
 # Test transcript for baseline comparisons
 TEST_TRANSCRIPT = """
 Host: Welcome to our podcast. I'm John Smith, and today we're talking with 

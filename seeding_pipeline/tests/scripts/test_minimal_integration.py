@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
 """Minimal integration test focusing on core schemaless components only."""
 
-import sys
 from pathlib import Path
-
+import sys
 # Add parent directory to path
 sys.path.append(str(Path(__file__).parent.parent))
 

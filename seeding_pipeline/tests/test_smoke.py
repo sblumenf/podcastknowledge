@@ -3,12 +3,11 @@ Smoke tests for podcast knowledge pipeline.
 These tests verify basic functionality without external dependencies.
 """
 
+from pathlib import Path
 import json
 import os
-from pathlib import Path
+
 import pytest
-
-
 @pytest.fixture
 def sample_transcripts():
     """Load sample transcripts from fixtures."""
@@ -174,12 +173,6 @@ class TestEndToEnd:
     def test_process_simple_podcast(self, sample_transcripts, test_config):
         """Test processing a simple podcast end-to-end."""
         # This would test the actual pipeline once implemented
-        # from src.seeding.orchestrator import PodcastKnowledgePipeline
-        # pipeline = PodcastKnowledgePipeline(test_config)
-        # result = pipeline.process_transcript(sample_transcripts["transcripts"][0])
-        # assert result.success
-        # assert len(result.entities) > 0
-        # assert len(result.insights) > 0
         pass
 
 

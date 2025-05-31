@@ -1,25 +1,24 @@
 """Tests for VTT batch processing scenarios."""
 
-import pytest
-import tempfile
-import shutil
-import time
-import psutil
-import os
-from pathlib import Path
-from unittest.mock import Mock, MagicMock, patch
 from concurrent.futures import ThreadPoolExecutor, as_completed
-import threading
-import signal
+from pathlib import Path
 from typing import List, Dict, Any
+from unittest.mock import Mock, MagicMock, patch
+import os
+import shutil
+import signal
+import tempfile
+import threading
+import time
+
+import psutil
+import pytest
 
 from src.core.config import PipelineConfig
-from src.seeding.transcript_ingestion import TranscriptIngestion
-from src.seeding.checkpoint import ProgressCheckpoint
-from src.processing.vtt_parser import VTTParser
 from src.core.exceptions import ValidationError, PipelineError
-
-
+from src.processing.vtt_parser import VTTParser
+from src.seeding.checkpoint import ProgressCheckpoint
+from src.seeding.transcript_ingestion import TranscriptIngestion
 class TestVTTBatchProcessing:
     """Test suite for VTT batch processing scenarios."""
     

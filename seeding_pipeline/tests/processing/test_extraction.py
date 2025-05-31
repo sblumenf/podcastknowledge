@@ -1,11 +1,11 @@
 """Tests for consolidated knowledge extractor."""
 
-import pytest
 from unittest.mock import Mock, patch
-from src.processing.extraction import KnowledgeExtractor, ExtractionConfig
+
+import pytest
+
 from src.core.models import Segment
-
-
+from src.processing.extraction import KnowledgeExtractor, ExtractionConfig
 class TestKnowledgeExtractor:
     """Test suite for KnowledgeExtractor."""
 

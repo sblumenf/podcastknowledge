@@ -4,11 +4,12 @@ Tests for src/processing/extraction.py focusing on integration
 with real components and end-to-end scenarios.
 """
 
-import pytest
-from unittest import mock
-import json
 from datetime import datetime
 from typing import Dict, Any, List
+from unittest import mock
+import json
+
+import pytest
 
 from src.processing.extraction import (
     KnowledgeExtractor, ExtractionResult, create_extractor

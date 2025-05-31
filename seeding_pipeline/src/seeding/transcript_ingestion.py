@@ -1,20 +1,19 @@
 """Transcript ingestion module for processing VTT files."""
 
-import json
-import logging
-from pathlib import Path
-from typing import Dict, Any, List, Optional, Union, Set, Tuple
 from dataclasses import dataclass, asdict
 from datetime import datetime
+from pathlib import Path
+from typing import Dict, Any, List, Optional, Union, Set, Tuple
 import hashlib
+import json
+import logging
 
+from src.core.config import PipelineConfig
+from src.core.exceptions import ValidationError, PipelineError
 from src.core.interfaces import TranscriptSegment
 from src.core.models import Podcast, Episode
-from src.core.exceptions import ValidationError, PipelineError
-from src.vtt import VTTParser
-from src.core.config import PipelineConfig
 from src.utils.logging import get_logger
-
+from src.vtt import VTTParser
 logger = get_logger(__name__)
 
 

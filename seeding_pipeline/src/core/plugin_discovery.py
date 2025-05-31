@@ -1,12 +1,12 @@
 """Plugin discovery system for automatic provider registration."""
 
+from pathlib import Path
+from typing import Dict, Type, Any, List, Optional, Callable
+import logging
 import os
+
 import importlib
 import inspect
-import logging
-from typing import Dict, Type, Any, List, Optional, Callable
-from pathlib import Path
-
 logger = logging.getLogger(__name__)
 
 

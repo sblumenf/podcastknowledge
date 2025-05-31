@@ -1,10 +1,10 @@
 """Tests for graph storage service implementation."""
 
-import pytest
 from unittest.mock import Mock, patch, MagicMock
+
+import pytest
+
 from src.storage.graph_storage import GraphStorageService
-
-
 class TestGraphStorageService:
     """Test suite for GraphStorageService."""
     

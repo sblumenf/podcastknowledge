@@ -6,19 +6,18 @@ components in the extraction pipeline, helping identify redundant or
 low-impact components that can be removed.
 """
 
-import time
-import json
-import functools
-from pathlib import Path
-from typing import Dict, Any, List, Optional, Callable, Tuple
+from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import datetime
+from pathlib import Path
+from typing import Dict, Any, List, Optional, Callable, Tuple
+import functools
 import hashlib
-from collections import defaultdict
+import json
+import time
 
-from ..utils.logging import get_logger
 from ..api.metrics import get_metrics_collector
-
+from ..utils.logging import get_logger
 logger = get_logger(__name__)
 
 

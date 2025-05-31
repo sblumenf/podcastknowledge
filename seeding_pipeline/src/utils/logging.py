@@ -5,19 +5,19 @@ Combines structured logging with correlation ID support for comprehensive
 logging capabilities throughout the pipeline.
 """
 
-import logging
-import sys
+from datetime import datetime
+from functools import wraps
+from pathlib import Path
+from typing import Dict, Any, Optional, Union, Callable
 import json
+import logging
+import os
+import sys
+import time
 import traceback
 import uuid
-import contextvars
-from datetime import datetime
-from typing import Dict, Any, Optional, Union, Callable
-from pathlib import Path
-import os
-from functools import wraps
-import time
 
+import contextvars
 # Try to use python-json-logger if available
 try:
     from pythonjsonlogger import jsonlogger

@@ -4,10 +4,11 @@ Tests for src/processing/parsers.py covering all parsing functionality,
 edge cases, and validation utilities.
 """
 
-import pytest
-import json
 from datetime import datetime
 from typing import Dict, Any, List
+import json
+
+import pytest
 
 from src.processing.parsers import (
     ResponseParser, ParseResult

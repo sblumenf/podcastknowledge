@@ -1,14 +1,13 @@
 """
 Tests for response parsing functionality
 """
-import pytest
-import json
 from typing import List, Dict, Any
+import json
+
+import pytest
 
 from src.core.models import Entity, Insight, Quote, EntityType, InsightType, QuoteType
 from src.processing.parsers import ResponseParser, ParseResult, ValidationUtils
-
-
 class TestResponseParser:
     """Test suite for ResponseParser class"""
     

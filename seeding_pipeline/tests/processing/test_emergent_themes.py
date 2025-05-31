@@ -1,14 +1,13 @@
 """Tests for emergent theme detection functionality."""
 
-import pytest
 from unittest.mock import Mock, MagicMock, patch
-import numpy as np
+
 import networkx as nx
+import numpy as np
+import pytest
 
-from src.processing.emergent_themes import EmergentThemeDetector
 from src.core.models import Entity, Insight, Segment, InsightType
-
-
+from src.processing.emergent_themes import EmergentThemeDetector
 class TestEmergentThemeDetector:
     """Test suite for EmergentThemeDetector class."""
     

@@ -7,10 +7,8 @@ representing podcasts, episodes, segments, and extracted knowledge.
 
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Optional, List, Dict, Any, Union
 from enum import Enum
-
-
+from typing import Optional, List, Dict, Any, Union
 # Enums for various types
 class ComplexityLevel(str, Enum):
     """Complexity levels for content classification."""

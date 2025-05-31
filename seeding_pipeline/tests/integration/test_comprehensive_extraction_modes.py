@@ -6,19 +6,18 @@ These tests document and validate the behavior of:
 - Dual-mode (migration) extraction
 """
 
-import json
-import pytest
-import tempfile
-import os
+from datetime import datetime
 from pathlib import Path
 from unittest.mock import Mock, patch, MagicMock
-from datetime import datetime
+import json
+import os
+import tempfile
 
-from src.seeding.orchestrator import PodcastKnowledgePipeline
+import pytest
+
 from src.core.config import Config
 from src.core.exceptions import PodcastKGError
-
-
+from src.seeding.orchestrator import PodcastKnowledgePipeline
 class TestExtractionModes:
     """Test all extraction modes end-to-end."""
     
