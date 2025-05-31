@@ -6,7 +6,7 @@ from dataclasses import asdict
 
 from src.services import LLMService, EmbeddingsService
 from src.storage import GraphStorageService
-from src.processing.segmentation import EnhancedPodcastSegmenter
+from src.processing.segmentation import VTTTranscriptSegmenter
 from src.extraction import KnowledgeExtractor, EntityResolver
 # Analytics components removed in Phase 3.3.1
 # Graph enhancements removed with provider pattern

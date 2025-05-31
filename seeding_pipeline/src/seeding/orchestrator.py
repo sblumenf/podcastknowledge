@@ -12,7 +12,7 @@ from src.core.config import PipelineConfig, SeedingConfig
 from src.core.exceptions import PipelineError, ConfigurationError
 from src.services import LLMService, EmbeddingsService
 from src.storage import GraphStorageService
-from src.processing.segmentation import EnhancedPodcastSegmenter
+from src.processing.segmentation import VTTTranscriptSegmenter
 from src.extraction import KnowledgeExtractor, EntityResolver
 # Analytics components removed in Phase 3.3.1
 from src.processing.episode_flow import EpisodeFlowAnalyzer

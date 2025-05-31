@@ -1,7 +1,7 @@
 """
-Segmentation module for podcast transcript processing.
+Segmentation module for VTT transcript processing.
 
-This module handles the segmentation and post-processing of podcast transcripts,
+This module handles the segmentation and post-processing of VTT transcripts,
 including advertisement detection and sentiment analysis.
 """
 
@@ -11,7 +11,7 @@ from typing import List, Dict, Any, Optional
 from dataclasses import dataclass
 
 from ..core import constants
-from ..core.models import TranscriptSegment
+from ..core.interfaces import TranscriptSegment
 
 
 logger = logging.getLogger(__name__)
@@ -27,9 +27,9 @@ class SegmentMetadata:
     duration_seconds: float = 0.0
 
 
-class EnhancedPodcastSegmenter:
+class VTTTranscriptSegmenter:
     """
-    Enhanced podcast segmenter with advanced features.
+    VTT transcript segmenter with advanced features.
     
     This class processes transcript segments and adds metadata
     such as advertisement detection and sentiment analysis.
@@ -37,7 +37,7 @@ class EnhancedPodcastSegmenter:
     
     def __init__(self, config: Optional[Dict[str, Any]] = None):
         """
-        Initialize podcast segmenter with configuration.
+        Initialize VTT transcript segmenter with configuration.
         
         Args:
             config: Configuration dictionary with parameters:
@@ -61,7 +61,7 @@ class EnhancedPodcastSegmenter:
         if config:
             self.config.update(config)
             
-        logger.info(f"Initialized EnhancedPodcastSegmenter with config: {self.config}")
+        logger.info(f"Initialized VTTTranscriptSegmenter with config: {self.config}")
         
     def process_segments(self, segments: List[TranscriptSegment]) -> Dict[str, Any]:
         """

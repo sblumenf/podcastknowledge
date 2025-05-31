@@ -1,18 +1,12 @@
 """Processing modules for VTT knowledge pipeline."""
 
-from .segmentation import EnhancedPodcastSegmenter, SegmentMetadata
-from .extraction import KnowledgeExtractor, ExtractionResult, ExtractionConfig
-from .preprocessor import TextPreprocessor, PreprocessingConfig
-from .entity_resolution import EntityResolver, EntityResolutionConfig
+from .segmentation import VTTTranscriptSegmenter, SegmentMetadata
+from .metrics import MetricsCalculator
+from .episode_flow import EpisodeFlowAnalyzer
 
 __all__ = [
-    "EnhancedPodcastSegmenter",
-    "SegmentMetadata", 
-    "KnowledgeExtractor",
-    "ExtractionResult",
-    "ExtractionConfig",
-    "TextPreprocessor",
-    "PreprocessingConfig",
-    "EntityResolver",
-    "EntityResolutionConfig",
+    "VTTTranscriptSegmenter",
+    "SegmentMetadata",
+    "MetricsCalculator",
+    "EpisodeFlowAnalyzer",
 ]
