@@ -208,7 +208,7 @@ Build a standalone CLI application in the `/transcriber` folder that processes p
 ## Phase 6: Output Organization
 
 ### Task 6.1: File Naming Convention
-- [ ] Implement consistent output structure
+- [x] Implement consistent output structure
   - Purpose: Organize transcripts for easy retrieval
   - Context7 Documentation: Review file naming best practices and path sanitization
   - Steps:
@@ -220,7 +220,7 @@ Build a standalone CLI application in the `/transcriber` folder that processes p
   - Validation: No filename conflicts across feeds
 
 ### Task 6.2: Metadata Index
-- [ ] Create searchable episode index
+- [x] Create searchable episode index
   - Purpose: Enable quick lookup of processed episodes
   - Context7 Documentation: Review JSON indexing patterns and search optimization
   - Steps:

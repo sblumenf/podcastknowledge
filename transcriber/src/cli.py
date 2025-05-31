@@ -18,6 +18,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from src.orchestrator import TranscriptionOrchestrator
 from src.utils.logging import setup_logging, get_logger
 from src.utils.progress import ProgressBar
+from src.metadata_index import get_metadata_index
 
 logger = get_logger('cli')
 
@@ -78,6 +79,68 @@ def parse_arguments() -> argparse.Namespace:
         '--dry-run',
         action='store_true',
         help='Show what would be processed without actually transcribing'
+    )
+    
+    # Query command
+    query_parser = subparsers.add_parser(
+        'query',
+        help='Search and query processed episodes'
+    )
+    
+    query_parser.add_argument(
+        '--speaker',
+        type=str,
+        help='Search by speaker name'
+    )
+    
+    query_parser.add_argument(
+        '--podcast',
+        type=str,
+        help='Search by podcast name'
+    )
+    
+    query_parser.add_argument(
+        '--date',
+        type=str,
+        help='Search by date (YYYY-MM-DD or YYYY-MM)'
+    )
+    
+    query_parser.add_argument(
+        '--date-range',
+        nargs=2,
+        metavar=('START', 'END'),
+        help='Search by date range (START_DATE END_DATE)'
+    )
+    
+    query_parser.add_argument(
+        '--keywords',
+        type=str,
+        help='Search by keywords in title/description'
+    )
+    
+    query_parser.add_argument(
+        '--all',
+        type=str,
+        help='Search across all fields'
+    )
+    
+    query_parser.add_argument(
+        '--export-csv',
+        type=str,
+        help='Export results to CSV file'
+    )
+    
+    query_parser.add_argument(
+        '--limit',
+        type=int,
+        default=20,
+        help='Maximum number of results to show (default: 20)'
+    )
+    
+    query_parser.add_argument(
+        '--stats',
+        action='store_true',
+        help='Show index statistics'
     )
     
     # Add global arguments
@@ -213,6 +276,121 @@ async def transcribe_command(args: argparse.Namespace) -> int:
         return 1
 
 
+def query_command(args: argparse.Namespace) -> int:
+    """Execute the query command.
+    
+    Args:
+        args: Parsed command line arguments
+        
+    Returns:
+        Exit code (0 for success, non-zero for failure)
+    """
+    try:
+        # Get metadata index
+        index = get_metadata_index()
+        
+        # Show statistics if requested
+        if args.stats:
+            stats = index.get_statistics()
+            print("\n" + "="*60)
+            print("INDEX STATISTICS")
+            print("="*60)
+            for key, value in stats.items():
+                formatted_key = key.replace('_', ' ').title()
+                print(f"{formatted_key}: {value}")
+            print("="*60)
+            return 0
+        
+        # Determine search type and execute
+        search_result = None
+        
+        if args.speaker:
+            search_result = index.search_by_speaker(args.speaker)
+        elif args.podcast:
+            search_result = index.search_by_podcast(args.podcast)
+        elif args.date:
+            search_result = index.search_by_date_range(args.date)
+        elif args.date_range:
+            start_date, end_date = args.date_range
+            search_result = index.search_by_date_range(start_date, end_date)
+        elif args.keywords:
+            search_result = index.search_by_keywords(args.keywords)
+        elif args.all:
+            search_result = index.search_all(args.all)
+        else:
+            # No search criteria provided, show all episodes
+            episodes = index.get_all_episodes()
+            from src.metadata_index import SearchResult
+            search_result = SearchResult(
+                query="all_episodes",
+                total_results=len(episodes),
+                episodes=episodes,
+                search_time_ms=0.0
+            )
+        
+        # Export to CSV if requested
+        if args.export_csv:
+            try:
+                output_file = index.export_to_csv(args.export_csv)
+                print(f"Exported {search_result.total_results} episodes to: {output_file}")
+                return 0
+            except Exception as e:
+                logger.error(f"CSV export failed: {e}")
+                return 1
+        
+        # Display search results
+        print("\n" + "="*60)
+        print(f"SEARCH RESULTS: {search_result.query}")
+        print("="*60)
+        print(f"Found {search_result.total_results} episodes (search took {search_result.search_time_ms}ms)")
+        
+        if search_result.total_results == 0:
+            print("No episodes found matching your criteria.")
+            return 0
+        
+        # Limit results if specified
+        episodes_to_show = search_result.episodes[:args.limit]
+        if len(episodes_to_show) < search_result.total_results:
+            print(f"Showing first {len(episodes_to_show)} of {search_result.total_results} results")
+        
+        print()
+        
+        # Display episodes
+        for i, episode in enumerate(episodes_to_show, 1):
+            print(f"{i:3d}. {episode.title}")
+            print(f"     Podcast: {episode.podcast_name}")
+            print(f"     Date: {episode.publication_date}")
+            print(f"     File: {episode.file_path}")
+            
+            if episode.speakers:
+                speakers_str = ', '.join(episode.speakers)
+                print(f"     Speakers: {speakers_str}")
+            
+            if episode.duration:
+                duration_min = episode.duration // 60
+                duration_sec = episode.duration % 60
+                print(f"     Duration: {duration_min}m {duration_sec}s")
+            
+            if episode.episode_number:
+                print(f"     Episode: #{episode.episode_number}")
+            
+            print()
+        
+        if search_result.total_results > args.limit:
+            print(f"... and {search_result.total_results - args.limit} more episodes")
+            print(f"Use --limit {search_result.total_results} to see all results")
+        
+        print("="*60)
+        return 0
+        
+    except Exception as e:
+        logger.error(f"Query failed: {e}")
+        if args.verbose:
+            import traceback
+            traceback.print_exc()
+        return 1
+
+
 def main():
     """Main entry point for the CLI."""
     # Parse arguments
@@ -226,6 +404,9 @@ def main():
     if args.command == 'transcribe':
         # Run async transcribe command
         exit_code = asyncio.run(transcribe_command(args))
+    elif args.command == 'query':
+        # Run query command
+        exit_code = query_command(args)
     else:
         logger.error(f"Unknown command: {args.command}")
         exit_code = 1
