@@ -160,3 +160,20 @@ def log_error_with_context(error: Exception, context: dict):
     logger = get_logger()
     context_str = ", ".join(f"{k}={v}" for k, v in context.items())
     logger.error(f"{type(error).__name__}: {str(error)} | Context: {context_str}", exc_info=True)
+
+
+def setup_logging(log_level: int = logging.INFO):
+    """Setup logging configuration with specified level.
+    
+    Args:
+        log_level: Logging level to set (default: INFO)
+    """
+    # Force initialization of logger with desired level
+    os.environ['LOG_LEVEL'] = logging.getLevelName(log_level)
+    
+    # Reset singleton to force reinitialization
+    PodcastTranscriberLogger._initialized = False
+    PodcastTranscriberLogger._instance = None
+    
+    # Initialize logger
+    PodcastTranscriberLogger()
