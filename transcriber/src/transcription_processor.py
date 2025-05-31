@@ -13,6 +13,7 @@ import asyncio
 from gemini_client import RateLimitedGeminiClient
 from key_rotation_manager import KeyRotationManager
 from utils.logging import get_logger, log_progress
+from checkpoint_recovery import CheckpointManager
 
 logger = get_logger('transcription_processor')
 
@@ -49,15 +50,18 @@ class TranscriptionSegment:
 class TranscriptionProcessor:
     """Processes audio files to generate VTT transcripts with speaker diarization."""
     
-    def __init__(self, gemini_client: RateLimitedGeminiClient, key_manager: KeyRotationManager):
+    def __init__(self, gemini_client: RateLimitedGeminiClient, key_manager: KeyRotationManager,
+                 checkpoint_manager: Optional[CheckpointManager] = None):
         """Initialize transcription processor.
         
         Args:
             gemini_client: Rate-limited Gemini API client
             key_manager: API key rotation manager
+            checkpoint_manager: Optional checkpoint manager for recovery
         """
         self.gemini_client = gemini_client
         self.key_manager = key_manager
+        self.checkpoint_manager = checkpoint_manager
         self.vtt_pattern = re.compile(
             r'(\d{1,}:\d{2}:\d{2}\.\d{3})\s*-->\s*(\d{1,}:\d{2}:\d{2}\.\d{3})\s*\n<v\s+([^>]+)>(.+?)(?=\n\d{1,}:\d{2}:\d{2}\.\d{3}|$)',
             re.DOTALL | re.MULTILINE
@@ -97,6 +101,11 @@ class TranscriptionProcessor:
             
             # Validate and clean transcript
             cleaned_transcript = self._validate_and_clean_transcript(transcript)
+            
+            # Save checkpoint if enabled
+            if self.checkpoint_manager:
+                self.checkpoint_manager.save_temp_data('transcription', cleaned_transcript)
+                self.checkpoint_manager.complete_stage('transcription')
             
             # Mark key as successful
             self.key_manager.mark_key_success(key_index)

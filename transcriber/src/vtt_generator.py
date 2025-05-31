@@ -12,6 +12,7 @@ from typing import Dict, List, Optional, Any, Union
 from dataclasses import dataclass
 
 from utils.logging import get_logger
+from checkpoint_recovery import CheckpointManager
 
 logger = get_logger('vtt_generator')
 
@@ -71,9 +72,14 @@ class VTTMetadata:
 class VTTGenerator:
     """Generates WebVTT files from transcribed content."""
     
-    def __init__(self):
-        """Initialize VTT generator."""
+    def __init__(self, checkpoint_manager: Optional[CheckpointManager] = None):
+        """Initialize VTT generator.
+        
+        Args:
+            checkpoint_manager: Optional checkpoint manager for recovery
+        """
         self.encoding = 'utf-8'
+        self.checkpoint_manager = checkpoint_manager
         # Characters that need escaping in VTT
         self.escape_chars = {
             '&': '&amp;',
@@ -279,6 +285,11 @@ class VTTGenerator:
                 f.write(content)
             
             logger.info(f"VTT file saved to: {path}")
+            
+            # Mark checkpoint as completed if enabled
+            if self.checkpoint_manager:
+                self.checkpoint_manager.complete_stage('vtt_generation')
+                self.checkpoint_manager.mark_completed(str(path))
             
         except Exception as e:
             logger.error(f"Failed to save VTT file: {e}")

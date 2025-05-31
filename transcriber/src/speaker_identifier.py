@@ -13,6 +13,7 @@ import asyncio
 from gemini_client import RateLimitedGeminiClient
 from key_rotation_manager import KeyRotationManager
 from utils.logging import get_logger
+from checkpoint_recovery import CheckpointManager
 
 logger = get_logger('speaker_identifier')
 
@@ -38,15 +39,18 @@ class SpeakerMapping:
 class SpeakerIdentifier:
     """Identifies speakers in transcripts using contextual analysis."""
     
-    def __init__(self, gemini_client: RateLimitedGeminiClient, key_manager: KeyRotationManager):
+    def __init__(self, gemini_client: RateLimitedGeminiClient, key_manager: KeyRotationManager,
+                 checkpoint_manager: Optional[CheckpointManager] = None):
         """Initialize speaker identifier.
         
         Args:
             gemini_client: Rate-limited Gemini API client
             key_manager: API key rotation manager
+            checkpoint_manager: Optional checkpoint manager for recovery
         """
         self.gemini_client = gemini_client
         self.key_manager = key_manager
+        self.checkpoint_manager = checkpoint_manager
     
     async def identify_speakers(self, 
                               vtt_transcript: str, 
@@ -91,6 +95,11 @@ class SpeakerIdentifier:
             
             # Validate and enhance mapping
             validated_mapping = self._validate_mapping(mapping, speaker_labels, episode_metadata)
+            
+            # Save checkpoint if enabled
+            if self.checkpoint_manager:
+                self.checkpoint_manager.save_temp_data('speaker_mapping', json.dumps(validated_mapping))
+                self.checkpoint_manager.complete_stage('speaker_identification')
             
             # Mark key as successful
             self.key_manager.mark_key_success(key_index)
