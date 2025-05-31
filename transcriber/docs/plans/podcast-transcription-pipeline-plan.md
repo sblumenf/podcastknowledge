@@ -1,5 +1,12 @@
 # Podcast Transcription Pipeline Implementation Plan
 
+## Implementation Guidelines
+
+**IMPORTANT**: Before starting any task implementation:
+1. Use the Context7 MCP tool to review relevant documentation for the libraries and patterns being used
+2. Check the specific Context7 Documentation section listed for each task
+3. Ensure understanding of best practices before writing code
+
 ## Executive Summary
 
 Build a standalone CLI application in the `/transcriber` folder that processes podcast RSS feeds to generate high-quality VTT transcripts with speaker identification. The tool will use Gemini 2.5 Pro Experimental for transcription and contextual speaker recognition, processing episodes sequentially with robust error handling and progress tracking. Due to free tier limitations (25 requests/day), the system will process a maximum of 12 episodes daily.
@@ -52,8 +59,9 @@ Build a standalone CLI application in the `/transcriber` folder that processes p
 ## Phase 2: Core Components Implementation
 
 ### Task 2.1: RSS Feed Parser Module
-- [ ] Create RSS feed processing functionality
+- [x] Create RSS feed processing functionality
   - Purpose: Extract episode metadata and audio URLs from feeds
+  - Context7 Documentation: Review feedparser library documentation before implementation
   - Steps:
     1. Create `src/feed_parser.py` module
     2. Implement `parse_feed(rss_url)` function
@@ -65,6 +73,7 @@ Build a standalone CLI application in the `/transcriber` folder that processes p
 ### Task 2.2: Progress Tracker Module
 - [ ] Implement episode processing state management
   - Purpose: Track which episodes are completed/failed/pending
+  - Context7 Documentation: Review JSON file handling and atomic writes best practices
   - Steps:
     1. Create `src/progress_tracker.py` module
     2. Design JSON state file format in `data/.progress.json`
@@ -76,6 +85,7 @@ Build a standalone CLI application in the `/transcriber` folder that processes p
 ### Task 2.3: Gemini API Client with Rate Limiting
 - [ ] Create Gemini 2.5 Pro Experimental integration with strict rate limits
   - Purpose: Interface with Google's Gemini API within free tier constraints
+  - Context7 Documentation: Review google-generativeai library documentation for Gemini 2.5 Pro usage
   - Steps:
     1. Create `src/gemini_client.py` module
     2. Implement multi-key authentication from environment (GEMINI_API_KEY_1, GEMINI_API_KEY_2)
@@ -89,6 +99,7 @@ Build a standalone CLI application in the `/transcriber` folder that processes p
 ### Task 2.4: Multi-Key Rotation Manager
 - [ ] Implement round-robin API key rotation
   - Purpose: Distribute load evenly across API keys to avoid hitting limits
+  - Context7 Documentation: Review rate limiting patterns and key rotation strategies
   - Steps:
     1. Create `src/key_rotation_manager.py` module
     2. Implement round-robin key selection:
@@ -108,6 +119,7 @@ Build a standalone CLI application in the `/transcriber` folder that processes p
 ### Task 3.1: Audio Transcription Processor
 - [ ] Implement core transcription logic
   - Purpose: Convert audio to diarized text with timestamps
+  - Context7 Documentation: Review Gemini audio transcription capabilities and VTT format specifications
   - Steps:
     1. Create `src/transcription_processor.py` module
     2. Build prompt template for VTT-formatted output
@@ -119,6 +131,7 @@ Build a standalone CLI application in the `/transcriber` folder that processes p
 ### Task 3.2: Speaker Identification Processor
 - [ ] Implement contextual speaker recognition
   - Purpose: Replace generic labels with actual names/roles
+  - Context7 Documentation: Review prompt engineering best practices for speaker identification
   - Steps:
     1. Create `src/speaker_identifier.py` module
     2. Build analysis prompt with transcript + metadata
@@ -130,6 +143,7 @@ Build a standalone CLI application in the `/transcriber` folder that processes p
 ### Task 3.3: VTT Generator
 - [ ] Create VTT file generation with metadata
   - Purpose: Output properly formatted WebVTT files
+  - Context7 Documentation: Review WebVTT specification and formatting requirements
   - Steps:
     1. Create `src/vtt_generator.py` module
     2. Implement VTT header with NOTE metadata blocks
@@ -143,6 +157,7 @@ Build a standalone CLI application in the `/transcriber` folder that processes p
 ### Task 4.1: Retry Logic Implementation
 - [ ] Add exponential backoff for API failures within quota limits
   - Purpose: Handle transient errors without exceeding daily quota
+  - Context7 Documentation: Review tenacity library usage and retry patterns
   - Steps:
     1. Integrate tenacity library in API calls
     2. Configure retry: 2 attempts max (to preserve daily quota)
@@ -155,6 +170,7 @@ Build a standalone CLI application in the `/transcriber` folder that processes p
 ### Task 4.2: Error Recovery System
 - [ ] Implement checkpoint and resume functionality
   - Purpose: Continue processing after interruptions
+  - Context7 Documentation: Review checkpoint recovery patterns and state management
   - Steps:
     1. Save progress after each episode completion
     2. Detect partial transcriptions on startup
@@ -168,6 +184,7 @@ Build a standalone CLI application in the `/transcriber` folder that processes p
 ### Task 5.1: Command Line Interface
 - [ ] Create user-friendly CLI tool
   - Purpose: Provide simple interface for transcription tasks
+  - Context7 Documentation: Review argparse best practices and CLI design patterns
   - Steps:
     1. Create `src/cli.py` using argparse
     2. Add command: `transcribe --feed-url <RSS_URL>`
@@ -179,6 +196,7 @@ Build a standalone CLI application in the `/transcriber` folder that processes p
 ### Task 5.2: Configuration Management
 - [ ] Implement flexible configuration system
   - Purpose: Allow customization without code changes
+  - Context7 Documentation: Review YAML configuration patterns and python-dotenv usage
   - Steps:
     1. Create `config/default.yaml` with settings
     2. Support environment variable overrides
@@ -192,6 +210,7 @@ Build a standalone CLI application in the `/transcriber` folder that processes p
 ### Task 6.1: File Naming Convention
 - [ ] Implement consistent output structure
   - Purpose: Organize transcripts for easy retrieval
+  - Context7 Documentation: Review file naming best practices and path sanitization
   - Steps:
     1. Create naming pattern: `{podcast_name}/{YYYY-MM-DD}_{episode_title}.vtt`
     2. Sanitize filenames (remove special characters)
@@ -203,6 +222,7 @@ Build a standalone CLI application in the `/transcriber` folder that processes p
 ### Task 6.2: Metadata Index
 - [ ] Create searchable episode index
   - Purpose: Enable quick lookup of processed episodes
+  - Context7 Documentation: Review JSON indexing patterns and search optimization
   - Steps:
     1. Generate `data/index.json` with all episodes
     2. Include: file path, speakers, date, duration
@@ -216,6 +236,7 @@ Build a standalone CLI application in the `/transcriber` folder that processes p
 ### Task 7.1: Unit Test Suite
 - [ ] Create comprehensive test coverage
   - Purpose: Ensure reliability of core components
+  - Context7 Documentation: Review Python unittest/pytest best practices and mocking strategies
   - Steps:
     1. Write tests for each module
     2. Mock external API calls
@@ -227,6 +248,7 @@ Build a standalone CLI application in the `/transcriber` folder that processes p
 ### Task 7.2: Integration Tests
 - [ ] Test end-to-end pipeline
   - Purpose: Verify complete workflow functions correctly
+  - Context7 Documentation: Review integration testing patterns and test data management
   - Steps:
     1. Create test RSS feed with known content
     2. Test full transcription pipeline
