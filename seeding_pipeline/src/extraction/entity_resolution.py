@@ -446,7 +446,7 @@ class EntityResolver:
             List of deduplicated entities or dict with resolution results
         """
         if not entities:
-            return [] if isinstance(entities[0], Entity) if entities else []
+            return []
         
         # Reset metrics
         self.resolution_metrics = {
