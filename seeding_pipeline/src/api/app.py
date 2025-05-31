@@ -1,4 +1,4 @@
-"""FastAPI application with distributed tracing support."""
+"""FastAPI application for VTT Knowledge Pipeline."""
 
 from contextlib import asynccontextmanager
 from typing import Dict, Any, List, Optional

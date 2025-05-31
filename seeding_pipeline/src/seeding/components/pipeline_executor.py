@@ -10,20 +10,6 @@ from src.core.interfaces import TranscriptSegment
 from src.core.models import Podcast, Episode, Segment
 from src.utils.logging import get_logger
 from src.utils.memory import cleanup_memory
-# Add tracing imports with fallback
-try:
-    from src.tracing.tracer import create_span, add_span_attributes
-except ImportError:
-    # Fallback for when tracing is not available
-    def create_span(name, attributes=None):
-        from contextlib import contextmanager
-        @contextmanager
-        def noop():
-            yield
-        return noop()
-    
-    def add_span_attributes(attributes):
-        pass
 
 logger = get_logger(__name__)
 
