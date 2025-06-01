@@ -6,11 +6,13 @@ This plan implements four critical enhancements to ensure complete, validated tr
 
 ## Technology Requirements
 
-**No new technologies required** - All implementations use existing libraries and frameworks already in the codebase:
+**Minimal new dependencies** - Most implementations use existing libraries with one addition:
 - Existing Gemini API client
 - Current JSON/VTT file handling
-- Standard Python regex for URL extraction
 - Existing progress tracking system
+- **NEW: yt-dlp** - For YouTube URL searching (pip installable, no API keys required)
+  - Requires human approval before adding to requirements.txt
+  - Alternative: Use only RSS extraction if yt-dlp not approved
 
 ## Phase 1: RSS Description Preservation in VTT Files
 
@@ -74,35 +76,73 @@ This plan implements four critical enhancements to ensure complete, validated tr
   4. Update `to_dict()` method to include youtube_url
 - Validation: Episode objects can store YouTube URLs
 
-### Task 2.2: Implement YouTube URL Extraction
-- [ ] Extract YouTube URLs from RSS feed content
-- Purpose: Capture YouTube links from various RSS fields
+### Task 2.2: Implement YouTube URL Search System
+- [ ] Create YouTube search functionality with fallback methods
+- Purpose: Find YouTube URLs even when not in RSS feeds
 - Steps:
-  1. Use context7 MCP tool to review RSS parsing documentation
-  2. In `feed_parser.py`, create extraction method:
+  1. Use context7 MCP tool to review search implementation patterns
+  2. Create new file `src/youtube_searcher.py`
+  3. Implement search class:
      ```python
-     def extract_youtube_url(self, text: str) -> Optional[str]:
-         patterns = [
-             r'https?://(?:www\.)?youtube\.com/watch\?v=[\w-]+',
-             r'https?://(?:www\.)?youtu\.be/[\w-]+',
-             r'https?://(?:www\.)?youtube\.com/embed/[\w-]+'
-         ]
+     class YouTubeSearcher:
+         def __init__(self, config: Config):
+             self.search_enabled = config.youtube_search.enabled
+             self.method = config.youtube_search.method
+             self.cache = {}
+         
+         def search_youtube_url(self, podcast_name: str, episode_title: str, 
+                               episode_number: Optional[int] = None,
+                               duration_seconds: Optional[int] = None) -> Optional[str]:
+             # Try RSS extraction first
+             # Then yt-dlp search if enabled
+             # Cache results
      ```
-  3. Search in: description, content:encoded, link fields
-  4. Return first valid YouTube URL found
-- Validation: Method correctly extracts YouTube URLs from test strings
+  4. Implement RSS extraction method (regex patterns)
+  5. Implement yt-dlp search method (if approved)
+  6. Add caching layer to avoid repeated searches
+  7. Add fuzzy matching for result validation
+- Validation: Searcher finds correct YouTube URLs for test episodes
 
-### Task 2.3: Integrate YouTube URL Extraction in Parser
-- [ ] Call extraction during episode parsing
+### Task 2.3: Add YouTube Search Configuration
+- [ ] Add YouTube search settings to configuration
+- Purpose: Make YouTube search behavior configurable
+- Steps:
+  1. Use context7 MCP tool to review configuration structure
+  2. In `config/default.yaml`, add:
+     ```yaml
+     youtube_search:
+       enabled: true
+       method: "rss_only"  # or "yt_dlp" if approved
+       cache_results: true
+       fuzzy_match_threshold: 0.85
+       duration_tolerance: 0.1  # 10% tolerance
+       max_search_results: 5
+     ```
+  3. Update Config class to load youtube_search settings
+  4. Add validation for configuration values
+- Validation: Config correctly loads YouTube search settings
+
+### Task 2.4: Integrate YouTube Search in Pipeline
+- [ ] Call YouTube search during episode processing
 - Purpose: Populate youtube_url for all episodes
 - Steps:
-  1. Use context7 MCP tool to review episode parsing flow
-  2. In `_parse_episode()` method after description extraction
-  3. Search all relevant fields for YouTube URLs
-  4. Store in episode.youtube_url
-- Validation: Parsed episodes contain YouTube URLs when present
+  1. Use context7 MCP tool to review orchestrator flow
+  2. In `orchestrator.py`, instantiate YouTubeSearcher
+  3. After episode parsing, before transcription:
+     ```python
+     if self.youtube_searcher.search_enabled:
+         episode.youtube_url = self.youtube_searcher.search_youtube_url(
+             podcast_name=podcast.title,
+             episode_title=episode.title,
+             episode_number=episode.episode_number,
+             duration_seconds=episode.duration
+         )
+     ```
+  4. Log search results (found/not found)
+  5. Update progress tracker with YouTube URL if found
+- Validation: Episodes have YouTube URLs when available
 
-### Task 2.4: Add YouTube URL to VTT Output
+### Task 2.5: Add YouTube URL to VTT Output
 - [ ] Include YouTube URL in VTT metadata
 - Purpose: Preserve URL for downstream processing
 - Steps:
@@ -268,7 +308,7 @@ This plan implements four critical enhancements to ensure complete, validated tr
 ## Success Criteria
 
 1. **Description Preservation**: 100% of RSS descriptions appear in final VTT files
-2. **YouTube URL Extraction**: Successfully extracts URLs from 95%+ of episodes that have them
+2. **YouTube URL Discovery**: Successfully finds URLs for 80%+ of episodes that have YouTube versions (RSS extraction + search if enabled)
 3. **Transcript Completeness**: 95%+ of transcripts cover at least 85% of episode duration
 4. **Continuation Success**: System successfully completes 90%+ of incomplete transcripts
 5. **No Regressions**: All existing tests continue to pass
