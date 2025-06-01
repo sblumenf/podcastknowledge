@@ -12,6 +12,10 @@ from typing import Dict, List, Optional, Tuple, Any
 from dataclasses import dataclass
 from pathlib import Path
 import json
+import urllib.request
+import urllib.parse
+import tempfile
+import mimetypes
 
 import google.generativeai as genai
 from google.generativeai import types, GenerationConfig
@@ -293,16 +297,40 @@ class RateLimitedGeminiClient:
         # Make the API call
         start_time = time.time()
         
-        # Note: For audio transcription, we need to use the File API first
-        # For now, we'll generate content with the prompt only
-        # In production, you'd upload the audio file first using genai.upload_file()
-        response = await model.generate_content_async(
-            prompt,
-            generation_config=GenerationConfig(
-                max_output_tokens=8192,  # Maximum for transcripts
-                temperature=0.1,  # Low temperature for accuracy
+        # Download and upload the audio file
+        uploaded_file = None
+        temp_file_path = None
+        try:
+            # Download audio file to temporary location
+            logger.info(f"Downloading audio from: {audio_url}")
+            temp_file_path = await self._download_audio_file(audio_url)
+            
+            # Upload to Gemini
+            logger.info("Uploading audio file to Gemini")
+            uploaded_file = await asyncio.to_thread(genai.upload_file, temp_file_path)
+            logger.info(f"Uploaded file: {uploaded_file.name}")
+            
+            # Generate content with both the audio file and prompt
+            response = await model.generate_content_async(
+                [uploaded_file, prompt],
+                generation_config=GenerationConfig(
+                    max_output_tokens=8192,  # Maximum for transcripts
+                    temperature=0.1,  # Low temperature for accuracy
+                )
             )
-        )
+        finally:
+            # Clean up temporary file
+            if temp_file_path and os.path.exists(temp_file_path):
+                os.unlink(temp_file_path)
+                logger.debug(f"Cleaned up temporary file: {temp_file_path}")
+            
+            # Clean up uploaded file from Gemini
+            if uploaded_file:
+                try:
+                    await asyncio.to_thread(genai.delete_file, uploaded_file.name)
+                    logger.debug(f"Deleted uploaded file from Gemini: {uploaded_file.name}")
+                except Exception as e:
+                    logger.warning(f"Failed to delete uploaded file: {e}")
         
         elapsed_time = time.time() - start_time
         
@@ -1027,6 +1055,63 @@ Continue the transcript:"""
             }
             for i, tracker in enumerate(self.usage_trackers)
         }
+    
+    async def _download_audio_file(self, audio_url: str) -> str:
+        """Download audio file from URL to temporary location.
+        
+        Args:
+            audio_url: URL of the audio file to download
+            
+        Returns:
+            Path to the downloaded temporary file
+            
+        Raises:
+            Exception: If download fails
+        """
+        try:
+            # Create a temporary file with appropriate extension
+            url_path = urllib.parse.urlparse(audio_url).path
+            extension = os.path.splitext(url_path)[1] or '.mp3'
+            
+            with tempfile.NamedTemporaryFile(suffix=extension, delete=False) as temp_file:
+                temp_path = temp_file.name
+                
+            # Download the file
+            logger.info(f"Downloading audio to: {temp_path}")
+            headers = {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+            }
+            request = urllib.request.Request(audio_url, headers=headers)
+            
+            # Use asyncio to avoid blocking
+            def download():
+                with urllib.request.urlopen(request, timeout=300) as response:
+                    with open(temp_path, 'wb') as f:
+                        # Download in chunks
+                        chunk_size = 1024 * 1024  # 1MB chunks
+                        while True:
+                            chunk = response.read(chunk_size)
+                            if not chunk:
+                                break
+                            f.write(chunk)
+            
+            await asyncio.to_thread(download)
+            
+            # Verify file was downloaded
+            file_size = os.path.getsize(temp_path)
+            logger.info(f"Downloaded {file_size / (1024*1024):.1f}MB")
+            
+            if file_size == 0:
+                os.unlink(temp_path)
+                raise Exception("Downloaded file is empty")
+            
+            return temp_path
+            
+        except Exception as e:
+            logger.error(f"Failed to download audio file: {e}")
+            if 'temp_path' in locals() and os.path.exists(temp_path):
+                os.unlink(temp_path)
+            raise
 
 
 def create_gemini_client() -> RateLimitedGeminiClient:
