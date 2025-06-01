@@ -1,0 +1,6124 @@
+{
+  "total_test_files": 94,
+  "import_analysis": {
+    "tests/test_cli.py": {
+      "imports": [
+        "json",
+        "sys",
+        "tempfile",
+        "pytest"
+      ],
+      "from_imports": [
+        {
+          "module": "cli",
+          "name": "main",
+          "full": "cli.main"
+        },
+        {
+          "module": "cli",
+          "name": "load_podcast_configs",
+          "full": "cli.load_podcast_configs"
+        },
+        {
+          "module": "cli",
+          "name": "seed_podcasts",
+          "full": "cli.seed_podcasts"
+        },
+        {
+          "module": "cli",
+          "name": "health_check",
+          "full": "cli.health_check"
+        },
+        {
+          "module": "cli",
+          "name": "validate_config",
+          "full": "cli.validate_config"
+        }
+      ],
+      "missing": [
+        {
+          "type": "moved_module",
+          "old": "cli",
+          "new": "src.cli.cli",
+          "name": "main"
+        },
+        {
+          "type": "moved_module",
+          "old": "cli",
+          "new": "src.cli.cli",
+          "name": "load_podcast_configs"
+        },
+        {
+          "type": "moved_module",
+          "old": "cli",
+          "new": "src.cli.cli",
+          "name": "seed_podcasts"
+        },
+        {
+          "type": "moved_module",
+          "old": "cli",
+          "new": "src.cli.cli",
+          "name": "health_check"
+        },
+        {
+          "type": "moved_module",
+          "old": "cli",
+          "new": "src.cli.cli",
+          "name": "validate_config"
+        }
+      ],
+      "found": []
+    },
+    "tests/test_component_baselines.py": {
+      "imports": [
+        "json",
+        "pytest"
+      ],
+      "from_imports": [
+        {
+          "module": "src.core.config",
+          "name": "PipelineConfig",
+          "full": "src.core.config.PipelineConfig"
+        },
+        {
+          "module": "src.core.feature_flags",
+          "name": "FeatureFlag",
+          "full": "src.core.feature_flags.FeatureFlag"
+        },
+        {
+          "module": "src.core.feature_flags",
+          "name": "set_flag",
+          "full": "src.core.feature_flags.set_flag"
+        },
+        {
+          "module": "src.core.feature_flags",
+          "name": "get_all_flags",
+          "full": "src.core.feature_flags.get_all_flags"
+        },
+        {
+          "module": "src.seeding",
+          "name": "PodcastKnowledgePipeline",
+          "full": "src.seeding.PodcastKnowledgePipeline"
+        },
+        {
+          "module": "src.utils.component_tracker",
+          "name": "get_component_tracker",
+          "full": "src.utils.component_tracker.get_component_tracker"
+        }
+      ],
+      "missing": [
+        {
+          "type": "missing_class",
+          "module": "src.core.feature_flags",
+          "name": "set_flag"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.core.feature_flags",
+          "name": "get_all_flags"
+        },
+        {
+          "type": "renamed_class",
+          "old": "PodcastKnowledgePipeline",
+          "new": "VTTKnowledgeExtractor"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.utils.component_tracker",
+          "name": "get_component_tracker"
+        }
+      ],
+      "found": []
+    },
+    "tests/api/test_health.py": {
+      "imports": [
+        "pytest",
+        "redis"
+      ],
+      "from_imports": [
+        {
+          "module": "src.api.health",
+          "name": "HealthChecker",
+          "full": "src.api.health.HealthChecker"
+        },
+        {
+          "module": "src.api.health",
+          "name": "HealthStatus",
+          "full": "src.api.health.HealthStatus"
+        },
+        {
+          "module": "src.api.health",
+          "name": "ComponentHealth",
+          "full": "src.api.health.ComponentHealth"
+        },
+        {
+          "module": "src.api.health",
+          "name": "health_check",
+          "full": "src.api.health.health_check"
+        },
+        {
+          "module": "src.api.health",
+          "name": "readiness_check",
+          "full": "src.api.health.readiness_check"
+        },
+        {
+          "module": "src.api.health",
+          "name": "liveness_check",
+          "full": "src.api.health.liveness_check"
+        }
+      ],
+      "missing": [
+        {
+          "type": "renamed_class",
+          "old": "ComponentHealth",
+          "new": "HealthStatus"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.api.health",
+          "name": "health_check"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.api.health",
+          "name": "readiness_check"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.api.health",
+          "name": "liveness_check"
+        }
+      ],
+      "found": []
+    },
+    "tests/api/test_v1_api.py": {
+      "imports": [
+        "warnings",
+        "pytest"
+      ],
+      "from_imports": [
+        {
+          "module": "src.api.v1",
+          "name": "seed_podcast",
+          "full": "src.api.v1.seed_podcast"
+        },
+        {
+          "module": "src.api.v1",
+          "name": "seed_podcasts",
+          "full": "src.api.v1.seed_podcasts"
+        },
+        {
+          "module": "src.api.v1",
+          "name": "PodcastKnowledgePipeline",
+          "full": "src.api.v1.PodcastKnowledgePipeline"
+        },
+        {
+          "module": "src.api.v1",
+          "name": "get_api_version",
+          "full": "src.api.v1.get_api_version"
+        },
+        {
+          "module": "src.api.v1",
+          "name": "check_api_compatibility",
+          "full": "src.api.v1.check_api_compatibility"
+        },
+        {
+          "module": "src.api.v1",
+          "name": "deprecated",
+          "full": "src.api.v1.deprecated"
+        },
+        {
+          "module": "src.api.v1",
+          "name": "api_version_check",
+          "full": "src.api.v1.api_version_check"
+        },
+        {
+          "module": "src.core.config",
+          "name": "Config",
+          "full": "src.core.config.Config"
+        }
+      ],
+      "missing": [
+        {
+          "type": "missing_class",
+          "module": "src.api.v1",
+          "name": "seed_podcast"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.api.v1",
+          "name": "seed_podcasts"
+        },
+        {
+          "type": "renamed_class",
+          "old": "PodcastKnowledgePipeline",
+          "new": "VTTKnowledgeExtractor"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.api.v1",
+          "name": "get_api_version"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.api.v1",
+          "name": "check_api_compatibility"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.api.v1",
+          "name": "deprecated"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.api.v1",
+          "name": "api_version_check"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.core.config",
+          "name": "Config"
+        }
+      ],
+      "found": []
+    },
+    "tests/e2e/test_e2e_scenarios.py": {
+      "imports": [
+        "json",
+        "time",
+        "pytest",
+        "psutil",
+        "gc"
+      ],
+      "from_imports": [
+        {
+          "module": "src.api.v1",
+          "name": "seed_podcast",
+          "full": "src.api.v1.seed_podcast"
+        },
+        {
+          "module": "src.api.v1",
+          "name": "seed_podcasts",
+          "full": "src.api.v1.seed_podcasts"
+        },
+        {
+          "module": "src.api.v1",
+          "name": "PodcastKnowledgePipeline",
+          "full": "src.api.v1.PodcastKnowledgePipeline"
+        },
+        {
+          "module": "src.core.config",
+          "name": "Config",
+          "full": "src.core.config.Config"
+        },
+        {
+          "module": "src.core.exceptions",
+          "name": "PodcastKGError",
+          "full": "src.core.exceptions.PodcastKGError"
+        },
+        {
+          "module": "src.api.v1",
+          "name": "seed_podcast",
+          "full": "src.api.v1.seed_podcast"
+        },
+        {
+          "module": "src.api.v1",
+          "name": "get_api_version",
+          "full": "src.api.v1.get_api_version"
+        },
+        {
+          "module": "src.api.v1",
+          "name": "check_api_compatibility",
+          "full": "src.api.v1.check_api_compatibility"
+        }
+      ],
+      "missing": [
+        {
+          "type": "missing_class",
+          "module": "src.api.v1",
+          "name": "seed_podcast"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.api.v1",
+          "name": "seed_podcasts"
+        },
+        {
+          "type": "renamed_class",
+          "old": "PodcastKnowledgePipeline",
+          "new": "VTTKnowledgeExtractor"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.core.config",
+          "name": "Config"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.core.exceptions",
+          "name": "PodcastKGError"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.api.v1",
+          "name": "seed_podcast"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.api.v1",
+          "name": "get_api_version"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.api.v1",
+          "name": "check_api_compatibility"
+        }
+      ],
+      "found": []
+    },
+    "tests/e2e/test_vtt_pipeline_e2e.py": {
+      "imports": [
+        "pytest",
+        "tempfile",
+        "os"
+      ],
+      "from_imports": [
+        {
+          "module": "src.api.v1",
+          "name": "seed_podcast",
+          "full": "src.api.v1.seed_podcast"
+        },
+        {
+          "module": "src.api.v1",
+          "name": "PodcastKnowledgePipeline",
+          "full": "src.api.v1.PodcastKnowledgePipeline"
+        },
+        {
+          "module": "src.core.config",
+          "name": "SeedingConfig",
+          "full": "src.core.config.SeedingConfig"
+        }
+      ],
+      "missing": [
+        {
+          "type": "missing_class",
+          "module": "src.api.v1",
+          "name": "seed_podcast"
+        },
+        {
+          "type": "renamed_class",
+          "old": "PodcastKnowledgePipeline",
+          "new": "VTTKnowledgeExtractor"
+        }
+      ],
+      "found": []
+    },
+    "tests/integration/test_checkpoint_recovery.py": {
+      "imports": [
+        "json",
+        "os",
+        "shutil",
+        "tempfile",
+        "pytest",
+        "threading",
+        "time"
+      ],
+      "from_imports": [
+        {
+          "module": "src.core.config",
+          "name": "Config",
+          "full": "src.core.config.Config"
+        },
+        {
+          "module": "src.core.exceptions",
+          "name": "CheckpointError",
+          "full": "src.core.exceptions.CheckpointError"
+        },
+        {
+          "module": "src.seeding.checkpoint",
+          "name": "ProgressCheckpoint",
+          "full": "src.seeding.checkpoint.ProgressCheckpoint"
+        },
+        {
+          "module": "src.seeding.orchestrator",
+          "name": "PodcastKnowledgePipeline",
+          "full": "src.seeding.orchestrator.PodcastKnowledgePipeline"
+        }
+      ],
+      "missing": [
+        {
+          "type": "missing_class",
+          "module": "src.core.config",
+          "name": "Config"
+        },
+        {
+          "type": "renamed_class",
+          "old": "PodcastKnowledgePipeline",
+          "new": "VTTKnowledgeExtractor"
+        }
+      ],
+      "found": []
+    },
+    "tests/integration/test_cli_commands.py": {
+      "imports": [
+        "json",
+        "os",
+        "sys",
+        "tempfile",
+        "pytest",
+        "yaml"
+      ],
+      "from_imports": [
+        {
+          "module": "cli",
+          "name": "main",
+          "full": "cli.main"
+        },
+        {
+          "module": "cli",
+          "name": "seed_podcasts",
+          "full": "cli.seed_podcasts"
+        },
+        {
+          "module": "cli",
+          "name": "health_check",
+          "full": "cli.health_check"
+        },
+        {
+          "module": "cli",
+          "name": "validate_config",
+          "full": "cli.validate_config"
+        },
+        {
+          "module": "cli",
+          "name": "schema_stats",
+          "full": "cli.schema_stats"
+        }
+      ],
+      "missing": [
+        {
+          "type": "moved_module",
+          "old": "cli",
+          "new": "src.cli.cli",
+          "name": "main"
+        },
+        {
+          "type": "moved_module",
+          "old": "cli",
+          "new": "src.cli.cli",
+          "name": "seed_podcasts"
+        },
+        {
+          "type": "moved_module",
+          "old": "cli",
+          "new": "src.cli.cli",
+          "name": "health_check"
+        },
+        {
+          "type": "moved_module",
+          "old": "cli",
+          "new": "src.cli.cli",
+          "name": "validate_config"
+        },
+        {
+          "type": "moved_module",
+          "old": "cli",
+          "new": "src.cli.cli",
+          "name": "schema_stats"
+        }
+      ],
+      "found": []
+    },
+    "tests/integration/test_comprehensive_extraction_modes.py": {
+      "imports": [
+        "json",
+        "os",
+        "tempfile",
+        "pytest"
+      ],
+      "from_imports": [
+        {
+          "module": "src.core.config",
+          "name": "Config",
+          "full": "src.core.config.Config"
+        },
+        {
+          "module": "src.core.exceptions",
+          "name": "PodcastKGError",
+          "full": "src.core.exceptions.PodcastKGError"
+        },
+        {
+          "module": "src.seeding.orchestrator",
+          "name": "PodcastKnowledgePipeline",
+          "full": "src.seeding.orchestrator.PodcastKnowledgePipeline"
+        }
+      ],
+      "missing": [
+        {
+          "type": "missing_class",
+          "module": "src.core.config",
+          "name": "Config"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.core.exceptions",
+          "name": "PodcastKGError"
+        },
+        {
+          "type": "renamed_class",
+          "old": "PodcastKnowledgePipeline",
+          "new": "VTTKnowledgeExtractor"
+        }
+      ],
+      "found": []
+    },
+    "tests/integration/test_golden_outputs.py": {
+      "imports": [
+        "json",
+        "pytest",
+        "time",
+        "psutil",
+        "gc"
+      ],
+      "from_imports": [
+        {
+          "module": "src.api.v1",
+          "name": "seed_podcast",
+          "full": "src.api.v1.seed_podcast"
+        },
+        {
+          "module": "src.core.config",
+          "name": "Config",
+          "full": "src.core.config.Config"
+        }
+      ],
+      "missing": [
+        {
+          "type": "missing_class",
+          "module": "src.api.v1",
+          "name": "seed_podcast"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.core.config",
+          "name": "Config"
+        }
+      ],
+      "found": []
+    },
+    "tests/integration/test_golden_outputs_validation.py": {
+      "imports": [
+        "json",
+        "os",
+        "tempfile",
+        "pytest"
+      ],
+      "from_imports": [
+        {
+          "module": "src.core.config",
+          "name": "Config",
+          "full": "src.core.config.Config"
+        },
+        {
+          "module": "src.processing.extraction",
+          "name": "KnowledgeExtractor",
+          "full": "src.processing.extraction.KnowledgeExtractor"
+        },
+        {
+          "module": "src.seeding.orchestrator",
+          "name": "PodcastKnowledgePipeline",
+          "full": "src.seeding.orchestrator.PodcastKnowledgePipeline"
+        }
+      ],
+      "missing": [
+        {
+          "type": "missing_class",
+          "module": "src.core.config",
+          "name": "Config"
+        },
+        {
+          "type": "moved_module",
+          "old": "src.processing.extraction",
+          "new": "src.extraction.extraction",
+          "name": "KnowledgeExtractor"
+        },
+        {
+          "type": "renamed_class",
+          "old": "PodcastKnowledgePipeline",
+          "new": "VTTKnowledgeExtractor"
+        }
+      ],
+      "found": []
+    },
+    "tests/integration/test_minimal_schemaless.py": {
+      "imports": [
+        "pytest"
+      ],
+      "from_imports": [
+        {
+          "module": "src.core.config",
+          "name": "Config",
+          "full": "src.core.config.Config"
+        },
+        {
+          "module": "src.factories.provider_factory",
+          "name": "ProviderFactory",
+          "full": "src.factories.provider_factory.ProviderFactory"
+        },
+        {
+          "module": "src.providers.embeddings.base",
+          "name": "BaseEmbeddingProvider",
+          "full": "src.providers.embeddings.base.BaseEmbeddingProvider"
+        },
+        {
+          "module": "src.providers.graph.schemaless_neo4j",
+          "name": "SchemalessNeo4jProvider",
+          "full": "src.providers.graph.schemaless_neo4j.SchemalessNeo4jProvider"
+        },
+        {
+          "module": "src.providers.llm.base",
+          "name": "BaseLLMProvider",
+          "full": "src.providers.llm.base.BaseLLMProvider"
+        }
+      ],
+      "missing": [
+        {
+          "type": "missing_class",
+          "module": "src.core.config",
+          "name": "Config"
+        },
+        {
+          "type": "moved_module",
+          "old": "src.factories.provider_factory",
+          "new": "src.factories.provider_factory",
+          "name": "ProviderFactory"
+        },
+        {
+          "type": "moved_module",
+          "old": "src.providers.embeddings.base",
+          "new": "src.providers.embeddings.base",
+          "name": "BaseEmbeddingProvider"
+        },
+        {
+          "type": "moved_module",
+          "old": "src.providers.graph.schemaless_neo4j",
+          "new": "src.providers.graph.schemaless_neo4j",
+          "name": "SchemalessNeo4jProvider"
+        },
+        {
+          "type": "moved_module",
+          "old": "src.providers.llm.base",
+          "new": "src.providers.llm.base",
+          "name": "BaseLLMProvider"
+        }
+      ],
+      "found": []
+    },
+    "tests/integration/test_performance_benchmarks.py": {
+      "imports": [
+        "gc",
+        "json",
+        "os",
+        "tempfile",
+        "time",
+        "numpy",
+        "psutil",
+        "pytest",
+        "threading"
+      ],
+      "from_imports": [
+        {
+          "module": "src.core.config",
+          "name": "Config",
+          "full": "src.core.config.Config"
+        },
+        {
+          "module": "src.processing.extraction",
+          "name": "KnowledgeExtractor",
+          "full": "src.processing.extraction.KnowledgeExtractor"
+        },
+        {
+          "module": "src.seeding.orchestrator",
+          "name": "PodcastKnowledgePipeline",
+          "full": "src.seeding.orchestrator.PodcastKnowledgePipeline"
+        },
+        {
+          "module": "src.utils.memory",
+          "name": "MemoryMonitor",
+          "full": "src.utils.memory.MemoryMonitor"
+        }
+      ],
+      "missing": [
+        {
+          "type": "missing_class",
+          "module": "src.core.config",
+          "name": "Config"
+        },
+        {
+          "type": "moved_module",
+          "old": "src.processing.extraction",
+          "new": "src.extraction.extraction",
+          "name": "KnowledgeExtractor"
+        },
+        {
+          "type": "renamed_class",
+          "old": "PodcastKnowledgePipeline",
+          "new": "VTTKnowledgeExtractor"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.utils.memory",
+          "name": "MemoryMonitor"
+        }
+      ],
+      "found": []
+    },
+    "tests/integration/test_schemaless_pipeline.py": {
+      "imports": [
+        "asyncio",
+        "pytest",
+        "time"
+      ],
+      "from_imports": [
+        {
+          "module": "src.core.config",
+          "name": "Config",
+          "full": "src.core.config.Config"
+        },
+        {
+          "module": "src.core.models",
+          "name": "Podcast",
+          "full": "src.core.models.Podcast"
+        },
+        {
+          "module": "src.core.models",
+          "name": "Episode",
+          "full": "src.core.models.Episode"
+        },
+        {
+          "module": "src.core.models",
+          "name": "Segment",
+          "full": "src.core.models.Segment"
+        },
+        {
+          "module": "src.core.models",
+          "name": "ProcessingResult",
+          "full": "src.core.models.ProcessingResult"
+        },
+        {
+          "module": "src.providers.embeddings.mock",
+          "name": "MockEmbeddingProvider",
+          "full": "src.providers.embeddings.mock.MockEmbeddingProvider"
+        },
+        {
+          "module": "src.providers.graph.schemaless_neo4j",
+          "name": "SchemalessNeo4jProvider",
+          "full": "src.providers.graph.schemaless_neo4j.SchemalessNeo4jProvider"
+        },
+        {
+          "module": "src.providers.llm.mock",
+          "name": "MockLLMProvider",
+          "full": "src.providers.llm.mock.MockLLMProvider"
+        },
+        {
+          "module": "src.providers.graph.metadata_enricher",
+          "name": "SchemalessMetadataEnricher",
+          "full": "src.providers.graph.metadata_enricher.SchemalessMetadataEnricher"
+        }
+      ],
+      "missing": [
+        {
+          "type": "missing_class",
+          "module": "src.core.config",
+          "name": "Config"
+        },
+        {
+          "type": "moved_module",
+          "old": "src.providers.embeddings.mock",
+          "new": "src.providers.embeddings.mock",
+          "name": "MockEmbeddingProvider"
+        },
+        {
+          "type": "moved_module",
+          "old": "src.providers.graph.schemaless_neo4j",
+          "new": "src.providers.graph.schemaless_neo4j",
+          "name": "SchemalessNeo4jProvider"
+        },
+        {
+          "type": "moved_module",
+          "old": "src.providers.llm.mock",
+          "new": "src.providers.llm.mock",
+          "name": "MockLLMProvider"
+        },
+        {
+          "type": "moved_module",
+          "old": "src.providers.graph.metadata_enricher",
+          "new": "src.providers.graph.metadata_enricher",
+          "name": "SchemalessMetadataEnricher"
+        }
+      ],
+      "found": []
+    },
+    "tests/integration/test_signal_handling.py": {
+      "imports": [
+        "os",
+        "signal",
+        "tempfile",
+        "threading",
+        "time",
+        "pytest",
+        "signal",
+        "time"
+      ],
+      "from_imports": [
+        {
+          "module": "src.core.config",
+          "name": "Config",
+          "full": "src.core.config.Config"
+        },
+        {
+          "module": "src.seeding.orchestrator",
+          "name": "PodcastKnowledgePipeline",
+          "full": "src.seeding.orchestrator.PodcastKnowledgePipeline"
+        },
+        {
+          "module": "src.seeding.orchestrator",
+          "name": "PodcastKnowledgePipeline",
+          "full": "src.seeding.orchestrator.PodcastKnowledgePipeline"
+        }
+      ],
+      "missing": [
+        {
+          "type": "missing_class",
+          "module": "src.core.config",
+          "name": "Config"
+        },
+        {
+          "type": "renamed_class",
+          "old": "PodcastKnowledgePipeline",
+          "new": "VTTKnowledgeExtractor"
+        },
+        {
+          "type": "renamed_class",
+          "old": "PodcastKnowledgePipeline",
+          "new": "VTTKnowledgeExtractor"
+        }
+      ],
+      "found": []
+    },
+    "tests/integration/test_api_contracts.py": {
+      "imports": [
+        "json",
+        "os",
+        "tempfile",
+        "pytest"
+      ],
+      "from_imports": [
+        {
+          "module": "src.api.v1.seeding",
+          "name": "PodcastKnowledgePipeline",
+          "full": "src.api.v1.seeding.PodcastKnowledgePipeline"
+        },
+        {
+          "module": "src.api.v1.seeding",
+          "name": "seed_podcast",
+          "full": "src.api.v1.seeding.seed_podcast"
+        },
+        {
+          "module": "src.api.v1.seeding",
+          "name": "seed_podcasts",
+          "full": "src.api.v1.seeding.seed_podcasts"
+        },
+        {
+          "module": "src.api.v1.seeding",
+          "name": "deprecated",
+          "full": "src.api.v1.seeding.deprecated"
+        },
+        {
+          "module": "src.api.v1.seeding",
+          "name": "api_version_check",
+          "full": "src.api.v1.seeding.api_version_check"
+        },
+        {
+          "module": "src.api.health",
+          "name": "HealthChecker",
+          "full": "src.api.health.HealthChecker"
+        },
+        {
+          "module": "src.api.health",
+          "name": "HealthStatus",
+          "full": "src.api.health.HealthStatus"
+        },
+        {
+          "module": "src.core.config",
+          "name": "Config",
+          "full": "src.core.config.Config"
+        },
+        {
+          "module": "src.core.exceptions",
+          "name": "PodcastKGError",
+          "full": "src.core.exceptions.PodcastKGError"
+        }
+      ],
+      "missing": [
+        {
+          "type": "deleted_module",
+          "module": "src.api.v1.seeding",
+          "name": "PodcastKnowledgePipeline"
+        },
+        {
+          "type": "deleted_module",
+          "module": "src.api.v1.seeding",
+          "name": "seed_podcast"
+        },
+        {
+          "type": "deleted_module",
+          "module": "src.api.v1.seeding",
+          "name": "seed_podcasts"
+        },
+        {
+          "type": "deleted_module",
+          "module": "src.api.v1.seeding",
+          "name": "deprecated"
+        },
+        {
+          "type": "deleted_module",
+          "module": "src.api.v1.seeding",
+          "name": "api_version_check"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.core.config",
+          "name": "Config"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.core.exceptions",
+          "name": "PodcastKGError"
+        }
+      ],
+      "found": []
+    },
+    "tests/integration/test_orchestrator.py": {
+      "imports": [
+        "os",
+        "tempfile",
+        "pytest",
+        "logging"
+      ],
+      "from_imports": [
+        {
+          "module": "src.core.config",
+          "name": "SeedingConfig",
+          "full": "src.core.config.SeedingConfig"
+        },
+        {
+          "module": "src.core.exceptions",
+          "name": "PipelineError",
+          "full": "src.core.exceptions.PipelineError"
+        },
+        {
+          "module": "src.seeding.orchestrator",
+          "name": "PodcastKnowledgePipeline",
+          "full": "src.seeding.orchestrator.PodcastKnowledgePipeline"
+        }
+      ],
+      "missing": [
+        {
+          "type": "renamed_class",
+          "old": "PodcastKnowledgePipeline",
+          "new": "VTTKnowledgeExtractor"
+        }
+      ],
+      "found": []
+    },
+    "tests/integration/test_vtt_e2e.py": {
+      "imports": [
+        "json",
+        "os",
+        "shutil",
+        "tempfile",
+        "pytest"
+      ],
+      "from_imports": [
+        {
+          "module": "src.core.config",
+          "name": "PipelineConfig",
+          "full": "src.core.config.PipelineConfig"
+        },
+        {
+          "module": "src.core.models",
+          "name": "Entity",
+          "full": "src.core.models.Entity"
+        },
+        {
+          "module": "src.core.models",
+          "name": "EntityType",
+          "full": "src.core.models.EntityType"
+        },
+        {
+          "module": "src.core.models",
+          "name": "Relationship",
+          "full": "src.core.models.Relationship"
+        },
+        {
+          "module": "src.core.models",
+          "name": "RelationshipType",
+          "full": "src.core.models.RelationshipType"
+        },
+        {
+          "module": "src.processing.vtt_parser",
+          "name": "VTTParser",
+          "full": "src.processing.vtt_parser.VTTParser"
+        },
+        {
+          "module": "src.providers.embeddings.base",
+          "name": "EmbeddingProvider",
+          "full": "src.providers.embeddings.base.EmbeddingProvider"
+        },
+        {
+          "module": "src.providers.graph.base",
+          "name": "GraphProvider",
+          "full": "src.providers.graph.base.GraphProvider"
+        },
+        {
+          "module": "src.providers.llm.base",
+          "name": "LLMProvider",
+          "full": "src.providers.llm.base.LLMProvider"
+        },
+        {
+          "module": "src.seeding",
+          "name": "PodcastKnowledgePipeline",
+          "full": "src.seeding.PodcastKnowledgePipeline"
+        },
+        {
+          "module": "src.seeding.transcript_ingestion",
+          "name": "TranscriptIngestionManager",
+          "full": "src.seeding.transcript_ingestion.TranscriptIngestionManager"
+        },
+        {
+          "module": "cli",
+          "name": "find_vtt_files",
+          "full": "cli.find_vtt_files"
+        },
+        {
+          "module": "cli",
+          "name": "validate_vtt_file",
+          "full": "cli.validate_vtt_file"
+        },
+        {
+          "module": "src.seeding.checkpoint",
+          "name": "ProgressCheckpoint",
+          "full": "src.seeding.checkpoint.ProgressCheckpoint"
+        },
+        {
+          "module": "cli",
+          "name": "get_file_hash",
+          "full": "cli.get_file_hash"
+        },
+        {
+          "module": "cli",
+          "name": "find_vtt_files",
+          "full": "cli.find_vtt_files"
+        },
+        {
+          "module": "cli",
+          "name": "validate_vtt_file",
+          "full": "cli.validate_vtt_file"
+        },
+        {
+          "module": "src.processing.vtt_parser",
+          "name": "VTTParser",
+          "full": "src.processing.vtt_parser.VTTParser"
+        }
+      ],
+      "missing": [
+        {
+          "type": "moved_class",
+          "old": "src.core.models.Relationship",
+          "new": "src.core.extraction_interface.Relationship"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.core.models",
+          "name": "RelationshipType"
+        },
+        {
+          "type": "moved_module",
+          "old": "src.processing.vtt_parser",
+          "new": "src.vtt.vtt_parser",
+          "name": "VTTParser"
+        },
+        {
+          "type": "moved_module",
+          "old": "src.providers.embeddings.base",
+          "new": "src.providers.embeddings.base",
+          "name": "EmbeddingProvider"
+        },
+        {
+          "type": "moved_module",
+          "old": "src.providers.graph.base",
+          "new": "src.providers.graph.base",
+          "name": "GraphProvider"
+        },
+        {
+          "type": "moved_module",
+          "old": "src.providers.llm.base",
+          "new": "src.providers.llm.base",
+          "name": "LLMProvider"
+        },
+        {
+          "type": "renamed_class",
+          "old": "PodcastKnowledgePipeline",
+          "new": "VTTKnowledgeExtractor"
+        },
+        {
+          "type": "moved_module",
+          "old": "cli",
+          "new": "src.cli.cli",
+          "name": "find_vtt_files"
+        },
+        {
+          "type": "moved_module",
+          "old": "cli",
+          "new": "src.cli.cli",
+          "name": "validate_vtt_file"
+        },
+        {
+          "type": "moved_module",
+          "old": "cli",
+          "new": "src.cli.cli",
+          "name": "get_file_hash"
+        },
+        {
+          "type": "moved_module",
+          "old": "cli",
+          "new": "src.cli.cli",
+          "name": "find_vtt_files"
+        },
+        {
+          "type": "moved_module",
+          "old": "cli",
+          "new": "src.cli.cli",
+          "name": "validate_vtt_file"
+        },
+        {
+          "type": "moved_module",
+          "old": "src.processing.vtt_parser",
+          "new": "src.vtt.vtt_parser",
+          "name": "VTTParser"
+        }
+      ],
+      "found": []
+    },
+    "tests/integration/test_vtt_batch_processing.py": {
+      "imports": [
+        "os",
+        "shutil",
+        "signal",
+        "tempfile",
+        "threading",
+        "time",
+        "psutil",
+        "pytest",
+        "time"
+      ],
+      "from_imports": [
+        {
+          "module": "src.core.config",
+          "name": "PipelineConfig",
+          "full": "src.core.config.PipelineConfig"
+        },
+        {
+          "module": "src.core.exceptions",
+          "name": "ValidationError",
+          "full": "src.core.exceptions.ValidationError"
+        },
+        {
+          "module": "src.core.exceptions",
+          "name": "PipelineError",
+          "full": "src.core.exceptions.PipelineError"
+        },
+        {
+          "module": "src.processing.vtt_parser",
+          "name": "VTTParser",
+          "full": "src.processing.vtt_parser.VTTParser"
+        },
+        {
+          "module": "src.seeding.checkpoint",
+          "name": "ProgressCheckpoint",
+          "full": "src.seeding.checkpoint.ProgressCheckpoint"
+        },
+        {
+          "module": "src.seeding.transcript_ingestion",
+          "name": "TranscriptIngestion",
+          "full": "src.seeding.transcript_ingestion.TranscriptIngestion"
+        }
+      ],
+      "missing": [
+        {
+          "type": "moved_module",
+          "old": "src.processing.vtt_parser",
+          "new": "src.vtt.vtt_parser",
+          "name": "VTTParser"
+        }
+      ],
+      "found": []
+    },
+    "tests/performance/benchmark_schemaless.py": {
+      "imports": [
+        "asyncio",
+        "time",
+        "pytest",
+        "statistics",
+        "psutil",
+        "os"
+      ],
+      "from_imports": [
+        {
+          "module": "src.core.models",
+          "name": "Segment",
+          "full": "src.core.models.Segment"
+        },
+        {
+          "module": "src.core.models",
+          "name": "Episode",
+          "full": "src.core.models.Episode"
+        },
+        {
+          "module": "src.core.models",
+          "name": "Podcast",
+          "full": "src.core.models.Podcast"
+        },
+        {
+          "module": "src.providers.embeddings.mock",
+          "name": "MockEmbeddingProvider",
+          "full": "src.providers.embeddings.mock.MockEmbeddingProvider"
+        },
+        {
+          "module": "src.providers.graph.neo4j",
+          "name": "Neo4jProvider",
+          "full": "src.providers.graph.neo4j.Neo4jProvider"
+        },
+        {
+          "module": "src.providers.graph.schemaless_neo4j",
+          "name": "SchemalessNeo4jProvider",
+          "full": "src.providers.graph.schemaless_neo4j.SchemalessNeo4jProvider"
+        },
+        {
+          "module": "src.providers.llm.mock",
+          "name": "MockLLMProvider",
+          "full": "src.providers.llm.mock.MockLLMProvider"
+        },
+        {
+          "module": "src.core.models",
+          "name": "Episode",
+          "full": "src.core.models.Episode"
+        },
+        {
+          "module": "src.core.models",
+          "name": "Podcast",
+          "full": "src.core.models.Podcast"
+        },
+        {
+          "module": "src.core.models",
+          "name": "Episode",
+          "full": "src.core.models.Episode"
+        },
+        {
+          "module": "src.core.models",
+          "name": "Podcast",
+          "full": "src.core.models.Podcast"
+        },
+        {
+          "module": "src.core.models",
+          "name": "Episode",
+          "full": "src.core.models.Episode"
+        },
+        {
+          "module": "src.core.models",
+          "name": "Podcast",
+          "full": "src.core.models.Podcast"
+        }
+      ],
+      "missing": [
+        {
+          "type": "moved_module",
+          "old": "src.providers.embeddings.mock",
+          "new": "src.providers.embeddings.mock",
+          "name": "MockEmbeddingProvider"
+        },
+        {
+          "type": "moved_module",
+          "old": "src.providers.graph.neo4j",
+          "new": "src.providers.graph.neo4j",
+          "name": "Neo4jProvider"
+        },
+        {
+          "type": "moved_module",
+          "old": "src.providers.graph.schemaless_neo4j",
+          "new": "src.providers.graph.schemaless_neo4j",
+          "name": "SchemalessNeo4jProvider"
+        },
+        {
+          "type": "moved_module",
+          "old": "src.providers.llm.mock",
+          "new": "src.providers.llm.mock",
+          "name": "MockLLMProvider"
+        }
+      ],
+      "found": []
+    },
+    "tests/performance/load_test.py": {
+      "imports": [
+        "argparse",
+        "gc",
+        "json",
+        "logging",
+        "os",
+        "sys",
+        "threading",
+        "time",
+        "traceback",
+        "psutil"
+      ],
+      "from_imports": [
+        {
+          "module": "src.api.v1",
+          "name": "PodcastKnowledgePipeline",
+          "full": "src.api.v1.PodcastKnowledgePipeline"
+        },
+        {
+          "module": "src.api.v1",
+          "name": "seed_podcast",
+          "full": "src.api.v1.seed_podcast"
+        },
+        {
+          "module": "src.core.config",
+          "name": "Config",
+          "full": "src.core.config.Config"
+        },
+        {
+          "module": "src.seeding.checkpoint",
+          "name": "ProgressCheckpoint",
+          "full": "src.seeding.checkpoint.ProgressCheckpoint"
+        }
+      ],
+      "missing": [
+        {
+          "type": "renamed_class",
+          "old": "PodcastKnowledgePipeline",
+          "new": "VTTKnowledgeExtractor"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.api.v1",
+          "name": "seed_podcast"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.core.config",
+          "name": "Config"
+        }
+      ],
+      "found": []
+    },
+    "tests/performance/test_domain_diversity.py": {
+      "imports": [
+        "asyncio",
+        "pytest"
+      ],
+      "from_imports": [
+        {
+          "module": "src.core.models",
+          "name": "Segment",
+          "full": "src.core.models.Segment"
+        },
+        {
+          "module": "src.providers.embeddings.mock",
+          "name": "MockEmbeddingProvider",
+          "full": "src.providers.embeddings.mock.MockEmbeddingProvider"
+        },
+        {
+          "module": "src.providers.graph.metadata_enricher",
+          "name": "SchemalessMetadataEnricher",
+          "full": "src.providers.graph.metadata_enricher.SchemalessMetadataEnricher"
+        },
+        {
+          "module": "src.providers.graph.schemaless_neo4j",
+          "name": "SchemalessNeo4jProvider",
+          "full": "src.providers.graph.schemaless_neo4j.SchemalessNeo4jProvider"
+        },
+        {
+          "module": "src.providers.llm.mock",
+          "name": "MockLLMProvider",
+          "full": "src.providers.llm.mock.MockLLMProvider"
+        },
+        {
+          "module": "src.core.models",
+          "name": "Episode",
+          "full": "src.core.models.Episode"
+        },
+        {
+          "module": "src.core.models",
+          "name": "Podcast",
+          "full": "src.core.models.Podcast"
+        }
+      ],
+      "missing": [
+        {
+          "type": "moved_module",
+          "old": "src.providers.embeddings.mock",
+          "new": "src.providers.embeddings.mock",
+          "name": "MockEmbeddingProvider"
+        },
+        {
+          "type": "moved_module",
+          "old": "src.providers.graph.metadata_enricher",
+          "new": "src.providers.graph.metadata_enricher",
+          "name": "SchemalessMetadataEnricher"
+        },
+        {
+          "type": "moved_module",
+          "old": "src.providers.graph.schemaless_neo4j",
+          "new": "src.providers.graph.schemaless_neo4j",
+          "name": "SchemalessNeo4jProvider"
+        },
+        {
+          "type": "moved_module",
+          "old": "src.providers.llm.mock",
+          "new": "src.providers.llm.mock",
+          "name": "MockLLMProvider"
+        }
+      ],
+      "found": []
+    },
+    "tests/performance/test_performance_regression.py": {
+      "imports": [
+        "gc",
+        "json",
+        "time",
+        "psutil",
+        "pytest"
+      ],
+      "from_imports": [
+        {
+          "module": "src.api.v1",
+          "name": "seed_podcast",
+          "full": "src.api.v1.seed_podcast"
+        },
+        {
+          "module": "src.api.v1",
+          "name": "PodcastKnowledgePipeline",
+          "full": "src.api.v1.PodcastKnowledgePipeline"
+        },
+        {
+          "module": "src.core.config",
+          "name": "Config",
+          "full": "src.core.config.Config"
+        }
+      ],
+      "missing": [
+        {
+          "type": "missing_class",
+          "module": "src.api.v1",
+          "name": "seed_podcast"
+        },
+        {
+          "type": "renamed_class",
+          "old": "PodcastKnowledgePipeline",
+          "new": "VTTKnowledgeExtractor"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.core.config",
+          "name": "Config"
+        }
+      ],
+      "found": []
+    },
+    "tests/performance/test_vtt_performance_benchmarks.py": {
+      "imports": [
+        "gc",
+        "json",
+        "shutil",
+        "tempfile",
+        "time",
+        "psutil",
+        "pytest",
+        "statistics"
+      ],
+      "from_imports": [
+        {
+          "module": "src.core.config",
+          "name": "PipelineConfig",
+          "full": "src.core.config.PipelineConfig"
+        },
+        {
+          "module": "src.processing.extraction",
+          "name": "KnowledgeExtractor",
+          "full": "src.processing.extraction.KnowledgeExtractor"
+        },
+        {
+          "module": "src.processing.vtt_parser",
+          "name": "VTTParser",
+          "full": "src.processing.vtt_parser.VTTParser"
+        },
+        {
+          "module": "src.seeding.transcript_ingestion",
+          "name": "TranscriptIngestion",
+          "full": "src.seeding.transcript_ingestion.TranscriptIngestion"
+        }
+      ],
+      "missing": [
+        {
+          "type": "moved_module",
+          "old": "src.processing.extraction",
+          "new": "src.extraction.extraction",
+          "name": "KnowledgeExtractor"
+        },
+        {
+          "type": "moved_module",
+          "old": "src.processing.vtt_parser",
+          "new": "src.vtt.vtt_parser",
+          "name": "VTTParser"
+        }
+      ],
+      "found": []
+    },
+    "tests/processing/test_complexity_analysis.py": {
+      "imports": [
+        "pytest"
+      ],
+      "from_imports": [
+        {
+          "module": "src.core.models",
+          "name": "Entity",
+          "full": "src.core.models.Entity"
+        },
+        {
+          "module": "src.core.models",
+          "name": "Insight",
+          "full": "src.core.models.Insight"
+        },
+        {
+          "module": "src.core.models",
+          "name": "Quote",
+          "full": "src.core.models.Quote"
+        },
+        {
+          "module": "src.core.models",
+          "name": "EntityType",
+          "full": "src.core.models.EntityType"
+        },
+        {
+          "module": "src.core.models",
+          "name": "InsightType",
+          "full": "src.core.models.InsightType"
+        },
+        {
+          "module": "src.core.models",
+          "name": "QuoteType",
+          "full": "src.core.models.QuoteType"
+        },
+        {
+          "module": "src.core.models",
+          "name": "ComplexityLevel",
+          "full": "src.core.models.ComplexityLevel"
+        },
+        {
+          "module": "src.processing.complexity_analysis",
+          "name": "ComplexityAnalyzer",
+          "full": "src.processing.complexity_analysis.ComplexityAnalyzer"
+        },
+        {
+          "module": "src.processing.complexity_analysis",
+          "name": "VocabularyMetrics",
+          "full": "src.processing.complexity_analysis.VocabularyMetrics"
+        },
+        {
+          "module": "src.processing.complexity_analysis",
+          "name": "SegmentComplexity",
+          "full": "src.processing.complexity_analysis.SegmentComplexity"
+        },
+        {
+          "module": "src.processing.complexity_analysis",
+          "name": "EpisodeComplexity",
+          "full": "src.processing.complexity_analysis.EpisodeComplexity"
+        }
+      ],
+      "missing": [
+        {
+          "type": "moved_module",
+          "old": "src.processing.complexity_analysis",
+          "new": "src.extraction.complexity_analysis",
+          "name": "ComplexityAnalyzer"
+        },
+        {
+          "type": "moved_module",
+          "old": "src.processing.complexity_analysis",
+          "new": "src.extraction.complexity_analysis",
+          "name": "VocabularyMetrics"
+        },
+        {
+          "type": "moved_module",
+          "old": "src.processing.complexity_analysis",
+          "new": "src.extraction.complexity_analysis",
+          "name": "SegmentComplexity"
+        },
+        {
+          "type": "moved_module",
+          "old": "src.processing.complexity_analysis",
+          "new": "src.extraction.complexity_analysis",
+          "name": "EpisodeComplexity"
+        }
+      ],
+      "found": []
+    },
+    "tests/processing/test_discourse_flow.py": {
+      "imports": [
+        "numpy",
+        "pytest"
+      ],
+      "from_imports": [
+        {
+          "module": "src.core.models",
+          "name": "Entity",
+          "full": "src.core.models.Entity"
+        },
+        {
+          "module": "src.core.models",
+          "name": "Segment",
+          "full": "src.core.models.Segment"
+        },
+        {
+          "module": "src.core.models",
+          "name": "Insight",
+          "full": "src.core.models.Insight"
+        },
+        {
+          "module": "src.core.models",
+          "name": "InsightType",
+          "full": "src.core.models.InsightType"
+        },
+        {
+          "module": "src.processing.discourse_flow",
+          "name": "DiscourseFlowTracker",
+          "full": "src.processing.discourse_flow.DiscourseFlowTracker"
+        }
+      ],
+      "missing": [
+        {
+          "type": "deleted_module",
+          "module": "src.processing.discourse_flow",
+          "name": "DiscourseFlowTracker"
+        }
+      ],
+      "found": []
+    },
+    "tests/processing/test_emergent_themes.py": {
+      "imports": [
+        "networkx",
+        "numpy",
+        "pytest"
+      ],
+      "from_imports": [
+        {
+          "module": "src.core.models",
+          "name": "Entity",
+          "full": "src.core.models.Entity"
+        },
+        {
+          "module": "src.core.models",
+          "name": "Insight",
+          "full": "src.core.models.Insight"
+        },
+        {
+          "module": "src.core.models",
+          "name": "Segment",
+          "full": "src.core.models.Segment"
+        },
+        {
+          "module": "src.core.models",
+          "name": "InsightType",
+          "full": "src.core.models.InsightType"
+        },
+        {
+          "module": "src.processing.emergent_themes",
+          "name": "EmergentThemeDetector",
+          "full": "src.processing.emergent_themes.EmergentThemeDetector"
+        }
+      ],
+      "missing": [
+        {
+          "type": "deleted_module",
+          "module": "src.processing.emergent_themes",
+          "name": "EmergentThemeDetector"
+        }
+      ],
+      "found": []
+    },
+    "tests/processing/test_enhanced_gap_analysis.py": {
+      "imports": [
+        "networkx",
+        "numpy",
+        "pytest"
+      ],
+      "from_imports": [
+        {
+          "module": "src.core.models",
+          "name": "Entity",
+          "full": "src.core.models.Entity"
+        },
+        {
+          "module": "src.core.models",
+          "name": "Insight",
+          "full": "src.core.models.Insight"
+        },
+        {
+          "module": "src.core.models",
+          "name": "EntityType",
+          "full": "src.core.models.EntityType"
+        },
+        {
+          "module": "src.core.models",
+          "name": "InsightType",
+          "full": "src.core.models.InsightType"
+        },
+        {
+          "module": "src.processing.graph_analysis",
+          "name": "GraphAnalyzer",
+          "full": "src.processing.graph_analysis.GraphAnalyzer"
+        },
+        {
+          "module": "src.processing.graph_analysis",
+          "name": "StructuralGap",
+          "full": "src.processing.graph_analysis.StructuralGap"
+        }
+      ],
+      "missing": [
+        {
+          "type": "deleted_module",
+          "module": "src.processing.graph_analysis",
+          "name": "GraphAnalyzer"
+        },
+        {
+          "type": "deleted_module",
+          "module": "src.processing.graph_analysis",
+          "name": "StructuralGap"
+        }
+      ],
+      "found": []
+    },
+    "tests/processing/test_graph_analysis.py": {
+      "imports": [
+        "pytest"
+      ],
+      "from_imports": [
+        {
+          "module": "src.core.interfaces",
+          "name": "LLMProvider",
+          "full": "src.core.interfaces.LLMProvider"
+        },
+        {
+          "module": "src.core.models",
+          "name": "Entity",
+          "full": "src.core.models.Entity"
+        },
+        {
+          "module": "src.core.models",
+          "name": "Insight",
+          "full": "src.core.models.Insight"
+        },
+        {
+          "module": "src.core.models",
+          "name": "EntityType",
+          "full": "src.core.models.EntityType"
+        },
+        {
+          "module": "src.core.models",
+          "name": "InsightType",
+          "full": "src.core.models.InsightType"
+        },
+        {
+          "module": "src.processing.graph_analysis",
+          "name": "GraphAnalyzer",
+          "full": "src.processing.graph_analysis.GraphAnalyzer"
+        },
+        {
+          "module": "src.processing.graph_analysis",
+          "name": "DiscourseType",
+          "full": "src.processing.graph_analysis.DiscourseType"
+        },
+        {
+          "module": "src.processing.graph_analysis",
+          "name": "CentralityResult",
+          "full": "src.processing.graph_analysis.CentralityResult"
+        },
+        {
+          "module": "src.processing.graph_analysis",
+          "name": "CommunityResult",
+          "full": "src.processing.graph_analysis.CommunityResult"
+        },
+        {
+          "module": "src.processing.graph_analysis",
+          "name": "PeripheralConcept",
+          "full": "src.processing.graph_analysis.PeripheralConcept"
+        },
+        {
+          "module": "src.processing.graph_analysis",
+          "name": "DiscourseStructure",
+          "full": "src.processing.graph_analysis.DiscourseStructure"
+        },
+        {
+          "module": "src.processing.graph_analysis",
+          "name": "DiversityMetrics",
+          "full": "src.processing.graph_analysis.DiversityMetrics"
+        },
+        {
+          "module": "src.processing.graph_analysis",
+          "name": "StructuralGap",
+          "full": "src.processing.graph_analysis.StructuralGap"
+        },
+        {
+          "module": "src.processing.graph_analysis",
+          "name": "HierarchicalTopic",
+          "full": "src.processing.graph_analysis.HierarchicalTopic"
+        },
+        {
+          "module": "src.processing.graph_analysis",
+          "name": "BridgeInsight",
+          "full": "src.processing.graph_analysis.BridgeInsight"
+        }
+      ],
+      "missing": [
+        {
+          "type": "deleted_module",
+          "module": "src.processing.graph_analysis",
+          "name": "GraphAnalyzer"
+        },
+        {
+          "type": "deleted_module",
+          "module": "src.processing.graph_analysis",
+          "name": "DiscourseType"
+        },
+        {
+          "type": "deleted_module",
+          "module": "src.processing.graph_analysis",
+          "name": "CentralityResult"
+        },
+        {
+          "type": "deleted_module",
+          "module": "src.processing.graph_analysis",
+          "name": "CommunityResult"
+        },
+        {
+          "type": "deleted_module",
+          "module": "src.processing.graph_analysis",
+          "name": "PeripheralConcept"
+        },
+        {
+          "type": "deleted_module",
+          "module": "src.processing.graph_analysis",
+          "name": "DiscourseStructure"
+        },
+        {
+          "type": "deleted_module",
+          "module": "src.processing.graph_analysis",
+          "name": "DiversityMetrics"
+        },
+        {
+          "type": "deleted_module",
+          "module": "src.processing.graph_analysis",
+          "name": "StructuralGap"
+        },
+        {
+          "type": "deleted_module",
+          "module": "src.processing.graph_analysis",
+          "name": "HierarchicalTopic"
+        },
+        {
+          "type": "deleted_module",
+          "module": "src.processing.graph_analysis",
+          "name": "BridgeInsight"
+        }
+      ],
+      "found": []
+    },
+    "tests/processing/test_importance_scoring.py": {
+      "imports": [
+        "math",
+        "networkx",
+        "numpy",
+        "pytest"
+      ],
+      "from_imports": [
+        {
+          "module": "src.core.models",
+          "name": "Entity",
+          "full": "src.core.models.Entity"
+        },
+        {
+          "module": "src.core.models",
+          "name": "Insight",
+          "full": "src.core.models.Insight"
+        },
+        {
+          "module": "src.core.models",
+          "name": "Segment",
+          "full": "src.core.models.Segment"
+        },
+        {
+          "module": "src.core.models",
+          "name": "EntityType",
+          "full": "src.core.models.EntityType"
+        },
+        {
+          "module": "src.core.models",
+          "name": "InsightType",
+          "full": "src.core.models.InsightType"
+        },
+        {
+          "module": "src.processing.importance_scoring",
+          "name": "ImportanceScorer",
+          "full": "src.processing.importance_scoring.ImportanceScorer"
+        },
+        {
+          "module": "src.processing.extraction",
+          "name": "KnowledgeExtractor",
+          "full": "src.processing.extraction.KnowledgeExtractor"
+        },
+        {
+          "module": "src.providers.llm.mock",
+          "name": "MockLLMProvider",
+          "full": "src.providers.llm.mock.MockLLMProvider"
+        }
+      ],
+      "missing": [
+        {
+          "type": "moved_module",
+          "old": "src.processing.importance_scoring",
+          "new": "src.extraction.importance_scoring",
+          "name": "ImportanceScorer"
+        },
+        {
+          "type": "moved_module",
+          "old": "src.processing.extraction",
+          "new": "src.extraction.extraction",
+          "name": "KnowledgeExtractor"
+        },
+        {
+          "type": "moved_module",
+          "old": "src.providers.llm.mock",
+          "new": "src.providers.llm.mock",
+          "name": "MockLLMProvider"
+        }
+      ],
+      "found": []
+    },
+    "tests/processing/test_prompts.py": {
+      "imports": [
+        "pytest"
+      ],
+      "from_imports": [
+        {
+          "module": "src.processing.prompts",
+          "name": "PromptBuilder",
+          "full": "src.processing.prompts.PromptBuilder"
+        },
+        {
+          "module": "src.processing.prompts",
+          "name": "PromptTemplate",
+          "full": "src.processing.prompts.PromptTemplate"
+        }
+      ],
+      "missing": [
+        {
+          "type": "moved_module",
+          "old": "src.processing.prompts",
+          "new": "src.extraction.prompts",
+          "name": "PromptBuilder"
+        },
+        {
+          "type": "moved_module",
+          "old": "src.processing.prompts",
+          "new": "src.extraction.prompts",
+          "name": "PromptTemplate"
+        }
+      ],
+      "found": []
+    },
+    "tests/processing/test_entity_resolution.py": {
+      "imports": [
+        "pytest"
+      ],
+      "from_imports": [
+        {
+          "module": "src.core.interfaces",
+          "name": "EmbeddingProvider",
+          "full": "src.core.interfaces.EmbeddingProvider"
+        },
+        {
+          "module": "src.core.models",
+          "name": "Entity",
+          "full": "src.core.models.Entity"
+        },
+        {
+          "module": "src.core.models",
+          "name": "EntityType",
+          "full": "src.core.models.EntityType"
+        },
+        {
+          "module": "src.processing.entity_resolution",
+          "name": "EntityResolver",
+          "full": "src.processing.entity_resolution.EntityResolver"
+        },
+        {
+          "module": "src.processing.entity_resolution",
+          "name": "EntityMatch",
+          "full": "src.processing.entity_resolution.EntityMatch"
+        },
+        {
+          "module": "src.processing.entity_resolution",
+          "name": "EntityRelationship",
+          "full": "src.processing.entity_resolution.EntityRelationship"
+        },
+        {
+          "module": "src.processing.entity_resolution",
+          "name": "VectorEntityMatcher",
+          "full": "src.processing.entity_resolution.VectorEntityMatcher"
+        }
+      ],
+      "missing": [
+        {
+          "type": "moved_module",
+          "old": "src.processing.entity_resolution",
+          "new": "src.extraction.entity_resolution",
+          "name": "EntityResolver"
+        },
+        {
+          "type": "moved_module",
+          "old": "src.processing.entity_resolution",
+          "new": "src.extraction.entity_resolution",
+          "name": "EntityMatch"
+        },
+        {
+          "type": "moved_module",
+          "old": "src.processing.entity_resolution",
+          "new": "src.extraction.entity_resolution",
+          "name": "EntityRelationship"
+        },
+        {
+          "type": "moved_module",
+          "old": "src.processing.entity_resolution",
+          "new": "src.extraction.entity_resolution",
+          "name": "VectorEntityMatcher"
+        }
+      ],
+      "found": []
+    },
+    "tests/processing/test_parsers.py": {
+      "imports": [
+        "json",
+        "pytest"
+      ],
+      "from_imports": [
+        {
+          "module": "src.core.models",
+          "name": "Entity",
+          "full": "src.core.models.Entity"
+        },
+        {
+          "module": "src.core.models",
+          "name": "Insight",
+          "full": "src.core.models.Insight"
+        },
+        {
+          "module": "src.core.models",
+          "name": "Quote",
+          "full": "src.core.models.Quote"
+        },
+        {
+          "module": "src.core.models",
+          "name": "EntityType",
+          "full": "src.core.models.EntityType"
+        },
+        {
+          "module": "src.core.models",
+          "name": "InsightType",
+          "full": "src.core.models.InsightType"
+        },
+        {
+          "module": "src.core.models",
+          "name": "QuoteType",
+          "full": "src.core.models.QuoteType"
+        },
+        {
+          "module": "src.processing.parsers",
+          "name": "ResponseParser",
+          "full": "src.processing.parsers.ResponseParser"
+        },
+        {
+          "module": "src.processing.parsers",
+          "name": "ParseResult",
+          "full": "src.processing.parsers.ParseResult"
+        },
+        {
+          "module": "src.processing.parsers",
+          "name": "ValidationUtils",
+          "full": "src.processing.parsers.ValidationUtils"
+        }
+      ],
+      "missing": [
+        {
+          "type": "moved_module",
+          "old": "src.processing.parsers",
+          "new": "src.extraction.parsers",
+          "name": "ResponseParser"
+        },
+        {
+          "type": "moved_module",
+          "old": "src.processing.parsers",
+          "new": "src.extraction.parsers",
+          "name": "ParseResult"
+        },
+        {
+          "type": "moved_module",
+          "old": "src.processing.parsers",
+          "new": "src.extraction.parsers",
+          "name": "ValidationUtils"
+        }
+      ],
+      "found": []
+    },
+    "tests/processing/test_vtt_parser.py": {
+      "imports": [
+        "os",
+        "tempfile",
+        "pytest"
+      ],
+      "from_imports": [
+        {
+          "module": "src.core.exceptions",
+          "name": "ValidationError",
+          "full": "src.core.exceptions.ValidationError"
+        },
+        {
+          "module": "src.core.interfaces",
+          "name": "TranscriptSegment",
+          "full": "src.core.interfaces.TranscriptSegment"
+        },
+        {
+          "module": "src.processing.vtt_parser",
+          "name": "VTTParser",
+          "full": "src.processing.vtt_parser.VTTParser"
+        },
+        {
+          "module": "src.processing.vtt_parser",
+          "name": "VTTCue",
+          "full": "src.processing.vtt_parser.VTTCue"
+        }
+      ],
+      "missing": [
+        {
+          "type": "moved_module",
+          "old": "src.processing.vtt_parser",
+          "new": "src.vtt.vtt_parser",
+          "name": "VTTParser"
+        },
+        {
+          "type": "moved_module",
+          "old": "src.processing.vtt_parser",
+          "new": "src.vtt.vtt_parser",
+          "name": "VTTCue"
+        }
+      ],
+      "found": []
+    },
+    "tests/processing/test_vtt_extraction.py": {
+      "imports": [
+        "os",
+        "tempfile",
+        "pytest"
+      ],
+      "from_imports": [
+        {
+          "module": "src.core.interfaces",
+          "name": "TranscriptSegment",
+          "full": "src.core.interfaces.TranscriptSegment"
+        },
+        {
+          "module": "src.core.interfaces",
+          "name": "LLMProvider",
+          "full": "src.core.interfaces.LLMProvider"
+        },
+        {
+          "module": "src.core.models",
+          "name": "Entity",
+          "full": "src.core.models.Entity"
+        },
+        {
+          "module": "src.core.models",
+          "name": "Insight",
+          "full": "src.core.models.Insight"
+        },
+        {
+          "module": "src.core.models",
+          "name": "Quote",
+          "full": "src.core.models.Quote"
+        },
+        {
+          "module": "src.core.models",
+          "name": "EntityType",
+          "full": "src.core.models.EntityType"
+        },
+        {
+          "module": "src.core.models",
+          "name": "InsightType",
+          "full": "src.core.models.InsightType"
+        },
+        {
+          "module": "src.core.models",
+          "name": "QuoteType",
+          "full": "src.core.models.QuoteType"
+        },
+        {
+          "module": "src.processing.extraction",
+          "name": "KnowledgeExtractor",
+          "full": "src.processing.extraction.KnowledgeExtractor"
+        },
+        {
+          "module": "src.processing.extraction",
+          "name": "ExtractionResult",
+          "full": "src.processing.extraction.ExtractionResult"
+        },
+        {
+          "module": "src.processing.vtt_parser",
+          "name": "VTTParser",
+          "full": "src.processing.vtt_parser.VTTParser"
+        },
+        {
+          "module": "src.seeding.transcript_ingestion",
+          "name": "TranscriptIngestion",
+          "full": "src.seeding.transcript_ingestion.TranscriptIngestion"
+        },
+        {
+          "module": "src.seeding.transcript_ingestion",
+          "name": "VTTFile",
+          "full": "src.seeding.transcript_ingestion.VTTFile"
+        }
+      ],
+      "missing": [
+        {
+          "type": "moved_module",
+          "old": "src.processing.extraction",
+          "new": "src.extraction.extraction",
+          "name": "KnowledgeExtractor"
+        },
+        {
+          "type": "moved_module",
+          "old": "src.processing.extraction",
+          "new": "src.extraction.extraction",
+          "name": "ExtractionResult"
+        },
+        {
+          "type": "moved_module",
+          "old": "src.processing.vtt_parser",
+          "new": "src.vtt.vtt_parser",
+          "name": "VTTParser"
+        }
+      ],
+      "found": []
+    },
+    "tests/processing/test_preprocessor.py": {
+      "imports": [
+        "pytest"
+      ],
+      "from_imports": [
+        {
+          "module": "src.processing.preprocessor",
+          "name": "TextPreprocessor",
+          "full": "src.processing.preprocessor.TextPreprocessor"
+        },
+        {
+          "module": "src.processing.preprocessor",
+          "name": "PreprocessingConfig",
+          "full": "src.processing.preprocessor.PreprocessingConfig"
+        },
+        {
+          "module": "src.processing.preprocessor",
+          "name": "preprocess_segments_batch",
+          "full": "src.processing.preprocessor.preprocess_segments_batch"
+        },
+        {
+          "module": "src.core.models",
+          "name": "Segment",
+          "full": "src.core.models.Segment"
+        },
+        {
+          "module": "src.core.interfaces",
+          "name": "TranscriptSegment",
+          "full": "src.core.interfaces.TranscriptSegment"
+        }
+      ],
+      "missing": [
+        {
+          "type": "moved_module",
+          "old": "src.processing.preprocessor",
+          "new": "src.extraction.preprocessor",
+          "name": "TextPreprocessor"
+        },
+        {
+          "type": "moved_module",
+          "old": "src.processing.preprocessor",
+          "new": "src.extraction.preprocessor",
+          "name": "PreprocessingConfig"
+        },
+        {
+          "type": "moved_module",
+          "old": "src.processing.preprocessor",
+          "new": "src.extraction.preprocessor",
+          "name": "preprocess_segments_batch"
+        }
+      ],
+      "found": []
+    },
+    "tests/processing/test_extraction.py": {
+      "imports": [
+        "pytest"
+      ],
+      "from_imports": [
+        {
+          "module": "src.core.models",
+          "name": "Segment",
+          "full": "src.core.models.Segment"
+        },
+        {
+          "module": "src.processing.extraction",
+          "name": "KnowledgeExtractor",
+          "full": "src.processing.extraction.KnowledgeExtractor"
+        },
+        {
+          "module": "src.processing.extraction",
+          "name": "ExtractionConfig",
+          "full": "src.processing.extraction.ExtractionConfig"
+        }
+      ],
+      "missing": [
+        {
+          "type": "moved_module",
+          "old": "src.processing.extraction",
+          "new": "src.extraction.extraction",
+          "name": "KnowledgeExtractor"
+        },
+        {
+          "type": "moved_module",
+          "old": "src.processing.extraction",
+          "new": "src.extraction.extraction",
+          "name": "ExtractionConfig"
+        }
+      ],
+      "found": []
+    },
+    "tests/scripts/test_integration.py": {
+      "imports": [
+        "sys"
+      ],
+      "from_imports": [
+        {
+          "module": "src.providers.llm.gemini_adapter",
+          "name": "GeminiGraphRAGAdapter",
+          "full": "src.providers.llm.gemini_adapter.GeminiGraphRAGAdapter"
+        },
+        {
+          "module": "src.providers.llm.gemini_adapter",
+          "name": "create_gemini_adapter",
+          "full": "src.providers.llm.gemini_adapter.create_gemini_adapter"
+        },
+        {
+          "module": "src.providers.embeddings.sentence_transformer_adapter",
+          "name": "SentenceTransformerGraphRAGAdapter",
+          "full": "src.providers.embeddings.sentence_transformer_adapter.SentenceTransformerGraphRAGAdapter"
+        },
+        {
+          "module": "src.providers.embeddings.sentence_transformer_adapter",
+          "name": "create_sentence_transformer_adapter",
+          "full": "src.providers.embeddings.sentence_transformer_adapter.create_sentence_transformer_adapter"
+        },
+        {
+          "module": "src.utils.component_tracker",
+          "name": "ComponentTracker",
+          "full": "src.utils.component_tracker.ComponentTracker"
+        },
+        {
+          "module": "src.utils.component_tracker",
+          "name": "track_component_impact",
+          "full": "src.utils.component_tracker.track_component_impact"
+        },
+        {
+          "module": "src.processing.preprocessor",
+          "name": "TextPreprocessor",
+          "full": "src.processing.preprocessor.TextPreprocessor"
+        },
+        {
+          "module": "src.processing.entity_resolution",
+          "name": "EntityResolver",
+          "full": "src.processing.entity_resolution.EntityResolver"
+        },
+        {
+          "module": "src.providers.graph.metadata_enricher",
+          "name": "SchemalessMetadataEnricher",
+          "full": "src.providers.graph.metadata_enricher.SchemalessMetadataEnricher"
+        },
+        {
+          "module": "src.processing.extraction",
+          "name": "KnowledgeExtractor",
+          "full": "src.processing.extraction.KnowledgeExtractor"
+        },
+        {
+          "module": "src.providers.graph.schemaless_neo4j",
+          "name": "SchemalessNeo4jProvider",
+          "full": "src.providers.graph.schemaless_neo4j.SchemalessNeo4jProvider"
+        },
+        {
+          "module": "src.migration.query_translator",
+          "name": "QueryTranslator",
+          "full": "src.migration.query_translator.QueryTranslator"
+        },
+        {
+          "module": "src.migration.result_standardizer",
+          "name": "ResultStandardizer",
+          "full": "src.migration.result_standardizer.ResultStandardizer"
+        },
+        {
+          "module": "src.providers.graph.compatible_neo4j",
+          "name": "CompatibleNeo4jProvider",
+          "full": "src.providers.graph.compatible_neo4j.CompatibleNeo4jProvider"
+        },
+        {
+          "module": "src.processing.preprocessor",
+          "name": "TextPreprocessor",
+          "full": "src.processing.preprocessor.TextPreprocessor"
+        },
+        {
+          "module": "src.processing.entity_resolution",
+          "name": "EntityResolver",
+          "full": "src.processing.entity_resolution.EntityResolver"
+        },
+        {
+          "module": "src.providers.graph.metadata_enricher",
+          "name": "SchemalessMetadataEnricher",
+          "full": "src.providers.graph.metadata_enricher.SchemalessMetadataEnricher"
+        },
+        {
+          "module": "src.processing.extraction",
+          "name": "KnowledgeExtractor",
+          "full": "src.processing.extraction.KnowledgeExtractor"
+        },
+        {
+          "module": "src.migration.query_translator",
+          "name": "QueryTranslator",
+          "full": "src.migration.query_translator.QueryTranslator"
+        },
+        {
+          "module": "src.migration.result_standardizer",
+          "name": "ResultStandardizer",
+          "full": "src.migration.result_standardizer.ResultStandardizer"
+        }
+      ],
+      "missing": [
+        {
+          "type": "moved_module",
+          "old": "src.providers.llm.gemini_adapter",
+          "new": "src.providers.llm.gemini_adapter",
+          "name": "GeminiGraphRAGAdapter"
+        },
+        {
+          "type": "moved_module",
+          "old": "src.providers.llm.gemini_adapter",
+          "new": "src.providers.llm.gemini_adapter",
+          "name": "create_gemini_adapter"
+        },
+        {
+          "type": "moved_module",
+          "old": "src.providers.embeddings.sentence_transformer_adapter",
+          "new": "src.providers.embeddings.sentence_transformer_adapter",
+          "name": "SentenceTransformerGraphRAGAdapter"
+        },
+        {
+          "type": "moved_module",
+          "old": "src.providers.embeddings.sentence_transformer_adapter",
+          "new": "src.providers.embeddings.sentence_transformer_adapter",
+          "name": "create_sentence_transformer_adapter"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.utils.component_tracker",
+          "name": "track_component_impact"
+        },
+        {
+          "type": "moved_module",
+          "old": "src.processing.preprocessor",
+          "new": "src.extraction.preprocessor",
+          "name": "TextPreprocessor"
+        },
+        {
+          "type": "moved_module",
+          "old": "src.processing.entity_resolution",
+          "new": "src.extraction.entity_resolution",
+          "name": "EntityResolver"
+        },
+        {
+          "type": "moved_module",
+          "old": "src.providers.graph.metadata_enricher",
+          "new": "src.providers.graph.metadata_enricher",
+          "name": "SchemalessMetadataEnricher"
+        },
+        {
+          "type": "moved_module",
+          "old": "src.processing.extraction",
+          "new": "src.extraction.extraction",
+          "name": "KnowledgeExtractor"
+        },
+        {
+          "type": "moved_module",
+          "old": "src.providers.graph.schemaless_neo4j",
+          "new": "src.providers.graph.schemaless_neo4j",
+          "name": "SchemalessNeo4jProvider"
+        },
+        {
+          "type": "moved_module",
+          "old": "src.migration.query_translator",
+          "new": "src.migration.query_translator",
+          "name": "QueryTranslator"
+        },
+        {
+          "type": "moved_module",
+          "old": "src.migration.result_standardizer",
+          "new": "src.migration.result_standardizer",
+          "name": "ResultStandardizer"
+        },
+        {
+          "type": "moved_module",
+          "old": "src.providers.graph.compatible_neo4j",
+          "new": "src.providers.graph.compatible_neo4j",
+          "name": "CompatibleNeo4jProvider"
+        },
+        {
+          "type": "moved_module",
+          "old": "src.processing.preprocessor",
+          "new": "src.extraction.preprocessor",
+          "name": "TextPreprocessor"
+        },
+        {
+          "type": "moved_module",
+          "old": "src.processing.entity_resolution",
+          "new": "src.extraction.entity_resolution",
+          "name": "EntityResolver"
+        },
+        {
+          "type": "moved_module",
+          "old": "src.providers.graph.metadata_enricher",
+          "new": "src.providers.graph.metadata_enricher",
+          "name": "SchemalessMetadataEnricher"
+        },
+        {
+          "type": "moved_module",
+          "old": "src.processing.extraction",
+          "new": "src.extraction.extraction",
+          "name": "KnowledgeExtractor"
+        },
+        {
+          "type": "moved_module",
+          "old": "src.migration.query_translator",
+          "new": "src.migration.query_translator",
+          "name": "QueryTranslator"
+        },
+        {
+          "type": "moved_module",
+          "old": "src.migration.result_standardizer",
+          "new": "src.migration.result_standardizer",
+          "name": "ResultStandardizer"
+        }
+      ],
+      "found": []
+    },
+    "tests/seeding/test_batch_processor.py": {
+      "imports": [
+        "threading",
+        "time",
+        "pytest"
+      ],
+      "from_imports": [
+        {
+          "module": "src.seeding.batch_processor",
+          "name": "BatchItem",
+          "full": "src.seeding.batch_processor.BatchItem"
+        },
+        {
+          "module": "src.seeding.batch_processor",
+          "name": "BatchResult",
+          "full": "src.seeding.batch_processor.BatchResult"
+        },
+        {
+          "module": "src.seeding.batch_processor",
+          "name": "BatchProcessor",
+          "full": "src.seeding.batch_processor.BatchProcessor"
+        },
+        {
+          "module": "src.seeding.batch_processor",
+          "name": "PriorityBatchProcessor",
+          "full": "src.seeding.batch_processor.PriorityBatchProcessor"
+        },
+        {
+          "module": "src.seeding.batch_processor",
+          "name": "create_batch_items",
+          "full": "src.seeding.batch_processor.create_batch_items"
+        },
+        {
+          "module": "src.seeding.batch_processor",
+          "name": "batch_with_timeout",
+          "full": "src.seeding.batch_processor.batch_with_timeout"
+        }
+      ],
+      "missing": [
+        {
+          "type": "missing_class",
+          "module": "src.seeding.batch_processor",
+          "name": "create_batch_items"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.seeding.batch_processor",
+          "name": "batch_with_timeout"
+        }
+      ],
+      "found": []
+    },
+    "tests/seeding/test_concurrency.py": {
+      "imports": [
+        "asyncio",
+        "os",
+        "tempfile",
+        "threading",
+        "time",
+        "pytest"
+      ],
+      "from_imports": [
+        {
+          "module": "src.seeding.concurrency",
+          "name": "Priority",
+          "full": "src.seeding.concurrency.Priority"
+        },
+        {
+          "module": "src.seeding.concurrency",
+          "name": "Job",
+          "full": "src.seeding.concurrency.Job"
+        },
+        {
+          "module": "src.seeding.concurrency",
+          "name": "ConnectionPool",
+          "full": "src.seeding.concurrency.ConnectionPool"
+        },
+        {
+          "module": "src.seeding.concurrency",
+          "name": "FileLock",
+          "full": "src.seeding.concurrency.FileLock"
+        },
+        {
+          "module": "src.seeding.concurrency",
+          "name": "JobQueue",
+          "full": "src.seeding.concurrency.JobQueue"
+        },
+        {
+          "module": "src.seeding.concurrency",
+          "name": "AsyncProviderWrapper",
+          "full": "src.seeding.concurrency.AsyncProviderWrapper"
+        },
+        {
+          "module": "src.seeding.concurrency",
+          "name": "DeadlockDetector",
+          "full": "src.seeding.concurrency.DeadlockDetector"
+        },
+        {
+          "module": "src.seeding.concurrency",
+          "name": "run_async_jobs",
+          "full": "src.seeding.concurrency.run_async_jobs"
+        },
+        {
+          "module": "src.seeding.concurrency",
+          "name": "synchronized",
+          "full": "src.seeding.concurrency.synchronized"
+        }
+      ],
+      "missing": [
+        {
+          "type": "missing_class",
+          "module": "src.seeding.concurrency",
+          "name": "Priority"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.seeding.concurrency",
+          "name": "Job"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.seeding.concurrency",
+          "name": "ConnectionPool"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.seeding.concurrency",
+          "name": "FileLock"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.seeding.concurrency",
+          "name": "JobQueue"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.seeding.concurrency",
+          "name": "AsyncProviderWrapper"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.seeding.concurrency",
+          "name": "DeadlockDetector"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.seeding.concurrency",
+          "name": "run_async_jobs"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.seeding.concurrency",
+          "name": "synchronized"
+        }
+      ],
+      "found": []
+    },
+    "tests/unit/test_core_imports.py": {
+      "imports": [
+        "pytest"
+      ],
+      "from_imports": [
+        {
+          "module": "src.core",
+          "name": "HealthCheckable",
+          "full": "src.core.HealthCheckable"
+        },
+        {
+          "module": "src.core",
+          "name": "AudioProvider",
+          "full": "src.core.AudioProvider"
+        },
+        {
+          "module": "src.core",
+          "name": "LLMProvider",
+          "full": "src.core.LLMProvider"
+        },
+        {
+          "module": "src.core",
+          "name": "GraphProvider",
+          "full": "src.core.GraphProvider"
+        },
+        {
+          "module": "src.core",
+          "name": "EmbeddingProvider",
+          "full": "src.core.EmbeddingProvider"
+        },
+        {
+          "module": "src.core",
+          "name": "KnowledgeExtractor",
+          "full": "src.core.KnowledgeExtractor"
+        },
+        {
+          "module": "src.core",
+          "name": "Neo4jManager",
+          "full": "src.core.Neo4jManager"
+        },
+        {
+          "module": "src.core",
+          "name": "ErrorSeverity",
+          "full": "src.core.ErrorSeverity"
+        },
+        {
+          "module": "src.core",
+          "name": "PodcastProcessingError",
+          "full": "src.core.PodcastProcessingError"
+        },
+        {
+          "module": "src.core",
+          "name": "DatabaseConnectionError",
+          "full": "src.core.DatabaseConnectionError"
+        },
+        {
+          "module": "src.core",
+          "name": "AudioProcessingError",
+          "full": "src.core.AudioProcessingError"
+        },
+        {
+          "module": "src.core",
+          "name": "LLMProcessingError",
+          "full": "src.core.LLMProcessingError"
+        },
+        {
+          "module": "src.core",
+          "name": "ConfigurationError",
+          "full": "src.core.ConfigurationError"
+        },
+        {
+          "module": "src.core",
+          "name": "ValidationError",
+          "full": "src.core.ValidationError"
+        },
+        {
+          "module": "src.core",
+          "name": "ProviderError",
+          "full": "src.core.ProviderError"
+        },
+        {
+          "module": "src.core",
+          "name": "CriticalError",
+          "full": "src.core.CriticalError"
+        },
+        {
+          "module": "src.core",
+          "name": "Podcast",
+          "full": "src.core.Podcast"
+        },
+        {
+          "module": "src.core",
+          "name": "Episode",
+          "full": "src.core.Episode"
+        },
+        {
+          "module": "src.core",
+          "name": "Segment",
+          "full": "src.core.Segment"
+        },
+        {
+          "module": "src.core",
+          "name": "Entity",
+          "full": "src.core.Entity"
+        },
+        {
+          "module": "src.core",
+          "name": "Insight",
+          "full": "src.core.Insight"
+        },
+        {
+          "module": "src.core",
+          "name": "Quote",
+          "full": "src.core.Quote"
+        },
+        {
+          "module": "src.core",
+          "name": "Topic",
+          "full": "src.core.Topic"
+        },
+        {
+          "module": "src.core",
+          "name": "Speaker",
+          "full": "src.core.Speaker"
+        },
+        {
+          "module": "src.core",
+          "name": "ProcessingResult",
+          "full": "src.core.ProcessingResult"
+        },
+        {
+          "module": "src.core",
+          "name": "PipelineConfig",
+          "full": "src.core.PipelineConfig"
+        },
+        {
+          "module": "src.core",
+          "name": "SeedingConfig",
+          "full": "src.core.SeedingConfig"
+        },
+        {
+          "module": "src.core",
+          "name": "load_config",
+          "full": "src.core.load_config"
+        },
+        {
+          "module": "src.core",
+          "name": "constants",
+          "full": "src.core.constants"
+        },
+        {
+          "module": "src.core",
+          "name": "Podcast",
+          "full": "src.core.Podcast"
+        },
+        {
+          "module": "src.core",
+          "name": "Episode",
+          "full": "src.core.Episode"
+        },
+        {
+          "module": "src.core",
+          "name": "Segment",
+          "full": "src.core.Segment"
+        },
+        {
+          "module": "src.core",
+          "name": "validate_podcast",
+          "full": "src.core.validate_podcast"
+        },
+        {
+          "module": "src.core",
+          "name": "validate_episode",
+          "full": "src.core.validate_episode"
+        },
+        {
+          "module": "src.core",
+          "name": "validate_segment",
+          "full": "src.core.validate_segment"
+        },
+        {
+          "module": "src.core",
+          "name": "ErrorSeverity",
+          "full": "src.core.ErrorSeverity"
+        },
+        {
+          "module": "src.core",
+          "name": "ConfigurationError",
+          "full": "src.core.ConfigurationError"
+        },
+        {
+          "module": "src.core",
+          "name": "ValidationError",
+          "full": "src.core.ValidationError"
+        },
+        {
+          "module": "src.core",
+          "name": "AudioProcessingError",
+          "full": "src.core.AudioProcessingError"
+        }
+      ],
+      "missing": [
+        {
+          "type": "moved_class",
+          "old": "src.core.HealthCheckable",
+          "new": "src.core.interfaces.HealthCheckable"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.core",
+          "name": "AudioProvider"
+        },
+        {
+          "type": "moved_class",
+          "old": "src.core.LLMProvider",
+          "new": "src.core.interfaces.LLMProvider"
+        },
+        {
+          "type": "moved_class",
+          "old": "src.core.GraphProvider",
+          "new": "src.core.interfaces.GraphProvider"
+        },
+        {
+          "type": "moved_class",
+          "old": "src.core.EmbeddingProvider",
+          "new": "src.core.interfaces.EmbeddingProvider"
+        },
+        {
+          "type": "moved_class",
+          "old": "src.core.KnowledgeExtractor",
+          "new": "src.core.interfaces.KnowledgeExtractor"
+        },
+        {
+          "type": "moved_class",
+          "old": "src.core.Neo4jManager",
+          "new": "src.core.interfaces.Neo4jManager"
+        },
+        {
+          "type": "moved_class",
+          "old": "src.core.ErrorSeverity",
+          "new": "src.core.exceptions.ErrorSeverity"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.core",
+          "name": "PodcastProcessingError"
+        },
+        {
+          "type": "moved_class",
+          "old": "src.core.DatabaseConnectionError",
+          "new": "src.core.exceptions.DatabaseConnectionError"
+        },
+        {
+          "type": "moved_class",
+          "old": "src.core.AudioProcessingError",
+          "new": "src.core.exceptions.AudioProcessingError"
+        },
+        {
+          "type": "moved_class",
+          "old": "src.core.LLMProcessingError",
+          "new": "src.core.exceptions.LLMProcessingError"
+        },
+        {
+          "type": "moved_class",
+          "old": "src.core.ConfigurationError",
+          "new": "src.core.exceptions.ConfigurationError"
+        },
+        {
+          "type": "moved_class",
+          "old": "src.core.ValidationError",
+          "new": "src.core.exceptions.ValidationError"
+        },
+        {
+          "type": "moved_class",
+          "old": "src.core.ProviderError",
+          "new": "src.core.exceptions.ProviderError"
+        },
+        {
+          "type": "moved_class",
+          "old": "src.core.CriticalError",
+          "new": "src.core.exceptions.CriticalError"
+        },
+        {
+          "type": "moved_class",
+          "old": "src.core.Podcast",
+          "new": "src.core.models.Podcast"
+        },
+        {
+          "type": "moved_class",
+          "old": "src.core.Episode",
+          "new": "src.core.models.Episode"
+        },
+        {
+          "type": "moved_class",
+          "old": "src.core.Segment",
+          "new": "src.core.extraction_interface.Segment"
+        },
+        {
+          "type": "moved_class",
+          "old": "src.core.Entity",
+          "new": "src.core.extraction_interface.Entity"
+        },
+        {
+          "type": "moved_class",
+          "old": "src.core.Insight",
+          "new": "src.core.extraction_interface.Insight"
+        },
+        {
+          "type": "moved_class",
+          "old": "src.core.Quote",
+          "new": "src.core.extraction_interface.Quote"
+        },
+        {
+          "type": "moved_class",
+          "old": "src.core.Topic",
+          "new": "src.core.models.Topic"
+        },
+        {
+          "type": "moved_class",
+          "old": "src.core.Speaker",
+          "new": "src.core.models.Speaker"
+        },
+        {
+          "type": "moved_class",
+          "old": "src.core.ProcessingResult",
+          "new": "src.core.models.ProcessingResult"
+        },
+        {
+          "type": "moved_class",
+          "old": "src.core.PipelineConfig",
+          "new": "src.core.config.PipelineConfig"
+        },
+        {
+          "type": "moved_class",
+          "old": "src.core.SeedingConfig",
+          "new": "src.core.config.SeedingConfig"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.core",
+          "name": "load_config"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.core",
+          "name": "constants"
+        },
+        {
+          "type": "moved_class",
+          "old": "src.core.Podcast",
+          "new": "src.core.models.Podcast"
+        },
+        {
+          "type": "moved_class",
+          "old": "src.core.Episode",
+          "new": "src.core.models.Episode"
+        },
+        {
+          "type": "moved_class",
+          "old": "src.core.Segment",
+          "new": "src.core.extraction_interface.Segment"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.core",
+          "name": "validate_podcast"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.core",
+          "name": "validate_episode"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.core",
+          "name": "validate_segment"
+        },
+        {
+          "type": "moved_class",
+          "old": "src.core.ErrorSeverity",
+          "new": "src.core.exceptions.ErrorSeverity"
+        },
+        {
+          "type": "moved_class",
+          "old": "src.core.ConfigurationError",
+          "new": "src.core.exceptions.ConfigurationError"
+        },
+        {
+          "type": "moved_class",
+          "old": "src.core.ValidationError",
+          "new": "src.core.exceptions.ValidationError"
+        },
+        {
+          "type": "moved_class",
+          "old": "src.core.AudioProcessingError",
+          "new": "src.core.exceptions.AudioProcessingError"
+        }
+      ],
+      "found": []
+    },
+    "tests/unit/test_debugging_utils.py": {
+      "imports": [
+        "json",
+        "logging",
+        "pytest"
+      ],
+      "from_imports": [
+        {
+          "module": "src.utils.debugging",
+          "name": "ErrorSeverity",
+          "full": "src.utils.debugging.ErrorSeverity"
+        },
+        {
+          "module": "src.utils.debugging",
+          "name": "ErrorCategory",
+          "full": "src.utils.debugging.ErrorCategory"
+        },
+        {
+          "module": "src.utils.debugging",
+          "name": "ErrorContext",
+          "full": "src.utils.debugging.ErrorContext"
+        },
+        {
+          "module": "src.utils.debugging",
+          "name": "DebugLogger",
+          "full": "src.utils.debugging.DebugLogger"
+        },
+        {
+          "module": "src.utils.debugging",
+          "name": "with_error_context",
+          "full": "src.utils.debugging.with_error_context"
+        },
+        {
+          "module": "src.utils.debugging",
+          "name": "debug_context",
+          "full": "src.utils.debugging.debug_context"
+        },
+        {
+          "module": "src.utils.debugging",
+          "name": "ErrorAnalyzer",
+          "full": "src.utils.debugging.ErrorAnalyzer"
+        },
+        {
+          "module": "src.utils.debugging",
+          "name": "create_provider_error_handler",
+          "full": "src.utils.debugging.create_provider_error_handler"
+        },
+        {
+          "module": "src.utils.debugging",
+          "name": "ErrorRecoveryStrategy",
+          "full": "src.utils.debugging.ErrorRecoveryStrategy"
+        }
+      ],
+      "missing": [
+        {
+          "type": "missing_class",
+          "module": "src.utils.debugging",
+          "name": "with_error_context"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.utils.debugging",
+          "name": "debug_context"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.utils.debugging",
+          "name": "create_provider_error_handler"
+        }
+      ],
+      "found": []
+    },
+    "tests/unit/test_error_budget.py": {
+      "imports": [
+        "json",
+        "pytest",
+        "yaml"
+      ],
+      "from_imports": [
+        {
+          "module": "src.core.error_budget",
+          "name": "BurnRateWindow",
+          "full": "src.core.error_budget.BurnRateWindow"
+        },
+        {
+          "module": "src.core.error_budget",
+          "name": "AlertSeverity",
+          "full": "src.core.error_budget.AlertSeverity"
+        },
+        {
+          "module": "src.core.error_budget",
+          "name": "SLODefinition",
+          "full": "src.core.error_budget.SLODefinition"
+        },
+        {
+          "module": "src.core.error_budget",
+          "name": "ErrorBudgetStatus",
+          "full": "src.core.error_budget.ErrorBudgetStatus"
+        },
+        {
+          "module": "src.core.error_budget",
+          "name": "ErrorBudgetAlert",
+          "full": "src.core.error_budget.ErrorBudgetAlert"
+        },
+        {
+          "module": "src.core.error_budget",
+          "name": "ErrorBudgetTracker",
+          "full": "src.core.error_budget.ErrorBudgetTracker"
+        },
+        {
+          "module": "src.core.error_budget",
+          "name": "get_error_budget_tracker",
+          "full": "src.core.error_budget.get_error_budget_tracker"
+        }
+      ],
+      "missing": [
+        {
+          "type": "deleted_module",
+          "module": "src.core.error_budget",
+          "name": "BurnRateWindow"
+        },
+        {
+          "type": "deleted_module",
+          "module": "src.core.error_budget",
+          "name": "AlertSeverity"
+        },
+        {
+          "type": "deleted_module",
+          "module": "src.core.error_budget",
+          "name": "SLODefinition"
+        },
+        {
+          "type": "deleted_module",
+          "module": "src.core.error_budget",
+          "name": "ErrorBudgetStatus"
+        },
+        {
+          "type": "deleted_module",
+          "module": "src.core.error_budget",
+          "name": "ErrorBudgetAlert"
+        },
+        {
+          "type": "deleted_module",
+          "module": "src.core.error_budget",
+          "name": "ErrorBudgetTracker"
+        },
+        {
+          "type": "deleted_module",
+          "module": "src.core.error_budget",
+          "name": "get_error_budget_tracker"
+        }
+      ],
+      "found": []
+    },
+    "tests/unit/test_exceptions.py": {
+      "imports": [
+        "pytest"
+      ],
+      "from_imports": [
+        {
+          "module": "src.core.exceptions",
+          "name": "ErrorSeverity",
+          "full": "src.core.exceptions.ErrorSeverity"
+        },
+        {
+          "module": "src.core.exceptions",
+          "name": "PodcastProcessingError",
+          "full": "src.core.exceptions.PodcastProcessingError"
+        },
+        {
+          "module": "src.core.exceptions",
+          "name": "DatabaseConnectionError",
+          "full": "src.core.exceptions.DatabaseConnectionError"
+        },
+        {
+          "module": "src.core.exceptions",
+          "name": "AudioProcessingError",
+          "full": "src.core.exceptions.AudioProcessingError"
+        },
+        {
+          "module": "src.core.exceptions",
+          "name": "LLMProcessingError",
+          "full": "src.core.exceptions.LLMProcessingError"
+        },
+        {
+          "module": "src.core.exceptions",
+          "name": "ConfigurationError",
+          "full": "src.core.exceptions.ConfigurationError"
+        },
+        {
+          "module": "src.core.exceptions",
+          "name": "PipelineError",
+          "full": "src.core.exceptions.PipelineError"
+        },
+        {
+          "module": "src.core.exceptions",
+          "name": "ValidationError",
+          "full": "src.core.exceptions.ValidationError"
+        },
+        {
+          "module": "src.core.exceptions",
+          "name": "ProviderError",
+          "full": "src.core.exceptions.ProviderError"
+        },
+        {
+          "module": "src.core.exceptions",
+          "name": "CriticalError",
+          "full": "src.core.exceptions.CriticalError"
+        },
+        {
+          "module": "src.core.exceptions",
+          "name": "ExtractionError",
+          "full": "src.core.exceptions.ExtractionError"
+        },
+        {
+          "module": "src.core.exceptions",
+          "name": "RateLimitError",
+          "full": "src.core.exceptions.RateLimitError"
+        },
+        {
+          "module": "src.core.exceptions",
+          "name": "TimeoutError",
+          "full": "src.core.exceptions.TimeoutError"
+        },
+        {
+          "module": "src.core.exceptions",
+          "name": "ResourceError",
+          "full": "src.core.exceptions.ResourceError"
+        },
+        {
+          "module": "src.core.exceptions",
+          "name": "DataIntegrityError",
+          "full": "src.core.exceptions.DataIntegrityError"
+        },
+        {
+          "module": "src.core.exceptions",
+          "name": "ParsingError",
+          "full": "src.core.exceptions.ParsingError"
+        },
+        {
+          "module": "src.core.exceptions",
+          "name": "CheckpointError",
+          "full": "src.core.exceptions.CheckpointError"
+        },
+        {
+          "module": "src.core.exceptions",
+          "name": "BatchProcessingError",
+          "full": "src.core.exceptions.BatchProcessingError"
+        },
+        {
+          "module": "src.core.exceptions",
+          "name": "PodcastKGError",
+          "full": "src.core.exceptions.PodcastKGError"
+        },
+        {
+          "module": "src.core.exceptions",
+          "name": "ConnectionError",
+          "full": "src.core.exceptions.ConnectionError"
+        }
+      ],
+      "missing": [
+        {
+          "type": "missing_class",
+          "module": "src.core.exceptions",
+          "name": "PodcastProcessingError"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.core.exceptions",
+          "name": "PodcastKGError"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.core.exceptions",
+          "name": "ConnectionError"
+        }
+      ],
+      "found": []
+    },
+    "tests/unit/test_extraction_integration.py": {
+      "imports": [
+        "json",
+        "pytest",
+        "time",
+        "time"
+      ],
+      "from_imports": [
+        {
+          "module": "src.processing.extraction",
+          "name": "KnowledgeExtractor",
+          "full": "src.processing.extraction.KnowledgeExtractor"
+        },
+        {
+          "module": "src.processing.extraction",
+          "name": "ExtractionResult",
+          "full": "src.processing.extraction.ExtractionResult"
+        },
+        {
+          "module": "src.processing.extraction",
+          "name": "create_extractor",
+          "full": "src.processing.extraction.create_extractor"
+        },
+        {
+          "module": "src.core.models",
+          "name": "Entity",
+          "full": "src.core.models.Entity"
+        },
+        {
+          "module": "src.core.models",
+          "name": "EntityType",
+          "full": "src.core.models.EntityType"
+        },
+        {
+          "module": "src.core.models",
+          "name": "Insight",
+          "full": "src.core.models.Insight"
+        },
+        {
+          "module": "src.core.models",
+          "name": "InsightType",
+          "full": "src.core.models.InsightType"
+        },
+        {
+          "module": "src.core.models",
+          "name": "Quote",
+          "full": "src.core.models.Quote"
+        },
+        {
+          "module": "src.core.models",
+          "name": "QuoteType",
+          "full": "src.core.models.QuoteType"
+        },
+        {
+          "module": "src.core.models",
+          "name": "Segment",
+          "full": "src.core.models.Segment"
+        },
+        {
+          "module": "src.core.models",
+          "name": "SpeakerRole",
+          "full": "src.core.models.SpeakerRole"
+        },
+        {
+          "module": "src.core.models",
+          "name": "ComplexityLevel",
+          "full": "src.core.models.ComplexityLevel"
+        },
+        {
+          "module": "src.core.exceptions",
+          "name": "ExtractionError",
+          "full": "src.core.exceptions.ExtractionError"
+        },
+        {
+          "module": "src.processing.prompts",
+          "name": "PromptBuilder",
+          "full": "src.processing.prompts.PromptBuilder"
+        },
+        {
+          "module": "src.processing.parsers",
+          "name": "ResponseParser",
+          "full": "src.processing.parsers.ResponseParser"
+        },
+        {
+          "module": "src.processing.importance_scoring",
+          "name": "ImportanceScorer",
+          "full": "src.processing.importance_scoring.ImportanceScorer"
+        }
+      ],
+      "missing": [
+        {
+          "type": "moved_module",
+          "old": "src.processing.extraction",
+          "new": "src.extraction.extraction",
+          "name": "KnowledgeExtractor"
+        },
+        {
+          "type": "moved_module",
+          "old": "src.processing.extraction",
+          "new": "src.extraction.extraction",
+          "name": "ExtractionResult"
+        },
+        {
+          "type": "moved_module",
+          "old": "src.processing.extraction",
+          "new": "src.extraction.extraction",
+          "name": "create_extractor"
+        },
+        {
+          "type": "moved_module",
+          "old": "src.processing.prompts",
+          "new": "src.extraction.prompts",
+          "name": "PromptBuilder"
+        },
+        {
+          "type": "moved_module",
+          "old": "src.processing.parsers",
+          "new": "src.extraction.parsers",
+          "name": "ResponseParser"
+        },
+        {
+          "type": "moved_module",
+          "old": "src.processing.importance_scoring",
+          "new": "src.extraction.importance_scoring",
+          "name": "ImportanceScorer"
+        }
+      ],
+      "found": []
+    },
+    "tests/unit/test_extraction_unit.py": {
+      "imports": [
+        "json",
+        "pytest",
+        "threading",
+        "random"
+      ],
+      "from_imports": [
+        {
+          "module": "src.processing.extraction",
+          "name": "KnowledgeExtractor",
+          "full": "src.processing.extraction.KnowledgeExtractor"
+        },
+        {
+          "module": "src.processing.extraction",
+          "name": "ExtractionResult",
+          "full": "src.processing.extraction.ExtractionResult"
+        },
+        {
+          "module": "src.processing.extraction",
+          "name": "create_extractor",
+          "full": "src.processing.extraction.create_extractor"
+        },
+        {
+          "module": "src.core.models",
+          "name": "Entity",
+          "full": "src.core.models.Entity"
+        },
+        {
+          "module": "src.core.models",
+          "name": "EntityType",
+          "full": "src.core.models.EntityType"
+        },
+        {
+          "module": "src.core.models",
+          "name": "Insight",
+          "full": "src.core.models.Insight"
+        },
+        {
+          "module": "src.core.models",
+          "name": "InsightType",
+          "full": "src.core.models.InsightType"
+        },
+        {
+          "module": "src.core.models",
+          "name": "Quote",
+          "full": "src.core.models.Quote"
+        },
+        {
+          "module": "src.core.models",
+          "name": "QuoteType",
+          "full": "src.core.models.QuoteType"
+        },
+        {
+          "module": "src.core.models",
+          "name": "Segment",
+          "full": "src.core.models.Segment"
+        },
+        {
+          "module": "src.core.exceptions",
+          "name": "ExtractionError",
+          "full": "src.core.exceptions.ExtractionError"
+        }
+      ],
+      "missing": [
+        {
+          "type": "moved_module",
+          "old": "src.processing.extraction",
+          "new": "src.extraction.extraction",
+          "name": "KnowledgeExtractor"
+        },
+        {
+          "type": "moved_module",
+          "old": "src.processing.extraction",
+          "new": "src.extraction.extraction",
+          "name": "ExtractionResult"
+        },
+        {
+          "type": "moved_module",
+          "old": "src.processing.extraction",
+          "new": "src.extraction.extraction",
+          "name": "create_extractor"
+        }
+      ],
+      "found": []
+    },
+    "tests/unit/test_feature_flags.py": {
+      "imports": [
+        "os",
+        "pytest"
+      ],
+      "from_imports": [
+        {
+          "module": "src.core.feature_flags",
+          "name": "FeatureFlag",
+          "full": "src.core.feature_flags.FeatureFlag"
+        },
+        {
+          "module": "src.core.feature_flags",
+          "name": "FlagConfig",
+          "full": "src.core.feature_flags.FlagConfig"
+        },
+        {
+          "module": "src.core.feature_flags",
+          "name": "FeatureFlagManager",
+          "full": "src.core.feature_flags.FeatureFlagManager"
+        },
+        {
+          "module": "src.core.feature_flags",
+          "name": "get_feature_flag_manager",
+          "full": "src.core.feature_flags.get_feature_flag_manager"
+        },
+        {
+          "module": "src.core.feature_flags",
+          "name": "is_enabled",
+          "full": "src.core.feature_flags.is_enabled"
+        },
+        {
+          "module": "src.core.feature_flags",
+          "name": "set_flag",
+          "full": "src.core.feature_flags.set_flag"
+        },
+        {
+          "module": "src.core.feature_flags",
+          "name": "get_all_flags",
+          "full": "src.core.feature_flags.get_all_flags"
+        },
+        {
+          "module": "src.core.feature_flags",
+          "name": "requires_flag",
+          "full": "src.core.feature_flags.requires_flag"
+        },
+        {
+          "module": "src.core",
+          "name": "feature_flags",
+          "full": "src.core.feature_flags"
+        }
+      ],
+      "missing": [
+        {
+          "type": "missing_class",
+          "module": "src.core.feature_flags",
+          "name": "get_feature_flag_manager"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.core.feature_flags",
+          "name": "is_enabled"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.core.feature_flags",
+          "name": "set_flag"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.core.feature_flags",
+          "name": "get_all_flags"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.core.feature_flags",
+          "name": "requires_flag"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.core",
+          "name": "feature_flags"
+        }
+      ],
+      "found": []
+    },
+    "tests/unit/test_interfaces_full.py": {
+      "imports": [
+        "pytest"
+      ],
+      "from_imports": [
+        {
+          "module": "src.core.interfaces",
+          "name": "HealthCheckable",
+          "full": "src.core.interfaces.HealthCheckable"
+        },
+        {
+          "module": "src.core.interfaces",
+          "name": "AudioProvider",
+          "full": "src.core.interfaces.AudioProvider"
+        },
+        {
+          "module": "src.core.interfaces",
+          "name": "LLMProvider",
+          "full": "src.core.interfaces.LLMProvider"
+        },
+        {
+          "module": "src.core.interfaces",
+          "name": "GraphProvider",
+          "full": "src.core.interfaces.GraphProvider"
+        },
+        {
+          "module": "src.core.interfaces",
+          "name": "EmbeddingProvider",
+          "full": "src.core.interfaces.EmbeddingProvider"
+        },
+        {
+          "module": "src.core.interfaces",
+          "name": "KnowledgeExtractor",
+          "full": "src.core.interfaces.KnowledgeExtractor"
+        },
+        {
+          "module": "src.core.interfaces",
+          "name": "DiarizationSegment",
+          "full": "src.core.interfaces.DiarizationSegment"
+        },
+        {
+          "module": "src.core.interfaces",
+          "name": "TranscriptSegment",
+          "full": "src.core.interfaces.TranscriptSegment"
+        },
+        {
+          "module": "src.core.interfaces",
+          "name": "LLMResponse",
+          "full": "src.core.interfaces.LLMResponse"
+        },
+        {
+          "module": "src.core.interfaces",
+          "name": "ExtractedEntity",
+          "full": "src.core.interfaces.ExtractedEntity"
+        },
+        {
+          "module": "src.core.interfaces",
+          "name": "ExtractedInsight",
+          "full": "src.core.interfaces.ExtractedInsight"
+        },
+        {
+          "module": "src.core.interfaces",
+          "name": "ExtractedQuote",
+          "full": "src.core.interfaces.ExtractedQuote"
+        },
+        {
+          "module": "src.core.interfaces",
+          "name": "Neo4jManager",
+          "full": "src.core.interfaces.Neo4jManager"
+        }
+      ],
+      "missing": [
+        {
+          "type": "missing_class",
+          "module": "src.core.interfaces",
+          "name": "AudioProvider"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.core.interfaces",
+          "name": "DiarizationSegment"
+        }
+      ],
+      "found": []
+    },
+    "tests/unit/test_logging_utils.py": {
+      "imports": [
+        "json",
+        "logging",
+        "sys",
+        "time",
+        "pytest"
+      ],
+      "from_imports": [
+        {
+          "module": "src.utils.logging",
+          "name": "StructuredFormatter",
+          "full": "src.utils.logging.StructuredFormatter"
+        },
+        {
+          "module": "src.utils.logging",
+          "name": "ContextFilter",
+          "full": "src.utils.logging.ContextFilter"
+        },
+        {
+          "module": "src.utils.logging",
+          "name": "PerformanceFilter",
+          "full": "src.utils.logging.PerformanceFilter"
+        },
+        {
+          "module": "src.utils.logging",
+          "name": "setup_logging",
+          "full": "src.utils.logging.setup_logging"
+        },
+        {
+          "module": "src.utils.logging",
+          "name": "get_logger",
+          "full": "src.utils.logging.get_logger"
+        },
+        {
+          "module": "src.utils.logging",
+          "name": "log_execution_time",
+          "full": "src.utils.logging.log_execution_time"
+        },
+        {
+          "module": "src.utils.logging",
+          "name": "log_with_context",
+          "full": "src.utils.logging.log_with_context"
+        },
+        {
+          "module": "src.utils.logging",
+          "name": "LogContext",
+          "full": "src.utils.logging.LogContext"
+        },
+        {
+          "module": "src.utils.logging",
+          "name": "create_operation_logger",
+          "full": "src.utils.logging.create_operation_logger"
+        },
+        {
+          "module": "src.utils.logging",
+          "name": "log_error_with_context",
+          "full": "src.utils.logging.log_error_with_context"
+        },
+        {
+          "module": "src.utils.logging",
+          "name": "log_metric",
+          "full": "src.utils.logging.log_metric"
+        }
+      ],
+      "missing": [
+        {
+          "type": "missing_class",
+          "module": "src.utils.logging",
+          "name": "ContextFilter"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.utils.logging",
+          "name": "PerformanceFilter"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.utils.logging",
+          "name": "setup_logging"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.utils.logging",
+          "name": "get_logger"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.utils.logging",
+          "name": "log_execution_time"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.utils.logging",
+          "name": "log_with_context"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.utils.logging",
+          "name": "LogContext"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.utils.logging",
+          "name": "create_operation_logger"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.utils.logging",
+          "name": "log_error_with_context"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.utils.logging",
+          "name": "log_metric"
+        }
+      ],
+      "found": []
+    },
+    "tests/unit/test_metrics.py": {
+      "imports": [
+        "threading",
+        "time",
+        "pytest"
+      ],
+      "from_imports": [
+        {
+          "module": "src.api.metrics",
+          "name": "MetricType",
+          "full": "src.api.metrics.MetricType"
+        },
+        {
+          "module": "src.api.metrics",
+          "name": "Metric",
+          "full": "src.api.metrics.Metric"
+        },
+        {
+          "module": "src.api.metrics",
+          "name": "Counter",
+          "full": "src.api.metrics.Counter"
+        },
+        {
+          "module": "src.api.metrics",
+          "name": "Gauge",
+          "full": "src.api.metrics.Gauge"
+        },
+        {
+          "module": "src.api.metrics",
+          "name": "Histogram",
+          "full": "src.api.metrics.Histogram"
+        },
+        {
+          "module": "src.api.metrics",
+          "name": "Summary",
+          "full": "src.api.metrics.Summary"
+        },
+        {
+          "module": "src.api.metrics",
+          "name": "MetricsCollector",
+          "full": "src.api.metrics.MetricsCollector"
+        },
+        {
+          "module": "src.api.metrics",
+          "name": "track_duration",
+          "full": "src.api.metrics.track_duration"
+        },
+        {
+          "module": "src.api.metrics",
+          "name": "track_provider_call",
+          "full": "src.api.metrics.track_provider_call"
+        },
+        {
+          "module": "src.api.metrics",
+          "name": "create_metrics_endpoint",
+          "full": "src.api.metrics.create_metrics_endpoint"
+        },
+        {
+          "module": "src.api.metrics",
+          "name": "get_metrics_collector",
+          "full": "src.api.metrics.get_metrics_collector"
+        }
+      ],
+      "missing": [
+        {
+          "type": "missing_class",
+          "module": "src.api.metrics",
+          "name": "track_duration"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.api.metrics",
+          "name": "track_provider_call"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.api.metrics",
+          "name": "create_metrics_endpoint"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.api.metrics",
+          "name": "get_metrics_collector"
+        }
+      ],
+      "found": []
+    },
+    "tests/unit/test_orchestrator_scenarios.py": {
+      "imports": [
+        "json",
+        "os",
+        "tempfile",
+        "pytest"
+      ],
+      "from_imports": [
+        {
+          "module": "src.core.config",
+          "name": "SeedingConfig",
+          "full": "src.core.config.SeedingConfig"
+        },
+        {
+          "module": "src.core.exceptions",
+          "name": "PipelineError",
+          "full": "src.core.exceptions.PipelineError"
+        },
+        {
+          "module": "src.core.models",
+          "name": "Entity",
+          "full": "src.core.models.Entity"
+        },
+        {
+          "module": "src.core.models",
+          "name": "Insight",
+          "full": "src.core.models.Insight"
+        },
+        {
+          "module": "src.core.models",
+          "name": "Quote",
+          "full": "src.core.models.Quote"
+        },
+        {
+          "module": "src.core.models",
+          "name": "EntityType",
+          "full": "src.core.models.EntityType"
+        },
+        {
+          "module": "src.seeding.orchestrator",
+          "name": "PodcastKnowledgePipeline",
+          "full": "src.seeding.orchestrator.PodcastKnowledgePipeline"
+        }
+      ],
+      "missing": [
+        {
+          "type": "renamed_class",
+          "old": "PodcastKnowledgePipeline",
+          "new": "VTTKnowledgeExtractor"
+        }
+      ],
+      "found": []
+    },
+    "tests/unit/test_rate_limiting_utils.py": {
+      "imports": [
+        "asyncio",
+        "threading",
+        "time",
+        "pytest"
+      ],
+      "from_imports": [
+        {
+          "module": "src.utils.rate_limiting",
+          "name": "RateLimiter",
+          "full": "src.utils.rate_limiting.RateLimiter"
+        },
+        {
+          "module": "src.utils.rate_limiting",
+          "name": "TokenBucketRateLimiter",
+          "full": "src.utils.rate_limiting.TokenBucketRateLimiter"
+        },
+        {
+          "module": "src.utils.rate_limiting",
+          "name": "SlidingWindowRateLimiter",
+          "full": "src.utils.rate_limiting.SlidingWindowRateLimiter"
+        },
+        {
+          "module": "src.utils.rate_limiting",
+          "name": "FixedWindowRateLimiter",
+          "full": "src.utils.rate_limiting.FixedWindowRateLimiter"
+        },
+        {
+          "module": "src.utils.rate_limiting",
+          "name": "rate_limit",
+          "full": "src.utils.rate_limiting.rate_limit"
+        },
+        {
+          "module": "src.utils.rate_limiting",
+          "name": "async_rate_limit",
+          "full": "src.utils.rate_limiting.async_rate_limit"
+        },
+        {
+          "module": "src.utils.rate_limiting",
+          "name": "RateLimitExceeded",
+          "full": "src.utils.rate_limiting.RateLimitExceeded"
+        },
+        {
+          "module": "src.utils.rate_limiting",
+          "name": "MultiRateLimiter",
+          "full": "src.utils.rate_limiting.MultiRateLimiter"
+        },
+        {
+          "module": "src.utils.rate_limiting",
+          "name": "DistributedRateLimiter",
+          "full": "src.utils.rate_limiting.DistributedRateLimiter"
+        },
+        {
+          "module": "src.utils.rate_limiting",
+          "name": "AdaptiveRateLimiter",
+          "full": "src.utils.rate_limiting.AdaptiveRateLimiter"
+        },
+        {
+          "module": "src.utils.rate_limiting",
+          "name": "rate_limit_key",
+          "full": "src.utils.rate_limiting.rate_limit_key"
+        },
+        {
+          "module": "src.utils.rate_limiting",
+          "name": "get_rate_limiter",
+          "full": "src.utils.rate_limiting.get_rate_limiter"
+        },
+        {
+          "module": "src.utils.rate_limiting",
+          "name": "clear_rate_limiters",
+          "full": "src.utils.rate_limiting.clear_rate_limiters"
+        }
+      ],
+      "missing": [
+        {
+          "type": "missing_class",
+          "module": "src.utils.rate_limiting",
+          "name": "SlidingWindowRateLimiter"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.utils.rate_limiting",
+          "name": "FixedWindowRateLimiter"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.utils.rate_limiting",
+          "name": "rate_limit"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.utils.rate_limiting",
+          "name": "async_rate_limit"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.utils.rate_limiting",
+          "name": "RateLimitExceeded"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.utils.rate_limiting",
+          "name": "MultiRateLimiter"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.utils.rate_limiting",
+          "name": "DistributedRateLimiter"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.utils.rate_limiting",
+          "name": "AdaptiveRateLimiter"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.utils.rate_limiting",
+          "name": "rate_limit_key"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.utils.rate_limiting",
+          "name": "get_rate_limiter"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.utils.rate_limiting",
+          "name": "clear_rate_limiters"
+        }
+      ],
+      "found": []
+    },
+    "tests/unit/test_retry_comprehensive.py": {
+      "imports": [
+        "asyncio",
+        "random",
+        "time",
+        "pytest"
+      ],
+      "from_imports": [
+        {
+          "module": "src.utils.retry",
+          "name": "RetryError",
+          "full": "src.utils.retry.RetryError"
+        },
+        {
+          "module": "src.utils.retry",
+          "name": "RetryExhausted",
+          "full": "src.utils.retry.RetryExhausted"
+        },
+        {
+          "module": "src.utils.retry",
+          "name": "RetryConfig",
+          "full": "src.utils.retry.RetryConfig"
+        },
+        {
+          "module": "src.utils.retry",
+          "name": "RetryStrategy",
+          "full": "src.utils.retry.RetryStrategy"
+        },
+        {
+          "module": "src.utils.retry",
+          "name": "ExponentialBackoff",
+          "full": "src.utils.retry.ExponentialBackoff"
+        },
+        {
+          "module": "src.utils.retry",
+          "name": "LinearBackoff",
+          "full": "src.utils.retry.LinearBackoff"
+        },
+        {
+          "module": "src.utils.retry",
+          "name": "FibonacciBackoff",
+          "full": "src.utils.retry.FibonacciBackoff"
+        },
+        {
+          "module": "src.utils.retry",
+          "name": "RandomJitter",
+          "full": "src.utils.retry.RandomJitter"
+        },
+        {
+          "module": "src.utils.retry",
+          "name": "FullJitter",
+          "full": "src.utils.retry.FullJitter"
+        },
+        {
+          "module": "src.utils.retry",
+          "name": "DecorrelatedJitter",
+          "full": "src.utils.retry.DecorrelatedJitter"
+        },
+        {
+          "module": "src.utils.retry",
+          "name": "RetryPolicy",
+          "full": "src.utils.retry.RetryPolicy"
+        },
+        {
+          "module": "src.utils.retry",
+          "name": "CircuitBreaker",
+          "full": "src.utils.retry.CircuitBreaker"
+        },
+        {
+          "module": "src.utils.retry",
+          "name": "CircuitState",
+          "full": "src.utils.retry.CircuitState"
+        },
+        {
+          "module": "src.utils.retry",
+          "name": "retry",
+          "full": "src.utils.retry.retry"
+        },
+        {
+          "module": "src.utils.retry",
+          "name": "async_retry",
+          "full": "src.utils.retry.async_retry"
+        },
+        {
+          "module": "src.utils.retry",
+          "name": "with_retry",
+          "full": "src.utils.retry.with_retry"
+        },
+        {
+          "module": "src.utils.retry",
+          "name": "RetryContext",
+          "full": "src.utils.retry.RetryContext"
+        },
+        {
+          "module": "src.utils.retry",
+          "name": "RetryStats",
+          "full": "src.utils.retry.RetryStats"
+        },
+        {
+          "module": "src.utils.retry",
+          "name": "create_retry_policy",
+          "full": "src.utils.retry.create_retry_policy"
+        },
+        {
+          "module": "src.utils.retry",
+          "name": "should_retry",
+          "full": "src.utils.retry.should_retry"
+        },
+        {
+          "module": "src.utils.retry",
+          "name": "calculate_backoff",
+          "full": "src.utils.retry.calculate_backoff"
+        },
+        {
+          "module": "src.utils.retry",
+          "name": "RetryableError",
+          "full": "src.utils.retry.RetryableError"
+        },
+        {
+          "module": "src.utils.retry",
+          "name": "NonRetryableError",
+          "full": "src.utils.retry.NonRetryableError"
+        },
+        {
+          "module": "src.utils.retry",
+          "name": "is_retryable",
+          "full": "src.utils.retry.is_retryable"
+        }
+      ],
+      "missing": [
+        {
+          "type": "missing_class",
+          "module": "src.utils.retry",
+          "name": "RetryError"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.utils.retry",
+          "name": "RetryExhausted"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.utils.retry",
+          "name": "RetryConfig"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.utils.retry",
+          "name": "LinearBackoff"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.utils.retry",
+          "name": "FibonacciBackoff"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.utils.retry",
+          "name": "RandomJitter"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.utils.retry",
+          "name": "FullJitter"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.utils.retry",
+          "name": "DecorrelatedJitter"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.utils.retry",
+          "name": "RetryPolicy"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.utils.retry",
+          "name": "retry"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.utils.retry",
+          "name": "async_retry"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.utils.retry",
+          "name": "with_retry"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.utils.retry",
+          "name": "RetryContext"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.utils.retry",
+          "name": "RetryStats"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.utils.retry",
+          "name": "create_retry_policy"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.utils.retry",
+          "name": "should_retry"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.utils.retry",
+          "name": "calculate_backoff"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.utils.retry",
+          "name": "NonRetryableError"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.utils.retry",
+          "name": "is_retryable"
+        }
+      ],
+      "found": []
+    },
+    "tests/unit/test_retry_utils.py": {
+      "imports": [
+        "time",
+        "pytest"
+      ],
+      "from_imports": [
+        {
+          "module": "src.utils.retry",
+          "name": "ExponentialBackoff",
+          "full": "src.utils.retry.ExponentialBackoff"
+        },
+        {
+          "module": "src.utils.retry",
+          "name": "RetryStrategy",
+          "full": "src.utils.retry.RetryStrategy"
+        },
+        {
+          "module": "src.utils.retry",
+          "name": "CircuitState",
+          "full": "src.utils.retry.CircuitState"
+        },
+        {
+          "module": "src.utils.retry",
+          "name": "CircuitBreaker",
+          "full": "src.utils.retry.CircuitBreaker"
+        },
+        {
+          "module": "src.utils.retry",
+          "name": "retry_with_backoff",
+          "full": "src.utils.retry.retry_with_backoff"
+        },
+        {
+          "module": "src.utils.retry",
+          "name": "retry_on_exception",
+          "full": "src.utils.retry.retry_on_exception"
+        },
+        {
+          "module": "src.utils.retry",
+          "name": "async_retry",
+          "full": "src.utils.retry.async_retry"
+        },
+        {
+          "module": "src.utils.retry",
+          "name": "RetryConfig",
+          "full": "src.utils.retry.RetryConfig"
+        },
+        {
+          "module": "src.utils.retry",
+          "name": "RetryError",
+          "full": "src.utils.retry.RetryError"
+        }
+      ],
+      "missing": [
+        {
+          "type": "missing_class",
+          "module": "src.utils.retry",
+          "name": "retry_with_backoff"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.utils.retry",
+          "name": "retry_on_exception"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.utils.retry",
+          "name": "async_retry"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.utils.retry",
+          "name": "RetryConfig"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.utils.retry",
+          "name": "RetryError"
+        }
+      ],
+      "found": []
+    },
+    "tests/unit/test_text_processing_utils.py": {
+      "imports": [
+        "pytest"
+      ],
+      "from_imports": [
+        {
+          "module": "src.utils.text_processing",
+          "name": "clean_segment_text",
+          "full": "src.utils.text_processing.clean_segment_text"
+        },
+        {
+          "module": "src.utils.text_processing",
+          "name": "normalize_entity_name",
+          "full": "src.utils.text_processing.normalize_entity_name"
+        },
+        {
+          "module": "src.utils.text_processing",
+          "name": "calculate_name_similarity",
+          "full": "src.utils.text_processing.calculate_name_similarity"
+        },
+        {
+          "module": "src.utils.text_processing",
+          "name": "extract_key_phrases",
+          "full": "src.utils.text_processing.extract_key_phrases"
+        },
+        {
+          "module": "src.utils.text_processing",
+          "name": "split_into_sentences",
+          "full": "src.utils.text_processing.split_into_sentences"
+        },
+        {
+          "module": "src.utils.text_processing",
+          "name": "remove_filler_words",
+          "full": "src.utils.text_processing.remove_filler_words"
+        },
+        {
+          "module": "src.utils.text_processing",
+          "name": "normalize_whitespace",
+          "full": "src.utils.text_processing.normalize_whitespace"
+        },
+        {
+          "module": "src.utils.text_processing",
+          "name": "is_valid_sentence",
+          "full": "src.utils.text_processing.is_valid_sentence"
+        },
+        {
+          "module": "src.utils.text_processing",
+          "name": "merge_text_segments",
+          "full": "src.utils.text_processing.merge_text_segments"
+        },
+        {
+          "module": "src.utils.text_processing",
+          "name": "truncate_text",
+          "full": "src.utils.text_processing.truncate_text"
+        },
+        {
+          "module": "src.utils.text_processing",
+          "name": "count_tokens_approximate",
+          "full": "src.utils.text_processing.count_tokens_approximate"
+        },
+        {
+          "module": "src.utils.text_processing",
+          "name": "detect_language",
+          "full": "src.utils.text_processing.detect_language"
+        },
+        {
+          "module": "src.utils.text_processing",
+          "name": "remove_urls",
+          "full": "src.utils.text_processing.remove_urls"
+        },
+        {
+          "module": "src.utils.text_processing",
+          "name": "extract_urls",
+          "full": "src.utils.text_processing.extract_urls"
+        },
+        {
+          "module": "src.utils.text_processing",
+          "name": "capitalize_sentences",
+          "full": "src.utils.text_processing.capitalize_sentences"
+        },
+        {
+          "module": "src.utils.text_processing",
+          "name": "normalize_punctuation",
+          "full": "src.utils.text_processing.normalize_punctuation"
+        },
+        {
+          "module": "src.utils.text_processing",
+          "name": "split_into_paragraphs",
+          "full": "src.utils.text_processing.split_into_paragraphs"
+        },
+        {
+          "module": "src.utils.text_processing",
+          "name": "extract_quoted_text",
+          "full": "src.utils.text_processing.extract_quoted_text"
+        },
+        {
+          "module": "src.utils.text_processing",
+          "name": "remove_special_characters",
+          "full": "src.utils.text_processing.remove_special_characters"
+        },
+        {
+          "module": "src.utils.text_processing",
+          "name": "convert_numbers_to_words",
+          "full": "src.utils.text_processing.convert_numbers_to_words"
+        }
+      ],
+      "missing": [
+        {
+          "type": "missing_class",
+          "module": "src.utils.text_processing",
+          "name": "clean_segment_text"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.utils.text_processing",
+          "name": "normalize_entity_name"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.utils.text_processing",
+          "name": "calculate_name_similarity"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.utils.text_processing",
+          "name": "extract_key_phrases"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.utils.text_processing",
+          "name": "split_into_sentences"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.utils.text_processing",
+          "name": "remove_filler_words"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.utils.text_processing",
+          "name": "normalize_whitespace"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.utils.text_processing",
+          "name": "is_valid_sentence"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.utils.text_processing",
+          "name": "merge_text_segments"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.utils.text_processing",
+          "name": "truncate_text"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.utils.text_processing",
+          "name": "count_tokens_approximate"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.utils.text_processing",
+          "name": "detect_language"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.utils.text_processing",
+          "name": "remove_urls"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.utils.text_processing",
+          "name": "extract_urls"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.utils.text_processing",
+          "name": "capitalize_sentences"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.utils.text_processing",
+          "name": "normalize_punctuation"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.utils.text_processing",
+          "name": "split_into_paragraphs"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.utils.text_processing",
+          "name": "extract_quoted_text"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.utils.text_processing",
+          "name": "remove_special_characters"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.utils.text_processing",
+          "name": "convert_numbers_to_words"
+        }
+      ],
+      "found": []
+    },
+    "tests/unit/test_validation_comprehensive.py": {
+      "imports": [
+        "re",
+        "pytest"
+      ],
+      "from_imports": [
+        {
+          "module": "src.utils.validation",
+          "name": "ValidationError",
+          "full": "src.utils.validation.ValidationError"
+        },
+        {
+          "module": "src.utils.validation",
+          "name": "ValidationResult",
+          "full": "src.utils.validation.ValidationResult"
+        },
+        {
+          "module": "src.utils.validation",
+          "name": "Validator",
+          "full": "src.utils.validation.Validator"
+        },
+        {
+          "module": "src.utils.validation",
+          "name": "StringValidator",
+          "full": "src.utils.validation.StringValidator"
+        },
+        {
+          "module": "src.utils.validation",
+          "name": "NumberValidator",
+          "full": "src.utils.validation.NumberValidator"
+        },
+        {
+          "module": "src.utils.validation",
+          "name": "DateValidator",
+          "full": "src.utils.validation.DateValidator"
+        },
+        {
+          "module": "src.utils.validation",
+          "name": "CollectionValidator",
+          "full": "src.utils.validation.CollectionValidator"
+        },
+        {
+          "module": "src.utils.validation",
+          "name": "DictValidator",
+          "full": "src.utils.validation.DictValidator"
+        },
+        {
+          "module": "src.utils.validation",
+          "name": "CompositeValidator",
+          "full": "src.utils.validation.CompositeValidator"
+        },
+        {
+          "module": "src.utils.validation",
+          "name": "validate_email",
+          "full": "src.utils.validation.validate_email"
+        },
+        {
+          "module": "src.utils.validation",
+          "name": "validate_url",
+          "full": "src.utils.validation.validate_url"
+        },
+        {
+          "module": "src.utils.validation",
+          "name": "validate_phone",
+          "full": "src.utils.validation.validate_phone"
+        },
+        {
+          "module": "src.utils.validation",
+          "name": "validate_json",
+          "full": "src.utils.validation.validate_json"
+        },
+        {
+          "module": "src.utils.validation",
+          "name": "validate_regex",
+          "full": "src.utils.validation.validate_regex"
+        },
+        {
+          "module": "src.utils.validation",
+          "name": "validate_range",
+          "full": "src.utils.validation.validate_range"
+        },
+        {
+          "module": "src.utils.validation",
+          "name": "validate_length",
+          "full": "src.utils.validation.validate_length"
+        },
+        {
+          "module": "src.utils.validation",
+          "name": "validate_type",
+          "full": "src.utils.validation.validate_type"
+        },
+        {
+          "module": "src.utils.validation",
+          "name": "validate_required",
+          "full": "src.utils.validation.validate_required"
+        },
+        {
+          "module": "src.utils.validation",
+          "name": "validate_schema",
+          "full": "src.utils.validation.validate_schema"
+        },
+        {
+          "module": "src.utils.validation",
+          "name": "validate_custom",
+          "full": "src.utils.validation.validate_custom"
+        },
+        {
+          "module": "src.utils.validation",
+          "name": "ValidationContext",
+          "full": "src.utils.validation.ValidationContext"
+        },
+        {
+          "module": "src.utils.validation",
+          "name": "ValidationRule",
+          "full": "src.utils.validation.ValidationRule"
+        },
+        {
+          "module": "src.utils.validation",
+          "name": "ValidationChain",
+          "full": "src.utils.validation.ValidationChain"
+        },
+        {
+          "module": "src.utils.validation",
+          "name": "create_validator",
+          "full": "src.utils.validation.create_validator"
+        },
+        {
+          "module": "src.utils.validation",
+          "name": "register_validator",
+          "full": "src.utils.validation.register_validator"
+        },
+        {
+          "module": "src.utils.validation",
+          "name": "get_validator",
+          "full": "src.utils.validation.get_validator"
+        }
+      ],
+      "missing": [
+        {
+          "type": "moved_class",
+          "old": "src.utils.validation.ValidationError",
+          "new": "src.core.exceptions.ValidationError"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.utils.validation",
+          "name": "ValidationResult"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.utils.validation",
+          "name": "Validator"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.utils.validation",
+          "name": "StringValidator"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.utils.validation",
+          "name": "NumberValidator"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.utils.validation",
+          "name": "DateValidator"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.utils.validation",
+          "name": "CollectionValidator"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.utils.validation",
+          "name": "DictValidator"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.utils.validation",
+          "name": "CompositeValidator"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.utils.validation",
+          "name": "validate_email"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.utils.validation",
+          "name": "validate_url"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.utils.validation",
+          "name": "validate_phone"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.utils.validation",
+          "name": "validate_json"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.utils.validation",
+          "name": "validate_regex"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.utils.validation",
+          "name": "validate_range"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.utils.validation",
+          "name": "validate_length"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.utils.validation",
+          "name": "validate_type"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.utils.validation",
+          "name": "validate_required"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.utils.validation",
+          "name": "validate_schema"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.utils.validation",
+          "name": "validate_custom"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.utils.validation",
+          "name": "ValidationContext"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.utils.validation",
+          "name": "ValidationRule"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.utils.validation",
+          "name": "ValidationChain"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.utils.validation",
+          "name": "create_validator"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.utils.validation",
+          "name": "register_validator"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.utils.validation",
+          "name": "get_validator"
+        }
+      ],
+      "found": []
+    },
+    "tests/unit/test_validation_utils.py": {
+      "imports": [
+        "pytest"
+      ],
+      "from_imports": [
+        {
+          "module": "src.utils.validation",
+          "name": "validate_text_input",
+          "full": "src.utils.validation.validate_text_input"
+        },
+        {
+          "module": "src.utils.validation",
+          "name": "validate_date_format",
+          "full": "src.utils.validation.validate_date_format"
+        },
+        {
+          "module": "src.utils.validation",
+          "name": "sanitize_file_path",
+          "full": "src.utils.validation.sanitize_file_path"
+        },
+        {
+          "module": "src.utils.validation",
+          "name": "DataValidator",
+          "full": "src.utils.validation.DataValidator"
+        },
+        {
+          "module": "src.utils.validation",
+          "name": "validate_and_enhance_insights",
+          "full": "src.utils.validation.validate_and_enhance_insights"
+        },
+        {
+          "module": "src.utils.validation",
+          "name": "is_valid_url",
+          "full": "src.utils.validation.is_valid_url"
+        },
+        {
+          "module": "src.utils.validation",
+          "name": "is_valid_email",
+          "full": "src.utils.validation.is_valid_email"
+        }
+      ],
+      "missing": [
+        {
+          "type": "missing_class",
+          "module": "src.utils.validation",
+          "name": "validate_text_input"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.utils.validation",
+          "name": "validate_date_format"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.utils.validation",
+          "name": "sanitize_file_path"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.utils.validation",
+          "name": "validate_and_enhance_insights"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.utils.validation",
+          "name": "is_valid_url"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.utils.validation",
+          "name": "is_valid_email"
+        }
+      ],
+      "found": []
+    },
+    "tests/unit/test_entity_resolution.py": {
+      "imports": [
+        "pytest",
+        "yaml",
+        "time"
+      ],
+      "from_imports": [
+        {
+          "module": "src.processing.entity_resolution",
+          "name": "EntityResolver",
+          "full": "src.processing.entity_resolution.EntityResolver"
+        },
+        {
+          "module": "src.processing.entity_resolution",
+          "name": "EntityResolutionConfig",
+          "full": "src.processing.entity_resolution.EntityResolutionConfig"
+        }
+      ],
+      "missing": [
+        {
+          "type": "moved_module",
+          "old": "src.processing.entity_resolution",
+          "new": "src.extraction.entity_resolution",
+          "name": "EntityResolver"
+        },
+        {
+          "type": "moved_module",
+          "old": "src.processing.entity_resolution",
+          "new": "src.extraction.entity_resolution",
+          "name": "EntityResolutionConfig"
+        }
+      ],
+      "found": []
+    },
+    "tests/unit/test_config.py": {
+      "imports": [
+        "json",
+        "os",
+        "tempfile",
+        "pytest"
+      ],
+      "from_imports": [
+        {
+          "module": "src.core.config",
+          "name": "PipelineConfig",
+          "full": "src.core.config.PipelineConfig"
+        },
+        {
+          "module": "src.core.config",
+          "name": "SeedingConfig",
+          "full": "src.core.config.SeedingConfig"
+        },
+        {
+          "module": "src.core.config",
+          "name": "YAML_AVAILABLE",
+          "full": "src.core.config.YAML_AVAILABLE"
+        },
+        {
+          "module": "src.core.exceptions",
+          "name": "ConfigurationError",
+          "full": "src.core.exceptions.ConfigurationError"
+        }
+      ],
+      "missing": [
+        {
+          "type": "missing_class",
+          "module": "src.core.config",
+          "name": "YAML_AVAILABLE"
+        }
+      ],
+      "found": []
+    },
+    "tests/unit/test_segmentation.py": {
+      "imports": [
+        "json",
+        "pytest"
+      ],
+      "from_imports": [
+        {
+          "module": "src.processing.segmentation",
+          "name": "EnhancedPodcastSegmenter",
+          "full": "src.processing.segmentation.EnhancedPodcastSegmenter"
+        },
+        {
+          "module": "src.processing.segmentation",
+          "name": "SegmentationResult",
+          "full": "src.processing.segmentation.SegmentationResult"
+        },
+        {
+          "module": "src.processing.segmentation",
+          "name": "SegmentBoundary",
+          "full": "src.processing.segmentation.SegmentBoundary"
+        },
+        {
+          "module": "src.core.models",
+          "name": "Segment",
+          "full": "src.core.models.Segment"
+        },
+        {
+          "module": "src.core.models",
+          "name": "ComplexityLevel",
+          "full": "src.core.models.ComplexityLevel"
+        },
+        {
+          "module": "src.providers.llm.base",
+          "name": "LLMProvider",
+          "full": "src.providers.llm.base.LLMProvider"
+        }
+      ],
+      "missing": [
+        {
+          "type": "renamed_class",
+          "old": "EnhancedPodcastSegmenter",
+          "new": "VTTSegmenter"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.processing.segmentation",
+          "name": "SegmentationResult"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.processing.segmentation",
+          "name": "SegmentBoundary"
+        },
+        {
+          "type": "moved_module",
+          "old": "src.providers.llm.base",
+          "new": "src.providers.llm.base",
+          "name": "LLMProvider"
+        }
+      ],
+      "found": []
+    },
+    "tests/unit/test_graph_analysis.py": {
+      "imports": [
+        "pytest"
+      ],
+      "from_imports": [
+        {
+          "module": "src.processing.graph_analysis",
+          "name": "GraphAnalyzer",
+          "full": "src.processing.graph_analysis.GraphAnalyzer"
+        },
+        {
+          "module": "src.processing.graph_analysis",
+          "name": "AnalysisResult",
+          "full": "src.processing.graph_analysis.AnalysisResult"
+        },
+        {
+          "module": "src.processing.graph_analysis",
+          "name": "NodeMetrics",
+          "full": "src.processing.graph_analysis.NodeMetrics"
+        },
+        {
+          "module": "src.processing.graph_analysis",
+          "name": "GraphMetrics",
+          "full": "src.processing.graph_analysis.GraphMetrics"
+        },
+        {
+          "module": "src.processing.graph_analysis",
+          "name": "CommunityDetectionResult",
+          "full": "src.processing.graph_analysis.CommunityDetectionResult"
+        },
+        {
+          "module": "src.processing.graph_analysis",
+          "name": "PathAnalysis",
+          "full": "src.processing.graph_analysis.PathAnalysis"
+        },
+        {
+          "module": "src.providers.graph.base",
+          "name": "GraphProvider",
+          "full": "src.providers.graph.base.GraphProvider"
+        },
+        {
+          "module": "src.core.models",
+          "name": "Entity",
+          "full": "src.core.models.Entity"
+        },
+        {
+          "module": "src.core.models",
+          "name": "EntityType",
+          "full": "src.core.models.EntityType"
+        }
+      ],
+      "missing": [
+        {
+          "type": "deleted_module",
+          "module": "src.processing.graph_analysis",
+          "name": "GraphAnalyzer"
+        },
+        {
+          "type": "deleted_module",
+          "module": "src.processing.graph_analysis",
+          "name": "AnalysisResult"
+        },
+        {
+          "type": "deleted_module",
+          "module": "src.processing.graph_analysis",
+          "name": "NodeMetrics"
+        },
+        {
+          "type": "deleted_module",
+          "module": "src.processing.graph_analysis",
+          "name": "GraphMetrics"
+        },
+        {
+          "type": "deleted_module",
+          "module": "src.processing.graph_analysis",
+          "name": "CommunityDetectionResult"
+        },
+        {
+          "type": "deleted_module",
+          "module": "src.processing.graph_analysis",
+          "name": "PathAnalysis"
+        },
+        {
+          "type": "moved_module",
+          "old": "src.providers.graph.base",
+          "new": "src.providers.graph.base",
+          "name": "GraphProvider"
+        }
+      ],
+      "found": []
+    },
+    "tests/unit/test_parsers.py": {
+      "imports": [
+        "json",
+        "pytest",
+        "threading"
+      ],
+      "from_imports": [
+        {
+          "module": "src.processing.parsers",
+          "name": "ResponseParser",
+          "full": "src.processing.parsers.ResponseParser"
+        },
+        {
+          "module": "src.processing.parsers",
+          "name": "ParseResult",
+          "full": "src.processing.parsers.ParseResult"
+        },
+        {
+          "module": "src.core.models",
+          "name": "Entity",
+          "full": "src.core.models.Entity"
+        },
+        {
+          "module": "src.core.models",
+          "name": "EntityType",
+          "full": "src.core.models.EntityType"
+        },
+        {
+          "module": "src.core.models",
+          "name": "Insight",
+          "full": "src.core.models.Insight"
+        },
+        {
+          "module": "src.core.models",
+          "name": "InsightType",
+          "full": "src.core.models.InsightType"
+        },
+        {
+          "module": "src.core.models",
+          "name": "Quote",
+          "full": "src.core.models.Quote"
+        },
+        {
+          "module": "src.core.models",
+          "name": "QuoteType",
+          "full": "src.core.models.QuoteType"
+        },
+        {
+          "module": "src.core.exceptions",
+          "name": "ParsingError",
+          "full": "src.core.exceptions.ParsingError"
+        }
+      ],
+      "missing": [
+        {
+          "type": "moved_module",
+          "old": "src.processing.parsers",
+          "new": "src.extraction.parsers",
+          "name": "ResponseParser"
+        },
+        {
+          "type": "moved_module",
+          "old": "src.processing.parsers",
+          "new": "src.extraction.parsers",
+          "name": "ParseResult"
+        }
+      ],
+      "found": []
+    },
+    "tests/unit/test_memory.py": {
+      "imports": [
+        "pytest"
+      ],
+      "from_imports": [
+        {
+          "module": "src.utils.memory",
+          "name": "cleanup_memory",
+          "full": "src.utils.memory.cleanup_memory"
+        },
+        {
+          "module": "src.utils.memory",
+          "name": "get_memory_usage",
+          "full": "src.utils.memory.get_memory_usage"
+        }
+      ],
+      "missing": [
+        {
+          "type": "missing_class",
+          "module": "src.utils.memory",
+          "name": "cleanup_memory"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.utils.memory",
+          "name": "get_memory_usage"
+        }
+      ],
+      "found": []
+    },
+    "tests/utils/test_debugging.py": {
+      "imports": [
+        "json",
+        "logging",
+        "tempfile",
+        "pytest",
+        "os"
+      ],
+      "from_imports": [
+        {
+          "module": "src.utils.debugging",
+          "name": "ErrorSeverity",
+          "full": "src.utils.debugging.ErrorSeverity"
+        },
+        {
+          "module": "src.utils.debugging",
+          "name": "ErrorCategory",
+          "full": "src.utils.debugging.ErrorCategory"
+        },
+        {
+          "module": "src.utils.debugging",
+          "name": "ErrorContext",
+          "full": "src.utils.debugging.ErrorContext"
+        },
+        {
+          "module": "src.utils.debugging",
+          "name": "DebugLogger",
+          "full": "src.utils.debugging.DebugLogger"
+        },
+        {
+          "module": "src.utils.debugging",
+          "name": "with_error_context",
+          "full": "src.utils.debugging.with_error_context"
+        },
+        {
+          "module": "src.utils.debugging",
+          "name": "debug_context",
+          "full": "src.utils.debugging.debug_context"
+        },
+        {
+          "module": "src.utils.debugging",
+          "name": "ErrorAnalyzer",
+          "full": "src.utils.debugging.ErrorAnalyzer"
+        },
+        {
+          "module": "src.utils.debugging",
+          "name": "create_provider_error_handler",
+          "full": "src.utils.debugging.create_provider_error_handler"
+        },
+        {
+          "module": "src.utils.debugging",
+          "name": "ErrorRecoveryStrategy",
+          "full": "src.utils.debugging.ErrorRecoveryStrategy"
+        }
+      ],
+      "missing": [
+        {
+          "type": "missing_class",
+          "module": "src.utils.debugging",
+          "name": "with_error_context"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.utils.debugging",
+          "name": "debug_context"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.utils.debugging",
+          "name": "create_provider_error_handler"
+        }
+      ],
+      "found": []
+    },
+    "tests/utils/test_resources.py": {
+      "imports": [
+        "os",
+        "shutil",
+        "tempfile",
+        "time",
+        "pytest"
+      ],
+      "from_imports": [
+        {
+          "module": "src.utils.resources",
+          "name": "TempFileManager",
+          "full": "src.utils.resources.TempFileManager"
+        },
+        {
+          "module": "src.utils.resources",
+          "name": "temp_file",
+          "full": "src.utils.resources.temp_file"
+        },
+        {
+          "module": "src.utils.resources",
+          "name": "temp_dir",
+          "full": "src.utils.resources.temp_dir"
+        },
+        {
+          "module": "src.utils.resources",
+          "name": "ProgressCheckpoint",
+          "full": "src.utils.resources.ProgressCheckpoint"
+        },
+        {
+          "module": "src.utils.resources",
+          "name": "ResourcePool",
+          "full": "src.utils.resources.ResourcePool"
+        },
+        {
+          "module": "src.utils.resources",
+          "name": "ConnectionManager",
+          "full": "src.utils.resources.ConnectionManager"
+        },
+        {
+          "module": "src.utils.resources",
+          "name": "file_lock",
+          "full": "src.utils.resources.file_lock"
+        }
+      ],
+      "missing": [
+        {
+          "type": "missing_class",
+          "module": "src.utils.resources",
+          "name": "temp_file"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.utils.resources",
+          "name": "temp_dir"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.utils.resources",
+          "name": "file_lock"
+        }
+      ],
+      "found": []
+    },
+    "tests/utils/test_component_tracker.py": {
+      "imports": [
+        "os",
+        "tempfile",
+        "pytest",
+        "src.utils.component_tracker",
+        "src.utils.component_tracker"
+      ],
+      "from_imports": [
+        {
+          "module": "src.utils.component_tracker",
+          "name": "ComponentTracker",
+          "full": "src.utils.component_tracker.ComponentTracker"
+        },
+        {
+          "module": "src.utils.component_tracker",
+          "name": "ComponentImpact",
+          "full": "src.utils.component_tracker.ComponentImpact"
+        },
+        {
+          "module": "src.utils.component_tracker",
+          "name": "ComponentContribution",
+          "full": "src.utils.component_tracker.ComponentContribution"
+        },
+        {
+          "module": "src.utils.component_tracker",
+          "name": "ComponentDependency",
+          "full": "src.utils.component_tracker.ComponentDependency"
+        },
+        {
+          "module": "src.utils.component_tracker",
+          "name": "track_component_impact",
+          "full": "src.utils.component_tracker.track_component_impact"
+        },
+        {
+          "module": "src.utils.component_tracker",
+          "name": "analyze_component_impact",
+          "full": "src.utils.component_tracker.analyze_component_impact"
+        },
+        {
+          "module": "src.utils.component_tracker",
+          "name": "compare_component_versions",
+          "full": "src.utils.component_tracker.compare_component_versions"
+        },
+        {
+          "module": "src.utils.component_tracker",
+          "name": "identify_redundancies",
+          "full": "src.utils.component_tracker.identify_redundancies"
+        },
+        {
+          "module": "src.utils.component_tracker",
+          "name": "get_tracker",
+          "full": "src.utils.component_tracker.get_tracker"
+        }
+      ],
+      "missing": [
+        {
+          "type": "missing_class",
+          "module": "src.utils.component_tracker",
+          "name": "track_component_impact"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.utils.component_tracker",
+          "name": "analyze_component_impact"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.utils.component_tracker",
+          "name": "compare_component_versions"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.utils.component_tracker",
+          "name": "identify_redundancies"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.utils.component_tracker",
+          "name": "get_tracker"
+        }
+      ],
+      "found": []
+    },
+    "tests/utils/test_retry.py": {
+      "imports": [
+        "random",
+        "signal",
+        "time",
+        "pytest",
+        "threading"
+      ],
+      "from_imports": [
+        {
+          "module": "src.utils.retry",
+          "name": "ExponentialBackoff",
+          "full": "src.utils.retry.ExponentialBackoff"
+        },
+        {
+          "module": "src.utils.retry",
+          "name": "RetryStrategy",
+          "full": "src.utils.retry.RetryStrategy"
+        },
+        {
+          "module": "src.utils.retry",
+          "name": "CircuitState",
+          "full": "src.utils.retry.CircuitState"
+        },
+        {
+          "module": "src.utils.retry",
+          "name": "CircuitBreaker",
+          "full": "src.utils.retry.CircuitBreaker"
+        },
+        {
+          "module": "src.utils.retry",
+          "name": "RateLimiter",
+          "full": "src.utils.retry.RateLimiter"
+        },
+        {
+          "module": "src.utils.retry",
+          "name": "with_retry",
+          "full": "src.utils.retry.with_retry"
+        },
+        {
+          "module": "src.utils.retry",
+          "name": "retry_with_fallback",
+          "full": "src.utils.retry.retry_with_fallback"
+        },
+        {
+          "module": "src.utils.retry",
+          "name": "resilient_call",
+          "full": "src.utils.retry.resilient_call"
+        },
+        {
+          "module": "src.utils.retry",
+          "name": "RetryableError",
+          "full": "src.utils.retry.RetryableError"
+        },
+        {
+          "module": "src.utils.retry",
+          "name": "TransientError",
+          "full": "src.utils.retry.TransientError"
+        },
+        {
+          "module": "src.utils.retry",
+          "name": "RateLimitError",
+          "full": "src.utils.retry.RateLimitError"
+        },
+        {
+          "module": "src.utils.retry",
+          "name": "_calculate_delay",
+          "full": "src.utils.retry._calculate_delay"
+        }
+      ],
+      "missing": [
+        {
+          "type": "missing_class",
+          "module": "src.utils.retry",
+          "name": "with_retry"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.utils.retry",
+          "name": "retry_with_fallback"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.utils.retry",
+          "name": "resilient_call"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.utils.retry",
+          "name": "_calculate_delay"
+        }
+      ],
+      "found": []
+    },
+    "tests/utils/test_text_processing.py": {
+      "imports": [
+        "re",
+        "pytest",
+        "time"
+      ],
+      "from_imports": [
+        {
+          "module": "src.utils.text_processing",
+          "name": "clean_segment_text",
+          "full": "src.utils.text_processing.clean_segment_text"
+        },
+        {
+          "module": "src.utils.text_processing",
+          "name": "normalize_entity_name",
+          "full": "src.utils.text_processing.normalize_entity_name"
+        },
+        {
+          "module": "src.utils.text_processing",
+          "name": "calculate_name_similarity",
+          "full": "src.utils.text_processing.calculate_name_similarity"
+        },
+        {
+          "module": "src.utils.text_processing",
+          "name": "extract_entity_aliases",
+          "full": "src.utils.text_processing.extract_entity_aliases"
+        },
+        {
+          "module": "src.utils.text_processing",
+          "name": "extract_key_phrases",
+          "full": "src.utils.text_processing.extract_key_phrases"
+        },
+        {
+          "module": "src.utils.text_processing",
+          "name": "clean_quote_text",
+          "full": "src.utils.text_processing.clean_quote_text"
+        },
+        {
+          "module": "src.utils.text_processing",
+          "name": "truncate_text",
+          "full": "src.utils.text_processing.truncate_text"
+        },
+        {
+          "module": "src.utils.text_processing",
+          "name": "remove_special_characters",
+          "full": "src.utils.text_processing.remove_special_characters"
+        },
+        {
+          "module": "src.utils.text_processing",
+          "name": "extract_urls",
+          "full": "src.utils.text_processing.extract_urls"
+        },
+        {
+          "module": "src.utils.text_processing",
+          "name": "extract_email_addresses",
+          "full": "src.utils.text_processing.extract_email_addresses"
+        },
+        {
+          "module": "src.utils.text_processing",
+          "name": "split_into_sentences",
+          "full": "src.utils.text_processing.split_into_sentences"
+        },
+        {
+          "module": "src.utils.text_processing",
+          "name": "calculate_text_statistics",
+          "full": "src.utils.text_processing.calculate_text_statistics"
+        },
+        {
+          "module": "src.utils.text_processing",
+          "name": "normalize_whitespace",
+          "full": "src.utils.text_processing.normalize_whitespace"
+        }
+      ],
+      "missing": [
+        {
+          "type": "missing_class",
+          "module": "src.utils.text_processing",
+          "name": "clean_segment_text"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.utils.text_processing",
+          "name": "normalize_entity_name"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.utils.text_processing",
+          "name": "calculate_name_similarity"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.utils.text_processing",
+          "name": "extract_entity_aliases"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.utils.text_processing",
+          "name": "extract_key_phrases"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.utils.text_processing",
+          "name": "clean_quote_text"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.utils.text_processing",
+          "name": "truncate_text"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.utils.text_processing",
+          "name": "remove_special_characters"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.utils.text_processing",
+          "name": "extract_urls"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.utils.text_processing",
+          "name": "extract_email_addresses"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.utils.text_processing",
+          "name": "split_into_sentences"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.utils.text_processing",
+          "name": "calculate_text_statistics"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.utils.text_processing",
+          "name": "normalize_whitespace"
+        }
+      ],
+      "found": []
+    },
+    "tests/utils/test_validation.py": {
+      "imports": [
+        "re",
+        "pytest",
+        "time"
+      ],
+      "from_imports": [
+        {
+          "module": "src.utils.validation",
+          "name": "validate_text_input",
+          "full": "src.utils.validation.validate_text_input"
+        },
+        {
+          "module": "src.utils.validation",
+          "name": "validate_date_format",
+          "full": "src.utils.validation.validate_date_format"
+        },
+        {
+          "module": "src.utils.validation",
+          "name": "sanitize_file_path",
+          "full": "src.utils.validation.sanitize_file_path"
+        },
+        {
+          "module": "src.utils.validation",
+          "name": "DataValidator",
+          "full": "src.utils.validation.DataValidator"
+        },
+        {
+          "module": "src.utils.validation",
+          "name": "validate_and_enhance_insights",
+          "full": "src.utils.validation.validate_and_enhance_insights"
+        },
+        {
+          "module": "src.utils.validation",
+          "name": "is_valid_url",
+          "full": "src.utils.validation.is_valid_url"
+        },
+        {
+          "module": "src.utils.validation",
+          "name": "is_valid_email",
+          "full": "src.utils.validation.is_valid_email"
+        }
+      ],
+      "missing": [
+        {
+          "type": "missing_class",
+          "module": "src.utils.validation",
+          "name": "validate_text_input"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.utils.validation",
+          "name": "validate_date_format"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.utils.validation",
+          "name": "sanitize_file_path"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.utils.validation",
+          "name": "validate_and_enhance_insights"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.utils.validation",
+          "name": "is_valid_url"
+        },
+        {
+          "type": "missing_class",
+          "module": "src.utils.validation",
+          "name": "is_valid_email"
+        }
+      ],
+      "found": []
+    }
+  },
+  "module_mappings": {
+    "cli": "src.cli.cli",
+    "src.processing.extraction": "src.extraction.extraction",
+    "src.processing.parsers": "src.extraction.parsers",
+    "src.processing.preprocessor": "src.extraction.preprocessor",
+    "src.processing.prompts": "src.extraction.prompts",
+    "src.processing.complexity_analysis": "src.extraction.complexity_analysis",
+    "src.processing.entity_resolution": "src.extraction.entity_resolution",
+    "src.processing.importance_scoring": "src.extraction.importance_scoring",
+    "src.processing.vtt_parser": "src.vtt.vtt_parser",
+    "src.providers": null,
+    "src.factories": null,
+    "src.api.v1.seeding": null,
+    "src.core.error_budget": null,
+    "src.processing.discourse_flow": null,
+    "src.processing.emergent_themes": null,
+    "src.processing.graph_analysis": null,
+    "PodcastKnowledgePipeline": "VTTKnowledgeExtractor",
+    "AudioProvider": null,
+    "ComponentHealth": "HealthStatus",
+    "EnhancedPodcastSegmenter": "VTTSegmenter"
+  },
+  "missing_imports": {
+    "src.api.v1.seeding": [
+      "tests/integration/test_api_contracts.py",
+      "tests/integration/test_api_contracts.py",
+      "tests/integration/test_api_contracts.py",
+      "tests/integration/test_api_contracts.py",
+      "tests/integration/test_api_contracts.py"
+    ],
+    "src.processing.discourse_flow": [
+      "tests/processing/test_discourse_flow.py"
+    ],
+    "src.processing.emergent_themes": [
+      "tests/processing/test_emergent_themes.py"
+    ],
+    "src.processing.graph_analysis": [
+      "tests/processing/test_enhanced_gap_analysis.py",
+      "tests/processing/test_enhanced_gap_analysis.py",
+      "tests/processing/test_graph_analysis.py",
+      "tests/processing/test_graph_analysis.py",
+      "tests/processing/test_graph_analysis.py",
+      "tests/processing/test_graph_analysis.py",
+      "tests/processing/test_graph_analysis.py",
+      "tests/processing/test_graph_analysis.py",
+      "tests/processing/test_graph_analysis.py",
+      "tests/processing/test_graph_analysis.py",
+      "tests/processing/test_graph_analysis.py",
+      "tests/processing/test_graph_analysis.py",
+      "tests/unit/test_graph_analysis.py",
+      "tests/unit/test_graph_analysis.py",
+      "tests/unit/test_graph_analysis.py",
+      "tests/unit/test_graph_analysis.py",
+      "tests/unit/test_graph_analysis.py",
+      "tests/unit/test_graph_analysis.py"
+    ],
+    "src.core.error_budget": [
+      "tests/unit/test_error_budget.py",
+      "tests/unit/test_error_budget.py",
+      "tests/unit/test_error_budget.py",
+      "tests/unit/test_error_budget.py",
+      "tests/unit/test_error_budget.py",
+      "tests/unit/test_error_budget.py",
+      "tests/unit/test_error_budget.py"
+    ]
+  },
+  "found_alternatives": {
+    "Relationship": "src.core.extraction_interface",
+    "HealthCheckable": "src.core.interfaces",
+    "LLMProvider": "src.core.interfaces",
+    "GraphProvider": "src.core.interfaces",
+    "EmbeddingProvider": "src.core.interfaces",
+    "KnowledgeExtractor": "src.core.interfaces",
+    "Neo4jManager": "src.core.interfaces",
+    "ErrorSeverity": "src.core.exceptions",
+    "DatabaseConnectionError": "src.core.exceptions",
+    "AudioProcessingError": "src.core.exceptions",
+    "LLMProcessingError": "src.core.exceptions",
+    "ConfigurationError": "src.core.exceptions",
+    "ValidationError": "src.core.exceptions",
+    "ProviderError": "src.core.exceptions",
+    "CriticalError": "src.core.exceptions",
+    "Podcast": "src.core.models",
+    "Episode": "src.core.models",
+    "Segment": "src.core.extraction_interface",
+    "Entity": "src.core.extraction_interface",
+    "Insight": "src.core.extraction_interface",
+    "Quote": "src.core.extraction_interface",
+    "Topic": "src.core.models",
+    "Speaker": "src.core.models",
+    "ProcessingResult": "src.core.models",
+    "PipelineConfig": "src.core.config",
+    "SeedingConfig": "src.core.config"
+  },
+  "recommendations": [
+    {
+      "action": "delete_tests",
+      "reason": "Tests for deleted modules",
+      "modules": [
+        "src.api.v1.seeding",
+        "src.processing.discourse_flow",
+        "src.processing.emergent_themes",
+        "src.processing.graph_analysis",
+        "src.core.error_budget"
+      ]
+    },
+    {
+      "action": "update_imports",
+      "reason": "Classes found in different locations",
+      "mappings": {
+        "Relationship": "src.core.extraction_interface",
+        "HealthCheckable": "src.core.interfaces",
+        "LLMProvider": "src.core.interfaces",
+        "GraphProvider": "src.core.interfaces",
+        "EmbeddingProvider": "src.core.interfaces",
+        "KnowledgeExtractor": "src.core.interfaces",
+        "Neo4jManager": "src.core.interfaces",
+        "ErrorSeverity": "src.core.exceptions",
+        "DatabaseConnectionError": "src.core.exceptions",
+        "AudioProcessingError": "src.core.exceptions",
+        "LLMProcessingError": "src.core.exceptions",
+        "ConfigurationError": "src.core.exceptions",
+        "ValidationError": "src.core.exceptions",
+        "ProviderError": "src.core.exceptions",
+        "CriticalError": "src.core.exceptions",
+        "Podcast": "src.core.models",
+        "Episode": "src.core.models",
+        "Segment": "src.core.extraction_interface",
+        "Entity": "src.core.extraction_interface",
+        "Insight": "src.core.extraction_interface",
+        "Quote": "src.core.extraction_interface",
+        "Topic": "src.core.models",
+        "Speaker": "src.core.models",
+        "ProcessingResult": "src.core.models",
+        "PipelineConfig": "src.core.config",
+        "SeedingConfig": "src.core.config"
+      }
+    }
+  ]
+}

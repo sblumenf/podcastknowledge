@@ -26,7 +26,7 @@ This plan fixes the completely broken test suite by focusing on practical testin
   - Validation: JSON file contains categorized list of all collection errors
 
 ### Task 1.2: Map Test Files to Current Architecture
-- [ ] Create mapping of test expectations vs actual code structure
+- [x] Create mapping of test expectations vs actual code structure
   - Purpose: Understand scope of refactoring needed
   - Steps:
     1. Use context7 MCP tool to review Python AST documentation
