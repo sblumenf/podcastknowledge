@@ -41,7 +41,7 @@ This plan fixes the completely broken test suite by focusing on practical testin
   - Validation: Mapping file shows clear old→new structure changes
 
 ### Task 1.3: Delete Obsolete Tests
-- [ ] Remove tests for non-existent functionality
+- [x] Remove tests for non-existent functionality
   - Purpose: Clean slate for tests that can't be salvaged
   - Steps:
     1. Use context7 MCP tool to review git best practices for file deletion
