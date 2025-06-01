@@ -18,7 +18,7 @@ from google.generativeai import types, GenerationConfig
 from google.generativeai.generative_models import GenerativeModel
 
 from src.utils.logging import get_logger, log_api_request
-from retry_wrapper import (
+from src.retry_wrapper import (
     with_retry_and_circuit_breaker,
     QuotaExceededException,
     CircuitBreakerOpenException,

@@ -12,7 +12,7 @@ from typing import Dict, List, Optional, Any, Union
 from dataclasses import dataclass
 
 from src.utils.logging import get_logger
-from checkpoint_recovery import CheckpointManager
+from src.checkpoint_recovery import CheckpointManager
 
 logger = get_logger('vtt_generator')
 
