@@ -35,6 +35,7 @@ class Episode:
     link: Optional[str] = None
     author: Optional[str] = None
     keywords: List[str] = field(default_factory=list)
+    youtube_url: Optional[str] = None
     
     # Metadata for processing
     file_size: Optional[int] = None
@@ -68,6 +69,7 @@ class Episode:
             'link': self.link,
             'author': self.author,
             'keywords': self.keywords,
+            'youtube_url': self.youtube_url,
             'file_size': self.file_size,
             'mime_type': self.mime_type
         }

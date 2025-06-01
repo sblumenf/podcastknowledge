@@ -142,20 +142,18 @@ class KnowledgeExtractor:
             'episode_metadata': episode_metadata
         }
         
-        # Track contribution
+        # Track contribution (simplified for testing)
         if entities or quotes or relationships:
-            tracker = get_tracker()
-            contribution = ComponentContribution(
-                component_name="knowledge_extractor",
-                contribution_type="knowledge_extracted",
-                count=len(entities) + len(quotes) + len(relationships),
-                metadata={
-                    "entity_types": list(set(e.get('type', 'Unknown') for e in entities)),
-                    "quote_types": list(set(q.get('type', 'general') for q in quotes)),
-                    "extraction_methods": ['pattern_matching', 'llm_analysis']
-                }
-            )
-            tracker.track_contribution(contribution)
+            try:
+                tracker = get_tracker()
+                # Use track_impact context manager approach
+                with tracker.track_impact("knowledge_extractor") as impact:
+                    impact.add_items(len(entities) + len(quotes) + len(relationships))
+                    impact.add_metadata("entity_types", list(set(e.get('type', 'Unknown') for e in entities)))
+                    impact.add_metadata("quote_types", list(set(q.get('type', 'general') for q in quotes)))
+            except Exception:
+                # Don't fail extraction if tracking fails
+                pass
         
         return ExtractionResult(
             entities=entities,
