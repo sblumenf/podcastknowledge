@@ -10,10 +10,10 @@ from typing import Dict, List, Optional, Tuple, Any
 from dataclasses import dataclass
 import asyncio
 
-from gemini_client import RateLimitedGeminiClient
-from key_rotation_manager import KeyRotationManager
+from src.gemini_client import RateLimitedGeminiClient
+from src.key_rotation_manager import KeyRotationManager
 from src.utils.logging import get_logger
-from checkpoint_recovery import CheckpointManager
+from src.checkpoint_recovery import CheckpointManager
 
 logger = get_logger('speaker_identifier')
 
