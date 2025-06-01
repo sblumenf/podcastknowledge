@@ -346,6 +346,9 @@ class VTTGenerator:
         Returns:
             Sanitized filename
         """
+        # Remove leading/trailing dots and spaces first
+        filename = filename.strip('. ')
+        
         # Remove or replace invalid characters
         invalid_chars = '<>:"|?*'
         for char in invalid_chars:
@@ -356,9 +359,6 @@ class VTTGenerator:
         
         # Replace spaces with underscores
         filename = filename.replace(' ', '_')
-        
-        # Remove leading/trailing dots and spaces
-        filename = filename.strip('. ')
         
         # Limit length (leave room for .vtt extension)
         max_length = 200
