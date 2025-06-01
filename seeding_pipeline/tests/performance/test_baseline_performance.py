@@ -15,12 +15,12 @@ from src.storage.graph_storage import GraphStorageService
 class TestBaselinePerformance:
     """Establish performance baselines for the pipeline."""
     
-    def test_single_file_performance(self, test_data_dir, neo4j_driver, temp_dir):
+    def test_single_file_performance(self, test_data_dir, neo4j_driver, neo4j_container, temp_dir):
         """Establish single file processing baseline."""
         config = SeedingConfig()
-        config.neo4j_uri = neo4j_driver._uri
-        config.neo4j_username = neo4j_driver._auth[0]
-        config.neo4j_password = neo4j_driver._auth[1]
+        config.neo4j_uri = neo4j_container.get_connection_url()
+        config.neo4j_username = "neo4j"
+        config.neo4j_password = neo4j_container.NEO4J_ADMIN_PASSWORD
         config.checkpoint_dir = str(temp_dir / "checkpoints")
         config.use_schemaless_extraction = True
         
@@ -30,7 +30,7 @@ class TestBaselinePerformance:
             username=config.neo4j_username,
             password=config.neo4j_password
         )
-        orchestrator.storage_service._driver = neo4j_driver
+        # Storage service will handle driver creation
         
         vtt_file = test_data_dir / "standard.vtt"
         
@@ -72,12 +72,12 @@ class TestBaselinePerformance:
                 f.write(f"Max: {max(times):.2f}s\n")
                 f.write(f"Runs: {len(times)}\n")
                 
-    def test_batch_performance(self, test_data_dir, neo4j_driver, temp_dir):
+    def test_batch_performance(self, test_data_dir, neo4j_driver, neo4j_container, temp_dir):
         """Test batch processing performance (files/second)."""
         config = SeedingConfig()
-        config.neo4j_uri = neo4j_driver._uri
-        config.neo4j_username = neo4j_driver._auth[0]
-        config.neo4j_password = neo4j_driver._auth[1]
+        config.neo4j_uri = neo4j_container.get_connection_url()
+        config.neo4j_username = "neo4j"
+        config.neo4j_password = neo4j_container.NEO4J_ADMIN_PASSWORD
         config.checkpoint_dir = str(temp_dir / "checkpoints")
         config.batch_size = 10
         config.use_schemaless_extraction = True
@@ -88,7 +88,7 @@ class TestBaselinePerformance:
             username=config.neo4j_username,
             password=config.neo4j_password
         )
-        orchestrator.storage_service._driver = neo4j_driver
+        # Storage service will handle driver creation
         
         vtt_file = test_data_dir / "minimal.vtt"
         
@@ -134,15 +134,15 @@ class TestBaselinePerformance:
                     f.write(f"Total Time: {metrics['time']:.2f}s\n")
                     f.write(f"Files/Second: {metrics['files_per_second']:.2f}\n")
                     
-    def test_memory_usage_growth(self, test_data_dir, neo4j_driver, temp_dir):
+    def test_memory_usage_growth(self, test_data_dir, neo4j_driver, neo4j_container, temp_dir):
         """Test memory usage growth with increasing batch sizes."""
         import psutil
         import os
         
         config = SeedingConfig()
-        config.neo4j_uri = neo4j_driver._uri
-        config.neo4j_username = neo4j_driver._auth[0]
-        config.neo4j_password = neo4j_driver._auth[1]
+        config.neo4j_uri = neo4j_container.get_connection_url()
+        config.neo4j_username = "neo4j"
+        config.neo4j_password = neo4j_container.NEO4J_ADMIN_PASSWORD
         config.checkpoint_dir = str(temp_dir / "checkpoints")
         config.use_schemaless_extraction = True
         
@@ -152,7 +152,7 @@ class TestBaselinePerformance:
             username=config.neo4j_username,
             password=config.neo4j_password
         )
-        orchestrator.storage_service._driver = neo4j_driver
+        # Storage service will handle driver creation
         
         vtt_file = test_data_dir / "minimal.vtt"
         process = psutil.Process(os.getpid())
