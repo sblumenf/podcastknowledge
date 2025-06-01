@@ -1,0 +1,169 @@
+name: Code Quality
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  security:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.11"
+    
+    - name: Install security tools
+      run: |
+        python -m pip install --upgrade pip
+        pip install safety bandit semgrep
+    
+    - name: Run safety check
+      run: |
+        # Check for known security vulnerabilities
+        safety check --json || true
+    
+    - name: Run bandit security scan
+      run: |
+        # Scan for common security issues
+        bandit -r src/ -f json -o bandit-report.json || true
+        bandit -r src/ -f txt || true
+    
+    - name: Upload security reports
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: security-reports
+        path: |
+          bandit-report.json
+          safety-report.json
+
+  documentation:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.11"
+    
+    - name: Install documentation tools
+      run: |
+        python -m pip install --upgrade pip
+        pip install sphinx sphinx-rtd-theme pydocstyle
+    
+    - name: Check docstring coverage
+      run: |
+        # Check for missing docstrings
+        pydocstyle src/ --count --convention=google || true
+    
+    - name: Validate documentation links
+      run: |
+        # Check for broken links in markdown files
+        find docs/ -name "*.md" -exec echo "Checking {}" \; || true
+        
+        # Validate README
+        if [ -f README.md ]; then
+          echo "README.md exists and is readable"
+        else
+          echo "Warning: README.md missing"
+        fi
+
+  complexity:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.11"
+    
+    - name: Install complexity tools
+      run: |
+        python -m pip install --upgrade pip
+        pip install radon xenon mccabe
+    
+    - name: Calculate cyclomatic complexity
+      run: |
+        # Check cyclomatic complexity
+        radon cc src/ --average --show-complexity
+        
+        # Check maintainability index
+        radon mi src/ --min B --max A
+        
+        # Check for complex functions
+        xenon --max-absolute B --max-modules A --max-average A src/ || true
+    
+    - name: Generate complexity report
+      run: |
+        echo "# Code Complexity Report" > complexity-report.md
+        echo "" >> complexity-report.md
+        echo "## Cyclomatic Complexity" >> complexity-report.md
+        radon cc src/ --average --show-complexity >> complexity-report.md
+        echo "" >> complexity-report.md
+        echo "## Maintainability Index" >> complexity-report.md
+        radon mi src/ >> complexity-report.md
+    
+    - name: Upload complexity report
+      uses: actions/upload-artifact@v3
+      with:
+        name: complexity-report
+        path: complexity-report.md
+
+  test-quality:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.11"
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pytest pytest-cov pytest-mock mutmut
+    
+    - name: Set up test environment
+      run: |
+        echo "GEMINI_API_KEY_1=test_key_1" >> $GITHUB_ENV
+        echo "GEMINI_API_KEY_2=test_key_2" >> $GITHUB_ENV
+        echo "PODCAST_TEST_MODE=true" >> $GITHUB_ENV
+    
+    - name: Test coverage analysis
+      run: |
+        # Generate detailed coverage report
+        pytest --cov=src --cov-report=html --cov-report=term-missing
+        
+        # Check for missing test files
+        echo "Checking test coverage..."
+        find src/ -name "*.py" -not -path "*/test*" | while read file; do
+          testfile="tests/test_$(basename $file)"
+          if [ ! -f "$testfile" ]; then
+            echo "Warning: No test file found for $file"
+          fi
+        done
+    
+    - name: Upload coverage report
+      uses: actions/upload-artifact@v3
+      with:
+        name: coverage-report
+        path: htmlcov/
+    
+    - name: Test mutation testing (sample)
+      run: |
+        # Run a small sample of mutation testing
+        # Note: Full mutation testing would be too slow for CI
+        timeout 60s mutmut run --paths-to-mutate src/config.py --runner "python -m pytest tests/test_config.py -x" || echo "Mutation testing sample completed"

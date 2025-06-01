@@ -1,0 +1,59 @@
+version: 2
+updates:
+  # Enable version updates for pip
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 5
+    assignees:
+      - "sblumenf"
+    reviewers:
+      - "sblumenf"
+    commit-message:
+      prefix: "deps"
+      include: "scope"
+    
+    # Group dependencies by type
+    groups:
+      test-dependencies:
+        patterns:
+          - "pytest*"
+          - "coverage*"
+          - "mock*"
+      
+      async-dependencies:
+        patterns:
+          - "asyncio*"
+          - "aiohttp*"
+      
+      ai-dependencies:
+        patterns:
+          - "google*"
+          - "openai*"
+    
+    # Ignore major version updates for stable dependencies
+    ignore:
+      - dependency-name: "python"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "pytest"
+        update-types: ["version-update:semver-major"]
+    
+    # Auto-merge minor and patch updates for dev dependencies
+    allow:
+      - dependency-type: "development"
+        update-type: "all"
+
+  # Enable version updates for GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 3
+    commit-message:
+      prefix: "ci"
+      include: "scope"
