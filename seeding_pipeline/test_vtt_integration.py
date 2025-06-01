@@ -9,9 +9,9 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 
 from src.core.config import PipelineConfig
-from src.seeding.orchestrator import PodcastKnowledgePipeline
-from src.seeding.transcript_ingestion import VTTFile
-from src.processing.vtt_parser import VTTParser
+from src.seeding.orchestrator import VTTKnowledgeExtractor
+from src.seeding.transcript_ingestion import TranscriptIngestionManager
+from src.vtt.vtt_parser import VTTParser
 
 def test_vtt_integration():
     """Test the complete VTT processing pipeline."""
@@ -47,49 +47,43 @@ def test_vtt_integration():
         
         # Initialize pipeline
         print("\nInitializing pipeline...")
-        pipeline = PodcastKnowledgePipeline(config)
-        
-        # Initialize components
-        if not pipeline.initialize_components():
-            print("ERROR: Failed to initialize components")
-            return False
+        pipeline = VTTKnowledgeExtractor(config)
         
         print("Pipeline initialized successfully")
         
+        # Create ingestion manager
+        ingestion_manager = TranscriptIngestionManager(
+            pipeline=pipeline,
+            checkpoint=None
+        )
+        
         # Process the VTT file through the full pipeline
         print("\nProcessing VTT file...")
-        result = pipeline.process_vtt_files(
-            [VTTFile(
-                path=test_file,
-                podcast_name="Test Podcast",
-                episode_title="AI Discussion",
-                file_hash="test_hash",
-                size_bytes=len(test_vtt_content),
-                created_at=None,
-                metadata={}
-            )],
-            use_large_context=False
+        result = ingestion_manager.process_vtt_file(
+            vtt_file=str(test_file),
+            metadata={
+                'podcast_name': 'Test Podcast',
+                'episode_title': 'AI Discussion',
+                'source': 'test'
+            }
         )
         
         print("\nProcessing Results:")
-        print(f"Files processed: {result['files_processed']}")
-        print(f"Total segments: {result['total_segments']}")
-        print(f"Total entities: {result['total_entities']}")
-        print(f"Total insights: {result['total_insights']}")
-        print(f"Total relationships: {result['total_relationships']}")
-        
-        if result['files_failed'] > 0:
-            print(f"\nErrors: {result['errors']}")
+        print(f"Success: {result.get('success', False)}")
+        if result.get('success'):
+            print(f"Segments processed: {result.get('segments_processed', 0)}")
+        else:
+            print(f"Error: {result.get('error', 'Unknown error')}")
         
         # Test direct parsing
         print("\n\nTesting direct VTT parsing:")
         parser = VTTParser()
-        segments = parser.parse_file(test_file)
+        segments = parser.parse_file(str(test_file))
         print(f"Parsed {len(segments)} segments:")
         for seg in segments:
             print(f"  {seg.speaker}: {seg.text[:50]}...")
         
-        return result['files_processed'] > 0
+        return result.get('success', False)
         
     except Exception as e:
         print(f"ERROR: {e}")

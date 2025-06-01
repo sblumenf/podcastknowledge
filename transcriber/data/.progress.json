@@ -1,0 +1,43 @@
+{
+  "meta": {
+    "last_updated": "2025-06-01T04:26:07.422288+00:00",
+    "total_processed": 0,
+    "daily_quota_used": 0,
+    "quota_reset_time": null,
+    "next_key_index": 0
+  },
+  "episodes": {
+    "ep1-guid": {
+      "guid": "ep1-guid",
+      "status": "failed",
+      "podcast_name": "Test Podcast",
+      "title": "Episode 1",
+      "audio_url": "https://example.com/episode1.mp3",
+      "publication_date": null,
+      "attempt_count": 2,
+      "last_attempt": "2025-06-01T04:26:07.387307+00:00",
+      "completed_at": null,
+      "processing_time_seconds": null,
+      "output_file": null,
+      "error": "Transcription failed",
+      "error_type": "unknown",
+      "api_key_used": "key_1"
+    },
+    "ep2-guid": {
+      "guid": "ep2-guid",
+      "status": "failed",
+      "podcast_name": "Test Podcast",
+      "title": "Episode 2",
+      "audio_url": "https://example.com/episode2.mp3",
+      "publication_date": null,
+      "attempt_count": 2,
+      "last_attempt": "2025-06-01T04:26:07.411681+00:00",
+      "completed_at": null,
+      "processing_time_seconds": null,
+      "output_file": null,
+      "error": "Transcription failed",
+      "error_type": "unknown",
+      "api_key_used": "key_1"
+    }
+  }
+}

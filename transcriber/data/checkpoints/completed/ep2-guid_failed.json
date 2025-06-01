@@ -1,0 +1,27 @@
+{
+  "episode_id": "ep2-guid",
+  "audio_url": "https://example.com/episode2.mp3",
+  "title": "Episode 2",
+  "status": "failed",
+  "stage_completed": [],
+  "temporary_files": {},
+  "start_time": "2025-06-01T00:26:07.407701",
+  "last_update": "2025-06-01T00:26:07.431367",
+  "metadata": {
+    "title": "Episode 2",
+    "audio_url": "https://example.com/episode2.mp3",
+    "guid": "ep2-guid",
+    "description": "Episode 2 description",
+    "published_date": "2024-01-12T00:00:00",
+    "duration": "30:00",
+    "episode_number": 2,
+    "season_number": null,
+    "link": null,
+    "author": null,
+    "keywords": [],
+    "file_size": null,
+    "mime_type": null,
+    "podcast_name": "Test Podcast"
+  },
+  "error": "Transcription failed"
+}

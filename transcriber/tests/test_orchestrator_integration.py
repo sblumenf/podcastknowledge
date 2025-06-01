@@ -319,9 +319,6 @@ class TestCLIIntegration:
     def test_main_with_processing_error(self, mock_asyncio_run, 
                                       mock_orchestrator_class, mock_logger):
         """Test CLI handling processing errors."""
-        # Mock config
-        config = MagicMock()
-        mock_get_config.return_value = config
         
         # Mock orchestrator to raise exception
         mock_orchestrator = MagicMock()

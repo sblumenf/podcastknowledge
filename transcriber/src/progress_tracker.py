@@ -423,3 +423,44 @@ class ProgressTracker:
         
         if interrupted:
             logger.info(f"Cleaned up {len(interrupted)} interrupted episodes")
+    
+    def update_episode_state(self, guid: str, status: EpisodeStatus, 
+                           episode_data: Dict[str, Any],
+                           output_file: Optional[str] = None,
+                           error: Optional[str] = None):
+        """Update episode state - unified interface for status updates.
+        
+        This method provides compatibility with the orchestrator's expectations
+        by routing to the appropriate mark_* method based on status.
+        
+        Args:
+            guid: Episode GUID
+            status: New status
+            episode_data: Episode metadata
+            output_file: Output file path (for completed status)
+            error: Error message (for failed status)
+        """
+        if status == EpisodeStatus.IN_PROGRESS:
+            # Add episode if not already tracked
+            if guid not in self.state.episodes:
+                self.add_episode(episode_data)
+            
+            # Get API key index from episode data or use next available
+            api_key_index = episode_data.get('api_key_index', self.get_next_key_index())
+            self.mark_started(episode_data, api_key_index)
+            
+        elif status == EpisodeStatus.COMPLETED:
+            # Calculate processing time if start time available
+            processing_time = 60.0  # Default to 60 seconds
+            if guid in self.state.episodes:
+                episode = self.state.episodes[guid]
+                if episode.last_attempt:
+                    processing_time = (datetime.now(timezone.utc) - episode.last_attempt).total_seconds()
+            
+            self.mark_completed(guid, output_file or '', processing_time)
+            
+        elif status == EpisodeStatus.FAILED:
+            self.mark_failed(guid, error or 'Unknown error')
+            
+        else:
+            logger.warning(f"Unexpected status update: {status} for episode {guid}")

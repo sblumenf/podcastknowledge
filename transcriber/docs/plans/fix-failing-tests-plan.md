@@ -71,9 +71,9 @@ This plan addresses all 57 failing tests in the podcast transcriber codebase by 
 
 ## Phase 3: Fix Individual Test Categories
 
-### Task 3.1: Fix Configuration Tests (12 tests)
-- [ ] Use context7 MCP tool to review the test files
-- [ ] Update test_config.py to use proper mocking
+### Task 3.1: Fix Configuration Tests (12 tests) ✅ VALIDATED
+- [x] Use context7 MCP tool to review the test files
+- [x] Update test_config.py to use proper mocking
 - **Purpose**: Ensure configuration tests pass with new setup
 - **Steps**:
   1. Update tests to use config fixtures
@@ -82,8 +82,8 @@ This plan addresses all 57 failing tests in the podcast transcriber codebase by 
   4. Update validation tests for new rules
 - **Validation**: All tests in test_config.py pass
 
-### Task 3.2: Fix Feed Parser Tests (2 tests)
-- [ ] Update test_feed_parser.py for import changes
+### Task 3.2: Fix Feed Parser Tests (2 tests) ✅ VALIDATED
+- [x] Update test_feed_parser.py for import changes
 - **Purpose**: Ensure feed parsing tests work correctly
 - **Steps**:
   1. Fix iTunes metadata extraction test
@@ -92,8 +92,8 @@ This plan addresses all 57 failing tests in the podcast transcriber codebase by 
   4. Mock feedparser responses properly
 - **Validation**: All tests in test_feed_parser.py pass
 
-### Task 3.3: Fix File Organizer Tests (3 tests)
-- [ ] Update test_file_organizer.py 
+### Task 3.3: Fix File Organizer Tests (3 tests) ✅ VALIDATED
+- [x] Update test_file_organizer.py 
 - **Purpose**: Fix file handling and naming tests
 - **Steps**:
   1. Fix filename sanitization edge cases
@@ -102,8 +102,8 @@ This plan addresses all 57 failing tests in the podcast transcriber codebase by 
   4. Use temporary directories for file tests
 - **Validation**: All tests in test_file_organizer.py pass
 
-### Task 3.4: Fix Gemini Client Tests (4 tests)
-- [ ] Update test_gemini_client.py for new API structure
+### Task 3.4: Fix Gemini Client Tests (4 tests) ✅ VALIDATED
+- [x] Update test_gemini_client.py for new API structure
 - **Purpose**: Fix Google Generative AI client tests
 - **Steps**:
   1. Update mocks for GenerativeModel instead of Client
@@ -112,9 +112,9 @@ This plan addresses all 57 failing tests in the podcast transcriber codebase by 
   4. Mock file operations for state persistence
 - **Validation**: All tests in test_gemini_client.py pass
 
-### Task 3.5: Fix Integration Tests (4 tests)
-- [ ] Use context7 MCP tool to review integration testing best practices
-- [ ] Update test_integration.py
+### Task 3.5: Fix Integration Tests (4 tests) ✅ VALIDATED
+- [x] Use context7 MCP tool to review integration testing best practices
+- [x] Update test_integration.py
 - **Purpose**: Fix end-to-end pipeline tests
 - **Steps**:
   1. Create comprehensive mocks for full pipeline
@@ -123,8 +123,8 @@ This plan addresses all 57 failing tests in the podcast transcriber codebase by 
   4. Use minimal test data to reduce disk usage
 - **Validation**: All tests in test_integration.py pass
 
-### Task 3.6: Fix Key Rotation Tests (1 test)
-- [ ] Update test_key_rotation_manager.py
+### Task 3.6: Fix Key Rotation Tests (1 test) ✅ VALIDATED
+- [x] Update test_key_rotation_manager.py
 - **Purpose**: Fix API key rotation tests
 - **Steps**:
   1. Mock environment variables properly
@@ -132,8 +132,8 @@ This plan addresses all 57 failing tests in the podcast transcriber codebase by 
   3. Ensure proper cleanup after tests
 - **Validation**: All tests in test_key_rotation_manager.py pass
 
-### Task 3.7: Fix Logging Tests (1 test)
-- [ ] Update test_logging.py
+### Task 3.7: Fix Logging Tests (1 test) ✅ VALIDATED
+- [x] Update test_logging.py
 - **Purpose**: Fix logging system tests
 - **Steps**:
   1. Fix multiple logger request test
@@ -141,8 +141,10 @@ This plan addresses all 57 failing tests in the podcast transcriber codebase by 
   3. Clean up log handlers after tests
 - **Validation**: All tests in test_logging.py pass
 
-### Task 3.8: Fix Orchestrator Tests (7 tests)
-- [ ] Update test_orchestrator_integration.py
+### Task 3.8: Fix Orchestrator Tests (7 tests) ⚠️ PARTIAL
+- [x] Update test_orchestrator_integration.py
+- [x] Fixed some issues but 8 tests still failing due to architectural mismatches
+- [ ] Needs design decision: Update tests or implementation
 - **Purpose**: Fix CLI and orchestrator integration tests
 - **Steps**:
   1. Fix parse_arguments function name
@@ -151,8 +153,8 @@ This plan addresses all 57 failing tests in the podcast transcriber codebase by 
   4. Fix progress bar creation test
 - **Validation**: All tests in test_orchestrator_integration.py pass
 
-### Task 3.9: Fix Progress Tracker Tests (17 tests)
-- [ ] Update test_progress_tracker.py
+### Task 3.9: Fix Progress Tracker Tests (17 tests) ✅ VALIDATED
+- [x] Update test_progress_tracker.py
 - **Purpose**: Fix progress tracking tests
 - **Steps**:
   1. Use temporary files for state storage
@@ -161,8 +163,8 @@ This plan addresses all 57 failing tests in the podcast transcriber codebase by 
   4. Mock datetime for time-based tests
 - **Validation**: All tests in test_progress_tracker.py pass
 
-### Task 3.10: Fix VTT Generator Tests (4 tests)
-- [ ] Update test_vtt_generator.py
+### Task 3.10: Fix VTT Generator Tests (4 tests) ✅ VALIDATED
+- [x] Update test_vtt_generator.py
 - **Purpose**: Fix VTT file generation tests
 - **Steps**:
   1. Use temporary directories for output

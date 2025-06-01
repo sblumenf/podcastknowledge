@@ -1,0 +1,821 @@
+2025-06-01 00:01:18 - podcast_transcriber - INFO - Logging system initialized
+2025-06-01 00:01:18 - podcast_transcriber - INFO - Log level: INFO
+2025-06-01 00:01:18 - podcast_transcriber - INFO - Log directory: /home/sergeblumenfeld/podcastknowledge/transcriber/logs
+2025-06-01 00:03:48 - podcast_transcriber - INFO - Logging system initialized
+2025-06-01 00:03:48 - podcast_transcriber - INFO - Log level: INFO
+2025-06-01 00:03:48 - podcast_transcriber - INFO - Log directory: /home/sergeblumenfeld/podcastknowledge/transcriber/logs
+2025-06-01 00:03:49 - podcast_transcriber.config - INFO - Loaded configuration from: /home/sergeblumenfeld/podcastknowledge/transcriber/config/default.yaml
+2025-06-01 00:03:49 - podcast_transcriber.config - INFO - Configuration validation passed
+2025-06-01 00:03:49 - podcast_transcriber.config - INFO - Loaded configuration from: /tmp/tmp6v3ez7e1/test_config.yaml
+2025-06-01 00:03:49 - podcast_transcriber.config - INFO - Configuration validation passed
+2025-06-01 00:03:49 - podcast_transcriber.config - WARNING - Configuration file not found: /non/existent/config.yaml
+2025-06-01 00:03:49 - podcast_transcriber.config - INFO - Using default configuration values
+2025-06-01 00:03:49 - podcast_transcriber.config - INFO - Running in test mode - relaxed validation
+2025-06-01 00:03:49 - podcast_transcriber.config - ERROR - Failed to load configuration: mapping values are not allowed here
+  in "/tmp/tmpemfveg8v/invalid_config.yaml", line 1, column 14
+2025-06-01 00:03:49 - podcast_transcriber.config - INFO - Using default configuration values
+2025-06-01 00:03:49 - podcast_transcriber.config - INFO - Running in test mode - relaxed validation
+2025-06-01 00:03:49 - podcast_transcriber.config - INFO - Loaded configuration from: /home/sergeblumenfeld/podcastknowledge/transcriber/config/default.yaml
+2025-06-01 00:03:49 - podcast_transcriber.config - INFO - Applied environment override: PODCAST_API_TIMEOUT=600
+2025-06-01 00:03:49 - podcast_transcriber.config - INFO - Applied environment override: PODCAST_API_MAX_ATTEMPTS=3
+2025-06-01 00:03:49 - podcast_transcriber.config - INFO - Applied environment override: PODCAST_API_MAX_EPISODES=20
+2025-06-01 00:03:49 - podcast_transcriber.config - INFO - Applied environment override: PODCAST_OUTPUT_DIR=/custom/output
+2025-06-01 00:03:49 - podcast_transcriber.config - INFO - Applied environment override: PODCAST_OUTPUT_PATTERN={date}/{podcast_name}.vtt
+2025-06-01 00:03:49 - podcast_transcriber.config - INFO - Applied environment override: PODCAST_MAX_EPISODE_LENGTH=90
+2025-06-01 00:03:49 - podcast_transcriber.config - INFO - Applied environment override: PODCAST_ENABLE_PROGRESS=False
+2025-06-01 00:03:49 - podcast_transcriber.config - INFO - Applied environment override: PODCAST_LOG_LEVEL=DEBUG
+2025-06-01 00:03:49 - podcast_transcriber.config - INFO - Applied environment override: PODCAST_LOG_DIR=/custom/logs
+2025-06-01 00:03:49 - podcast_transcriber.config - INFO - Applied environment override: PODCAST_DRY_RUN=True
+2025-06-01 00:03:49 - podcast_transcriber.config - INFO - Applied environment override: PODCAST_DEBUG_MODE=True
+2025-06-01 00:03:49 - podcast_transcriber.config - INFO - Configuration validation passed
+2025-06-01 00:03:49 - podcast_transcriber.config - INFO - Loaded configuration from: /home/sergeblumenfeld/podcastknowledge/transcriber/config/default.yaml
+2025-06-01 00:03:49 - podcast_transcriber.config - INFO - Configuration validation passed
+2025-06-01 00:03:49 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - API timeout must be positive
+2025-06-01 00:03:49 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - API max_attempts must be between 1 and 5
+2025-06-01 00:03:49 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Max episodes per day must be positive
+2025-06-01 00:03:49 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Console log level must be one of: ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL']
+2025-06-01 00:03:49 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - No API keys found in environment variables: ['GEMINI_API_KEY_1', 'GEMINI_API_KEY_2']
+2025-06-01 00:03:49 - podcast_transcriber.config - INFO - Loaded configuration from: /home/sergeblumenfeld/podcastknowledge/transcriber/config/default.yaml
+2025-06-01 00:03:49 - podcast_transcriber.config - INFO - Configuration validation passed
+2025-06-01 00:03:49 - podcast_transcriber.config - INFO - Loaded configuration from: /home/sergeblumenfeld/podcastknowledge/transcriber/config/default.yaml
+2025-06-01 00:03:49 - podcast_transcriber.config - INFO - Configuration validation passed
+2025-06-01 00:03:49 - podcast_transcriber.config - INFO - Loaded configuration from: /home/sergeblumenfeld/podcastknowledge/transcriber/config/default.yaml
+2025-06-01 00:03:49 - podcast_transcriber.config - INFO - Configuration validation passed
+2025-06-01 00:03:49 - podcast_transcriber.config - INFO - Loaded configuration from: /home/sergeblumenfeld/podcastknowledge/transcriber/config/default.yaml
+2025-06-01 00:03:49 - podcast_transcriber.config - INFO - Configuration validation passed
+2025-06-01 00:03:49 - podcast_transcriber.config - INFO - Loaded configuration from: /home/sergeblumenfeld/podcastknowledge/transcriber/config/default.yaml
+2025-06-01 00:03:49 - podcast_transcriber.config - INFO - Configuration validation passed
+2025-06-01 00:03:49 - podcast_transcriber.config - INFO - Loaded configuration from: /home/sergeblumenfeld/podcastknowledge/transcriber/config/default.yaml
+2025-06-01 00:03:49 - podcast_transcriber.config - INFO - Configuration validation passed
+2025-06-01 00:03:49 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Timestamp precision must be between 0 and 3
+2025-06-01 00:03:49 - podcast_transcriber.config - INFO - Configuration validation passed
+2025-06-01 00:03:49 - podcast_transcriber.config - INFO - Loaded configuration from: /home/sergeblumenfeld/podcastknowledge/transcriber/config/default.yaml
+2025-06-01 00:03:49 - podcast_transcriber.config - INFO - Configuration validation passed
+2025-06-01 00:03:49 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Rotation strategy must be one of: ['round_robin', 'random']
+2025-06-01 00:03:49 - podcast_transcriber.config - INFO - Configuration validation passed
+2025-06-01 00:03:49 - podcast_transcriber.config - INFO - Configuration validation passed
+2025-06-01 00:03:49 - podcast_transcriber.config - INFO - Loaded configuration from: /home/sergeblumenfeld/podcastknowledge/transcriber/config/default.yaml
+2025-06-01 00:03:49 - podcast_transcriber.config - INFO - Configuration validation passed
+2025-06-01 00:03:49 - podcast_transcriber.config - INFO - Loaded configuration from: /home/sergeblumenfeld/podcastknowledge/transcriber/config/default.yaml
+2025-06-01 00:03:49 - podcast_transcriber.config - INFO - Configuration validation passed
+2025-06-01 00:03:49 - podcast_transcriber.config - INFO - Loaded configuration from: /home/sergeblumenfeld/podcastknowledge/transcriber/config/default.yaml
+2025-06-01 00:03:49 - podcast_transcriber.config - INFO - Configuration validation passed
+2025-06-01 00:03:49 - podcast_transcriber.feed_parser - INFO - Parsing RSS feed: https://example.com/feed.xml
+2025-06-01 00:03:49 - podcast_transcriber.feed_parser - INFO - Parsed podcast: Test Podcast
+2025-06-01 00:03:49 - podcast_transcriber.feed_parser - INFO - Found 1 episodes in feed
+2025-06-01 00:03:49 - podcast_transcriber.feed_parser - INFO - Parsing RSS feed: https://example.com/feed.xml
+2025-06-01 00:03:49 - podcast_transcriber.feed_parser - ERROR - Feed parsing error: XML parsing error
+2025-06-01 00:03:49 - podcast_transcriber.feed_parser - INFO - Parsed podcast: Test Podcast
+2025-06-01 00:03:49 - podcast_transcriber.feed_parser - INFO - Found 0 episodes in feed
+2025-06-01 00:03:49 - podcast_transcriber.feed_parser - WARNING - No episodes found in feed
+2025-06-01 00:03:49 - podcast_transcriber.feed_parser - INFO - Parsing RSS feed: https://example.com/feed.xml
+2025-06-01 00:03:49 - podcast_transcriber.feed_parser - ERROR - Failed to parse feed https://example.com/feed.xml: Network error
+2025-06-01 00:03:49 - podcast_transcriber.feed_parser - INFO - Parsing RSS feed: https://example.com/feed.xml
+2025-06-01 00:03:49 - podcast_transcriber.feed_parser - INFO - Parsed podcast: Empty Podcast
+2025-06-01 00:03:49 - podcast_transcriber.feed_parser - INFO - Found 0 episodes in feed
+2025-06-01 00:03:49 - podcast_transcriber.feed_parser - WARNING - No episodes found in feed
+2025-06-01 00:03:49 - podcast_transcriber.file_organizer - INFO - Loaded 1 episodes from manifest
+2025-06-01 00:03:49 - podcast_transcriber.file_organizer - WARNING - Invalid date format: invalid-date, using current date
+2025-06-01 00:03:49 - podcast_transcriber.file_organizer - INFO - Created episode file: Test_Podcast/2024-01-15_Test_Episode.vtt
+2025-06-01 00:03:49 - podcast_transcriber.file_organizer - ERROR - Failed to write episode file /tmp/tmpxobp4e_7/Test/2024-01-15_Test.vtt: Write error
+2025-06-01 00:03:49 - podcast_transcriber.file_organizer - INFO - Loaded 2 episodes from manifest
+2025-06-01 00:03:49 - podcast_transcriber.file_organizer - INFO - Removed empty directory: Empty_Podcast
+2025-06-01 00:03:49 - podcast_transcriber.gemini_client - WARNING - API key 1 hit daily request limit
+2025-06-01 00:03:49 - podcast_transcriber.gemini_client - WARNING - API key 1 hit daily token limit
+2025-06-01 00:03:49 - podcast_transcriber.gemini_client - INFO - Reset daily usage for API key 1
+2025-06-01 00:03:49 - podcast_transcriber.gemini_client - INFO - Initialized Gemini client with 2 API keys
+2025-06-01 00:03:49 - podcast_transcriber.gemini_client - INFO - Initialized Gemini client with 2 API keys
+2025-06-01 00:03:49 - podcast_transcriber.gemini_client - INFO - Loaded usage state from file
+2025-06-01 00:03:49 - podcast_transcriber.gemini_client - INFO - Initialized Gemini client with 2 API keys
+2025-06-01 00:03:49 - podcast_transcriber.gemini_client - INFO - Reset daily usage for API key 1
+2025-06-01 00:03:49 - podcast_transcriber.gemini_client - INFO - Loaded usage state from file
+2025-06-01 00:03:49 - podcast_transcriber.gemini_client - INFO - Initialized Gemini client with 2 API keys
+2025-06-01 00:03:49 - podcast_transcriber.gemini_client - INFO - Initialized Gemini client with 2 API keys
+2025-06-01 00:03:49 - podcast_transcriber.gemini_client - INFO - Initialized Gemini client with 2 API keys
+2025-06-01 00:03:49 - podcast_transcriber.gemini_client - INFO - Initialized Gemini client with 2 API keys
+2025-06-01 00:03:49 - podcast_transcriber.gemini_client - WARNING - API key 1 hit daily request limit
+2025-06-01 00:03:49 - podcast_transcriber.gemini_client - WARNING - API key 2 hit daily request limit
+2025-06-01 00:03:49 - podcast_transcriber.gemini_client - ERROR - No API keys available due to rate limits
+2025-06-01 00:03:49 - podcast_transcriber.gemini_client - INFO - Initialized Gemini client with 2 API keys
+2025-06-01 00:03:49 - podcast_transcriber.gemini_client - INFO - Starting transcription for: Test Episode
+2025-06-01 00:03:49 - podcast_transcriber.gemini_client - INFO - Using API key 1
+2025-06-01 00:03:49 - podcast_transcriber.gemini_client - INFO - Initialized Gemini client with 2 API keys
+2025-06-01 00:03:49 - podcast_transcriber.gemini_client - ERROR - No API keys available due to rate limits
+2025-06-01 00:03:49 - podcast_transcriber.gemini_client - INFO - Initialized Gemini client with 2 API keys
+2025-06-01 00:03:49 - podcast_transcriber.gemini_client - INFO - Starting transcription for: Unknown
+2025-06-01 00:03:49 - podcast_transcriber.gemini_client - INFO - Using API key 1
+2025-06-01 00:03:49 - podcast_transcriber.gemini_client - ERROR - Transcription failed: Quota exceeded
+2025-06-01 00:03:49 - podcast_transcriber.gemini_client - INFO - Initialized Gemini client with 2 API keys
+2025-06-01 00:03:49 - podcast_transcriber.gemini_client - INFO - Starting speaker identification
+2025-06-01 00:03:49 - podcast_transcriber.gemini_client - INFO - Using API key 1
+2025-06-01 00:03:49 - podcast_transcriber.gemini_client - INFO - Initialized Gemini client with 2 API keys
+2025-06-01 00:03:49 - podcast_transcriber.gemini_client - INFO - Starting speaker identification
+2025-06-01 00:03:49 - podcast_transcriber.gemini_client - INFO - Using API key 1
+2025-06-01 00:03:49 - podcast_transcriber.gemini_client - ERROR - Speaker identification failed: API error with quota
+2025-06-01 00:03:49 - podcast_transcriber.gemini_client - INFO - Initialized Gemini client with 2 API keys
+2025-06-01 00:03:49 - podcast_transcriber.gemini_client - INFO - Initialized Gemini client with 2 API keys
+2025-06-01 00:03:49 - podcast_transcriber.gemini_client - INFO - Initialized Gemini client with 2 API keys
+2025-06-01 00:03:49 - podcast_transcriber.gemini_client - INFO - Initialized Gemini client with 2 API keys
+2025-06-01 00:03:49 - podcast_transcriber.gemini_client - INFO - Found 3 API key(s) in environment
+2025-06-01 00:03:49 - podcast_transcriber.gemini_client - INFO - Found 1 API key(s) in environment
+2025-06-01 00:03:49 - podcast_transcriber.feed_parser - INFO - Parsing RSS feed: https://example.com/feed.xml
+2025-06-01 00:03:49 - podcast_transcriber.feed_parser - INFO - Parsed podcast: Integration Test Podcast
+2025-06-01 00:03:49 - podcast_transcriber.feed_parser - INFO - Found 2 episodes in feed
+2025-06-01 00:03:49 - podcast_transcriber.progress_tracker - INFO - Progress tracker initialized with 0 episodes
+2025-06-01 00:03:49 - podcast_transcriber.gemini_client - INFO - Initialized Gemini client with 2 API keys
+2025-06-01 00:03:49 - podcast_transcriber.progress_tracker - INFO - Episode 'Episode 1: Introduction' marked as in-progress (attempt #1)
+2025-06-01 00:03:49 - podcast_transcriber.gemini_client - INFO - Starting transcription for: Episode 1: Introduction
+2025-06-01 00:03:49 - podcast_transcriber.gemini_client - INFO - Using API key 1
+2025-06-01 00:03:49 - podcast_transcriber.gemini_client - INFO - Transcription completed in 0.0s
+2025-06-01 00:03:49 - podcast_transcriber.gemini_client - INFO - Starting speaker identification
+2025-06-01 00:03:49 - podcast_transcriber.gemini_client - INFO - Using API key 2
+2025-06-01 00:03:49 - podcast_transcriber.gemini_client - INFO - Identified speakers: {'SPEAKER_1': 'Test Host (Host)', 'SPEAKER_2': 'Jane Doe (Guest, Software Engineer)'}
+2025-06-01 00:03:49 - podcast_transcriber.file_organizer - INFO - Created episode file: Integration_Test_Podcast/2024-01-15_Episode_1_Introduction.vtt
+2025-06-01 00:03:49 - podcast_transcriber.progress_tracker - INFO - Episode 'Episode 1: Introduction' marked as completed in 5.0s
+2025-06-01 00:03:49 - podcast_transcriber.progress_tracker - INFO - Progress tracker initialized with 0 episodes
+2025-06-01 00:03:49 - podcast_transcriber.gemini_client - INFO - Initialized Gemini client with 1 API keys
+2025-06-01 00:03:49 - podcast_transcriber.progress_tracker - INFO - Episode 'Error Episode' marked as in-progress (attempt #1)
+2025-06-01 00:03:53 - podcast_transcriber.retry_wrapper - ERROR - transcribe_audio failed after 2 attempts
+2025-06-01 00:03:53 - podcast_transcriber.progress_tracker - WARNING - Episode 'Error Episode' marked as failed: Rate limit exceeded
+2025-06-01 00:03:53 - podcast_transcriber.progress_tracker - INFO - Episode 'Error Episode' marked as in-progress (attempt #2)
+2025-06-01 00:03:53 - podcast_transcriber.gemini_client - INFO - Transcription completed in 0.0s
+2025-06-01 00:03:53 - podcast_transcriber.checkpoint_recovery - INFO - Loaded checkpoint for episode: Test Episode
+2025-06-01 00:03:53 - podcast_transcriber.checkpoint_recovery - INFO - Updated checkpoint: stage=speaker_identification
+2025-06-01 00:03:53 - podcast_transcriber.checkpoint_recovery - INFO - Completed stage: transcription
+2025-06-01 00:03:53 - podcast_transcriber.checkpoint_recovery - INFO - Episode completed: Test Episode
+2025-06-01 00:03:53 - podcast_transcriber.progress_tracker - INFO - Progress tracker initialized with 0 episodes
+2025-06-01 00:03:54 - podcast_transcriber.gemini_client - INFO - Initialized Gemini client with 1 API keys
+2025-06-01 00:03:54 - podcast_transcriber.progress_tracker - INFO - Episode 'Episode 1' marked as in-progress (attempt #1)
+2025-06-01 00:03:54 - podcast_transcriber.progress_tracker - INFO - Episode 'Episode 1' marked as completed in 5.0s
+2025-06-01 00:03:54 - podcast_transcriber.progress_tracker - INFO - Episode 'Episode 2' marked as in-progress (attempt #1)
+2025-06-01 00:03:54 - podcast_transcriber.progress_tracker - INFO - Episode 'Episode 2' marked as completed in 5.0s
+2025-06-01 00:03:54 - podcast_transcriber.key_rotation_manager - INFO - Initialized key rotation manager with 3 keys
+2025-06-01 00:03:54 - podcast_transcriber.key_rotation_manager - INFO - Initialized key rotation manager with 3 keys
+2025-06-01 00:03:54 - podcast_transcriber.key_rotation_manager - INFO - Selected key_1 (test_key...) for next request
+2025-06-01 00:03:54 - podcast_transcriber.key_rotation_manager - INFO - Selected key_2 (test_key...) for next request
+2025-06-01 00:03:54 - podcast_transcriber.key_rotation_manager - INFO - Selected key_3 (test_key...) for next request
+2025-06-01 00:03:54 - podcast_transcriber.key_rotation_manager - INFO - Selected key_1 (test_key...) for next request
+2025-06-01 00:03:54 - podcast_transcriber.key_rotation_manager - INFO - Initialized key rotation manager with 3 keys
+2025-06-01 00:03:54 - podcast_transcriber.key_rotation_manager - INFO - Selected key_2 (test_key...) for next request
+2025-06-01 00:03:54 - podcast_transcriber.key_rotation_manager - INFO - Selected key_2 (test_key...) for next request
+2025-06-01 00:03:54 - podcast_transcriber.key_rotation_manager - INFO - Initialized key rotation manager with 3 keys
+2025-06-01 00:03:54 - podcast_transcriber.key_rotation_manager - INFO - Current key status:
+2025-06-01 00:03:54 - podcast_transcriber.key_rotation_manager - INFO -   key_1 (test_key...): quota_exceeded
+2025-06-01 00:03:54 - podcast_transcriber.key_rotation_manager - INFO -   key_2 (test_key...): quota_exceeded
+2025-06-01 00:03:54 - podcast_transcriber.key_rotation_manager - INFO -   key_3 (test_key...): quota_exceeded
+2025-06-01 00:03:54 - podcast_transcriber.key_rotation_manager - INFO - Initialized key rotation manager with 3 keys
+2025-06-01 00:03:54 - podcast_transcriber.key_rotation_manager - INFO - Initialized key rotation manager with 3 keys
+2025-06-01 00:03:54 - podcast_transcriber.key_rotation_manager - WARNING - key_1 (test_key...) marked as failed: Rate limit exceeded
+2025-06-01 00:03:54 - podcast_transcriber.key_rotation_manager - INFO - Initialized key rotation manager with 3 keys
+2025-06-01 00:03:54 - podcast_transcriber.key_rotation_manager - INFO - Initialized key rotation manager with 3 keys
+2025-06-01 00:03:54 - podcast_transcriber.key_rotation_manager - INFO - Initialized key rotation manager with 3 keys
+2025-06-01 00:03:54 - podcast_transcriber.key_rotation_manager - INFO - Force reset key_2 (test_key...) to available
+2025-06-01 00:03:54 - podcast_transcriber.key_rotation_manager - INFO - Initialized key rotation manager with 3 keys
+2025-06-01 00:03:54 - podcast_transcriber.key_rotation_manager - INFO - Performing daily reset of key states
+2025-06-01 00:03:54 - podcast_transcriber.key_rotation_manager - INFO - Initialized key rotation manager with 3 keys
+2025-06-01 00:03:54 - podcast_transcriber.key_rotation_manager - INFO - Loaded rotation state, current index: 2
+2025-06-01 00:03:54 - podcast_transcriber.key_rotation_manager - INFO - Initialized key rotation manager with 3 keys
+2025-06-01 00:03:54 - podcast_transcriber.key_rotation_manager - INFO - Performing daily reset of key states
+2025-06-01 00:03:54 - podcast_transcriber.key_rotation_manager - INFO - Loaded rotation state, current index: 1
+2025-06-01 00:03:54 - podcast_transcriber.key_rotation_manager - INFO - Initialized key rotation manager with 3 keys
+2025-06-01 00:03:54 - podcast_transcriber.key_rotation_manager - INFO - Initialized key rotation manager with 3 keys
+2025-06-01 00:03:54 - podcast_transcriber.key_rotation_manager - INFO - Initialized key rotation manager with 2 keys
+2025-06-01 00:03:54 - podcast_transcriber.key_rotation_manager - INFO - Initialized key rotation manager with 1 keys
+2025-06-01 00:03:54 - podcast_transcriber.key_rotation_manager - ERROR - No API keys found in environment
+2025-06-01 00:03:54 - podcast_transcriber - INFO - Logging system initialized
+2025-06-01 00:03:54 - podcast_transcriber - INFO - Log level: INFO
+2025-06-01 00:03:54 - podcast_transcriber - INFO - Log directory: /home/sergeblumenfeld/podcastknowledge/transcriber/logs
+2025-06-01 00:03:54 - podcast_transcriber - INFO - Logging system initialized
+2025-06-01 00:03:54 - podcast_transcriber - INFO - Log level: INFO
+2025-06-01 00:03:54 - podcast_transcriber - INFO - Log directory: /home/sergeblumenfeld/podcastknowledge/transcriber/logs
+2025-06-01 00:03:54 - podcast_transcriber - INFO - Progress: 1/2 (50.0%) - Starting episode: Processing: Episode 1
+2025-06-01 00:03:54 - podcast_transcriber.checkpoint_recovery - INFO - Started checkpoint for episode: Episode 1
+2025-06-01 00:03:54 - podcast_transcriber.orchestrator - ERROR - Episode processing failed: 'ProgressTracker' object has no attribute 'update_episode_state'
+2025-06-01 00:03:54 - podcast_transcriber.config - INFO - Loaded configuration from: /home/sergeblumenfeld/podcastknowledge/transcriber/config/default.yaml
+2025-06-01 00:03:54 - podcast_transcriber.config - INFO - Configuration validation passed
+2025-06-01 00:03:54 - podcast_transcriber.progress_tracker - INFO - Progress tracker initialized with 0 episodes
+2025-06-01 00:03:54 - podcast_transcriber.checkpoint_recovery - INFO - Loaded checkpoint for episode: Episode 1
+2025-06-01 00:03:54 - podcast_transcriber.orchestrator - INFO - Found 3 episodes in feed: Test Podcast
+2025-06-01 00:03:54 - podcast_transcriber - INFO - Progress: 1/3 (33.3%) - Starting episode: Processing: Episode 1
+2025-06-01 00:03:54 - podcast_transcriber.orchestrator - WARNING - Approaching daily quota limit, stopping processing
+2025-06-01 00:03:54 - podcast_transcriber.orchestrator - INFO - Summary report saved to: /tmp/tmpclhh_flr/transcripts/Test Podcast_report.json
+2025-06-01 00:03:54 - podcast_transcriber.config - INFO - Loaded configuration from: /home/sergeblumenfeld/podcastknowledge/transcriber/config/default.yaml
+2025-06-01 00:03:54 - podcast_transcriber.config - INFO - Configuration validation passed
+2025-06-01 00:03:54 - podcast_transcriber.progress_tracker - INFO - Progress tracker initialized with 0 episodes
+2025-06-01 00:03:54 - podcast_transcriber.checkpoint_recovery - INFO - Loaded checkpoint for episode: Episode 1
+2025-06-01 00:03:54 - podcast_transcriber.orchestrator - INFO - Found resumable checkpoint: Episode 1
+2025-06-01 00:03:54 - podcast_transcriber.orchestrator - INFO - Last updated 0.0 hours ago
+2025-06-01 00:03:54 - podcast_transcriber - INFO - Logging system initialized
+2025-06-01 00:03:54 - podcast_transcriber - INFO - Log level: INFO
+2025-06-01 00:03:54 - podcast_transcriber - INFO - Log directory: /home/sergeblumenfeld/podcastknowledge/transcriber/logs
+2025-06-01 00:03:54 - podcast_transcriber.cli - INFO - Starting transcription of https://example.com/feed.xml
+2025-06-01 00:03:54 - podcast_transcriber.cli - ERROR - Transcription failed: 'status'
+2025-06-01 00:03:54 - podcast_transcriber - INFO - Logging system initialized
+2025-06-01 00:03:54 - podcast_transcriber - INFO - Log level: INFO
+2025-06-01 00:03:54 - podcast_transcriber - INFO - Log directory: /home/sergeblumenfeld/podcastknowledge/transcriber/logs
+2025-06-01 00:03:54 - podcast_transcriber.progress_tracker - INFO - Progress tracker initialized with 0 episodes
+2025-06-01 00:03:54 - podcast_transcriber.progress_tracker - INFO - Progress tracker initialized with 1 episodes
+2025-06-01 00:03:54 - podcast_transcriber.progress_tracker - ERROR - Failed to load progress file: Expecting value: line 1 column 1 (char 0)
+2025-06-01 00:03:54 - podcast_transcriber.progress_tracker - WARNING - Starting with empty progress state
+2025-06-01 00:03:54 - podcast_transcriber.progress_tracker - INFO - Progress tracker initialized with 0 episodes
+2025-06-01 00:03:54 - podcast_transcriber.progress_tracker - INFO - Progress tracker initialized with 0 episodes
+2025-06-01 00:03:54 - podcast_transcriber.progress_tracker - INFO - Progress tracker initialized with 0 episodes
+2025-06-01 00:03:54 - podcast_transcriber.progress_tracker - ERROR - Failed to save progress state: Write failed
+2025-06-01 00:03:54 - podcast_transcriber.progress_tracker - INFO - Progress tracker initialized with 0 episodes
+2025-06-01 00:03:54 - podcast_transcriber.progress_tracker - INFO - Episode 'Episode 1' marked as in-progress (attempt #1)
+2025-06-01 00:03:54 - podcast_transcriber.progress_tracker - INFO - Progress tracker initialized with 0 episodes
+2025-06-01 00:03:54 - podcast_transcriber.progress_tracker - INFO - Episode 'Episode 1' marked as in-progress (attempt #2)
+2025-06-01 00:03:54 - podcast_transcriber.progress_tracker - INFO - Progress tracker initialized with 0 episodes
+2025-06-01 00:03:54 - podcast_transcriber.progress_tracker - INFO - Episode 'Episode 1' marked as completed in 123.5s
+2025-06-01 00:03:54 - podcast_transcriber.progress_tracker - INFO - Progress tracker initialized with 0 episodes
+2025-06-01 00:03:54 - podcast_transcriber.progress_tracker - ERROR - Episode non-existent not found in progress tracker
+2025-06-01 00:03:54 - podcast_transcriber.progress_tracker - INFO - Progress tracker initialized with 0 episodes
+2025-06-01 00:03:54 - podcast_transcriber.progress_tracker - WARNING - Episode 'Episode 1' marked as failed: Network timeout
+2025-06-01 00:03:54 - podcast_transcriber.progress_tracker - INFO - Progress tracker initialized with 0 episodes
+2025-06-01 00:03:54 - podcast_transcriber.progress_tracker - INFO - Progress tracker initialized with 0 episodes
+2025-06-01 00:03:54 - podcast_transcriber.progress_tracker - INFO - Progress tracker initialized with 0 episodes
+2025-06-01 00:03:54 - podcast_transcriber.progress_tracker - INFO - Progress tracker initialized with 0 episodes
+2025-06-01 00:03:54 - podcast_transcriber.progress_tracker - INFO - Progress tracker initialized with 0 episodes
+2025-06-01 00:03:54 - podcast_transcriber.progress_tracker - INFO - Progress tracker initialized with 0 episodes
+2025-06-01 00:03:54 - podcast_transcriber.progress_tracker - INFO - Progress tracker initialized with 0 episodes
+2025-06-01 00:03:54 - podcast_transcriber.progress_tracker - INFO - Daily quota counters reset
+2025-06-01 00:03:54 - podcast_transcriber.progress_tracker - INFO - Progress tracker initialized with 0 episodes
+2025-06-01 00:03:54 - podcast_transcriber.progress_tracker - WARNING - Episode 'Episode 1' marked as failed: Processing interrupted - marked for retry
+2025-06-01 00:03:54 - podcast_transcriber.progress_tracker - WARNING - Episode 'Episode 2' marked as failed: Processing interrupted - marked for retry
+2025-06-01 00:03:54 - podcast_transcriber.progress_tracker - INFO - Cleaned up 2 interrupted episodes
+2025-06-01 00:03:54 - podcast_transcriber.vtt_generator - INFO - VTT file saved to: /tmp/tmpbww1kyj7/test.vtt
+2025-06-01 00:03:54 - podcast_transcriber.vtt_generator - INFO - VTT file saved to: /tmp/tmpie3q0p5m/test.vtt
+2025-06-01 00:04:28 - podcast_transcriber - INFO - Logging system initialized
+2025-06-01 00:04:28 - podcast_transcriber - INFO - Log level: INFO
+2025-06-01 00:04:28 - podcast_transcriber - INFO - Log directory: /home/sergeblumenfeld/podcastknowledge/transcriber/logs
+2025-06-01 00:05:09 - podcast_transcriber - INFO - Logging system initialized
+2025-06-01 00:05:09 - podcast_transcriber - INFO - Log level: INFO
+2025-06-01 00:05:09 - podcast_transcriber - INFO - Log directory: /home/sergeblumenfeld/podcastknowledge/transcriber/logs
+2025-06-01 00:08:38 - podcast_transcriber - INFO - Logging system initialized
+2025-06-01 00:08:38 - podcast_transcriber - INFO - Log level: INFO
+2025-06-01 00:08:38 - podcast_transcriber - INFO - Log directory: /home/sergeblumenfeld/podcastknowledge/transcriber/logs
+2025-06-01 00:08:38 - podcast_transcriber.config - INFO - Loaded configuration from: /home/sergeblumenfeld/podcastknowledge/transcriber/config/default.yaml
+2025-06-01 00:08:38 - podcast_transcriber.config - INFO - Configuration validation passed
+2025-06-01 00:08:38 - podcast_transcriber.config - INFO - Loaded configuration from: /tmp/tmpbjoy4yb5/test_config.yaml
+2025-06-01 00:08:38 - podcast_transcriber.config - INFO - Configuration validation passed
+2025-06-01 00:08:38 - podcast_transcriber.config - WARNING - Configuration file not found: /non/existent/config.yaml
+2025-06-01 00:08:38 - podcast_transcriber.config - INFO - Using default configuration values
+2025-06-01 00:08:38 - podcast_transcriber.config - INFO - Running in test mode - relaxed validation
+2025-06-01 00:08:38 - podcast_transcriber.config - ERROR - Failed to load configuration: mapping values are not allowed here
+  in "/tmp/tmpnehtx_ll/invalid_config.yaml", line 1, column 14
+2025-06-01 00:08:38 - podcast_transcriber.config - INFO - Using default configuration values
+2025-06-01 00:08:38 - podcast_transcriber.config - INFO - Running in test mode - relaxed validation
+2025-06-01 00:08:38 - podcast_transcriber.config - INFO - Loaded configuration from: /home/sergeblumenfeld/podcastknowledge/transcriber/config/default.yaml
+2025-06-01 00:08:38 - podcast_transcriber.config - INFO - Applied environment override: PODCAST_API_TIMEOUT=600
+2025-06-01 00:08:38 - podcast_transcriber.config - INFO - Applied environment override: PODCAST_API_MAX_ATTEMPTS=3
+2025-06-01 00:08:38 - podcast_transcriber.config - INFO - Applied environment override: PODCAST_API_MAX_EPISODES=20
+2025-06-01 00:08:38 - podcast_transcriber.config - INFO - Applied environment override: PODCAST_OUTPUT_DIR=/custom/output
+2025-06-01 00:08:38 - podcast_transcriber.config - INFO - Applied environment override: PODCAST_OUTPUT_PATTERN={date}/{podcast_name}.vtt
+2025-06-01 00:08:38 - podcast_transcriber.config - INFO - Applied environment override: PODCAST_MAX_EPISODE_LENGTH=90
+2025-06-01 00:08:38 - podcast_transcriber.config - INFO - Applied environment override: PODCAST_ENABLE_PROGRESS=False
+2025-06-01 00:08:38 - podcast_transcriber.config - INFO - Applied environment override: PODCAST_LOG_LEVEL=DEBUG
+2025-06-01 00:08:38 - podcast_transcriber.config - INFO - Applied environment override: PODCAST_LOG_DIR=/custom/logs
+2025-06-01 00:08:38 - podcast_transcriber.config - INFO - Applied environment override: PODCAST_DRY_RUN=True
+2025-06-01 00:08:38 - podcast_transcriber.config - INFO - Applied environment override: PODCAST_DEBUG_MODE=True
+2025-06-01 00:08:38 - podcast_transcriber.config - INFO - Configuration validation passed
+2025-06-01 00:08:38 - podcast_transcriber.config - INFO - Loaded configuration from: /home/sergeblumenfeld/podcastknowledge/transcriber/config/default.yaml
+2025-06-01 00:08:38 - podcast_transcriber.config - INFO - Configuration validation passed
+2025-06-01 00:08:38 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - API timeout must be positive
+2025-06-01 00:08:38 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - API max_attempts must be between 1 and 5
+2025-06-01 00:08:38 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Max episodes per day must be positive
+2025-06-01 00:08:38 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Console log level must be one of: ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL']
+2025-06-01 00:08:38 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - No API keys found in environment variables: ['GEMINI_API_KEY_1', 'GEMINI_API_KEY_2']
+2025-06-01 00:08:38 - podcast_transcriber.config - INFO - Loaded configuration from: /home/sergeblumenfeld/podcastknowledge/transcriber/config/default.yaml
+2025-06-01 00:08:38 - podcast_transcriber.config - INFO - Configuration validation passed
+2025-06-01 00:08:38 - podcast_transcriber.config - INFO - Loaded configuration from: /home/sergeblumenfeld/podcastknowledge/transcriber/config/default.yaml
+2025-06-01 00:08:38 - podcast_transcriber.config - INFO - Configuration validation passed
+2025-06-01 00:08:38 - podcast_transcriber.config - INFO - Loaded configuration from: /home/sergeblumenfeld/podcastknowledge/transcriber/config/default.yaml
+2025-06-01 00:08:38 - podcast_transcriber.config - INFO - Configuration validation passed
+2025-06-01 00:08:38 - podcast_transcriber.config - INFO - Loaded configuration from: /home/sergeblumenfeld/podcastknowledge/transcriber/config/default.yaml
+2025-06-01 00:08:38 - podcast_transcriber.config - INFO - Configuration validation passed
+2025-06-01 00:08:38 - podcast_transcriber.config - INFO - Loaded configuration from: /home/sergeblumenfeld/podcastknowledge/transcriber/config/default.yaml
+2025-06-01 00:08:38 - podcast_transcriber.config - INFO - Configuration validation passed
+2025-06-01 00:08:38 - podcast_transcriber.config - INFO - Loaded configuration from: /home/sergeblumenfeld/podcastknowledge/transcriber/config/default.yaml
+2025-06-01 00:08:38 - podcast_transcriber.config - INFO - Configuration validation passed
+2025-06-01 00:08:38 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Timestamp precision must be between 0 and 3
+2025-06-01 00:08:38 - podcast_transcriber.config - INFO - Configuration validation passed
+2025-06-01 00:08:38 - podcast_transcriber.config - INFO - Loaded configuration from: /home/sergeblumenfeld/podcastknowledge/transcriber/config/default.yaml
+2025-06-01 00:08:38 - podcast_transcriber.config - INFO - Configuration validation passed
+2025-06-01 00:08:38 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Rotation strategy must be one of: ['round_robin', 'random']
+2025-06-01 00:08:38 - podcast_transcriber.config - INFO - Configuration validation passed
+2025-06-01 00:08:38 - podcast_transcriber.config - INFO - Configuration validation passed
+2025-06-01 00:08:38 - podcast_transcriber.config - INFO - Loaded configuration from: /home/sergeblumenfeld/podcastknowledge/transcriber/config/default.yaml
+2025-06-01 00:08:38 - podcast_transcriber.config - INFO - Configuration validation passed
+2025-06-01 00:08:38 - podcast_transcriber.config - INFO - Loaded configuration from: /home/sergeblumenfeld/podcastknowledge/transcriber/config/default.yaml
+2025-06-01 00:08:38 - podcast_transcriber.config - INFO - Configuration validation passed
+2025-06-01 00:08:38 - podcast_transcriber.config - INFO - Loaded configuration from: /home/sergeblumenfeld/podcastknowledge/transcriber/config/default.yaml
+2025-06-01 00:08:38 - podcast_transcriber.config - INFO - Configuration validation passed
+2025-06-01 00:08:52 - podcast_transcriber - INFO - Logging system initialized
+2025-06-01 00:08:52 - podcast_transcriber - INFO - Log level: INFO
+2025-06-01 00:08:52 - podcast_transcriber - INFO - Log directory: /home/sergeblumenfeld/podcastknowledge/transcriber/logs
+2025-06-01 00:08:52 - podcast_transcriber.feed_parser - INFO - Parsing RSS feed: https://example.com/feed.xml
+2025-06-01 00:08:52 - podcast_transcriber.feed_parser - INFO - Parsed podcast: Test Podcast
+2025-06-01 00:08:52 - podcast_transcriber.feed_parser - INFO - Found 1 episodes in feed
+2025-06-01 00:08:52 - podcast_transcriber.feed_parser - INFO - Parsing RSS feed: https://example.com/feed.xml
+2025-06-01 00:08:52 - podcast_transcriber.feed_parser - ERROR - Feed parsing error: XML parsing error
+2025-06-01 00:08:52 - podcast_transcriber.feed_parser - INFO - Parsed podcast: Test Podcast
+2025-06-01 00:08:52 - podcast_transcriber.feed_parser - INFO - Found 0 episodes in feed
+2025-06-01 00:08:52 - podcast_transcriber.feed_parser - WARNING - No episodes found in feed
+2025-06-01 00:08:52 - podcast_transcriber.feed_parser - INFO - Parsing RSS feed: https://example.com/feed.xml
+2025-06-01 00:08:52 - podcast_transcriber.feed_parser - ERROR - Failed to parse feed https://example.com/feed.xml: Network error
+2025-06-01 00:08:52 - podcast_transcriber.feed_parser - INFO - Parsing RSS feed: https://example.com/feed.xml
+2025-06-01 00:08:52 - podcast_transcriber.feed_parser - INFO - Parsed podcast: Empty Podcast
+2025-06-01 00:08:52 - podcast_transcriber.feed_parser - INFO - Found 0 episodes in feed
+2025-06-01 00:08:52 - podcast_transcriber.feed_parser - WARNING - No episodes found in feed
+2025-06-01 00:09:14 - podcast_transcriber - INFO - Logging system initialized
+2025-06-01 00:09:14 - podcast_transcriber - INFO - Log level: INFO
+2025-06-01 00:09:14 - podcast_transcriber - INFO - Log directory: /home/sergeblumenfeld/podcastknowledge/transcriber/logs
+2025-06-01 00:09:15 - podcast_transcriber.retry_wrapper - INFO - Loaded retry state from file
+2025-06-01 00:09:15 - podcast_transcriber.retry_wrapper - INFO - Loaded retry state from file
+2025-06-01 00:09:15 - podcast_transcriber.file_organizer - INFO - Loaded 1 episodes from manifest
+2025-06-01 00:09:15 - podcast_transcriber.file_organizer - WARNING - Invalid date format: invalid-date, using current date
+2025-06-01 00:09:15 - podcast_transcriber.file_organizer - INFO - Created episode file: Test_Podcast/2024-01-15_Test_Episode.vtt
+2025-06-01 00:09:15 - podcast_transcriber.file_organizer - ERROR - Failed to write episode file /tmp/tmpsut5nb1b/Test/2024-01-15_Test.vtt: Write error
+2025-06-01 00:09:15 - podcast_transcriber.file_organizer - INFO - Loaded 2 episodes from manifest
+2025-06-01 00:09:15 - podcast_transcriber.file_organizer - INFO - Removed empty directory: Empty_Podcast
+2025-06-01 00:09:15 - podcast_transcriber.gemini_client - WARNING - API key 1 hit daily request limit
+2025-06-01 00:09:15 - podcast_transcriber.gemini_client - WARNING - API key 1 hit daily token limit
+2025-06-01 00:09:15 - podcast_transcriber.gemini_client - INFO - Reset daily usage for API key 1
+2025-06-01 00:09:15 - podcast_transcriber.gemini_client - INFO - Initialized Gemini client with 2 API keys
+2025-06-01 00:09:15 - podcast_transcriber.gemini_client - INFO - Initialized Gemini client with 2 API keys
+2025-06-01 00:09:15 - podcast_transcriber.gemini_client - INFO - Loaded usage state from file
+2025-06-01 00:09:15 - podcast_transcriber.gemini_client - INFO - Initialized Gemini client with 2 API keys
+2025-06-01 00:09:15 - podcast_transcriber.gemini_client - INFO - Reset daily usage for API key 1
+2025-06-01 00:09:15 - podcast_transcriber.gemini_client - INFO - Loaded usage state from file
+2025-06-01 00:09:15 - podcast_transcriber.gemini_client - INFO - Initialized Gemini client with 2 API keys
+2025-06-01 00:09:15 - podcast_transcriber.gemini_client - INFO - Initialized Gemini client with 2 API keys
+2025-06-01 00:09:15 - podcast_transcriber.gemini_client - INFO - Initialized Gemini client with 2 API keys
+2025-06-01 00:09:15 - podcast_transcriber.gemini_client - INFO - Initialized Gemini client with 2 API keys
+2025-06-01 00:09:15 - podcast_transcriber.gemini_client - WARNING - API key 1 hit daily request limit
+2025-06-01 00:09:15 - podcast_transcriber.gemini_client - WARNING - API key 2 hit daily request limit
+2025-06-01 00:09:15 - podcast_transcriber.gemini_client - ERROR - No API keys available due to rate limits
+2025-06-01 00:09:15 - podcast_transcriber.gemini_client - INFO - Initialized Gemini client with 2 API keys
+2025-06-01 00:09:15 - podcast_transcriber.gemini_client - INFO - Starting transcription for: Test Episode
+2025-06-01 00:09:15 - podcast_transcriber.gemini_client - INFO - Using API key 1
+2025-06-01 00:09:15 - podcast_transcriber.gemini_client - INFO - Initialized Gemini client with 2 API keys
+2025-06-01 00:09:15 - podcast_transcriber.gemini_client - ERROR - No API keys available due to rate limits
+2025-06-01 00:09:15 - podcast_transcriber.gemini_client - INFO - Initialized Gemini client with 2 API keys
+2025-06-01 00:09:15 - podcast_transcriber.gemini_client - INFO - Starting transcription for: Unknown
+2025-06-01 00:09:15 - podcast_transcriber.gemini_client - INFO - Using API key 1
+2025-06-01 00:09:15 - podcast_transcriber.gemini_client - ERROR - Transcription failed: Quota exceeded
+2025-06-01 00:09:15 - podcast_transcriber.gemini_client - INFO - Initialized Gemini client with 2 API keys
+2025-06-01 00:09:15 - podcast_transcriber.gemini_client - INFO - Starting speaker identification
+2025-06-01 00:09:15 - podcast_transcriber.gemini_client - INFO - Using API key 1
+2025-06-01 00:09:15 - podcast_transcriber.gemini_client - INFO - Initialized Gemini client with 2 API keys
+2025-06-01 00:09:15 - podcast_transcriber.gemini_client - INFO - Starting speaker identification
+2025-06-01 00:09:15 - podcast_transcriber.gemini_client - INFO - Using API key 1
+2025-06-01 00:09:15 - podcast_transcriber.gemini_client - ERROR - Speaker identification failed: API error with quota
+2025-06-01 00:09:15 - podcast_transcriber.gemini_client - INFO - Initialized Gemini client with 2 API keys
+2025-06-01 00:09:15 - podcast_transcriber.gemini_client - INFO - Initialized Gemini client with 2 API keys
+2025-06-01 00:09:15 - podcast_transcriber.gemini_client - INFO - Initialized Gemini client with 2 API keys
+2025-06-01 00:09:16 - podcast_transcriber.gemini_client - INFO - Initialized Gemini client with 2 API keys
+2025-06-01 00:09:16 - podcast_transcriber.gemini_client - INFO - Found 3 API key(s) in environment
+2025-06-01 00:09:16 - podcast_transcriber.gemini_client - INFO - Found 1 API key(s) in environment
+2025-06-01 00:09:16 - podcast_transcriber.feed_parser - INFO - Parsing RSS feed: https://example.com/feed.xml
+2025-06-01 00:09:16 - podcast_transcriber.feed_parser - INFO - Parsed podcast: Integration Test Podcast
+2025-06-01 00:09:16 - podcast_transcriber.feed_parser - INFO - Found 2 episodes in feed
+2025-06-01 00:09:16 - podcast_transcriber.progress_tracker - INFO - Progress tracker initialized with 0 episodes
+2025-06-01 00:09:16 - podcast_transcriber.gemini_client - INFO - Initialized Gemini client with 2 API keys
+2025-06-01 00:09:16 - podcast_transcriber.progress_tracker - INFO - Episode 'Episode 1: Introduction' marked as in-progress (attempt #1)
+2025-06-01 00:09:16 - podcast_transcriber.gemini_client - INFO - Starting transcription for: Episode 1: Introduction
+2025-06-01 00:09:16 - podcast_transcriber.gemini_client - INFO - Using API key 1
+2025-06-01 00:09:16 - podcast_transcriber.gemini_client - INFO - Transcription completed in 0.0s
+2025-06-01 00:09:16 - podcast_transcriber.gemini_client - INFO - Starting speaker identification
+2025-06-01 00:09:16 - podcast_transcriber.gemini_client - INFO - Using API key 2
+2025-06-01 00:09:16 - podcast_transcriber.gemini_client - INFO - Identified speakers: {'SPEAKER_1': 'Test Host (Host)', 'SPEAKER_2': 'Jane Doe (Guest, Software Engineer)'}
+2025-06-01 00:09:16 - podcast_transcriber.file_organizer - INFO - Created episode file: Integration_Test_Podcast/2024-01-15_Episode_1_Introduction.vtt
+2025-06-01 00:09:16 - podcast_transcriber.progress_tracker - INFO - Episode 'Episode 1: Introduction' marked as completed in 5.0s
+2025-06-01 00:09:16 - podcast_transcriber.progress_tracker - INFO - Progress tracker initialized with 0 episodes
+2025-06-01 00:09:16 - podcast_transcriber.gemini_client - INFO - Initialized Gemini client with 1 API keys
+2025-06-01 00:09:16 - podcast_transcriber.progress_tracker - INFO - Episode 'Error Episode' marked as in-progress (attempt #1)
+2025-06-01 00:09:20 - podcast_transcriber.retry_wrapper - ERROR - transcribe_audio failed after 2 attempts
+2025-06-01 00:09:20 - podcast_transcriber.progress_tracker - WARNING - Episode 'Error Episode' marked as failed: Rate limit exceeded
+2025-06-01 00:09:20 - podcast_transcriber.progress_tracker - INFO - Episode 'Error Episode' marked as in-progress (attempt #2)
+2025-06-01 00:09:20 - podcast_transcriber.gemini_client - INFO - Transcription completed in 0.0s
+2025-06-01 00:09:20 - podcast_transcriber.checkpoint_recovery - INFO - Loaded checkpoint for episode: Test Episode
+2025-06-01 00:09:20 - podcast_transcriber.checkpoint_recovery - INFO - Updated checkpoint: stage=speaker_identification
+2025-06-01 00:09:20 - podcast_transcriber.checkpoint_recovery - INFO - Completed stage: transcription
+2025-06-01 00:09:20 - podcast_transcriber.checkpoint_recovery - INFO - Episode completed: Test Episode
+2025-06-01 00:09:20 - podcast_transcriber.progress_tracker - INFO - Progress tracker initialized with 0 episodes
+2025-06-01 00:09:20 - podcast_transcriber.gemini_client - INFO - Initialized Gemini client with 1 API keys
+2025-06-01 00:09:20 - podcast_transcriber.progress_tracker - INFO - Episode 'Episode 1' marked as in-progress (attempt #1)
+2025-06-01 00:09:20 - podcast_transcriber.progress_tracker - INFO - Episode 'Episode 1' marked as completed in 5.0s
+2025-06-01 00:09:20 - podcast_transcriber.progress_tracker - INFO - Episode 'Episode 2' marked as in-progress (attempt #1)
+2025-06-01 00:09:20 - podcast_transcriber.progress_tracker - INFO - Episode 'Episode 2' marked as completed in 5.0s
+2025-06-01 00:09:20 - podcast_transcriber.key_rotation_manager - INFO - Initialized key rotation manager with 3 keys
+2025-06-01 00:09:20 - podcast_transcriber.key_rotation_manager - INFO - Initialized key rotation manager with 3 keys
+2025-06-01 00:09:20 - podcast_transcriber.key_rotation_manager - INFO - Selected key_1 (test_key...) for next request
+2025-06-01 00:09:20 - podcast_transcriber.key_rotation_manager - INFO - Selected key_2 (test_key...) for next request
+2025-06-01 00:09:20 - podcast_transcriber.key_rotation_manager - INFO - Selected key_3 (test_key...) for next request
+2025-06-01 00:09:20 - podcast_transcriber.key_rotation_manager - INFO - Selected key_1 (test_key...) for next request
+2025-06-01 00:09:20 - podcast_transcriber.key_rotation_manager - INFO - Initialized key rotation manager with 3 keys
+2025-06-01 00:09:20 - podcast_transcriber.key_rotation_manager - INFO - Selected key_2 (test_key...) for next request
+2025-06-01 00:09:20 - podcast_transcriber.key_rotation_manager - INFO - Selected key_2 (test_key...) for next request
+2025-06-01 00:09:20 - podcast_transcriber.key_rotation_manager - INFO - Initialized key rotation manager with 3 keys
+2025-06-01 00:09:20 - podcast_transcriber.key_rotation_manager - INFO - Current key status:
+2025-06-01 00:09:20 - podcast_transcriber.key_rotation_manager - INFO -   key_1 (test_key...): quota_exceeded
+2025-06-01 00:09:20 - podcast_transcriber.key_rotation_manager - INFO -   key_2 (test_key...): quota_exceeded
+2025-06-01 00:09:20 - podcast_transcriber.key_rotation_manager - INFO -   key_3 (test_key...): quota_exceeded
+2025-06-01 00:09:20 - podcast_transcriber.key_rotation_manager - INFO - Initialized key rotation manager with 3 keys
+2025-06-01 00:09:20 - podcast_transcriber.key_rotation_manager - INFO - Initialized key rotation manager with 3 keys
+2025-06-01 00:09:20 - podcast_transcriber.key_rotation_manager - WARNING - key_1 (test_key...) marked as failed: Rate limit exceeded
+2025-06-01 00:09:20 - podcast_transcriber.key_rotation_manager - INFO - Initialized key rotation manager with 3 keys
+2025-06-01 00:09:20 - podcast_transcriber.key_rotation_manager - INFO - Initialized key rotation manager with 3 keys
+2025-06-01 00:09:20 - podcast_transcriber.key_rotation_manager - INFO - Initialized key rotation manager with 3 keys
+2025-06-01 00:09:20 - podcast_transcriber.key_rotation_manager - INFO - Force reset key_2 (test_key...) to available
+2025-06-01 00:09:20 - podcast_transcriber.key_rotation_manager - INFO - Initialized key rotation manager with 3 keys
+2025-06-01 00:09:20 - podcast_transcriber.key_rotation_manager - INFO - Performing daily reset of key states
+2025-06-01 00:09:20 - podcast_transcriber.key_rotation_manager - INFO - Initialized key rotation manager with 3 keys
+2025-06-01 00:09:20 - podcast_transcriber.key_rotation_manager - INFO - Loaded rotation state, current index: 2
+2025-06-01 00:09:20 - podcast_transcriber.key_rotation_manager - INFO - Initialized key rotation manager with 3 keys
+2025-06-01 00:09:20 - podcast_transcriber.key_rotation_manager - INFO - Performing daily reset of key states
+2025-06-01 00:09:20 - podcast_transcriber.key_rotation_manager - INFO - Loaded rotation state, current index: 1
+2025-06-01 00:09:20 - podcast_transcriber.key_rotation_manager - INFO - Initialized key rotation manager with 3 keys
+2025-06-01 00:09:20 - podcast_transcriber.key_rotation_manager - INFO - Initialized key rotation manager with 3 keys
+2025-06-01 00:09:20 - podcast_transcriber.key_rotation_manager - INFO - Initialized key rotation manager with 2 keys
+2025-06-01 00:09:20 - podcast_transcriber.key_rotation_manager - INFO - Initialized key rotation manager with 1 keys
+2025-06-01 00:09:20 - podcast_transcriber.key_rotation_manager - ERROR - No API keys found in environment
+2025-06-01 00:09:20 - podcast_transcriber - INFO - Logging system initialized
+2025-06-01 00:09:20 - podcast_transcriber - INFO - Log level: INFO
+2025-06-01 00:09:20 - podcast_transcriber - INFO - Log directory: /home/sergeblumenfeld/podcastknowledge/transcriber/logs
+2025-06-01 00:09:43 - podcast_transcriber - INFO - Logging system initialized
+2025-06-01 00:09:43 - podcast_transcriber - INFO - Log level: INFO
+2025-06-01 00:09:43 - podcast_transcriber - INFO - Log directory: /home/sergeblumenfeld/podcastknowledge/transcriber/logs
+2025-06-01 00:09:44 - podcast_transcriber.retry_wrapper - INFO - Loaded retry state from file
+2025-06-01 00:09:44 - podcast_transcriber.retry_wrapper - INFO - Loaded retry state from file
+2025-06-01 00:09:44 - podcast_transcriber.config - INFO - Loaded configuration from: /home/sergeblumenfeld/podcastknowledge/transcriber/config/default.yaml
+2025-06-01 00:09:44 - podcast_transcriber.config - INFO - Configuration validation passed
+2025-06-01 00:09:44 - podcast_transcriber.progress_tracker - INFO - Progress tracker initialized with 0 episodes
+2025-06-01 00:09:44 - podcast_transcriber.checkpoint_recovery - INFO - Loaded checkpoint for episode: Episode 1
+2025-06-01 00:09:44 - podcast_transcriber.orchestrator - INFO - Found 3 episodes in feed: Test Podcast
+2025-06-01 00:09:44 - podcast_transcriber - INFO - Progress: 1/2 (50.0%) - Starting episode: Processing: Episode 1
+2025-06-01 00:09:44 - podcast_transcriber.checkpoint_recovery - ERROR - Episode failed: Episode 1 - New episode started before previous completed
+2025-06-01 00:09:44 - podcast_transcriber.checkpoint_recovery - INFO - Started checkpoint for episode: Episode 1
+2025-06-01 00:09:44 - podcast_transcriber.orchestrator - ERROR - Episode processing failed: 'ProgressTracker' object has no attribute 'update_episode_state'
+2025-06-01 00:09:44 - podcast_transcriber.config - INFO - Loaded configuration from: /home/sergeblumenfeld/podcastknowledge/transcriber/config/default.yaml
+2025-06-01 00:09:44 - podcast_transcriber.config - INFO - Configuration validation passed
+2025-06-01 00:09:44 - podcast_transcriber.progress_tracker - INFO - Progress tracker initialized with 0 episodes
+2025-06-01 00:09:44 - podcast_transcriber.checkpoint_recovery - INFO - Loaded checkpoint for episode: Episode 1
+2025-06-01 00:09:44 - podcast_transcriber.orchestrator - INFO - Found 3 episodes in feed: Test Podcast
+2025-06-01 00:09:44 - podcast_transcriber - INFO - Progress: 1/3 (33.3%) - Starting episode: Processing: Episode 1
+2025-06-01 00:09:44 - podcast_transcriber.orchestrator - WARNING - Approaching daily quota limit, stopping processing
+2025-06-01 00:09:44 - podcast_transcriber.orchestrator - INFO - Summary report saved to: /tmp/tmple2kgax3/transcripts/Test Podcast_report.json
+2025-06-01 00:09:44 - podcast_transcriber.config - INFO - Loaded configuration from: /home/sergeblumenfeld/podcastknowledge/transcriber/config/default.yaml
+2025-06-01 00:09:44 - podcast_transcriber.config - INFO - Configuration validation passed
+2025-06-01 00:09:44 - podcast_transcriber.progress_tracker - INFO - Progress tracker initialized with 0 episodes
+2025-06-01 00:09:44 - podcast_transcriber.checkpoint_recovery - INFO - Loaded checkpoint for episode: Episode 1
+2025-06-01 00:09:44 - podcast_transcriber.orchestrator - INFO - Found resumable checkpoint: Episode 1
+2025-06-01 00:09:44 - podcast_transcriber.orchestrator - INFO - Last updated 0.0 hours ago
+2025-06-01 00:09:44 - podcast_transcriber - INFO - Logging system initialized
+2025-06-01 00:09:44 - podcast_transcriber - INFO - Log level: INFO
+2025-06-01 00:09:44 - podcast_transcriber - INFO - Log directory: /home/sergeblumenfeld/podcastknowledge/transcriber/logs
+2025-06-01 00:09:44 - podcast_transcriber.cli - INFO - Starting transcription of https://example.com/feed.xml
+2025-06-01 00:09:44 - podcast_transcriber.cli - ERROR - Transcription failed: 'status'
+2025-06-01 00:09:44 - podcast_transcriber - INFO - Logging system initialized
+2025-06-01 00:09:44 - podcast_transcriber - INFO - Log level: INFO
+2025-06-01 00:09:44 - podcast_transcriber - INFO - Log directory: /home/sergeblumenfeld/podcastknowledge/transcriber/logs
+2025-06-01 00:16:42 - podcast_transcriber - INFO - Logging system initialized
+2025-06-01 00:16:42 - podcast_transcriber - INFO - Log level: INFO
+2025-06-01 00:16:42 - podcast_transcriber - INFO - Log directory: /home/sergeblumenfeld/podcastknowledge/transcriber/logs
+2025-06-01 00:16:43 - podcast_transcriber.retry_wrapper - INFO - Loaded retry state from file
+2025-06-01 00:16:43 - podcast_transcriber.retry_wrapper - INFO - Loaded retry state from file
+2025-06-01 00:16:43 - podcast_transcriber.config - INFO - Loaded configuration from: /home/sergeblumenfeld/podcastknowledge/transcriber/config/default.yaml
+2025-06-01 00:16:43 - podcast_transcriber.config - INFO - Configuration validation passed
+2025-06-01 00:16:43 - podcast_transcriber.progress_tracker - INFO - Progress tracker initialized with 0 episodes
+2025-06-01 00:16:43 - podcast_transcriber.checkpoint_recovery - INFO - Loaded checkpoint for episode: Episode 1
+2025-06-01 00:16:43 - podcast_transcriber.orchestrator - INFO - Found 3 episodes in feed: Test Podcast
+2025-06-01 00:16:43 - podcast_transcriber - INFO - Progress: 1/2 (50.0%) - Starting episode: Processing: Episode 1
+2025-06-01 00:16:43 - podcast_transcriber.checkpoint_recovery - ERROR - Episode failed: Episode 1 - New episode started before previous completed
+2025-06-01 00:16:43 - podcast_transcriber.checkpoint_recovery - INFO - Started checkpoint for episode: Episode 1
+2025-06-01 00:16:43 - podcast_transcriber.orchestrator - ERROR - Episode processing failed: 'ProgressTracker' object has no attribute 'update_episode_state'
+2025-06-01 00:16:43 - podcast_transcriber.config - INFO - Loaded configuration from: /home/sergeblumenfeld/podcastknowledge/transcriber/config/default.yaml
+2025-06-01 00:16:43 - podcast_transcriber.config - INFO - Configuration validation passed
+2025-06-01 00:16:43 - podcast_transcriber.progress_tracker - INFO - Progress tracker initialized with 0 episodes
+2025-06-01 00:16:43 - podcast_transcriber.checkpoint_recovery - INFO - Loaded checkpoint for episode: Episode 1
+2025-06-01 00:16:43 - podcast_transcriber.orchestrator - INFO - Found 3 episodes in feed: Test Podcast
+2025-06-01 00:16:43 - podcast_transcriber - INFO - Progress: 1/3 (33.3%) - Starting episode: Processing: Episode 1
+2025-06-01 00:16:43 - podcast_transcriber.orchestrator - WARNING - Approaching daily quota limit, stopping processing
+2025-06-01 00:16:43 - podcast_transcriber.orchestrator - INFO - Summary report saved to: /tmp/tmpmzv950cb/transcripts/Test Podcast_report.json
+2025-06-01 00:16:43 - podcast_transcriber.config - INFO - Loaded configuration from: /home/sergeblumenfeld/podcastknowledge/transcriber/config/default.yaml
+2025-06-01 00:16:43 - podcast_transcriber.config - INFO - Configuration validation passed
+2025-06-01 00:16:43 - podcast_transcriber.progress_tracker - INFO - Progress tracker initialized with 0 episodes
+2025-06-01 00:16:43 - podcast_transcriber.checkpoint_recovery - INFO - Loaded checkpoint for episode: Episode 1
+2025-06-01 00:16:43 - podcast_transcriber.orchestrator - INFO - Found resumable checkpoint: Episode 1
+2025-06-01 00:16:43 - podcast_transcriber.orchestrator - INFO - Last updated 0.0 hours ago
+2025-06-01 00:16:44 - podcast_transcriber - INFO - Logging system initialized
+2025-06-01 00:16:44 - podcast_transcriber - INFO - Log level: INFO
+2025-06-01 00:16:44 - podcast_transcriber - INFO - Log directory: /home/sergeblumenfeld/podcastknowledge/transcriber/logs
+2025-06-01 00:16:44 - podcast_transcriber.cli - INFO - Starting transcription of https://example.com/feed.xml
+2025-06-01 00:16:44 - podcast_transcriber.cli - ERROR - Transcription failed: 'status'
+2025-06-01 00:16:44 - podcast_transcriber - INFO - Logging system initialized
+2025-06-01 00:16:44 - podcast_transcriber - INFO - Log level: INFO
+2025-06-01 00:16:44 - podcast_transcriber - INFO - Log directory: /home/sergeblumenfeld/podcastknowledge/transcriber/logs
+2025-06-01 00:25:02 - podcast_transcriber - INFO - Logging system initialized
+2025-06-01 00:25:02 - podcast_transcriber - INFO - Log level: INFO
+2025-06-01 00:25:02 - podcast_transcriber - INFO - Log directory: /home/sergeblumenfeld/podcastknowledge/transcriber/logs
+2025-06-01 00:25:02 - podcast_transcriber.retry_wrapper - INFO - Loaded retry state from file
+2025-06-01 00:25:02 - podcast_transcriber.retry_wrapper - INFO - Loaded retry state from file
+2025-06-01 00:25:02 - podcast_transcriber.config - INFO - Loaded configuration from: /home/sergeblumenfeld/podcastknowledge/transcriber/config/default.yaml
+2025-06-01 00:25:02 - podcast_transcriber.config - INFO - Configuration validation passed
+2025-06-01 00:25:02 - podcast_transcriber.progress_tracker - INFO - Progress tracker initialized with 0 episodes
+2025-06-01 00:25:02 - podcast_transcriber.checkpoint_recovery - INFO - Loaded checkpoint for episode: Episode 1
+2025-06-01 00:25:02 - podcast_transcriber.orchestrator - INFO - Found 3 episodes in feed: Test Podcast
+2025-06-01 00:25:02 - podcast_transcriber - INFO - Progress: 1/2 (50.0%) - Starting episode: Processing: Episode 1
+2025-06-01 00:25:02 - podcast_transcriber.checkpoint_recovery - ERROR - Episode failed: Episode 1 - New episode started before previous completed
+2025-06-01 00:25:02 - podcast_transcriber.checkpoint_recovery - INFO - Started checkpoint for episode: Episode 1
+2025-06-01 00:25:02 - podcast_transcriber.progress_tracker - INFO - Episode 'Episode 1' marked as in-progress (attempt #1)
+2025-06-01 00:25:02 - podcast_transcriber.checkpoint_recovery - INFO - Updated checkpoint: stage=transcription
+2025-06-01 00:25:02 - podcast_transcriber.orchestrator - INFO - Transcribing: Episode 1
+2025-06-01 00:25:02 - podcast_transcriber.transcription_processor - ERROR - Transcription failed: not enough values to unpack (expected 2, got 0)
+2025-06-01 00:25:02 - podcast_transcriber.orchestrator - ERROR - Episode processing failed: Transcription failed
+2025-06-01 00:25:03 - podcast_transcriber.progress_tracker - WARNING - Episode 'Episode 1' marked as failed: Transcription failed
+2025-06-01 00:25:03 - podcast_transcriber.checkpoint_recovery - ERROR - Episode failed: Episode 1 - Transcription failed
+2025-06-01 00:25:03 - podcast_transcriber - INFO - Progress: 2/2 (100.0%) - Starting episode: Processing: Episode 2
+2025-06-01 00:25:03 - podcast_transcriber.checkpoint_recovery - INFO - Started checkpoint for episode: Episode 2
+2025-06-01 00:25:03 - podcast_transcriber.progress_tracker - INFO - Episode 'Episode 2' marked as in-progress (attempt #1)
+2025-06-01 00:25:03 - podcast_transcriber.checkpoint_recovery - INFO - Updated checkpoint: stage=transcription
+2025-06-01 00:25:03 - podcast_transcriber.orchestrator - INFO - Transcribing: Episode 2
+2025-06-01 00:25:03 - podcast_transcriber.transcription_processor - ERROR - Transcription failed: not enough values to unpack (expected 2, got 0)
+2025-06-01 00:25:03 - podcast_transcriber.orchestrator - ERROR - Episode processing failed: Transcription failed
+2025-06-01 00:25:03 - podcast_transcriber.progress_tracker - WARNING - Episode 'Episode 2' marked as failed: Transcription failed
+2025-06-01 00:25:03 - podcast_transcriber.checkpoint_recovery - ERROR - Episode failed: Episode 2 - Transcription failed
+2025-06-01 00:25:03 - podcast_transcriber.orchestrator - INFO - Summary report saved to: /tmp/tmp9e8a2zdw/transcripts/Test Podcast_report.json
+2025-06-01 00:25:03 - podcast_transcriber.config - INFO - Loaded configuration from: /home/sergeblumenfeld/podcastknowledge/transcriber/config/default.yaml
+2025-06-01 00:25:03 - podcast_transcriber.config - INFO - Configuration validation passed
+2025-06-01 00:25:03 - podcast_transcriber.progress_tracker - INFO - Progress tracker initialized with 2 episodes
+2025-06-01 00:25:03 - podcast_transcriber.orchestrator - INFO - Found 3 episodes in feed: Test Podcast
+2025-06-01 00:25:03 - podcast_transcriber - INFO - Progress: 1/3 (33.3%) - Starting episode: Processing: Episode 1
+2025-06-01 00:25:03 - podcast_transcriber.orchestrator - WARNING - Approaching daily quota limit, stopping processing
+2025-06-01 00:25:03 - podcast_transcriber.orchestrator - INFO - Summary report saved to: /tmp/tmp5c4vhmdd/transcripts/Test Podcast_report.json
+2025-06-01 00:25:03 - podcast_transcriber.config - INFO - Loaded configuration from: /home/sergeblumenfeld/podcastknowledge/transcriber/config/default.yaml
+2025-06-01 00:25:03 - podcast_transcriber.config - INFO - Configuration validation passed
+2025-06-01 00:25:03 - podcast_transcriber.progress_tracker - INFO - Progress tracker initialized with 2 episodes
+2025-06-01 00:25:03 - podcast_transcriber - INFO - Logging system initialized
+2025-06-01 00:25:03 - podcast_transcriber - INFO - Log level: INFO
+2025-06-01 00:25:03 - podcast_transcriber - INFO - Log directory: /home/sergeblumenfeld/podcastknowledge/transcriber/logs
+2025-06-01 00:25:03 - podcast_transcriber.cli - INFO - Starting transcription of https://example.com/feed.xml
+2025-06-01 00:25:03 - podcast_transcriber - INFO - Logging system initialized
+2025-06-01 00:25:03 - podcast_transcriber - INFO - Log level: INFO
+2025-06-01 00:25:03 - podcast_transcriber - INFO - Log directory: /home/sergeblumenfeld/podcastknowledge/transcriber/logs
+2025-06-01 00:26:01 - podcast_transcriber - INFO - Logging system initialized
+2025-06-01 00:26:01 - podcast_transcriber - INFO - Log level: INFO
+2025-06-01 00:26:01 - podcast_transcriber - INFO - Log directory: /home/sergeblumenfeld/podcastknowledge/transcriber/logs
+2025-06-01 00:26:02 - podcast_transcriber.retry_wrapper - INFO - Loaded retry state from file
+2025-06-01 00:26:02 - podcast_transcriber.retry_wrapper - INFO - Loaded retry state from file
+2025-06-01 00:26:02 - podcast_transcriber.config - INFO - Loaded configuration from: /home/sergeblumenfeld/podcastknowledge/transcriber/config/default.yaml
+2025-06-01 00:26:02 - podcast_transcriber.config - INFO - Configuration validation passed
+2025-06-01 00:26:02 - podcast_transcriber.config - INFO - Loaded configuration from: /tmp/tmps0bh1_p_/test_config.yaml
+2025-06-01 00:26:02 - podcast_transcriber.config - INFO - Configuration validation passed
+2025-06-01 00:26:02 - podcast_transcriber.config - WARNING - Configuration file not found: /non/existent/config.yaml
+2025-06-01 00:26:02 - podcast_transcriber.config - INFO - Using default configuration values
+2025-06-01 00:26:02 - podcast_transcriber.config - INFO - Running in test mode - relaxed validation
+2025-06-01 00:26:02 - podcast_transcriber.config - ERROR - Failed to load configuration: mapping values are not allowed here
+  in "/tmp/tmpalacb0jx/invalid_config.yaml", line 1, column 14
+2025-06-01 00:26:02 - podcast_transcriber.config - INFO - Using default configuration values
+2025-06-01 00:26:02 - podcast_transcriber.config - INFO - Running in test mode - relaxed validation
+2025-06-01 00:26:02 - podcast_transcriber.config - INFO - Loaded configuration from: /home/sergeblumenfeld/podcastknowledge/transcriber/config/default.yaml
+2025-06-01 00:26:02 - podcast_transcriber.config - INFO - Applied environment override: PODCAST_API_TIMEOUT=600
+2025-06-01 00:26:02 - podcast_transcriber.config - INFO - Applied environment override: PODCAST_API_MAX_ATTEMPTS=3
+2025-06-01 00:26:02 - podcast_transcriber.config - INFO - Applied environment override: PODCAST_API_MAX_EPISODES=20
+2025-06-01 00:26:02 - podcast_transcriber.config - INFO - Applied environment override: PODCAST_OUTPUT_DIR=/custom/output
+2025-06-01 00:26:02 - podcast_transcriber.config - INFO - Applied environment override: PODCAST_OUTPUT_PATTERN={date}/{podcast_name}.vtt
+2025-06-01 00:26:02 - podcast_transcriber.config - INFO - Applied environment override: PODCAST_MAX_EPISODE_LENGTH=90
+2025-06-01 00:26:02 - podcast_transcriber.config - INFO - Applied environment override: PODCAST_ENABLE_PROGRESS=False
+2025-06-01 00:26:02 - podcast_transcriber.config - INFO - Applied environment override: PODCAST_LOG_LEVEL=DEBUG
+2025-06-01 00:26:02 - podcast_transcriber.config - INFO - Applied environment override: PODCAST_LOG_DIR=/custom/logs
+2025-06-01 00:26:02 - podcast_transcriber.config - INFO - Applied environment override: PODCAST_DRY_RUN=True
+2025-06-01 00:26:02 - podcast_transcriber.config - INFO - Applied environment override: PODCAST_DEBUG_MODE=True
+2025-06-01 00:26:02 - podcast_transcriber.config - INFO - Configuration validation passed
+2025-06-01 00:26:02 - podcast_transcriber.config - INFO - Loaded configuration from: /home/sergeblumenfeld/podcastknowledge/transcriber/config/default.yaml
+2025-06-01 00:26:02 - podcast_transcriber.config - INFO - Configuration validation passed
+2025-06-01 00:26:02 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - API timeout must be positive
+2025-06-01 00:26:02 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - API max_attempts must be between 1 and 5
+2025-06-01 00:26:02 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Max episodes per day must be positive
+2025-06-01 00:26:02 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Console log level must be one of: ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL']
+2025-06-01 00:26:02 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - No API keys found in environment variables: ['GEMINI_API_KEY_1', 'GEMINI_API_KEY_2']
+2025-06-01 00:26:02 - podcast_transcriber.config - INFO - Loaded configuration from: /home/sergeblumenfeld/podcastknowledge/transcriber/config/default.yaml
+2025-06-01 00:26:02 - podcast_transcriber.config - INFO - Configuration validation passed
+2025-06-01 00:26:02 - podcast_transcriber.config - INFO - Loaded configuration from: /home/sergeblumenfeld/podcastknowledge/transcriber/config/default.yaml
+2025-06-01 00:26:02 - podcast_transcriber.config - INFO - Configuration validation passed
+2025-06-01 00:26:02 - podcast_transcriber.config - INFO - Loaded configuration from: /home/sergeblumenfeld/podcastknowledge/transcriber/config/default.yaml
+2025-06-01 00:26:02 - podcast_transcriber.config - INFO - Configuration validation passed
+2025-06-01 00:26:02 - podcast_transcriber.config - INFO - Loaded configuration from: /home/sergeblumenfeld/podcastknowledge/transcriber/config/default.yaml
+2025-06-01 00:26:02 - podcast_transcriber.config - INFO - Configuration validation passed
+2025-06-01 00:26:02 - podcast_transcriber.config - INFO - Loaded configuration from: /home/sergeblumenfeld/podcastknowledge/transcriber/config/default.yaml
+2025-06-01 00:26:02 - podcast_transcriber.config - INFO - Configuration validation passed
+2025-06-01 00:26:02 - podcast_transcriber.config - INFO - Loaded configuration from: /home/sergeblumenfeld/podcastknowledge/transcriber/config/default.yaml
+2025-06-01 00:26:02 - podcast_transcriber.config - INFO - Configuration validation passed
+2025-06-01 00:26:02 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Timestamp precision must be between 0 and 3
+2025-06-01 00:26:02 - podcast_transcriber.config - INFO - Configuration validation passed
+2025-06-01 00:26:02 - podcast_transcriber.config - INFO - Loaded configuration from: /home/sergeblumenfeld/podcastknowledge/transcriber/config/default.yaml
+2025-06-01 00:26:02 - podcast_transcriber.config - INFO - Configuration validation passed
+2025-06-01 00:26:02 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Rotation strategy must be one of: ['round_robin', 'random']
+2025-06-01 00:26:02 - podcast_transcriber.config - INFO - Configuration validation passed
+2025-06-01 00:26:02 - podcast_transcriber.config - INFO - Configuration validation passed
+2025-06-01 00:26:02 - podcast_transcriber.config - INFO - Loaded configuration from: /home/sergeblumenfeld/podcastknowledge/transcriber/config/default.yaml
+2025-06-01 00:26:02 - podcast_transcriber.config - INFO - Configuration validation passed
+2025-06-01 00:26:02 - podcast_transcriber.config - INFO - Loaded configuration from: /home/sergeblumenfeld/podcastknowledge/transcriber/config/default.yaml
+2025-06-01 00:26:02 - podcast_transcriber.config - INFO - Configuration validation passed
+2025-06-01 00:26:02 - podcast_transcriber.config - INFO - Loaded configuration from: /home/sergeblumenfeld/podcastknowledge/transcriber/config/default.yaml
+2025-06-01 00:26:02 - podcast_transcriber.config - INFO - Configuration validation passed
+2025-06-01 00:26:02 - podcast_transcriber.feed_parser - INFO - Parsing RSS feed: https://example.com/feed.xml
+2025-06-01 00:26:02 - podcast_transcriber.feed_parser - INFO - Parsed podcast: Test Podcast
+2025-06-01 00:26:02 - podcast_transcriber.feed_parser - INFO - Found 1 episodes in feed
+2025-06-01 00:26:02 - podcast_transcriber.feed_parser - INFO - Parsing RSS feed: https://example.com/feed.xml
+2025-06-01 00:26:02 - podcast_transcriber.feed_parser - ERROR - Feed parsing error: XML parsing error
+2025-06-01 00:26:02 - podcast_transcriber.feed_parser - INFO - Parsed podcast: Test Podcast
+2025-06-01 00:26:02 - podcast_transcriber.feed_parser - INFO - Found 0 episodes in feed
+2025-06-01 00:26:02 - podcast_transcriber.feed_parser - WARNING - No episodes found in feed
+2025-06-01 00:26:02 - podcast_transcriber.feed_parser - INFO - Parsing RSS feed: https://example.com/feed.xml
+2025-06-01 00:26:02 - podcast_transcriber.feed_parser - ERROR - Failed to parse feed https://example.com/feed.xml: Network error
+2025-06-01 00:26:02 - podcast_transcriber.feed_parser - INFO - Parsing RSS feed: https://example.com/feed.xml
+2025-06-01 00:26:02 - podcast_transcriber.feed_parser - INFO - Parsed podcast: Empty Podcast
+2025-06-01 00:26:02 - podcast_transcriber.feed_parser - INFO - Found 0 episodes in feed
+2025-06-01 00:26:02 - podcast_transcriber.feed_parser - WARNING - No episodes found in feed
+2025-06-01 00:26:02 - podcast_transcriber.file_organizer - INFO - Loaded 1 episodes from manifest
+2025-06-01 00:26:02 - podcast_transcriber.file_organizer - WARNING - Invalid date format: invalid-date, using current date
+2025-06-01 00:26:02 - podcast_transcriber.file_organizer - INFO - Created episode file: Test_Podcast/2024-01-15_Test_Episode.vtt
+2025-06-01 00:26:02 - podcast_transcriber.file_organizer - ERROR - Failed to write episode file /tmp/tmpaz82fk55/Test/2024-01-15_Test.vtt: Write error
+2025-06-01 00:26:02 - podcast_transcriber.file_organizer - INFO - Loaded 2 episodes from manifest
+2025-06-01 00:26:02 - podcast_transcriber.file_organizer - INFO - Removed empty directory: Empty_Podcast
+2025-06-01 00:26:02 - podcast_transcriber.gemini_client - WARNING - API key 1 hit daily request limit
+2025-06-01 00:26:02 - podcast_transcriber.gemini_client - WARNING - API key 1 hit daily token limit
+2025-06-01 00:26:02 - podcast_transcriber.gemini_client - INFO - Reset daily usage for API key 1
+2025-06-01 00:26:02 - podcast_transcriber.gemini_client - INFO - Initialized Gemini client with 2 API keys
+2025-06-01 00:26:02 - podcast_transcriber.gemini_client - INFO - Initialized Gemini client with 2 API keys
+2025-06-01 00:26:02 - podcast_transcriber.gemini_client - INFO - Loaded usage state from file
+2025-06-01 00:26:02 - podcast_transcriber.gemini_client - INFO - Initialized Gemini client with 2 API keys
+2025-06-01 00:26:02 - podcast_transcriber.gemini_client - INFO - Reset daily usage for API key 1
+2025-06-01 00:26:02 - podcast_transcriber.gemini_client - INFO - Loaded usage state from file
+2025-06-01 00:26:02 - podcast_transcriber.gemini_client - INFO - Initialized Gemini client with 2 API keys
+2025-06-01 00:26:02 - podcast_transcriber.gemini_client - INFO - Initialized Gemini client with 2 API keys
+2025-06-01 00:26:02 - podcast_transcriber.gemini_client - INFO - Initialized Gemini client with 2 API keys
+2025-06-01 00:26:02 - podcast_transcriber.gemini_client - INFO - Initialized Gemini client with 2 API keys
+2025-06-01 00:26:02 - podcast_transcriber.gemini_client - WARNING - API key 1 hit daily request limit
+2025-06-01 00:26:02 - podcast_transcriber.gemini_client - WARNING - API key 2 hit daily request limit
+2025-06-01 00:26:02 - podcast_transcriber.gemini_client - ERROR - No API keys available due to rate limits
+2025-06-01 00:26:02 - podcast_transcriber.gemini_client - INFO - Initialized Gemini client with 2 API keys
+2025-06-01 00:26:02 - podcast_transcriber.gemini_client - INFO - Starting transcription for: Test Episode
+2025-06-01 00:26:02 - podcast_transcriber.gemini_client - INFO - Using API key 1
+2025-06-01 00:26:02 - podcast_transcriber.gemini_client - INFO - Initialized Gemini client with 2 API keys
+2025-06-01 00:26:02 - podcast_transcriber.gemini_client - ERROR - No API keys available due to rate limits
+2025-06-01 00:26:02 - podcast_transcriber.gemini_client - INFO - Initialized Gemini client with 2 API keys
+2025-06-01 00:26:02 - podcast_transcriber.gemini_client - INFO - Starting transcription for: Unknown
+2025-06-01 00:26:02 - podcast_transcriber.gemini_client - INFO - Using API key 1
+2025-06-01 00:26:02 - podcast_transcriber.gemini_client - ERROR - Transcription failed: Quota exceeded
+2025-06-01 00:26:02 - podcast_transcriber.gemini_client - INFO - Initialized Gemini client with 2 API keys
+2025-06-01 00:26:02 - podcast_transcriber.gemini_client - INFO - Starting speaker identification
+2025-06-01 00:26:02 - podcast_transcriber.gemini_client - INFO - Using API key 1
+2025-06-01 00:26:02 - podcast_transcriber.gemini_client - INFO - Initialized Gemini client with 2 API keys
+2025-06-01 00:26:02 - podcast_transcriber.gemini_client - INFO - Starting speaker identification
+2025-06-01 00:26:02 - podcast_transcriber.gemini_client - INFO - Using API key 1
+2025-06-01 00:26:02 - podcast_transcriber.gemini_client - ERROR - Speaker identification failed: API error with quota
+2025-06-01 00:26:02 - podcast_transcriber.gemini_client - INFO - Initialized Gemini client with 2 API keys
+2025-06-01 00:26:02 - podcast_transcriber.gemini_client - INFO - Initialized Gemini client with 2 API keys
+2025-06-01 00:26:02 - podcast_transcriber.gemini_client - INFO - Initialized Gemini client with 2 API keys
+2025-06-01 00:26:02 - podcast_transcriber.gemini_client - INFO - Initialized Gemini client with 2 API keys
+2025-06-01 00:26:02 - podcast_transcriber.gemini_client - INFO - Found 3 API key(s) in environment
+2025-06-01 00:26:02 - podcast_transcriber.gemini_client - INFO - Found 1 API key(s) in environment
+2025-06-01 00:26:02 - podcast_transcriber.feed_parser - INFO - Parsing RSS feed: https://example.com/feed.xml
+2025-06-01 00:26:02 - podcast_transcriber.feed_parser - INFO - Parsed podcast: Integration Test Podcast
+2025-06-01 00:26:02 - podcast_transcriber.feed_parser - INFO - Found 2 episodes in feed
+2025-06-01 00:26:02 - podcast_transcriber.progress_tracker - INFO - Progress tracker initialized with 0 episodes
+2025-06-01 00:26:02 - podcast_transcriber.gemini_client - INFO - Initialized Gemini client with 2 API keys
+2025-06-01 00:26:02 - podcast_transcriber.progress_tracker - INFO - Episode 'Episode 1: Introduction' marked as in-progress (attempt #1)
+2025-06-01 00:26:02 - podcast_transcriber.gemini_client - INFO - Starting transcription for: Episode 1: Introduction
+2025-06-01 00:26:02 - podcast_transcriber.gemini_client - INFO - Using API key 1
+2025-06-01 00:26:02 - podcast_transcriber.gemini_client - INFO - Transcription completed in 0.0s
+2025-06-01 00:26:02 - podcast_transcriber.gemini_client - INFO - Starting speaker identification
+2025-06-01 00:26:02 - podcast_transcriber.gemini_client - INFO - Using API key 2
+2025-06-01 00:26:02 - podcast_transcriber.gemini_client - INFO - Identified speakers: {'SPEAKER_1': 'Test Host (Host)', 'SPEAKER_2': 'Jane Doe (Guest, Software Engineer)'}
+2025-06-01 00:26:02 - podcast_transcriber.file_organizer - INFO - Created episode file: Integration_Test_Podcast/2024-01-15_Episode_1_Introduction.vtt
+2025-06-01 00:26:02 - podcast_transcriber.progress_tracker - INFO - Episode 'Episode 1: Introduction' marked as completed in 5.0s
+2025-06-01 00:26:02 - podcast_transcriber.progress_tracker - INFO - Progress tracker initialized with 0 episodes
+2025-06-01 00:26:02 - podcast_transcriber.gemini_client - INFO - Initialized Gemini client with 1 API keys
+2025-06-01 00:26:02 - podcast_transcriber.progress_tracker - INFO - Episode 'Error Episode' marked as in-progress (attempt #1)
+2025-06-01 00:26:06 - podcast_transcriber.retry_wrapper - ERROR - transcribe_audio failed after 2 attempts
+2025-06-01 00:26:06 - podcast_transcriber.progress_tracker - WARNING - Episode 'Error Episode' marked as failed: Rate limit exceeded
+2025-06-01 00:26:06 - podcast_transcriber.progress_tracker - INFO - Episode 'Error Episode' marked as in-progress (attempt #2)
+2025-06-01 00:26:06 - podcast_transcriber.gemini_client - INFO - Transcription completed in 0.0s
+2025-06-01 00:26:06 - podcast_transcriber.checkpoint_recovery - INFO - Loaded checkpoint for episode: Test Episode
+2025-06-01 00:26:06 - podcast_transcriber.checkpoint_recovery - INFO - Updated checkpoint: stage=speaker_identification
+2025-06-01 00:26:06 - podcast_transcriber.checkpoint_recovery - INFO - Completed stage: transcription
+2025-06-01 00:26:06 - podcast_transcriber.checkpoint_recovery - INFO - Episode completed: Test Episode
+2025-06-01 00:26:06 - podcast_transcriber.progress_tracker - INFO - Progress tracker initialized with 0 episodes
+2025-06-01 00:26:07 - podcast_transcriber.gemini_client - INFO - Initialized Gemini client with 1 API keys
+2025-06-01 00:26:07 - podcast_transcriber.progress_tracker - INFO - Episode 'Episode 1' marked as in-progress (attempt #1)
+2025-06-01 00:26:07 - podcast_transcriber.progress_tracker - INFO - Episode 'Episode 1' marked as completed in 5.0s
+2025-06-01 00:26:07 - podcast_transcriber.progress_tracker - INFO - Episode 'Episode 2' marked as in-progress (attempt #1)
+2025-06-01 00:26:07 - podcast_transcriber.progress_tracker - INFO - Episode 'Episode 2' marked as completed in 5.0s
+2025-06-01 00:26:07 - podcast_transcriber.key_rotation_manager - INFO - Initialized key rotation manager with 3 keys
+2025-06-01 00:26:07 - podcast_transcriber.key_rotation_manager - INFO - Initialized key rotation manager with 3 keys
+2025-06-01 00:26:07 - podcast_transcriber.key_rotation_manager - INFO - Selected key_1 (test_key...) for next request
+2025-06-01 00:26:07 - podcast_transcriber.key_rotation_manager - INFO - Selected key_2 (test_key...) for next request
+2025-06-01 00:26:07 - podcast_transcriber.key_rotation_manager - INFO - Selected key_3 (test_key...) for next request
+2025-06-01 00:26:07 - podcast_transcriber.key_rotation_manager - INFO - Selected key_1 (test_key...) for next request
+2025-06-01 00:26:07 - podcast_transcriber.key_rotation_manager - INFO - Initialized key rotation manager with 3 keys
+2025-06-01 00:26:07 - podcast_transcriber.key_rotation_manager - INFO - Selected key_2 (test_key...) for next request
+2025-06-01 00:26:07 - podcast_transcriber.key_rotation_manager - INFO - Selected key_2 (test_key...) for next request
+2025-06-01 00:26:07 - podcast_transcriber.key_rotation_manager - INFO - Initialized key rotation manager with 3 keys
+2025-06-01 00:26:07 - podcast_transcriber.key_rotation_manager - INFO - Current key status:
+2025-06-01 00:26:07 - podcast_transcriber.key_rotation_manager - INFO -   key_1 (test_key...): quota_exceeded
+2025-06-01 00:26:07 - podcast_transcriber.key_rotation_manager - INFO -   key_2 (test_key...): quota_exceeded
+2025-06-01 00:26:07 - podcast_transcriber.key_rotation_manager - INFO -   key_3 (test_key...): quota_exceeded
+2025-06-01 00:26:07 - podcast_transcriber.key_rotation_manager - INFO - Initialized key rotation manager with 3 keys
+2025-06-01 00:26:07 - podcast_transcriber.key_rotation_manager - INFO - Initialized key rotation manager with 3 keys
+2025-06-01 00:26:07 - podcast_transcriber.key_rotation_manager - WARNING - key_1 (test_key...) marked as failed: Rate limit exceeded
+2025-06-01 00:26:07 - podcast_transcriber.key_rotation_manager - INFO - Initialized key rotation manager with 3 keys
+2025-06-01 00:26:07 - podcast_transcriber.key_rotation_manager - INFO - Initialized key rotation manager with 3 keys
+2025-06-01 00:26:07 - podcast_transcriber.key_rotation_manager - INFO - Initialized key rotation manager with 3 keys
+2025-06-01 00:26:07 - podcast_transcriber.key_rotation_manager - INFO - Force reset key_2 (test_key...) to available
+2025-06-01 00:26:07 - podcast_transcriber.key_rotation_manager - INFO - Initialized key rotation manager with 3 keys
+2025-06-01 00:26:07 - podcast_transcriber.key_rotation_manager - INFO - Performing daily reset of key states
+2025-06-01 00:26:07 - podcast_transcriber.key_rotation_manager - INFO - Initialized key rotation manager with 3 keys
+2025-06-01 00:26:07 - podcast_transcriber.key_rotation_manager - INFO - Loaded rotation state, current index: 2
+2025-06-01 00:26:07 - podcast_transcriber.key_rotation_manager - INFO - Initialized key rotation manager with 3 keys
+2025-06-01 00:26:07 - podcast_transcriber.key_rotation_manager - INFO - Performing daily reset of key states
+2025-06-01 00:26:07 - podcast_transcriber.key_rotation_manager - INFO - Loaded rotation state, current index: 1
+2025-06-01 00:26:07 - podcast_transcriber.key_rotation_manager - INFO - Initialized key rotation manager with 3 keys
+2025-06-01 00:26:07 - podcast_transcriber.key_rotation_manager - INFO - Initialized key rotation manager with 3 keys
+2025-06-01 00:26:07 - podcast_transcriber.key_rotation_manager - INFO - Initialized key rotation manager with 2 keys
+2025-06-01 00:26:07 - podcast_transcriber.key_rotation_manager - INFO - Initialized key rotation manager with 1 keys
+2025-06-01 00:26:07 - podcast_transcriber.key_rotation_manager - ERROR - No API keys found in environment
+2025-06-01 00:26:07 - podcast_transcriber - INFO - Logging system initialized
+2025-06-01 00:26:07 - podcast_transcriber - INFO - Log level: INFO
+2025-06-01 00:26:07 - podcast_transcriber - INFO - Log directory: /home/sergeblumenfeld/podcastknowledge/transcriber/logs
+2025-06-01 00:26:07 - podcast_transcriber - INFO - Logging system initialized
+2025-06-01 00:26:07 - podcast_transcriber - INFO - Log level: INFO
+2025-06-01 00:26:07 - podcast_transcriber - INFO - Log directory: /home/sergeblumenfeld/podcastknowledge/transcriber/logs
+2025-06-01 00:26:07 - podcast_transcriber - INFO - Progress: 1/2 (50.0%) - Starting episode: Processing: Episode 1
+2025-06-01 00:26:07 - podcast_transcriber.checkpoint_recovery - INFO - Started checkpoint for episode: Episode 1
+2025-06-01 00:26:07 - podcast_transcriber.progress_tracker - INFO - Episode 'Episode 1' marked as in-progress (attempt #2)
+2025-06-01 00:26:07 - podcast_transcriber.checkpoint_recovery - INFO - Updated checkpoint: stage=transcription
+2025-06-01 00:26:07 - podcast_transcriber.orchestrator - INFO - Transcribing: Episode 1
+2025-06-01 00:26:07 - podcast_transcriber.transcription_processor - ERROR - Transcription failed: not enough values to unpack (expected 2, got 0)
+2025-06-01 00:26:07 - podcast_transcriber.orchestrator - ERROR - Episode processing failed: Transcription failed
+2025-06-01 00:26:07 - podcast_transcriber.progress_tracker - WARNING - Episode 'Episode 1' marked as failed: Transcription failed
+2025-06-01 00:26:07 - podcast_transcriber.checkpoint_recovery - ERROR - Episode failed: Episode 1 - Transcription failed
+2025-06-01 00:26:07 - podcast_transcriber - INFO - Progress: 2/2 (100.0%) - Starting episode: Processing: Episode 2
+2025-06-01 00:26:07 - podcast_transcriber.checkpoint_recovery - INFO - Started checkpoint for episode: Episode 2
+2025-06-01 00:26:07 - podcast_transcriber.progress_tracker - INFO - Episode 'Episode 2' marked as in-progress (attempt #2)
+2025-06-01 00:26:07 - podcast_transcriber.checkpoint_recovery - INFO - Updated checkpoint: stage=transcription
+2025-06-01 00:26:07 - podcast_transcriber.orchestrator - INFO - Transcribing: Episode 2
+2025-06-01 00:26:07 - podcast_transcriber.transcription_processor - ERROR - Transcription failed: not enough values to unpack (expected 2, got 0)
+2025-06-01 00:26:07 - podcast_transcriber.orchestrator - ERROR - Episode processing failed: Transcription failed
+2025-06-01 00:26:07 - podcast_transcriber.progress_tracker - WARNING - Episode 'Episode 2' marked as failed: Transcription failed
+2025-06-01 00:26:07 - podcast_transcriber.checkpoint_recovery - ERROR - Episode failed: Episode 2 - Transcription failed
+2025-06-01 00:26:07 - podcast_transcriber.orchestrator - INFO - Summary report saved to: /tmp/tmp2u5ifhnb/transcripts/Test Podcast_report.json
+2025-06-01 00:26:07 - podcast_transcriber.config - INFO - Loaded configuration from: /home/sergeblumenfeld/podcastknowledge/transcriber/config/default.yaml
+2025-06-01 00:26:07 - podcast_transcriber.config - INFO - Configuration validation passed
+2025-06-01 00:26:07 - podcast_transcriber.progress_tracker - INFO - Progress tracker initialized with 2 episodes
+2025-06-01 00:26:07 - podcast_transcriber.orchestrator - INFO - Found 3 episodes in feed: Test Podcast
+2025-06-01 00:26:07 - podcast_transcriber - INFO - Progress: 1/3 (33.3%) - Starting episode: Processing: Episode 1
+2025-06-01 00:26:07 - podcast_transcriber.orchestrator - WARNING - Approaching daily quota limit, stopping processing
+2025-06-01 00:26:07 - podcast_transcriber.orchestrator - INFO - Summary report saved to: /tmp/tmpvtrdtucy/transcripts/Test Podcast_report.json
+2025-06-01 00:26:07 - podcast_transcriber.config - INFO - Loaded configuration from: /home/sergeblumenfeld/podcastknowledge/transcriber/config/default.yaml
+2025-06-01 00:26:07 - podcast_transcriber.config - INFO - Configuration validation passed
+2025-06-01 00:26:07 - podcast_transcriber.progress_tracker - INFO - Progress tracker initialized with 2 episodes
+2025-06-01 00:26:07 - podcast_transcriber - INFO - Logging system initialized
+2025-06-01 00:26:07 - podcast_transcriber - INFO - Log level: INFO
+2025-06-01 00:26:07 - podcast_transcriber - INFO - Log directory: /home/sergeblumenfeld/podcastknowledge/transcriber/logs
+2025-06-01 00:26:07 - podcast_transcriber.cli - INFO - Starting transcription of https://example.com/feed.xml
+2025-06-01 00:26:07 - podcast_transcriber - INFO - Logging system initialized
+2025-06-01 00:26:07 - podcast_transcriber - INFO - Log level: INFO
+2025-06-01 00:26:07 - podcast_transcriber - INFO - Log directory: /home/sergeblumenfeld/podcastknowledge/transcriber/logs
+2025-06-01 00:26:07 - podcast_transcriber.progress_tracker - INFO - Progress tracker initialized with 0 episodes
+2025-06-01 00:26:07 - podcast_transcriber.progress_tracker - INFO - Progress tracker initialized with 1 episodes
+2025-06-01 00:26:07 - podcast_transcriber.progress_tracker - ERROR - Failed to load progress file: Expecting value: line 1 column 1 (char 0)
+2025-06-01 00:26:07 - podcast_transcriber.progress_tracker - WARNING - Starting with empty progress state
+2025-06-01 00:26:07 - podcast_transcriber.progress_tracker - INFO - Progress tracker initialized with 0 episodes
+2025-06-01 00:26:07 - podcast_transcriber.progress_tracker - INFO - Progress tracker initialized with 0 episodes
+2025-06-01 00:26:07 - podcast_transcriber.progress_tracker - INFO - Progress tracker initialized with 0 episodes
+2025-06-01 00:26:07 - podcast_transcriber.progress_tracker - ERROR - Failed to save progress state: Write failed
+2025-06-01 00:26:07 - podcast_transcriber.progress_tracker - INFO - Progress tracker initialized with 0 episodes
+2025-06-01 00:26:07 - podcast_transcriber.progress_tracker - INFO - Episode 'Episode 1' marked as in-progress (attempt #1)
+2025-06-01 00:26:07 - podcast_transcriber.progress_tracker - INFO - Progress tracker initialized with 0 episodes
+2025-06-01 00:26:07 - podcast_transcriber.progress_tracker - INFO - Episode 'Episode 1' marked as in-progress (attempt #2)
+2025-06-01 00:26:07 - podcast_transcriber.progress_tracker - INFO - Progress tracker initialized with 0 episodes
+2025-06-01 00:26:07 - podcast_transcriber.progress_tracker - INFO - Episode 'Episode 1' marked as completed in 123.5s
+2025-06-01 00:26:07 - podcast_transcriber.progress_tracker - INFO - Progress tracker initialized with 0 episodes
+2025-06-01 00:26:07 - podcast_transcriber.progress_tracker - ERROR - Episode non-existent not found in progress tracker
+2025-06-01 00:26:07 - podcast_transcriber.progress_tracker - INFO - Progress tracker initialized with 0 episodes
+2025-06-01 00:26:07 - podcast_transcriber.progress_tracker - WARNING - Episode 'Episode 1' marked as failed: Network timeout
+2025-06-01 00:26:07 - podcast_transcriber.progress_tracker - INFO - Progress tracker initialized with 0 episodes
+2025-06-01 00:26:07 - podcast_transcriber.progress_tracker - INFO - Progress tracker initialized with 0 episodes
+2025-06-01 00:26:07 - podcast_transcriber.progress_tracker - INFO - Progress tracker initialized with 0 episodes
+2025-06-01 00:26:07 - podcast_transcriber.progress_tracker - INFO - Progress tracker initialized with 0 episodes
+2025-06-01 00:26:07 - podcast_transcriber.progress_tracker - INFO - Progress tracker initialized with 0 episodes
+2025-06-01 00:26:07 - podcast_transcriber.progress_tracker - INFO - Progress tracker initialized with 0 episodes
+2025-06-01 00:26:07 - podcast_transcriber.progress_tracker - INFO - Progress tracker initialized with 0 episodes
+2025-06-01 00:26:07 - podcast_transcriber.progress_tracker - INFO - Daily quota counters reset
+2025-06-01 00:26:07 - podcast_transcriber.progress_tracker - INFO - Progress tracker initialized with 0 episodes
+2025-06-01 00:26:07 - podcast_transcriber.progress_tracker - WARNING - Episode 'Episode 1' marked as failed: Processing interrupted - marked for retry
+2025-06-01 00:26:07 - podcast_transcriber.progress_tracker - WARNING - Episode 'Episode 2' marked as failed: Processing interrupted - marked for retry
+2025-06-01 00:26:07 - podcast_transcriber.progress_tracker - INFO - Cleaned up 2 interrupted episodes
+2025-06-01 00:26:07 - podcast_transcriber.vtt_generator - INFO - VTT file saved to: /tmp/tmp70z5wyba/test.vtt
+2025-06-01 00:26:07 - podcast_transcriber.vtt_generator - INFO - VTT file saved to: /tmp/tmpfhj_c5qk/test.vtt

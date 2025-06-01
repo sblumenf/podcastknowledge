@@ -23,8 +23,11 @@ from src.metadata_index import get_metadata_index
 logger = get_logger('cli')
 
 
-def parse_arguments() -> argparse.Namespace:
+def parse_arguments(args: Optional[List[str]] = None) -> argparse.Namespace:
     """Parse command line arguments.
+    
+    Args:
+        args: Optional list of arguments (for testing). If None, uses sys.argv
     
     Returns:
         Parsed arguments namespace
@@ -157,14 +160,14 @@ def parse_arguments() -> argparse.Namespace:
     )
     
     # Parse arguments
-    args = parser.parse_args()
+    parsed_args = parser.parse_args(args)
     
     # Show help if no command provided
-    if not args.command:
+    if not parsed_args.command:
         parser.print_help()
         sys.exit(1)
     
-    return args
+    return parsed_args
 
 
 async def transcribe_command(args: argparse.Namespace) -> int:
@@ -221,29 +224,34 @@ async def transcribe_command(args: argparse.Namespace) -> int:
             max_episodes=args.max_episodes
         )
         
+        # Check if results is None or missing required fields
+        if not results or not isinstance(results, dict):
+            logger.error("No valid results returned from orchestrator")
+            return 1
+        
         # Display results
         print("\n" + "="*60)
         print("TRANSCRIPTION SUMMARY")
         print("="*60)
-        print(f"Status: {results['status']}")
-        print(f"Episodes processed: {results['processed']}")
-        print(f"Episodes failed: {results['failed']}")
-        print(f"Episodes skipped: {results['skipped']}")
+        print(f"Status: {results.get('status', 'unknown')}")
+        print(f"Episodes processed: {results.get('processed', 0)}")
+        print(f"Episodes failed: {results.get('failed', 0)}")
+        print(f"Episodes skipped: {results.get('skipped', 0)}")
         
-        if results['processed'] > 0:
+        if results.get('processed', 0) > 0:
             print("\nProcessed Episodes:")
-            for episode in results['episodes']:
-                if episode['status'] == 'completed':
-                    print(f"  ✓ {episode['title']}")
-                    print(f"    Output: {episode['output_file']}")
+            for episode in results.get('episodes', []):
+                if episode.get('status') == 'completed':
+                    print(f"  ✓ {episode.get('title', 'Unknown')}")
+                    print(f"    Output: {episode.get('output_file', 'N/A')}")
                     if episode.get('speakers'):
                         print(f"    Speakers: {', '.join(episode['speakers'])}")
         
-        if results['failed'] > 0:
+        if results.get('failed', 0) > 0:
             print("\nFailed Episodes:")
-            for episode in results['episodes']:
-                if episode['status'] == 'failed':
-                    print(f"  ✗ {episode['title']}")
+            for episode in results.get('episodes', []):
+                if episode.get('status') == 'failed':
+                    print(f"  ✗ {episode.get('title', 'Unknown')}")
                     print(f"    Error: {episode.get('error', 'Unknown error')}")
         
         # Check API usage
@@ -257,9 +265,9 @@ async def transcribe_command(args: argparse.Namespace) -> int:
         print("="*60)
         
         # Return appropriate exit code
-        if results['status'] == 'completed' and results['failed'] == 0:
+        if results.get('status') == 'completed' and results.get('failed', 0) == 0:
             return 0
-        elif results['status'] == 'quota_reached':
+        elif results.get('status') == 'quota_reached':
             logger.warning("Daily API quota reached. Resume tomorrow to continue.")
             return 2
         else:
