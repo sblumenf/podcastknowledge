@@ -46,6 +46,11 @@ class VTTMetadata:
         if self.guests:
             lines.append(f"Guests: {', '.join(self.guests)}")
         
+        if self.description:
+            # Wrap long descriptions at 80 characters
+            desc_lines = self._wrap_text(f"Description: {self.description}", 80)
+            lines.extend(desc_lines)
+        
         if self.transcription_date:
             lines.append(f"Transcribed: {self.transcription_date}")
         
@@ -59,14 +64,40 @@ class VTTMetadata:
             "duration": self.duration,
             "host": self.host,
             "guests": self.guests,
+            "description": self.description,
             "speakers": self.speakers,
             "transcription_date": self.transcription_date
         }
-        # Remove None values for cleaner JSON
-        json_data = {k: v for k, v in json_data.items() if v is not None}
+        # Remove None values for cleaner JSON, but always keep description
+        json_data = {k: v for k, v in json_data.items() if v is not None or k == 'description'}
         lines.append(json.dumps(json_data, indent=2))
         
         return '\n'.join(lines)
+    
+    def _wrap_text(self, text: str, width: int) -> List[str]:
+        """Wrap text to specified width, preserving word boundaries."""
+        if len(text) <= width:
+            return [text]
+        
+        words = text.split()
+        lines = []
+        current_line = []
+        current_length = 0
+        
+        for word in words:
+            word_length = len(word)
+            if current_length + word_length + len(current_line) > width and current_line:
+                lines.append(' '.join(current_line))
+                current_line = [word]
+                current_length = word_length
+            else:
+                current_line.append(word)
+                current_length += word_length
+        
+        if current_line:
+            lines.append(' '.join(current_line))
+        
+        return lines
 
 
 class VTTGenerator:
