@@ -51,3 +51,64 @@ ValueError: Simulated error for testing
 2025-05-31 21:54:51 - podcast_transcriber.gemini_client - ERROR - Speaker identification failed: API error with quota
 2025-05-31 21:54:51 - podcast_transcriber.feed_parser - ERROR - Failed to parse feed https://example.com/feed.xml: 'dict' object has no attribute 'bozo'
 2025-05-31 21:54:51 - podcast_transcriber.key_rotation_manager - ERROR - No API keys found in environment
+2025-05-31 22:04:59 - podcast_transcriber.config - ERROR - Failed to load configuration: mapping values are not allowed here
+  in "/tmp/tmp_xqjfw08/invalid_config.yaml", line 1, column 14
+2025-05-31 22:04:59 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - API timeout must be positive
+2025-05-31 22:04:59 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - API max_attempts must be between 1 and 5
+2025-05-31 22:04:59 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Max episodes per day must be positive
+2025-05-31 22:04:59 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Console log level must be one of: ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL']
+2025-05-31 22:04:59 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - No API keys found in environment variables: ['GEMINI_API_KEY_1', 'GEMINI_API_KEY_2']
+2025-05-31 22:04:59 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Timestamp precision must be between 0 and 3
+2025-05-31 22:04:59 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Rotation strategy must be one of: ['round_robin', 'random']
+2025-05-31 22:04:59 - podcast_transcriber.feed_parser - ERROR - Feed parsing error: XML parsing error
+2025-05-31 22:04:59 - podcast_transcriber.feed_parser - ERROR - Failed to parse feed https://example.com/feed.xml: Network error
+2025-05-31 22:04:59 - podcast_transcriber.file_organizer - ERROR - Failed to write episode file /tmp/tmpi74d2exo/Test/2024-01-15_Test.vtt: Write error
+2025-05-31 22:04:59 - podcast_transcriber.gemini_client - ERROR - No API keys available due to rate limits
+2025-05-31 22:04:59 - podcast_transcriber.gemini_client - ERROR - No API keys available due to rate limits
+2025-05-31 22:04:59 - podcast_transcriber.gemini_client - ERROR - Transcription failed: Quota exceeded
+2025-05-31 22:04:59 - podcast_transcriber.gemini_client - ERROR - Speaker identification failed: API error with quota
+2025-05-31 22:04:59 - podcast_transcriber.feed_parser - ERROR - Failed to parse feed https://example.com/feed.xml: 'dict' object has no attribute 'bozo'
+2025-05-31 22:04:59 - podcast_transcriber.key_rotation_manager - ERROR - No API keys found in environment
+2025-05-31 23:05:51 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - No API keys found in environment variables: ['GEMINI_API_KEY_1', 'GEMINI_API_KEY_2']
+2025-05-31 23:07:54 - podcast_transcriber.config - ERROR - Failed to load configuration: mapping values are not allowed here
+  in "/tmp/tmpzhhwaw7f/invalid_config.yaml", line 1, column 14
+2025-05-31 23:07:54 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - API timeout must be positive
+2025-05-31 23:07:54 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - API max_attempts must be between 1 and 5
+2025-05-31 23:07:54 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Max episodes per day must be positive
+2025-05-31 23:07:54 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Console log level must be one of: ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL']
+2025-05-31 23:07:54 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - No API keys found in environment variables: ['GEMINI_API_KEY_1', 'GEMINI_API_KEY_2']
+2025-05-31 23:07:54 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Timestamp precision must be between 0 and 3
+2025-05-31 23:07:54 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Rotation strategy must be one of: ['round_robin', 'random']
+2025-05-31 23:07:54 - podcast_transcriber.feed_parser - ERROR - Feed parsing error: XML parsing error
+2025-05-31 23:07:54 - podcast_transcriber.feed_parser - ERROR - Failed to parse feed https://example.com/feed.xml: Network error
+2025-05-31 23:07:54 - podcast_transcriber.file_organizer - ERROR - Failed to write episode file /tmp/tmpch7e1v7h/Test/2024-01-15_Test.vtt: Write error
+2025-05-31 23:07:54 - podcast_transcriber.gemini_client - ERROR - No API keys available due to rate limits
+2025-05-31 23:07:54 - podcast_transcriber.gemini_client - ERROR - No API keys available due to rate limits
+2025-05-31 23:07:54 - podcast_transcriber.gemini_client - ERROR - Transcription failed: Quota exceeded
+2025-05-31 23:07:54 - podcast_transcriber.gemini_client - ERROR - Speaker identification failed: API error with quota
+2025-05-31 23:07:54 - podcast_transcriber.feed_parser - ERROR - Failed to parse feed https://example.com/feed.xml: 'dict' object has no attribute 'bozo'
+2025-05-31 23:07:54 - podcast_transcriber.key_rotation_manager - ERROR - No API keys found in environment
+2025-05-31 23:08:03 - podcast_transcriber.config - ERROR - Failed to load configuration: mapping values are not allowed here
+  in "/tmp/tmpdyit58ap/invalid_config.yaml", line 1, column 14
+2025-05-31 23:08:03 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - API timeout must be positive
+2025-05-31 23:08:03 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - API max_attempts must be between 1 and 5
+2025-05-31 23:08:03 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Max episodes per day must be positive
+2025-05-31 23:08:03 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Console log level must be one of: ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL']
+2025-05-31 23:08:03 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - No API keys found in environment variables: ['GEMINI_API_KEY_1', 'GEMINI_API_KEY_2']
+2025-05-31 23:08:03 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Timestamp precision must be between 0 and 3
+2025-05-31 23:08:03 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Rotation strategy must be one of: ['round_robin', 'random']
+2025-05-31 23:11:25 - podcast_transcriber.config - ERROR - Failed to load configuration: mapping values are not allowed here
+  in "/tmp/tmpuvd73gvb/invalid_config.yaml", line 1, column 14
+2025-05-31 23:11:25 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - API timeout must be positive
+2025-05-31 23:11:25 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - API max_attempts must be between 1 and 5
+2025-05-31 23:11:25 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Max episodes per day must be positive
+2025-05-31 23:11:25 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Console log level must be one of: ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL']
+2025-05-31 23:11:25 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - No API keys found in environment variables: ['GEMINI_API_KEY_1', 'GEMINI_API_KEY_2']
+2025-05-31 23:11:25 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Timestamp precision must be between 0 and 3
+2025-05-31 23:11:25 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Rotation strategy must be one of: ['round_robin', 'random']
+2025-05-31 23:11:56 - podcast_transcriber.feed_parser - ERROR - Feed parsing error: XML parsing error
+2025-05-31 23:11:56 - podcast_transcriber.feed_parser - ERROR - Failed to parse feed https://example.com/feed.xml: Network error
+2025-05-31 23:14:32 - podcast_transcriber.feed_parser - ERROR - Feed parsing error: XML parsing error
+2025-05-31 23:14:32 - podcast_transcriber.feed_parser - ERROR - Failed to parse feed https://example.com/feed.xml: Network error
+2025-05-31 23:15:35 - podcast_transcriber.feed_parser - ERROR - Feed parsing error: XML parsing error
+2025-05-31 23:15:35 - podcast_transcriber.feed_parser - ERROR - Failed to parse feed https://example.com/feed.xml: Network error

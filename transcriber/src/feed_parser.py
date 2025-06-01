@@ -203,34 +203,40 @@ def _parse_episode(entry: feedparser.FeedParserDict, podcast_metadata: PodcastMe
     
     # Extract publication date
     published_date = None
-    if hasattr(entry, 'published_parsed') and entry.published_parsed:
-        published_date = datetime(*entry.published_parsed[:6])
-    elif hasattr(entry, 'updated_parsed') and entry.updated_parsed:
-        published_date = datetime(*entry.updated_parsed[:6])
+    published_parsed = entry.get('published_parsed')
+    updated_parsed = entry.get('updated_parsed')
+    
+    if published_parsed:
+        published_date = datetime(*published_parsed[:6])
+    elif updated_parsed:
+        published_date = datetime(*updated_parsed[:6])
     
     # Extract iTunes metadata
-    duration = getattr(entry, 'itunes_duration', None)
+    duration = entry.get('itunes_duration')
     episode_number = None
     season_number = None
     
-    if hasattr(entry, 'itunes_episode'):
+    itunes_episode = entry.get('itunes_episode')
+    if itunes_episode:
         try:
-            episode_number = int(entry.itunes_episode)
+            episode_number = int(itunes_episode)
         except (ValueError, TypeError):
             pass
     
-    if hasattr(entry, 'itunes_season'):
+    itunes_season = entry.get('itunes_season')
+    if itunes_season:
         try:
-            season_number = int(entry.itunes_season)
+            season_number = int(itunes_season)
         except (ValueError, TypeError):
             pass
     
     # Extract keywords
     keywords = []
-    if hasattr(entry, 'itunes_keywords'):
-        keywords = [k.strip() for k in entry.itunes_keywords.split(',') if k.strip()]
-    elif hasattr(entry, 'tags'):
-        keywords = [tag.get('term', '') for tag in entry.tags if tag.get('term')]
+    itunes_keywords = entry.get('itunes_keywords')
+    if itunes_keywords:
+        keywords = [k.strip() for k in itunes_keywords.split(',') if k.strip()]
+    elif entry.get('tags'):
+        keywords = [tag.get('term', '') for tag in entry.get('tags', []) if tag.get('term')]
     
     # Use GUID or link as unique identifier
     guid = entry.get('id') or entry.get('guid') or entry.get('link') or audio_url
@@ -266,6 +272,10 @@ def validate_feed_url(url: str) -> bool:
     """Validate if a URL points to a valid RSS feed."""
     try:
         parsed = urlparse(url)
+        # For file URLs, check scheme and path
+        if parsed.scheme == 'file':
+            return bool(parsed.path)
+        # For http/https URLs, check scheme and netloc
         return bool(parsed.scheme and parsed.netloc)
     except Exception:
         return False

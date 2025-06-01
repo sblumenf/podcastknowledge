@@ -216,7 +216,7 @@ class TestExtractPodcastMetadata:
     def test_extract_itunes_metadata(self):
         """Test extracting iTunes-specific metadata."""
         feed = MagicMock()
-        feed.feed = MagicMock()
+        feed.feed = MagicMock(spec=['get', 'itunes_author', 'itunes_owner', 'itunes_category', 'itunes_explicit', 'itunes_image'])
         feed.feed.get = lambda k, d=None: d
         feed.feed.itunes_author = 'iTunes Author'
         feed.feed.itunes_owner = {
@@ -225,7 +225,8 @@ class TestExtractPodcastMetadata:
         }
         feed.feed.itunes_category = 'Technology'
         feed.feed.itunes_explicit = 'yes'
-        feed.feed.itunes_image = MagicMock(href='https://example.com/itunes.jpg')
+        feed.feed.itunes_image = MagicMock()
+        feed.feed.itunes_image.href = 'https://example.com/itunes.jpg'
         
         metadata = _extract_podcast_metadata(feed)
         
@@ -347,17 +348,16 @@ class TestParseEpisode:
     
     def test_parse_episode_with_itunes_metadata(self):
         """Test parsing episode with iTunes metadata."""
-        entry = MagicMock()
-        entry.get = lambda k, d=None: {
+        entry = {
             'title': 'iTunes Episode',
             'id': 'itunes-id',
-            'enclosures': [{'href': 'https://example.com/itunes.mp3', 'type': 'audio/mpeg'}]
-        }.get(k, d)
-        entry.itunes_duration = '01:23:45'
-        entry.itunes_episode = '10'
-        entry.itunes_season = '2'
-        entry.itunes_keywords = 'tech, podcast, python'
-        entry.published_parsed = (2024, 1, 15, 10, 0, 0, 0, 0, 0)
+            'enclosures': [{'href': 'https://example.com/itunes.mp3', 'type': 'audio/mpeg'}],
+            'itunes_duration': '01:23:45',
+            'itunes_episode': '10',
+            'itunes_season': '2',
+            'itunes_keywords': 'tech, podcast, python',
+            'published_parsed': (2024, 1, 15, 10, 0, 0, 0, 0, 0)
+        }
         
         podcast_metadata = PodcastMetadata(title="Test Podcast")
         episode = _parse_episode(entry, podcast_metadata)
