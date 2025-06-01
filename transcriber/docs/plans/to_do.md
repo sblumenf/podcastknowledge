@@ -2,3 +2,5 @@
 - if llm returns only part of the transcript ask it to continue and stitch the results together
 - look up the youtube url
 - validate that the description of the rss is captured in my download in case I want to use it later
+- make sure that there is a tracking mechanism for which episodes have been transcribed and which are still pending
+- have the option to specify episodes to be transcribed, either by episode number, by how many episodes, etc. i want flexibility over which episodes are transcribed

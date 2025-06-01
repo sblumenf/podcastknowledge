@@ -231,7 +231,7 @@ class RateLimitedGeminiClient:
                 model, key_index, audio_url, episode_metadata
             )
             
-            # Validate transcript completeness if enabled and duration is available
+            # Validate and continue transcript if enabled and duration is available
             if (transcript and validation_config and 
                 validation_config.get('enabled', True) and
                 episode_metadata.get('duration')):
@@ -241,17 +241,10 @@ class RateLimitedGeminiClient:
                 duration_seconds = self._parse_duration_to_seconds(duration_str)
                 
                 if duration_seconds > 0:
-                    is_complete, coverage = self.validate_transcript_completeness(
-                        transcript, duration_seconds
+                    # Start continuation loop
+                    transcript = await self._continuation_loop(
+                        transcript, audio_url, episode_metadata, duration_seconds, validation_config
                     )
-                    
-                    # Log validation results
-                    min_coverage = validation_config.get('min_coverage_ratio', 0.85)
-                    if not is_complete:
-                        logger.warning(f"Transcript appears incomplete: {coverage:.1%} coverage "
-                                     f"(minimum: {min_coverage:.1%})")
-                    else:
-                        logger.info(f"Transcript validation passed: {coverage:.1%} coverage")
             
             return transcript
         except (QuotaExceededException, CircuitBreakerOpenException) as e:
@@ -578,6 +571,435 @@ Example response format:
             return minutes * 60 + seconds_with_ms
         else:
             return float(timestamp)
+    
+    async def request_continuation(self, 
+                                 audio_file: str, 
+                                 existing_transcript: str,
+                                 last_timestamp: float,
+                                 episode_metadata: Dict[str, Any]) -> Optional[str]:
+        """Request continuation of transcript from the last timestamp.
+        
+        Args:
+            audio_file: URL of the audio file
+            existing_transcript: Current partial transcript
+            last_timestamp: Timestamp (in seconds) where transcript ended
+            episode_metadata: Episode information for context
+            
+        Returns:
+            Continuation transcript or None if failed
+        """
+        model, key_index = self._get_available_client()
+        if not model:
+            logger.error("No API keys available for continuation request")
+            return None
+        
+        try:
+            # Get the last few lines of the existing transcript for context
+            context_lines = self._extract_context_from_transcript(existing_transcript, last_timestamp)
+            
+            # Build continuation prompt
+            prompt = self._build_continuation_prompt(
+                episode_metadata, last_timestamp, context_lines
+            )
+            
+            logger.info(f"Requesting continuation from {last_timestamp:.1f}s")
+            
+            # Make the API call with same settings as original transcription
+            response = await model.generate_content_async(
+                prompt,
+                generation_config=GenerationConfig(
+                    max_output_tokens=8192,  # Same as original
+                    temperature=0.1,  # Low temperature for accuracy
+                )
+            )
+            
+            continuation = response.text
+            if not continuation:
+                logger.warning("Empty continuation returned from API")
+                return None
+            
+            # Update usage tracking
+            tracker = self.usage_trackers[key_index]
+            estimated_tokens = 2000  # Rough estimate for continuation
+            tracker.update_usage(estimated_tokens)
+            
+            logger.info(f"Received continuation transcript ({len(continuation)} chars)")
+            return continuation
+            
+        except Exception as e:
+            logger.error(f"Continuation request failed: {e}")
+            return None
+    
+    def _extract_context_from_transcript(self, transcript: str, last_timestamp: float) -> List[str]:
+        """Extract the last few lines from transcript for context.
+        
+        Args:
+            transcript: Current transcript
+            last_timestamp: Last timestamp in seconds
+            
+        Returns:
+            List of context lines
+        """
+        try:
+            import re
+            
+            # Find all VTT cues
+            cue_pattern = r'(\d{1,2}:\d{2}:\d{2}\.\d{3})\s*-->\s*(\d{1,2}:\d{2}:\d{2}\.\d{3})\s*\n([^0-9]+?)(?=\n\d{1,2}:\d{2}:\d{2}\.\d{3}|$)'
+            matches = re.findall(cue_pattern, transcript, re.DOTALL | re.MULTILINE)
+            
+            if not matches:
+                return []
+            
+            # Get the last 3-5 cues for context
+            context_cues = matches[-5:] if len(matches) >= 5 else matches
+            
+            context_lines = []
+            for start_time, end_time, text in context_cues:
+                # Clean up the text (remove voice tags for readability)
+                clean_text = re.sub(r'<v [^>]+>', '', text.strip())
+                context_lines.append(f"{start_time} --> {end_time}: {clean_text}")
+            
+            return context_lines
+            
+        except Exception as e:
+            logger.warning(f"Failed to extract context: {e}")
+            return []
+    
+    def _build_continuation_prompt(self, 
+                                 metadata: Dict[str, Any], 
+                                 last_timestamp: float,
+                                 context_lines: List[str]) -> str:
+        """Build prompt for transcript continuation.
+        
+        Args:
+            metadata: Episode metadata
+            last_timestamp: Last timestamp in seconds
+            context_lines: Previous transcript lines for context
+            
+        Returns:
+            Continuation prompt
+        """
+        # Convert timestamp to VTT format
+        hours = int(last_timestamp // 3600)
+        minutes = int((last_timestamp % 3600) // 60)
+        seconds = int(last_timestamp % 60)
+        milliseconds = int((last_timestamp * 1000) % 1000)
+        start_time = f"{hours:02d}:{minutes:02d}:{seconds:02d}.{milliseconds:03d}"
+        
+        context_section = "\n".join(context_lines) if context_lines else "No previous context available"
+        
+        return f"""Continue transcribing this podcast episode from timestamp {start_time} onward.
+
+Episode Information:
+- Podcast: {metadata.get('podcast_name', 'Unknown')}
+- Title: {metadata.get('title', 'Unknown')}
+- Date: {metadata.get('publication_date', 'Unknown')}
+
+Previous transcript context (last few segments):
+{context_section}
+
+Please continue the transcript from {start_time} onward using the same format:
+1. Use WebVTT format with proper timestamps (HH:MM:SS.mmm --> HH:MM:SS.mmm)
+2. Include speaker identification with <v SPEAKER_N> tags
+3. Maintain consistent speaker numbering from the context above
+4. Keep segments 5-7 seconds long and under 2 lines of text
+5. Start immediately from {start_time} - do not repeat previous content
+
+Continue the transcript:"""
+    
+    async def _continuation_loop(self, 
+                               initial_transcript: str,
+                               audio_url: str,
+                               episode_metadata: Dict[str, Any],
+                               duration_seconds: int,
+                               validation_config: Dict[str, Any]) -> str:
+        """Execute the full continuation loop until transcript is complete.
+        
+        Args:
+            initial_transcript: Initial transcript from first request
+            audio_url: Audio file URL
+            episode_metadata: Episode metadata
+            duration_seconds: Expected duration in seconds
+            validation_config: Validation configuration
+            
+        Returns:
+            Complete transcript (stitched if continuations were needed)
+        """
+        segments = [initial_transcript]
+        attempts = 0
+        max_attempts = validation_config.get('max_continuation_attempts', 10)
+        min_coverage = validation_config.get('min_coverage_ratio', 0.85)
+        
+        logger.info("Starting transcript validation and continuation loop")
+        
+        while attempts < max_attempts:
+            # Stitch all segments so far
+            current_transcript = self.stitch_transcripts(segments)
+            
+            # Validate completeness
+            is_complete, coverage = self.validate_transcript_completeness(
+                current_transcript, duration_seconds
+            )
+            
+            logger.info(f"Attempt {attempts + 1}: {coverage:.1%} coverage, "
+                       f"{'COMPLETE' if is_complete else 'INCOMPLETE'}")
+            
+            if is_complete:
+                logger.info(f"Transcript validation passed: {coverage:.1%} coverage")
+                return current_transcript
+            
+            # Extract last timestamp for continuation
+            try:
+                import re
+                timestamp_pattern = r'(\d{1,2}:\d{2}:\d{2}\.\d{3})\s*-->\s*(\d{1,2}:\d{2}:\d{2}\.\d{3})'
+                matches = re.findall(timestamp_pattern, current_transcript)
+                
+                if not matches:
+                    logger.error("No timestamps found in transcript for continuation")
+                    break
+                
+                last_timestamp_str = matches[-1][1]  # End time of last segment
+                last_timestamp = self._parse_timestamp_to_seconds(last_timestamp_str)
+                
+                logger.info(f"Requesting continuation from {last_timestamp:.1f}s "
+                           f"({coverage:.1%} -> target: {min_coverage:.1%})")
+                
+                # Request continuation
+                continuation = await self.request_continuation(
+                    audio_url, current_transcript, last_timestamp, episode_metadata
+                )
+                
+                if not continuation:
+                    logger.warning(f"Failed to get continuation on attempt {attempts + 1}")
+                    break
+                
+                # Add continuation to segments
+                segments.append(continuation)
+                attempts += 1
+                
+                logger.info(f"Received continuation segment {len(segments)}")
+                
+            except Exception as e:
+                logger.error(f"Error in continuation loop: {e}")
+                break
+        
+        # Final stitching and validation
+        final_transcript = self.stitch_transcripts(segments)
+        final_complete, final_coverage = self.validate_transcript_completeness(
+            final_transcript, duration_seconds
+        )
+        
+        if attempts >= max_attempts:
+            logger.warning(f"Reached maximum continuation attempts ({max_attempts})")
+        
+        logger.info(f"Final transcript: {final_coverage:.1%} coverage with {len(segments)} segments")
+        
+        if not final_complete:
+            logger.warning(f"Transcript remains incomplete: {final_coverage:.1%} coverage "
+                          f"(minimum: {min_coverage:.1%})")
+        
+        return final_transcript
+    
+    def stitch_transcripts(self, segments: List[str], overlap_seconds: float = 2.0) -> str:
+        """Combine transcript segments into a single VTT file.
+        
+        Args:
+            segments: List of VTT transcript segments to combine
+            overlap_seconds: Overlap tolerance in seconds for removing duplicates
+            
+        Returns:
+            Combined VTT transcript
+        """
+        if not segments:
+            return ""
+        
+        if len(segments) == 1:
+            return segments[0]
+        
+        try:
+            # Parse all segments into structured data
+            all_cues = []
+            for i, segment in enumerate(segments):
+                cues = self._parse_vtt_cues(segment)
+                logger.info(f"Segment {i+1}: {len(cues)} cues")
+                all_cues.extend(cues)
+            
+            # Sort cues by start time
+            all_cues.sort(key=lambda cue: cue['start_seconds'])
+            
+            # Remove overlapping/duplicate cues
+            deduplicated_cues = self._remove_overlapping_cues(all_cues, overlap_seconds)
+            
+            # Rebuild VTT file
+            stitched_transcript = self._rebuild_vtt_from_cues(deduplicated_cues)
+            
+            logger.info(f"Stitched transcript: {len(deduplicated_cues)} total cues")
+            return stitched_transcript
+            
+        except Exception as e:
+            logger.error(f"Failed to stitch transcripts: {e}")
+            # Fallback: concatenate segments with basic header cleanup
+            return self._simple_concatenate(segments)
+    
+    def _parse_vtt_cues(self, vtt_content: str) -> List[Dict[str, Any]]:
+        """Parse VTT content into structured cue data.
+        
+        Args:
+            vtt_content: VTT content string
+            
+        Returns:
+            List of cue dictionaries
+        """
+        import re
+        
+        cues = []
+        
+        # Pattern to match VTT cues
+        cue_pattern = r'(\d{1,2}:\d{2}:\d{2}\.\d{3})\s*-->\s*(\d{1,2}:\d{2}:\d{2}\.\d{3})\s*\n(.+?)(?=\n\d{1,2}:\d{2}:\d{2}\.\d{3}|\n\n|$)'
+        matches = re.findall(cue_pattern, vtt_content, re.DOTALL | re.MULTILINE)
+        
+        for start_time, end_time, text in matches:
+            try:
+                cue = {
+                    'start_time': start_time,
+                    'end_time': end_time,
+                    'start_seconds': self._parse_timestamp_to_seconds(start_time),
+                    'end_seconds': self._parse_timestamp_to_seconds(end_time),
+                    'text': text.strip()
+                }
+                cues.append(cue)
+            except Exception as e:
+                logger.warning(f"Failed to parse cue: {e}")
+                continue
+        
+        return cues
+    
+    def _remove_overlapping_cues(self, cues: List[Dict[str, Any]], 
+                                overlap_seconds: float) -> List[Dict[str, Any]]:
+        """Remove overlapping or duplicate cues.
+        
+        Args:
+            cues: List of cue dictionaries sorted by start time
+            overlap_seconds: Overlap tolerance in seconds
+            
+        Returns:
+            Deduplicated list of cues
+        """
+        if not cues:
+            return []
+        
+        deduplicated = [cues[0]]  # Always keep first cue
+        
+        for current_cue in cues[1:]:
+            last_cue = deduplicated[-1]
+            
+            # Check if this cue overlaps significantly with the last one
+            time_gap = current_cue['start_seconds'] - last_cue['end_seconds']
+            
+            if time_gap >= -overlap_seconds:  # No significant overlap
+                deduplicated.append(current_cue)
+            else:
+                # Check if the texts are similar (might be duplicate)
+                if self._are_texts_similar(current_cue['text'], last_cue['text']):
+                    # Skip this cue as it's likely a duplicate
+                    logger.debug(f"Skipping duplicate cue at {current_cue['start_time']}")
+                    continue
+                else:
+                    # Different text but overlapping time - adjust start time
+                    adjusted_start = last_cue['end_seconds'] + 0.1  # Small gap
+                    current_cue['start_seconds'] = adjusted_start
+                    current_cue['start_time'] = self._seconds_to_vtt_timestamp(adjusted_start)
+                    deduplicated.append(current_cue)
+                    logger.debug(f"Adjusted overlapping cue start time to {current_cue['start_time']}")
+        
+        return deduplicated
+    
+    def _are_texts_similar(self, text1: str, text2: str, threshold: float = 0.8) -> bool:
+        """Check if two text strings are similar enough to be considered duplicates.
+        
+        Args:
+            text1: First text
+            text2: Second text
+            threshold: Similarity threshold (0.0-1.0)
+            
+        Returns:
+            True if texts are similar
+        """
+        # Remove voice tags and normalize
+        import re
+        clean_text1 = re.sub(r'<v [^>]+>', '', text1).strip().lower()
+        clean_text2 = re.sub(r'<v [^>]+>', '', text2).strip().lower()
+        
+        if not clean_text1 or not clean_text2:
+            return False
+        
+        # Simple similarity check - could be improved with proper text similarity
+        if clean_text1 == clean_text2:
+            return True
+        
+        # Check if one text is contained in the other (common with continuations)
+        shorter, longer = (clean_text1, clean_text2) if len(clean_text1) < len(clean_text2) else (clean_text2, clean_text1)
+        return shorter in longer and len(shorter) / len(longer) > threshold
+    
+    def _seconds_to_vtt_timestamp(self, seconds: float) -> str:
+        """Convert seconds to VTT timestamp format.
+        
+        Args:
+            seconds: Time in seconds
+            
+        Returns:
+            VTT timestamp string (HH:MM:SS.mmm)
+        """
+        hours = int(seconds // 3600)
+        minutes = int((seconds % 3600) // 60)
+        secs = int(seconds % 60)
+        milliseconds = int((seconds * 1000) % 1000)
+        
+        return f"{hours:02d}:{minutes:02d}:{secs:02d}.{milliseconds:03d}"
+    
+    def _rebuild_vtt_from_cues(self, cues: List[Dict[str, Any]]) -> str:
+        """Rebuild VTT content from cue data.
+        
+        Args:
+            cues: List of cue dictionaries
+            
+        Returns:
+            Complete VTT content
+        """
+        lines = ["WEBVTT", ""]
+        
+        for cue in cues:
+            lines.append(f"{cue['start_time']} --> {cue['end_time']}")
+            lines.append(cue['text'])
+            lines.append("")  # Empty line between cues
+        
+        return '\n'.join(lines)
+    
+    def _simple_concatenate(self, segments: List[str]) -> str:
+        """Simple fallback concatenation of VTT segments.
+        
+        Args:
+            segments: List of VTT segments
+            
+        Returns:
+            Concatenated VTT content
+        """
+        # Start with header from first segment
+        result = "WEBVTT\n\n"
+        
+        for segment in segments:
+            # Remove WEBVTT header and NOTE blocks from subsequent segments
+            lines = segment.split('\n')
+            in_content = False
+            
+            for line in lines:
+                if line.strip() and not line.startswith('WEBVTT') and not line.startswith('NOTE'):
+                    in_content = True
+                
+                if in_content:
+                    result += line + '\n'
+        
+        return result
     
     def get_usage_summary(self) -> Dict[str, Any]:
         """Get current usage summary for all API keys."""

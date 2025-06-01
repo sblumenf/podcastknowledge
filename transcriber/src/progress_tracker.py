@@ -56,6 +56,11 @@ class EpisodeProgress:
     # API key tracking
     api_key_used: Optional[str] = None
     
+    # Continuation tracking
+    continuation_attempts: int = 0
+    final_coverage_ratio: Optional[float] = None
+    segment_count: int = 1
+    
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for JSON serialization."""
         return {
@@ -72,7 +77,10 @@ class EpisodeProgress:
             'output_file': self.output_file,
             'error': self.error,
             'error_type': self.error_type,
-            'api_key_used': self.api_key_used
+            'api_key_used': self.api_key_used,
+            'continuation_attempts': self.continuation_attempts,
+            'final_coverage_ratio': self.final_coverage_ratio,
+            'segment_count': self.segment_count
         }
     
     @classmethod
@@ -104,7 +112,10 @@ class EpisodeProgress:
             output_file=data.get('output_file'),
             error=data.get('error'),
             error_type=data.get('error_type'),
-            api_key_used=data.get('api_key_used')
+            api_key_used=data.get('api_key_used'),
+            continuation_attempts=data.get('continuation_attempts', 0),
+            final_coverage_ratio=data.get('final_coverage_ratio'),
+            segment_count=data.get('segment_count', 1)
         )
 
 
