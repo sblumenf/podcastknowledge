@@ -116,3 +116,16 @@ ValueError: Simulated error for testing
 2025-05-31 23:17:50 - podcast_transcriber.file_organizer - ERROR - Failed to write episode file /tmp/tmp_gl21ava/Test/2024-01-15_Test.vtt: Write error
 2025-05-31 23:19:40 - podcast_transcriber.file_organizer - ERROR - Failed to write episode file /tmp/tmpx61rp7k6/Test/2024-01-15_Test.vtt: Write error
 2025-05-31 23:19:59 - podcast_transcriber.file_organizer - ERROR - Failed to write episode file /tmp/tmpkgxu8cjd/Test/2024-01-15_Test.vtt: Write error
+2025-05-31 23:20:55 - podcast_transcriber.gemini_client - ERROR - No API keys available due to rate limits
+2025-05-31 23:20:55 - podcast_transcriber.gemini_client - ERROR - No API keys available due to rate limits
+2025-05-31 23:20:55 - podcast_transcriber.gemini_client - ERROR - Transcription failed: Quota exceeded
+2025-05-31 23:20:55 - podcast_transcriber.gemini_client - ERROR - Speaker identification failed: API error with quota
+2025-05-31 23:23:51 - podcast_transcriber.gemini_client - ERROR - No API keys available due to rate limits
+2025-05-31 23:23:51 - podcast_transcriber.gemini_client - ERROR - No API keys available due to rate limits
+2025-05-31 23:23:51 - podcast_transcriber.gemini_client - ERROR - Transcription failed: Quota exceeded
+2025-05-31 23:23:51 - podcast_transcriber.gemini_client - ERROR - Speaker identification failed: API error with quota
+2025-05-31 23:24:49 - podcast_transcriber.gemini_client - ERROR - No API keys available due to rate limits
+2025-05-31 23:26:06 - podcast_transcriber.gemini_client - ERROR - No API keys available due to rate limits
+2025-05-31 23:26:06 - podcast_transcriber.gemini_client - ERROR - No API keys available due to rate limits
+2025-05-31 23:26:06 - podcast_transcriber.gemini_client - ERROR - Transcription failed: Quota exceeded
+2025-05-31 23:26:06 - podcast_transcriber.gemini_client - ERROR - Speaker identification failed: API error with quota

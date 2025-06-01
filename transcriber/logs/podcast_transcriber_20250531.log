@@ -931,3 +931,126 @@ ValueError: Simulated error for testing
 2025-05-31 23:19:59 - podcast_transcriber.file_organizer - ERROR - Failed to write episode file /tmp/tmpkgxu8cjd/Test/2024-01-15_Test.vtt: Write error
 2025-05-31 23:19:59 - podcast_transcriber.file_organizer - INFO - Loaded 2 episodes from manifest
 2025-05-31 23:19:59 - podcast_transcriber.file_organizer - INFO - Removed empty directory: Empty_Podcast
+2025-05-31 23:20:54 - podcast_transcriber - INFO - Logging system initialized
+2025-05-31 23:20:54 - podcast_transcriber - INFO - Log level: INFO
+2025-05-31 23:20:54 - podcast_transcriber - INFO - Log directory: /home/sergeblumenfeld/podcastknowledge/transcriber/logs
+2025-05-31 23:20:54 - podcast_transcriber.gemini_client - WARNING - API key 1 hit daily request limit
+2025-05-31 23:20:54 - podcast_transcriber.gemini_client - WARNING - API key 1 hit daily token limit
+2025-05-31 23:20:54 - podcast_transcriber.gemini_client - INFO - Reset daily usage for API key 1
+2025-05-31 23:20:54 - podcast_transcriber.gemini_client - INFO - Initialized Gemini client with 2 API keys
+2025-05-31 23:20:54 - podcast_transcriber.gemini_client - INFO - Initialized Gemini client with 2 API keys
+2025-05-31 23:20:54 - podcast_transcriber.gemini_client - INFO - Initialized Gemini client with 2 API keys
+2025-05-31 23:20:54 - podcast_transcriber.gemini_client - INFO - Initialized Gemini client with 2 API keys
+2025-05-31 23:20:55 - podcast_transcriber.gemini_client - INFO - Initialized Gemini client with 2 API keys
+2025-05-31 23:20:55 - podcast_transcriber.gemini_client - WARNING - API key 1 hit daily request limit
+2025-05-31 23:20:55 - podcast_transcriber.gemini_client - WARNING - API key 2 hit daily request limit
+2025-05-31 23:20:55 - podcast_transcriber.gemini_client - ERROR - No API keys available due to rate limits
+2025-05-31 23:20:55 - podcast_transcriber.gemini_client - INFO - Initialized Gemini client with 2 API keys
+2025-05-31 23:20:55 - podcast_transcriber.gemini_client - INFO - Starting transcription for: Test Episode
+2025-05-31 23:20:55 - podcast_transcriber.gemini_client - INFO - Using API key 1
+2025-05-31 23:20:55 - podcast_transcriber.gemini_client - INFO - Initialized Gemini client with 2 API keys
+2025-05-31 23:20:55 - podcast_transcriber.gemini_client - ERROR - No API keys available due to rate limits
+2025-05-31 23:20:55 - podcast_transcriber.gemini_client - INFO - Initialized Gemini client with 2 API keys
+2025-05-31 23:20:55 - podcast_transcriber.gemini_client - INFO - Starting transcription for: Unknown
+2025-05-31 23:20:55 - podcast_transcriber.gemini_client - INFO - Using API key 1
+2025-05-31 23:20:55 - podcast_transcriber.gemini_client - ERROR - Transcription failed: Quota exceeded
+2025-05-31 23:20:55 - podcast_transcriber.gemini_client - INFO - Initialized Gemini client with 2 API keys
+2025-05-31 23:20:55 - podcast_transcriber.gemini_client - INFO - Starting speaker identification
+2025-05-31 23:20:55 - podcast_transcriber.gemini_client - INFO - Using API key 1
+2025-05-31 23:20:55 - podcast_transcriber.gemini_client - INFO - Initialized Gemini client with 2 API keys
+2025-05-31 23:20:55 - podcast_transcriber.gemini_client - INFO - Starting speaker identification
+2025-05-31 23:20:55 - podcast_transcriber.gemini_client - INFO - Using API key 1
+2025-05-31 23:20:55 - podcast_transcriber.gemini_client - ERROR - Speaker identification failed: API error with quota
+2025-05-31 23:20:55 - podcast_transcriber.gemini_client - INFO - Initialized Gemini client with 2 API keys
+2025-05-31 23:20:55 - podcast_transcriber.gemini_client - INFO - Initialized Gemini client with 2 API keys
+2025-05-31 23:20:55 - podcast_transcriber.gemini_client - INFO - Initialized Gemini client with 2 API keys
+2025-05-31 23:20:55 - podcast_transcriber.gemini_client - INFO - Initialized Gemini client with 2 API keys
+2025-05-31 23:20:55 - podcast_transcriber.gemini_client - INFO - Found 3 API key(s) in environment
+2025-05-31 23:20:55 - podcast_transcriber.gemini_client - INFO - Found 1 API key(s) in environment
+2025-05-31 23:23:50 - podcast_transcriber - INFO - Logging system initialized
+2025-05-31 23:23:50 - podcast_transcriber - INFO - Log level: INFO
+2025-05-31 23:23:50 - podcast_transcriber - INFO - Log directory: /home/sergeblumenfeld/podcastknowledge/transcriber/logs
+2025-05-31 23:23:51 - podcast_transcriber.gemini_client - WARNING - API key 1 hit daily request limit
+2025-05-31 23:23:51 - podcast_transcriber.gemini_client - WARNING - API key 1 hit daily token limit
+2025-05-31 23:23:51 - podcast_transcriber.gemini_client - INFO - Reset daily usage for API key 1
+2025-05-31 23:23:51 - podcast_transcriber.gemini_client - INFO - Initialized Gemini client with 2 API keys
+2025-05-31 23:23:51 - podcast_transcriber.gemini_client - INFO - Initialized Gemini client with 2 API keys
+2025-05-31 23:23:51 - podcast_transcriber.gemini_client - INFO - Loaded usage state from file
+2025-05-31 23:23:51 - podcast_transcriber.gemini_client - INFO - Initialized Gemini client with 2 API keys
+2025-05-31 23:23:51 - podcast_transcriber.gemini_client - INFO - Reset daily usage for API key 1
+2025-05-31 23:23:51 - podcast_transcriber.gemini_client - INFO - Loaded usage state from file
+2025-05-31 23:23:51 - podcast_transcriber.gemini_client - INFO - Initialized Gemini client with 2 API keys
+2025-05-31 23:23:51 - podcast_transcriber.gemini_client - INFO - Initialized Gemini client with 2 API keys
+2025-05-31 23:23:51 - podcast_transcriber.gemini_client - INFO - Initialized Gemini client with 2 API keys
+2025-05-31 23:23:51 - podcast_transcriber.gemini_client - INFO - Initialized Gemini client with 2 API keys
+2025-05-31 23:23:51 - podcast_transcriber.gemini_client - WARNING - API key 1 hit daily request limit
+2025-05-31 23:23:51 - podcast_transcriber.gemini_client - WARNING - API key 2 hit daily request limit
+2025-05-31 23:23:51 - podcast_transcriber.gemini_client - ERROR - No API keys available due to rate limits
+2025-05-31 23:23:51 - podcast_transcriber.gemini_client - INFO - Initialized Gemini client with 2 API keys
+2025-05-31 23:23:51 - podcast_transcriber.gemini_client - INFO - Starting transcription for: Test Episode
+2025-05-31 23:23:51 - podcast_transcriber.gemini_client - INFO - Using API key 1
+2025-05-31 23:23:51 - podcast_transcriber.gemini_client - INFO - Initialized Gemini client with 2 API keys
+2025-05-31 23:23:51 - podcast_transcriber.gemini_client - ERROR - No API keys available due to rate limits
+2025-05-31 23:23:51 - podcast_transcriber.gemini_client - INFO - Initialized Gemini client with 2 API keys
+2025-05-31 23:23:51 - podcast_transcriber.gemini_client - INFO - Starting transcription for: Unknown
+2025-05-31 23:23:51 - podcast_transcriber.gemini_client - INFO - Using API key 1
+2025-05-31 23:23:51 - podcast_transcriber.gemini_client - ERROR - Transcription failed: Quota exceeded
+2025-05-31 23:23:51 - podcast_transcriber.gemini_client - INFO - Initialized Gemini client with 2 API keys
+2025-05-31 23:23:51 - podcast_transcriber.gemini_client - INFO - Starting speaker identification
+2025-05-31 23:23:51 - podcast_transcriber.gemini_client - INFO - Using API key 1
+2025-05-31 23:23:51 - podcast_transcriber.gemini_client - INFO - Initialized Gemini client with 2 API keys
+2025-05-31 23:23:51 - podcast_transcriber.gemini_client - INFO - Starting speaker identification
+2025-05-31 23:23:51 - podcast_transcriber.gemini_client - INFO - Using API key 1
+2025-05-31 23:23:51 - podcast_transcriber.gemini_client - ERROR - Speaker identification failed: API error with quota
+2025-05-31 23:23:51 - podcast_transcriber.gemini_client - INFO - Initialized Gemini client with 2 API keys
+2025-05-31 23:23:51 - podcast_transcriber.gemini_client - INFO - Initialized Gemini client with 2 API keys
+2025-05-31 23:23:51 - podcast_transcriber.gemini_client - INFO - Initialized Gemini client with 2 API keys
+2025-05-31 23:23:51 - podcast_transcriber.gemini_client - INFO - Initialized Gemini client with 2 API keys
+2025-05-31 23:23:51 - podcast_transcriber.gemini_client - INFO - Found 3 API key(s) in environment
+2025-05-31 23:23:51 - podcast_transcriber.gemini_client - INFO - Found 1 API key(s) in environment
+2025-05-31 23:24:48 - podcast_transcriber - INFO - Logging system initialized
+2025-05-31 23:24:48 - podcast_transcriber - INFO - Log level: INFO
+2025-05-31 23:24:48 - podcast_transcriber - INFO - Log directory: /home/sergeblumenfeld/podcastknowledge/transcriber/logs
+2025-05-31 23:24:49 - podcast_transcriber.gemini_client - INFO - Initialized Gemini client with 2 API keys
+2025-05-31 23:24:49 - podcast_transcriber.gemini_client - ERROR - No API keys available due to rate limits
+2025-05-31 23:26:05 - podcast_transcriber - INFO - Logging system initialized
+2025-05-31 23:26:05 - podcast_transcriber - INFO - Log level: INFO
+2025-05-31 23:26:05 - podcast_transcriber - INFO - Log directory: /home/sergeblumenfeld/podcastknowledge/transcriber/logs
+2025-05-31 23:26:05 - podcast_transcriber.gemini_client - WARNING - API key 1 hit daily request limit
+2025-05-31 23:26:05 - podcast_transcriber.gemini_client - WARNING - API key 1 hit daily token limit
+2025-05-31 23:26:05 - podcast_transcriber.gemini_client - INFO - Reset daily usage for API key 1
+2025-05-31 23:26:06 - podcast_transcriber.gemini_client - INFO - Initialized Gemini client with 2 API keys
+2025-05-31 23:26:06 - podcast_transcriber.gemini_client - INFO - Initialized Gemini client with 2 API keys
+2025-05-31 23:26:06 - podcast_transcriber.gemini_client - INFO - Loaded usage state from file
+2025-05-31 23:26:06 - podcast_transcriber.gemini_client - INFO - Initialized Gemini client with 2 API keys
+2025-05-31 23:26:06 - podcast_transcriber.gemini_client - INFO - Reset daily usage for API key 1
+2025-05-31 23:26:06 - podcast_transcriber.gemini_client - INFO - Loaded usage state from file
+2025-05-31 23:26:06 - podcast_transcriber.gemini_client - INFO - Initialized Gemini client with 2 API keys
+2025-05-31 23:26:06 - podcast_transcriber.gemini_client - INFO - Initialized Gemini client with 2 API keys
+2025-05-31 23:26:06 - podcast_transcriber.gemini_client - INFO - Initialized Gemini client with 2 API keys
+2025-05-31 23:26:06 - podcast_transcriber.gemini_client - INFO - Initialized Gemini client with 2 API keys
+2025-05-31 23:26:06 - podcast_transcriber.gemini_client - WARNING - API key 1 hit daily request limit
+2025-05-31 23:26:06 - podcast_transcriber.gemini_client - WARNING - API key 2 hit daily request limit
+2025-05-31 23:26:06 - podcast_transcriber.gemini_client - ERROR - No API keys available due to rate limits
+2025-05-31 23:26:06 - podcast_transcriber.gemini_client - INFO - Initialized Gemini client with 2 API keys
+2025-05-31 23:26:06 - podcast_transcriber.gemini_client - INFO - Starting transcription for: Test Episode
+2025-05-31 23:26:06 - podcast_transcriber.gemini_client - INFO - Using API key 1
+2025-05-31 23:26:06 - podcast_transcriber.gemini_client - INFO - Initialized Gemini client with 2 API keys
+2025-05-31 23:26:06 - podcast_transcriber.gemini_client - ERROR - No API keys available due to rate limits
+2025-05-31 23:26:06 - podcast_transcriber.gemini_client - INFO - Initialized Gemini client with 2 API keys
+2025-05-31 23:26:06 - podcast_transcriber.gemini_client - INFO - Starting transcription for: Unknown
+2025-05-31 23:26:06 - podcast_transcriber.gemini_client - INFO - Using API key 1
+2025-05-31 23:26:06 - podcast_transcriber.gemini_client - ERROR - Transcription failed: Quota exceeded
+2025-05-31 23:26:06 - podcast_transcriber.gemini_client - INFO - Initialized Gemini client with 2 API keys
+2025-05-31 23:26:06 - podcast_transcriber.gemini_client - INFO - Starting speaker identification
+2025-05-31 23:26:06 - podcast_transcriber.gemini_client - INFO - Using API key 1
+2025-05-31 23:26:06 - podcast_transcriber.gemini_client - INFO - Initialized Gemini client with 2 API keys
+2025-05-31 23:26:06 - podcast_transcriber.gemini_client - INFO - Starting speaker identification
+2025-05-31 23:26:06 - podcast_transcriber.gemini_client - INFO - Using API key 1
+2025-05-31 23:26:06 - podcast_transcriber.gemini_client - ERROR - Speaker identification failed: API error with quota
+2025-05-31 23:26:06 - podcast_transcriber.gemini_client - INFO - Initialized Gemini client with 2 API keys
+2025-05-31 23:26:06 - podcast_transcriber.gemini_client - INFO - Initialized Gemini client with 2 API keys
+2025-05-31 23:26:06 - podcast_transcriber.gemini_client - INFO - Initialized Gemini client with 2 API keys
+2025-05-31 23:26:06 - podcast_transcriber.gemini_client - INFO - Initialized Gemini client with 2 API keys
+2025-05-31 23:26:06 - podcast_transcriber.gemini_client - INFO - Found 3 API key(s) in environment
+2025-05-31 23:26:06 - podcast_transcriber.gemini_client - INFO - Found 1 API key(s) in environment
