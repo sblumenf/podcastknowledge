@@ -4,6 +4,7 @@ Pytest configuration and shared fixtures.
 
 from pathlib import Path
 import os
+import tempfile
 
 import pytest
 @pytest.fixture(scope="session")
@@ -83,3 +84,16 @@ def pytest_collection_modifyitems(config, items):
         # Mark tests that import neo4j
         if "neo4j" in item.fixturenames:
             item.add_marker(pytest.mark.requires_neo4j)
+
+
+@pytest.fixture(scope="session")
+def test_data_dir():
+    """Provide test data directory."""
+    return Path(__file__).parent / "fixtures" / "vtt_samples"
+
+
+@pytest.fixture(scope="function")
+def temp_dir():
+    """Provide temporary directory for test outputs."""
+    with tempfile.TemporaryDirectory() as tmpdir:
+        yield Path(tmpdir)

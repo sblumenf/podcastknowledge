@@ -1,0 +1,44 @@
+# Deleted Tests Log
+# Created: 2025-01-06
+# Purpose: Track tests removed during minimal critical path implementation
+
+## Phase 1: Clean Test Environment
+
+### Deleted on 2025-01-06
+
+1. **tests/integration/test_api_contracts.py**
+   - Reason: Imports from non-existent module `src.api.v1.seeding`
+   - Should have imported from `src.api.v1.podcast_api`
+   - Also referenced non-existent functions like `deprecated` and `api_version_check`
+
+2. **tests/integration/test_minimal_schemaless.py**
+   - Reason: Imports from non-existent modules `src.factories` and `src.providers`
+   - Referenced: ProviderFactory, BaseEmbeddingProvider, SchemalessNeo4jProvider, BaseLLMProvider
+
+3. **tests/integration/test_schemaless_pipeline.py**
+   - Reason: Imports from non-existent module `src.providers`
+   - Referenced: MockEmbeddingProvider, SchemalessNeo4jProvider, MockLLMProvider
+
+4. **tests/performance/test_domain_diversity.py**
+   - Reason: Imports from non-existent module `src.providers`
+   - Referenced: MockEmbeddingProvider, SchemalessMetadataEnricher, SchemalessNeo4jProvider, MockLLMProvider
+
+### Previously Deleted (not found in current codebase)
+
+1. **tests/processing/test_discourse_flow.py**
+   - Reason: Module `discourse_flow` doesn't exist
+
+2. **tests/processing/test_emergent_themes.py**
+   - Reason: Module `emergent_themes` doesn't exist
+
+3. **tests/processing/test_graph_analysis.py**
+   - Reason: Module `graph_analysis` doesn't exist
+
+4. **tests/unit/test_error_budget.py**
+   - Reason: Module `error_budget` doesn't exist
+
+### Notes
+
+- test_complexity_analysis.py was NOT deleted as it has valid imports
+- These deletions appear to be from a previous architecture that used provider/factory patterns
+- Backup created: tests_backup_20250106.tar.gz

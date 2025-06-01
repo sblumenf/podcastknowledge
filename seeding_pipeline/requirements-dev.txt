@@ -31,3 +31,8 @@ jupyter==1.0.0
 
 # Visualization (for dependency graphs only)
 graphviz==0.20.1
+
+# Container Testing
+testcontainers[neo4j]==3.7.1
+pytest-timeout==2.2.0
+pytest-xdist==3.5.0

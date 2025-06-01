@@ -53,10 +53,10 @@ INFO     podcast_transcriber.checkpoint_recovery:checkpoint_recovery.py:183 Comp
 INFO     podcast_transcriber.speaker_identifier:speaker_identifier.py:107 Speaker identification completed: {'SPEAKER_1': 'Test Host (Host)'}
 INFO     podcast_transcriber.checkpoint_recovery:checkpoint_recovery.py:168 Updated checkpoint: stage=vtt_generation
 INFO     podcast_transcriber.orchestrator:orchestrator.py:371 Generating final VTT file
-INFO     podcast_transcriber.vtt_generator:vtt_generator.py:287 VTT file saved to: /tmp/pytest-of-sergeblumenfeld/pytest-22/test_orchestrator_full_workflo0/transcripts/Test_Podcast/unknown_Episode_1.vtt
+INFO     podcast_transcriber.vtt_generator:vtt_generator.py:287 VTT file saved to: /tmp/pytest-of-sergeblumenfeld/pytest-26/test_orchestrator_full_workflo0/transcripts/Test_Podcast/unknown_Episode_1.vtt
 INFO     podcast_transcriber.checkpoint_recovery:checkpoint_recovery.py:183 Completed stage: vtt_generation
 INFO     podcast_transcriber.checkpoint_recovery:checkpoint_recovery.py:272 Episode completed: Episode 1
-INFO     podcast_transcriber.orchestrator:orchestrator.py:402 Episode completed: /tmp/pytest-of-sergeblumenfeld/pytest-22/test_orchestrator_full_workflo0/transcripts/Test_Podcast/unknown_Episode_1.vtt
+INFO     podcast_transcriber.orchestrator:orchestrator.py:402 Episode completed: /tmp/pytest-of-sergeblumenfeld/pytest-26/test_orchestrator_full_workflo0/transcripts/Test_Podcast/unknown_Episode_1.vtt
 INFO     podcast_transcriber:logging.py:132 Progress: 2/2 (100.0%) - Starting episode: Processing: Episode 2
 INFO     podcast_transcriber.checkpoint_recovery:checkpoint_recovery.py:147 Started checkpoint for episode: Episode 2
 INFO     podcast_transcriber.checkpoint_recovery:checkpoint_recovery.py:168 Updated checkpoint: stage=transcription
@@ -70,11 +70,11 @@ INFO     podcast_transcriber.checkpoint_recovery:checkpoint_recovery.py:183 Comp
 INFO     podcast_transcriber.speaker_identifier:speaker_identifier.py:107 Speaker identification completed: {'SPEAKER_1': 'Test Host (Host)'}
 INFO     podcast_transcriber.checkpoint_recovery:checkpoint_recovery.py:168 Updated checkpoint: stage=vtt_generation
 INFO     podcast_transcriber.orchestrator:orchestrator.py:371 Generating final VTT file
-INFO     podcast_transcriber.vtt_generator:vtt_generator.py:287 VTT file saved to: /tmp/pytest-of-sergeblumenfeld/pytest-22/test_orchestrator_full_workflo0/transcripts/Test_Podcast/unknown_Episode_2.vtt
+INFO     podcast_transcriber.vtt_generator:vtt_generator.py:287 VTT file saved to: /tmp/pytest-of-sergeblumenfeld/pytest-26/test_orchestrator_full_workflo0/transcripts/Test_Podcast/unknown_Episode_2.vtt
 INFO     podcast_transcriber.checkpoint_recovery:checkpoint_recovery.py:183 Completed stage: vtt_generation
 INFO     podcast_transcriber.checkpoint_recovery:checkpoint_recovery.py:272 Episode completed: Episode 2
-INFO     podcast_transcriber.orchestrator:orchestrator.py:402 Episode completed: /tmp/pytest-of-sergeblumenfeld/pytest-22/test_orchestrator_full_workflo0/transcripts/Test_Podcast/unknown_Episode_2.vtt
-INFO     podcast_transcriber.orchestrator:orchestrator.py:483 Summary report saved to: /tmp/pytest-of-sergeblumenfeld/pytest-22/test_orchestrator_full_workflo0/transcripts/Test Podcast_report.json
+INFO     podcast_transcriber.orchestrator:orchestrator.py:402 Episode completed: /tmp/pytest-of-sergeblumenfeld/pytest-26/test_orchestrator_full_workflo0/transcripts/Test_Podcast/unknown_Episode_2.vtt
+INFO     podcast_transcriber.orchestrator:orchestrator.py:483 Summary report saved to: /tmp/pytest-of-sergeblumenfeld/pytest-26/test_orchestrator_full_workflo0/transcripts/Test Podcast_report.json
 INFO     podcast_transcriber.config:config.py:131 Loaded configuration from: /home/sergeblumenfeld/podcastknowledge/transcriber/config/default.yaml
 INFO     podcast_transcriber.config:config.py:319 Configuration validation passed
 DEBUG    asyncio:selector_events.py:54 Using selector: EpollSelector
@@ -92,10 +92,10 @@ INFO     podcast_transcriber.checkpoint_recovery:checkpoint_recovery.py:183 Comp
 INFO     podcast_transcriber.speaker_identifier:speaker_identifier.py:107 Speaker identification completed: {}
 INFO     podcast_transcriber.checkpoint_recovery:checkpoint_recovery.py:168 Updated checkpoint: stage=vtt_generation
 INFO     podcast_transcriber.orchestrator:orchestrator.py:371 Generating final VTT file
-INFO     podcast_transcriber.vtt_generator:vtt_generator.py:287 VTT file saved to: /tmp/pytest-of-sergeblumenfeld/pytest-22/test_orchestrator_error_handli0/transcripts/Test_Podcast/unknown_Episode_1.vtt
+INFO     podcast_transcriber.vtt_generator:vtt_generator.py:287 VTT file saved to: /tmp/pytest-of-sergeblumenfeld/pytest-26/test_orchestrator_error_handli0/transcripts/Test_Podcast/unknown_Episode_1.vtt
 INFO     podcast_transcriber.checkpoint_recovery:checkpoint_recovery.py:183 Completed stage: vtt_generation
 INFO     podcast_transcriber.checkpoint_recovery:checkpoint_recovery.py:272 Episode completed: Episode 1
-INFO     podcast_transcriber.orchestrator:orchestrator.py:402 Episode completed: /tmp/pytest-of-sergeblumenfeld/pytest-22/test_orchestrator_error_handli0/transcripts/Test_Podcast/unknown_Episode_1.vtt
+INFO     podcast_transcriber.orchestrator:orchestrator.py:402 Episode completed: /tmp/pytest-of-sergeblumenfeld/pytest-26/test_orchestrator_error_handli0/transcripts/Test_Podcast/unknown_Episode_1.vtt
 INFO     podcast_transcriber:logging.py:132 Progress: 2/3 (66.7%) - Starting episode: Processing: Episode 2
 INFO     podcast_transcriber.checkpoint_recovery:checkpoint_recovery.py:147 Started checkpoint for episode: Episode 2
 INFO     podcast_transcriber.checkpoint_recovery:checkpoint_recovery.py:168 Updated checkpoint: stage=transcription
@@ -115,11 +115,11 @@ INFO     podcast_transcriber.checkpoint_recovery:checkpoint_recovery.py:183 Comp
 INFO     podcast_transcriber.speaker_identifier:speaker_identifier.py:107 Speaker identification completed: {}
 INFO     podcast_transcriber.checkpoint_recovery:checkpoint_recovery.py:168 Updated checkpoint: stage=vtt_generation
 INFO     podcast_transcriber.orchestrator:orchestrator.py:371 Generating final VTT file
-INFO     podcast_transcriber.vtt_generator:vtt_generator.py:287 VTT file saved to: /tmp/pytest-of-sergeblumenfeld/pytest-22/test_orchestrator_error_handli0/transcripts/Test_Podcast/unknown_Episode_3.vtt
+INFO     podcast_transcriber.vtt_generator:vtt_generator.py:287 VTT file saved to: /tmp/pytest-of-sergeblumenfeld/pytest-26/test_orchestrator_error_handli0/transcripts/Test_Podcast/unknown_Episode_3.vtt
 INFO     podcast_transcriber.checkpoint_recovery:checkpoint_recovery.py:183 Completed stage: vtt_generation
 INFO     podcast_transcriber.checkpoint_recovery:checkpoint_recovery.py:272 Episode completed: Episode 3
-INFO     podcast_transcriber.orchestrator:orchestrator.py:402 Episode completed: /tmp/pytest-of-sergeblumenfeld/pytest-22/test_orchestrator_error_handli0/transcripts/Test_Podcast/unknown_Episode_3.vtt
-INFO     podcast_transcriber.orchestrator:orchestrator.py:483 Summary report saved to: /tmp/pytest-of-sergeblumenfeld/pytest-22/test_orchestrator_error_handli0/transcripts/Test Podcast_report.json
+INFO     podcast_transcriber.orchestrator:orchestrator.py:402 Episode completed: /tmp/pytest-of-sergeblumenfeld/pytest-26/test_orchestrator_error_handli0/transcripts/Test_Podcast/unknown_Episode_3.vtt
+INFO     podcast_transcriber.orchestrator:orchestrator.py:483 Summary report saved to: /tmp/pytest-of-sergeblumenfeld/pytest-26/test_orchestrator_error_handli0/transcripts/Test Podcast_report.json
 INFO     podcast_transcriber.config:config.py:131 Loaded configuration from: /home/sergeblumenfeld/podcastknowledge/transcriber/config/default.yaml
 INFO     podcast_transcriber.config:config.py:319 Configuration validation passed
 DEBUG    asyncio:selector_events.py:54 Using selector: EpollSelector
@@ -138,10 +138,10 @@ INFO     podcast_transcriber.checkpoint_recovery:checkpoint_recovery.py:183 Comp
 INFO     podcast_transcriber.speaker_identifier:speaker_identifier.py:107 Speaker identification completed: {}
 INFO     podcast_transcriber.checkpoint_recovery:checkpoint_recovery.py:168 Updated checkpoint: stage=vtt_generation
 INFO     podcast_transcriber.orchestrator:orchestrator.py:371 Generating final VTT file
-INFO     podcast_transcriber.vtt_generator:vtt_generator.py:287 VTT file saved to: /tmp/pytest-of-sergeblumenfeld/pytest-22/test_orchestrator_resume_funct0/transcripts/Test_Podcast/unknown_Episode_2.vtt
+INFO     podcast_transcriber.vtt_generator:vtt_generator.py:287 VTT file saved to: /tmp/pytest-of-sergeblumenfeld/pytest-26/test_orchestrator_resume_funct0/transcripts/Test_Podcast/unknown_Episode_2.vtt
 INFO     podcast_transcriber.checkpoint_recovery:checkpoint_recovery.py:183 Completed stage: vtt_generation
 INFO     podcast_transcriber.checkpoint_recovery:checkpoint_recovery.py:272 Episode completed: Episode 2
-INFO     podcast_transcriber.orchestrator:orchestrator.py:402 Episode completed: /tmp/pytest-of-sergeblumenfeld/pytest-22/test_orchestrator_resume_funct0/transcripts/Test_Podcast/unknown_Episode_2.vtt
+INFO     podcast_transcriber.orchestrator:orchestrator.py:402 Episode completed: /tmp/pytest-of-sergeblumenfeld/pytest-26/test_orchestrator_resume_funct0/transcripts/Test_Podcast/unknown_Episode_2.vtt
 INFO     podcast_transcriber:logging.py:132 Progress: 2/2 (100.0%) - Starting episode: Processing: Episode 3
 INFO     podcast_transcriber.checkpoint_recovery:checkpoint_recovery.py:147 Started checkpoint for episode: Episode 3
 INFO     podcast_transcriber.checkpoint_recovery:checkpoint_recovery.py:168 Updated checkpoint: stage=transcription
@@ -156,8 +156,8 @@ INFO     podcast_transcriber.checkpoint_recovery:checkpoint_recovery.py:183 Comp
 INFO     podcast_transcriber.speaker_identifier:speaker_identifier.py:107 Speaker identification completed: {}
 INFO     podcast_transcriber.checkpoint_recovery:checkpoint_recovery.py:168 Updated checkpoint: stage=vtt_generation
 INFO     podcast_transcriber.orchestrator:orchestrator.py:371 Generating final VTT file
-INFO     podcast_transcriber.vtt_generator:vtt_generator.py:287 VTT file saved to: /tmp/pytest-of-sergeblumenfeld/pytest-22/test_orchestrator_resume_funct0/transcripts/Test_Podcast/unknown_Episode_3.vtt
+INFO     podcast_transcriber.vtt_generator:vtt_generator.py:287 VTT file saved to: /tmp/pytest-of-sergeblumenfeld/pytest-26/test_orchestrator_resume_funct0/transcripts/Test_Podcast/unknown_Episode_3.vtt
 INFO     podcast_transcriber.checkpoint_recovery:checkpoint_recovery.py:183 Completed stage: vtt_generation
 INFO     podcast_transcriber.checkpoint_recovery:checkpoint_recovery.py:272 Episode completed: Episode 3
-INFO     podcast_transcriber.orchestrator:orchestrator.py:402 Episode completed: /tmp/pytest-of-sergeblumenfeld/pytest-22/test_orchestrator_resume_funct0/transcripts/Test_Podcast/unknown_Episode_3.vtt
-INFO     podcast_transcriber.orchestrator:orchestrator.py:483 Summary report saved to: /tmp/pytest-of-sergeblumenfeld/pytest-22/test_orchestrator_resume_funct0/transcripts/Test Podcast_report.json
+INFO     podcast_transcriber.orchestrator:orchestrator.py:402 Episode completed: /tmp/pytest-of-sergeblumenfeld/pytest-26/test_orchestrator_resume_funct0/transcripts/Test_Podcast/unknown_Episode_3.vtt
+INFO     podcast_transcriber.orchestrator:orchestrator.py:483 Summary report saved to: /tmp/pytest-of-sergeblumenfeld/pytest-26/test_orchestrator_resume_funct0/transcripts/Test Podcast_report.json

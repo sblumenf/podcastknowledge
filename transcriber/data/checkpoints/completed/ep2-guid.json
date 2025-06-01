@@ -10,8 +10,8 @@
   "temporary_files": {
     "speaker_mapping": "data/checkpoints/temp/ep2-guid_speaker_mapping.tmp"
   },
-  "start_time": "2025-06-01T12:01:30.744973",
-  "last_update": "2025-06-01T12:01:30.800707",
+  "start_time": "2025-06-01T12:07:09.504706",
+  "last_update": "2025-06-01T12:07:09.578970",
   "metadata": {
     "title": "Episode 2",
     "audio_url": "https://example.com/episode2.mp3",
@@ -28,5 +28,5 @@
     "mime_type": null,
     "podcast_name": "Test Podcast"
   },
-  "final_output": "/tmp/pytest-of-sergeblumenfeld/pytest-22/test_orchestrator_resume_funct0/transcripts/Test_Podcast/unknown_Episode_2.vtt"
+  "final_output": "/tmp/pytest-of-sergeblumenfeld/pytest-26/test_orchestrator_resume_funct0/transcripts/Test_Podcast/unknown_Episode_2.vtt"
 }
