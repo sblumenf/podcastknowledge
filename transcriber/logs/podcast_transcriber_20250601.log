@@ -5302,3 +5302,7 @@
 2025-06-01 19:36:10 - podcast_transcriber - INFO - Log level: INFO
 2025-06-01 19:36:10 - podcast_transcriber - INFO - Log directory: /home/sergeblumenfeld/podcastknowledge/transcriber/logs
 2025-06-01 19:36:11 - podcast_transcriber.retry_wrapper - INFO - Loaded retry state from file
+2025-06-01 19:45:20 - podcast_transcriber - INFO - Logging system initialized
+2025-06-01 19:45:20 - podcast_transcriber - INFO - Log level: INFO
+2025-06-01 19:45:20 - podcast_transcriber - INFO - Log directory: /home/sergeblumenfeld/podcastknowledge/transcriber/logs
+2025-06-01 19:45:21 - podcast_transcriber.retry_wrapper - INFO - Loaded retry state from file
