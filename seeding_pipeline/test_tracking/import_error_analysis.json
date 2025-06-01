@@ -1,0 +1,334 @@
+{
+  "total_errors": 53,
+  "error_categories": {
+    "missing_modules": 29,
+    "wrong_imports": 20,
+    "syntax_errors": 4,
+    "other_errors": 0
+  },
+  "unique_patterns": {
+    "missing_modules": [
+      "cli",
+      "src.api.v1.seeding",
+      "src.core.error_budget",
+      "src.factories",
+      "src.processing.complexity_analysis",
+      "src.processing.discourse_flow",
+      "src.processing.emergent_themes",
+      "src.processing.entity_resolution",
+      "src.processing.extraction",
+      "src.processing.graph_analysis",
+      "src.processing.importance_scoring",
+      "src.processing.parsers",
+      "src.processing.preprocessor",
+      "src.processing.prompts",
+      "src.processing.vtt_parser",
+      "src.providers"
+    ],
+    "wrong_imports": [
+      "AudioProvider from src.core.interfaces",
+      "ComponentHealth from src.api.health",
+      "ContextFilter from src.utils.logging",
+      "EnhancedPodcastSegmenter from src.processing.segmentation",
+      "PodcastKnowledgePipeline from src.seeding",
+      "PodcastKnowledgePipeline from src.seeding.orchestrator",
+      "Priority from src.seeding.concurrency",
+      "Relationship from src.core.models",
+      "RetryError from src.utils.retry",
+      "SlidingWindowRateLimiter from src.utils.rate_limiting",
+      "clean_segment_text from src.utils.text_processing",
+      "normalize_entity_name from src.utils.text_processing",
+      "retry_with_backoff from src.utils.retry"
+    ]
+  },
+  "errors_by_category": {
+    "missing_modules": [
+      {
+        "file": "tests/test_cli.py ______________________",
+        "module": "cli",
+        "error": "ModuleNotFoundError: No module named 'cli'"
+      },
+      {
+        "file": "tests/integration/test_api_contracts.py ___________",
+        "module": "src.api.v1.seeding",
+        "error": "ModuleNotFoundError: No module named 'src.api.v1.seeding'"
+      },
+      {
+        "file": "tests/integration/test_cli_commands.py ____________",
+        "module": "cli",
+        "error": "ModuleNotFoundError: No module named 'cli'"
+      },
+      {
+        "file": "tests/integration/test_golden_outputs_validation.py _____",
+        "module": "src.processing.extraction",
+        "error": "ModuleNotFoundError: No module named 'src.processing.extraction'"
+      },
+      {
+        "file": "tests/integration/test_minimal_schemaless.py _________",
+        "module": "src.factories",
+        "error": "ModuleNotFoundError: No module named 'src.factories'"
+      },
+      {
+        "file": "tests/integration/test_performance_benchmarks.py _______",
+        "module": "src.processing.extraction",
+        "error": "ModuleNotFoundError: No module named 'src.processing.extraction'"
+      },
+      {
+        "file": "tests/integration/test_schemaless_pipeline.py ________",
+        "module": "src.providers",
+        "error": "ModuleNotFoundError: No module named 'src.providers'"
+      },
+      {
+        "file": "tests/integration/test_vtt_batch_processing.py ________",
+        "module": "src.processing.vtt_parser",
+        "error": "ModuleNotFoundError: No module named 'src.processing.vtt_parser'"
+      },
+      {
+        "file": "tests/performance/test_domain_diversity.py __________",
+        "module": "src.providers",
+        "error": "ModuleNotFoundError: No module named 'src.providers'"
+      },
+      {
+        "file": "tests/performance/test_vtt_performance_benchmarks.py _____",
+        "module": "src.processing.extraction",
+        "error": "ModuleNotFoundError: No module named 'src.processing.extraction'"
+      },
+      {
+        "file": "tests/processing/test_complexity_analysis.py _________",
+        "module": "src.processing.complexity_analysis",
+        "error": "ModuleNotFoundError: No module named 'src.processing.complexity_analysis'"
+      },
+      {
+        "file": "tests/processing/test_discourse_flow.py ___________",
+        "module": "src.processing.discourse_flow",
+        "error": "ModuleNotFoundError: No module named 'src.processing.discourse_flow'"
+      },
+      {
+        "file": "tests/processing/test_emergent_themes.py ___________",
+        "module": "src.processing.emergent_themes",
+        "error": "ModuleNotFoundError: No module named 'src.processing.emergent_themes'"
+      },
+      {
+        "file": "tests/processing/test_enhanced_gap_analysis.py ________",
+        "module": "src.processing.graph_analysis",
+        "error": "ModuleNotFoundError: No module named 'src.processing.graph_analysis'"
+      },
+      {
+        "file": "tests/processing/test_entity_resolution.py __________",
+        "module": "src.processing.entity_resolution",
+        "error": "ModuleNotFoundError: No module named 'src.processing.entity_resolution'"
+      },
+      {
+        "file": "tests/processing/test_extraction.py _____________",
+        "module": "src.processing.extraction",
+        "error": "ModuleNotFoundError: No module named 'src.processing.extraction'"
+      },
+      {
+        "file": "tests/processing/test_graph_analysis.py ___________",
+        "module": "src.processing.graph_analysis",
+        "error": "ModuleNotFoundError: No module named 'src.processing.graph_analysis'"
+      },
+      {
+        "file": "tests/processing/test_importance_scoring.py _________",
+        "module": "src.processing.importance_scoring",
+        "error": "ModuleNotFoundError: No module named 'src.processing.importance_scoring'"
+      },
+      {
+        "file": "tests/processing/test_parsers.py _______________",
+        "module": "src.processing.parsers",
+        "error": "ModuleNotFoundError: No module named 'src.processing.parsers'"
+      },
+      {
+        "file": "tests/processing/test_preprocessor.py ____________",
+        "module": "src.processing.preprocessor",
+        "error": "ModuleNotFoundError: No module named 'src.processing.preprocessor'"
+      },
+      {
+        "file": "tests/processing/test_prompts.py _______________",
+        "module": "src.processing.prompts",
+        "error": "ModuleNotFoundError: No module named 'src.processing.prompts'"
+      },
+      {
+        "file": "tests/processing/test_vtt_extraction.py ___________",
+        "module": "src.processing.extraction",
+        "error": "ModuleNotFoundError: No module named 'src.processing.extraction'"
+      },
+      {
+        "file": "tests/processing/test_vtt_parser.py _____________",
+        "module": "src.processing.vtt_parser",
+        "error": "ModuleNotFoundError: No module named 'src.processing.vtt_parser'"
+      },
+      {
+        "file": "tests/unit/test_entity_resolution.py _____________",
+        "module": "src.processing.entity_resolution",
+        "error": "ModuleNotFoundError: No module named 'src.processing.entity_resolution'"
+      },
+      {
+        "file": "tests/unit/test_error_budget.py _______________",
+        "module": "src.core.error_budget",
+        "error": "ModuleNotFoundError: No module named 'src.core.error_budget'"
+      },
+      {
+        "file": "tests/unit/test_extraction_integration.py __________",
+        "module": "src.processing.extraction",
+        "error": "ModuleNotFoundError: No module named 'src.processing.extraction'"
+      },
+      {
+        "file": "tests/unit/test_extraction_unit.py ______________",
+        "module": "src.processing.extraction",
+        "error": "ModuleNotFoundError: No module named 'src.processing.extraction'"
+      },
+      {
+        "file": "tests/unit/test_graph_analysis.py ______________",
+        "module": "src.processing.graph_analysis",
+        "error": "ModuleNotFoundError: No module named 'src.processing.graph_analysis'"
+      },
+      {
+        "file": "tests/unit/test_parsers.py __________________",
+        "module": "src.processing.parsers",
+        "error": "ModuleNotFoundError: No module named 'src.processing.parsers'"
+      }
+    ],
+    "wrong_imports": [
+      {
+        "file": "tests/test_component_baselines.py ______________",
+        "name": "PodcastKnowledgePipeline",
+        "from": "src.seeding",
+        "error": "ImportError: cannot import name 'PodcastKnowledgePipeline' from 'src.seeding' (/home/sergeblumenfeld/podcastknowledge/seeding_pipeline/src/seeding/__init__.py)"
+      },
+      {
+        "file": "tests/api/test_health.py ___________________",
+        "name": "ComponentHealth",
+        "from": "src.api.health",
+        "error": "ImportError: cannot import name 'ComponentHealth' from 'src.api.health' (/home/sergeblumenfeld/podcastknowledge/seeding_pipeline/src/api/health.py)"
+      },
+      {
+        "file": "tests/integration/test_checkpoint_recovery.py ________",
+        "name": "PodcastKnowledgePipeline",
+        "from": "src.seeding.orchestrator",
+        "error": "ImportError: cannot import name 'PodcastKnowledgePipeline' from 'src.seeding.orchestrator' (/home/sergeblumenfeld/podcastknowledge/seeding_pipeline/src/seeding/orchestrator.py)"
+      },
+      {
+        "file": "tests/integration/test_comprehensive_extraction_modes.py ___",
+        "name": "PodcastKnowledgePipeline",
+        "from": "src.seeding.orchestrator",
+        "error": "ImportError: cannot import name 'PodcastKnowledgePipeline' from 'src.seeding.orchestrator' (/home/sergeblumenfeld/podcastknowledge/seeding_pipeline/src/seeding/orchestrator.py)"
+      },
+      {
+        "file": "tests/integration/test_orchestrator.py ____________",
+        "name": "PodcastKnowledgePipeline",
+        "from": "src.seeding.orchestrator",
+        "error": "ImportError: cannot import name 'PodcastKnowledgePipeline' from 'src.seeding.orchestrator' (/home/sergeblumenfeld/podcastknowledge/seeding_pipeline/src/seeding/orchestrator.py)"
+      },
+      {
+        "file": "tests/integration/test_signal_handling.py __________",
+        "name": "PodcastKnowledgePipeline",
+        "from": "src.seeding.orchestrator",
+        "error": "ImportError: cannot import name 'PodcastKnowledgePipeline' from 'src.seeding.orchestrator' (/home/sergeblumenfeld/podcastknowledge/seeding_pipeline/src/seeding/orchestrator.py)"
+      },
+      {
+        "file": "tests/integration/test_vtt_e2e.py ______________",
+        "name": "Relationship",
+        "from": "src.core.models",
+        "error": "ImportError: cannot import name 'Relationship' from 'src.core.models' (/home/sergeblumenfeld/podcastknowledge/seeding_pipeline/src/core/models.py)"
+      },
+      {
+        "file": "tests/seeding/test_concurrency.py ______________",
+        "name": "Priority",
+        "from": "src.seeding.concurrency",
+        "error": "ImportError: cannot import name 'Priority' from 'src.seeding.concurrency' (/home/sergeblumenfeld/podcastknowledge/seeding_pipeline/src/seeding/concurrency.py)"
+      },
+      {
+        "file": "tests/unit/test_interfaces_full.py ______________",
+        "name": "AudioProvider",
+        "from": "src.core.interfaces",
+        "error": "ImportError: cannot import name 'AudioProvider' from 'src.core.interfaces' (/home/sergeblumenfeld/podcastknowledge/seeding_pipeline/src/core/interfaces.py)"
+      },
+      {
+        "file": "tests/unit/test_logging_utils.py _______________",
+        "name": "ContextFilter",
+        "from": "src.utils.logging",
+        "error": "ImportError: cannot import name 'ContextFilter' from 'src.utils.logging' (/home/sergeblumenfeld/podcastknowledge/seeding_pipeline/src/utils/logging.py)"
+      },
+      {
+        "file": "tests/unit/test_metrics.py __________________",
+        "name": "PodcastKnowledgePipeline",
+        "from": "src.seeding.orchestrator",
+        "error": "ImportError: cannot import name 'PodcastKnowledgePipeline' from 'src.seeding.orchestrator' (/home/sergeblumenfeld/podcastknowledge/seeding_pipeline/src/seeding/orchestrator.py)"
+      },
+      {
+        "file": "tests/unit/test_rate_limiting_utils.py ____________",
+        "name": "SlidingWindowRateLimiter",
+        "from": "src.utils.rate_limiting",
+        "error": "ImportError: cannot import name 'SlidingWindowRateLimiter' from 'src.utils.rate_limiting' (/home/sergeblumenfeld/podcastknowledge/seeding_pipeline/src/utils/rate_limiting.py)"
+      },
+      {
+        "file": "tests/unit/test_retry_comprehensive.py ____________",
+        "name": "RetryError",
+        "from": "src.utils.retry",
+        "error": "ImportError: cannot import name 'RetryError' from 'src.utils.retry' (/home/sergeblumenfeld/podcastknowledge/seeding_pipeline/src/utils/retry.py)"
+      },
+      {
+        "file": "tests/unit/test_retry_utils.py ________________",
+        "name": "retry_with_backoff",
+        "from": "src.utils.retry",
+        "error": "ImportError: cannot import name 'retry_with_backoff' from 'src.utils.retry' (/home/sergeblumenfeld/podcastknowledge/seeding_pipeline/src/utils/retry.py)"
+      },
+      {
+        "file": "tests/unit/test_segmentation.py _______________",
+        "name": "EnhancedPodcastSegmenter",
+        "from": "src.processing.segmentation",
+        "error": "ImportError: cannot import name 'EnhancedPodcastSegmenter' from 'src.processing.segmentation' (/home/sergeblumenfeld/podcastknowledge/seeding_pipeline/src/processing/segmentation.py)"
+      },
+      {
+        "file": "tests/unit/test_text_processing_utils.py ___________",
+        "name": "clean_segment_text",
+        "from": "src.utils.text_processing",
+        "error": "ImportError: cannot import name 'clean_segment_text' from 'src.utils.text_processing' (/home/sergeblumenfeld/podcastknowledge/seeding_pipeline/src/utils/text_processing.py)"
+      },
+      {
+        "file": "tests/unit/test_validation_comprehensive.py _________",
+        "name": "normalize_entity_name",
+        "from": "src.utils.text_processing",
+        "error": "ImportError: cannot import name 'normalize_entity_name' from 'src.utils.text_processing' (/home/sergeblumenfeld/podcastknowledge/seeding_pipeline/src/utils/text_processing.py)"
+      },
+      {
+        "file": "tests/unit/test_validation_utils.py _____________",
+        "name": "normalize_entity_name",
+        "from": "src.utils.text_processing",
+        "error": "ImportError: cannot import name 'normalize_entity_name' from 'src.utils.text_processing' (/home/sergeblumenfeld/podcastknowledge/seeding_pipeline/src/utils/text_processing.py)"
+      },
+      {
+        "file": "tests/utils/test_text_processing.py _____________",
+        "name": "clean_segment_text",
+        "from": "src.utils.text_processing",
+        "error": "ImportError: cannot import name 'clean_segment_text' from 'src.utils.text_processing' (/home/sergeblumenfeld/podcastknowledge/seeding_pipeline/src/utils/text_processing.py)"
+      },
+      {
+        "file": "tests/utils/test_validation.py ________________",
+        "name": "normalize_entity_name",
+        "from": "src.utils.text_processing",
+        "error": "ImportError: cannot import name 'normalize_entity_name' from 'src.utils.text_processing' (/home/sergeblumenfeld/podcastknowledge/seeding_pipeline/src/utils/text_processing.py)"
+      }
+    ],
+    "syntax_errors": [
+      {
+        "file": "tests/unit/test_error_handling_utils.py ___________",
+        "error": "File \"/home/sergeblumenfeld/podcastknowledge/seeding_pipeline/tests/unit/test_error_handling_utils.py\", line 40\nE       \"\"\"Test custom exception classes.\"\"\"\nE          ^^^^\nE   SyntaxError: invalid syntax"
+      },
+      {
+        "file": "tests/unit/test_logging.py __________________",
+        "error": "File \"/home/sergeblumenfeld/podcastknowledge/seeding_pipeline/tests/unit/test_logging.py\", line 31\nE       LevelFilter,\nE       ^^^^^^^^^^^\nE   SyntaxError: invalid syntax"
+      },
+      {
+        "file": "tests/unit/test_orchestrator_unit.py _____________",
+        "error": "File \"/home/sergeblumenfeld/podcastknowledge/seeding_pipeline/tests/unit/test_orchestrator_unit.py\", line 25\nE       from src.seeding.orchestrator import PodcastKnowledgePipeline\nE       ^^^^\nE   SyntaxError: invalid syntax"
+      },
+      {
+        "file": "tests/unit/test_text_processing_comprehensive.py _______",
+        "error": "File \"/home/sergeblumenfeld/podcastknowledge/seeding_pipeline/tests/unit/test_text_processing_comprehensive.py\", line 144\nE       text = \"\"Hello\" 'World' \u00abTest\u00bb\"\nE                ^^^^^\nE   SyntaxError: invalid syntax"
+      }
+    ],
+    "other_errors": []
+  }
+}
