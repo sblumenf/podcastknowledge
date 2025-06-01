@@ -129,7 +129,7 @@ This plan fixes the completely broken test suite by focusing on practical testin
   - Validation: Extraction tests pass with mocked LLM
 
 ### Task 2.3: Create Neo4j Storage Tests
-- [ ] Test graph storage operations
+- [x] Test graph storage operations
   - Purpose: Ensure data correctly saved to Neo4j
   - Steps:
     1. Use context7 MCP tool to review Neo4j test container documentation
