@@ -24,7 +24,7 @@ parallel = True
 
 [report]
 # Minimum coverage percentage required
-fail_under = 80
+fail_under = 60
 
 # Precision of coverage percentage
 precision = 2

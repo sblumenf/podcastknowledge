@@ -4,7 +4,7 @@ import pytest
 import sys
 import os
 from pathlib import Path
-from unittest.mock import Mock, MagicMock, AsyncMock
+from unittest.mock import Mock, MagicMock, AsyncMock, patch
 from io import StringIO
 import json
 
@@ -245,20 +245,23 @@ def cleanup_environment(monkeypatch):
     # Set minimal test API keys
     monkeypatch.setenv('GEMINI_API_KEY_1', 'test_key_1')
     
-    # Disable actual file writes during tests
-    monkeypatch.setattr('builtins.open', mock_open_in_memory)
-    
     yield
     
     # Cleanup happens automatically
 
 
-def mock_open_in_memory(file, mode='r', *args, **kwargs):
-    """Mock open() to use StringIO for in-memory operations."""
-    if 'b' in mode:
-        from io import BytesIO
-        return BytesIO()
-    return StringIO()
+@pytest.fixture
+def mock_file_operations():
+    """Mock file operations for tests that need it."""
+    def mock_open_in_memory(file, mode='r', *args, **kwargs):
+        """Mock open() to use StringIO for in-memory operations."""
+        if 'b' in mode:
+            from io import BytesIO
+            return BytesIO()
+        return StringIO()
+    
+    with patch('builtins.open', mock_open_in_memory):
+        yield
 
 
 # === Deprecated fixtures for backward compatibility ===
