@@ -142,9 +142,9 @@ class TestVTTGenerator:
         assert "::cue(v[voice=\"Guest\"])" in result
         assert "color: #2ecc71" in result  # Second speaker color
     
-    def test_generate_vtt_save_to_file(self, generator, sample_metadata, sample_vtt_content, temp_dir):
+    def test_generate_vtt_save_to_file(self, generator, sample_metadata, sample_vtt_content, tmp_path):
         """Test saving VTT to file."""
-        output_path = Path(temp_dir) / "test.vtt"
+        output_path = Path(tmp_path) / "test.vtt"
         
         with patch('builtins.open', mock_open()) as mock_file:
             result = generator.generate_vtt(sample_vtt_content, sample_metadata, output_path)
@@ -307,7 +307,7 @@ This text has <special> & characters
         assert metadata.host is None
         assert metadata.guests is None
     
-    def test_generate_output_path(self, generator, temp_dir):
+    def test_generate_output_path(self, generator, tmp_path):
         """Test generating output path for VTT file."""
         episode_data = {
             'podcast_name': 'Test Podcast',
@@ -315,13 +315,13 @@ This text has <special> & characters
             'publication_date': '2024-01-15T10:00:00Z'
         }
         
-        output_path = generator.generate_output_path(episode_data, Path(temp_dir))
+        output_path = generator.generate_output_path(episode_data, Path(tmp_path))
         
         assert output_path.parent.name == 'Test_Podcast'
         assert output_path.name == '2024-01-15_Episode_1__Introduction.vtt'
         assert output_path.suffix == '.vtt'
     
-    def test_generate_output_path_special_cases(self, generator, temp_dir):
+    def test_generate_output_path_special_cases(self, generator, tmp_path):
         """Test generating output path with special cases."""
         # Test with invalid characters in names
         episode_data = {
@@ -330,7 +330,7 @@ This text has <special> & characters
             'publication_date': 'invalid-date'
         }
         
-        output_path = generator.generate_output_path(episode_data, Path(temp_dir))
+        output_path = generator.generate_output_path(episode_data, Path(tmp_path))
         
         assert '/' not in output_path.parent.name
         assert '<>' not in output_path.parent.name
@@ -338,12 +338,12 @@ This text has <special> & characters
         assert '|' not in output_path.name
         assert '?' not in output_path.name
     
-    def test_vtt_with_checkpoint_manager(self, generator, sample_metadata, sample_vtt_content, temp_dir):
+    def test_vtt_with_checkpoint_manager(self, generator, sample_metadata, sample_vtt_content, tmp_path):
         """Test VTT generation with checkpoint manager."""
         mock_checkpoint = MagicMock()
         generator.checkpoint_manager = mock_checkpoint
         
-        output_path = Path(temp_dir) / "test.vtt"
+        output_path = Path(tmp_path) / "test.vtt"
         
         with patch('builtins.open', mock_open()):
             generator.generate_vtt(sample_vtt_content, sample_metadata, output_path)

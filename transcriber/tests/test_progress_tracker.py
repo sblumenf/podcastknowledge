@@ -3,10 +3,10 @@
 import pytest
 import json
 import os
-import tempfile
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
 from unittest.mock import patch, MagicMock
+from io import StringIO
 
 from src.progress_tracker import (
     EpisodeStatus, EpisodeProgress, ProgressState, ProgressTracker
@@ -187,9 +187,9 @@ class TestProgressTracker:
     """Test ProgressTracker class."""
     
     @pytest.fixture
-    def tracker_file(self, temp_dir):
+    def tracker_file(self, tmp_path):
         """Create a temporary tracker file path."""
-        return Path(temp_dir) / '.progress.json'
+        return tmp_path / '.progress.json'
     
     def test_init_new_tracker(self, tracker_file, mock_logger):
         """Test initializing a new progress tracker."""

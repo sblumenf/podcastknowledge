@@ -167,11 +167,11 @@ class TestKeyRotationManager:
         return ['test_key_1', 'test_key_2', 'test_key_3']
     
     @pytest.fixture
-    def manager(self, test_keys, temp_dir):
+    def manager(self, test_keys, tmp_path):
         """Create a key rotation manager for testing."""
         # Use temp directory for state file
         with patch('src.key_rotation_manager.Path') as mock_path:
-            mock_path.return_value = Path(temp_dir) / ".key_rotation_state.json"
+            mock_path.return_value = Path(tmp_path) / ".key_rotation_state.json"
             return KeyRotationManager(test_keys)
     
     def test_init_with_keys(self, test_keys, mock_logger):
@@ -316,9 +316,9 @@ class TestKeyRotationManager:
         assert manager.key_states[1].status == KeyStatus.AVAILABLE
         assert manager.key_states[2].status == KeyStatus.ERROR  # Not reset
     
-    def test_save_and_load_state(self, temp_dir, test_keys, mock_logger):
+    def test_save_and_load_state(self, tmp_path, test_keys, mock_logger):
         """Test saving and loading state."""
-        state_file = Path(temp_dir) / ".key_rotation_state.json"
+        state_file = Path(tmp_path) / ".key_rotation_state.json"
         
         # Create first manager and modify state
         with patch('src.key_rotation_manager.Path') as mock_path:
@@ -340,9 +340,9 @@ class TestKeyRotationManager:
             assert manager2.key_states[0].error_message == "Test error"
             assert manager2.key_states[1].last_used is not None
     
-    def test_load_state_with_daily_reset(self, temp_dir, test_keys, mock_logger):
+    def test_load_state_with_daily_reset(self, tmp_path, test_keys, mock_logger):
         """Test loading state triggers daily reset if needed."""
-        state_file = Path(temp_dir) / ".key_rotation_state.json"
+        state_file = Path(tmp_path) / ".key_rotation_state.json"
         
         # Create state from yesterday
         yesterday = datetime.now(timezone.utc) - timedelta(days=1)

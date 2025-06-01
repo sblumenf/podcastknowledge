@@ -140,9 +140,9 @@ class TestRateLimitedGeminiClient:
         with pytest.raises(ValueError, match="At least one API key"):
             RateLimitedGeminiClient([])
     
-    def test_load_usage_state(self, test_keys, mock_genai_model, temp_dir):
+    def test_load_usage_state(self, test_keys, mock_genai_model, tmp_path):
         """Test loading usage state from file."""
-        state_file = Path(temp_dir) / ".gemini_usage.json"
+        state_file = Path(tmp_path) / ".gemini_usage.json"
         state_data = {
             'trackers': [
                 {
@@ -179,9 +179,9 @@ class TestRateLimitedGeminiClient:
                 assert client.usage_trackers[1].requests_today == 5
                 assert client.usage_trackers[1].tokens_today == 250000
     
-    def test_load_usage_state_with_daily_reset(self, test_keys, mock_genai_model, temp_dir):
+    def test_load_usage_state_with_daily_reset(self, test_keys, mock_genai_model, tmp_path):
         """Test loading state triggers daily reset if needed."""
-        state_file = Path(temp_dir) / ".gemini_usage.json"
+        state_file = Path(tmp_path) / ".gemini_usage.json"
         yesterday = datetime.now(timezone.utc) - timedelta(days=1)
         
         state_data = {
@@ -213,9 +213,9 @@ class TestRateLimitedGeminiClient:
                 assert client.usage_trackers[0].requests_today == 0
                 assert client.usage_trackers[0].tokens_today == 0
     
-    def test_save_usage_state(self, client, temp_dir):
+    def test_save_usage_state(self, client, tmp_path):
         """Test saving usage state to file."""
-        state_file = Path(temp_dir) / ".gemini_usage.json"
+        state_file = Path(tmp_path) / ".gemini_usage.json"
         
         # Update some usage
         client.usage_trackers[0].update_usage(1000)

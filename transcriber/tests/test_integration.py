@@ -102,13 +102,13 @@ Date: 2024-01-15
         }
     
     @pytest.mark.asyncio
-    async def test_full_pipeline_single_episode(self, temp_dir, mock_rss_feed, 
+    async def test_full_pipeline_single_episode(self, tmp_path, mock_rss_feed, 
                                               mock_transcription_response, 
                                               mock_speaker_identification):
         """Test processing a single episode through the full pipeline."""
         # Setup directory structure
-        data_dir = Path(temp_dir) / "data"
-        config_dir = Path(temp_dir) / "config"
+        data_dir = Path(tmp_path) / "data"
+        config_dir = Path(tmp_path) / "config"
         
         # Mock environment variables
         with patch.dict(os.environ, {
@@ -265,9 +265,9 @@ Date: 2024-01-15
                 assert len(manifest['episodes']) == 1
     
     @pytest.mark.asyncio
-    async def test_pipeline_with_errors_and_recovery(self, temp_dir):
+    async def test_pipeline_with_errors_and_recovery(self, tmp_path):
         """Test pipeline handling errors and recovery."""
-        data_dir = Path(temp_dir) / "data"
+        data_dir = Path(tmp_path) / "data"
         
         with patch.dict(os.environ, {'GEMINI_API_KEY_1': 'test_key_1'}):
             # Initialize components
@@ -349,9 +349,9 @@ Date: 2024-01-15
                 assert episode_progress.attempt_count == 2
     
     @pytest.mark.asyncio
-    async def test_pipeline_with_checkpoint_recovery(self, temp_dir):
+    async def test_pipeline_with_checkpoint_recovery(self, tmp_path):
         """Test pipeline checkpoint and recovery functionality."""
-        data_dir = Path(temp_dir) / "data"
+        data_dir = Path(tmp_path) / "data"
         
         # Create interrupted checkpoint using EpisodeCheckpoint format
         checkpoint_data = {
@@ -400,9 +400,9 @@ Date: 2024-01-15
         assert not checkpoint_file.exists()
     
     @pytest.mark.asyncio
-    async def test_pipeline_daily_quota_management(self, temp_dir):
+    async def test_pipeline_daily_quota_management(self, tmp_path):
         """Test pipeline respecting daily quota limits."""
-        data_dir = Path(temp_dir) / "data"
+        data_dir = Path(tmp_path) / "data"
         
         with patch.dict(os.environ, {
             'GEMINI_API_KEY_1': 'test_key_1',

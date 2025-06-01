@@ -18,11 +18,11 @@ class TestOrchestratorIntegration:
     """Test the transcription orchestrator with all components."""
     
     @pytest.fixture
-    def mock_config(self, temp_dir):
+    def mock_config(self, tmp_path):
         """Create a mock configuration."""
         with patch('src.config.get_config') as mock_get_config:
             config = Config()
-            config.output.default_dir = str(Path(temp_dir) / 'transcripts')
+            config.output.default_dir = str(Path(tmp_path) / 'transcripts')
             config.api.max_episodes_per_day = 5
             config.processing.enable_progress_bar = True
             config.development.dry_run = False
@@ -57,7 +57,7 @@ class TestOrchestratorIntegration:
         return podcast, episodes
     
     @pytest.mark.asyncio
-    async def test_orchestrator_full_workflow(self, temp_dir, mock_config, mock_feed_episodes):
+    async def test_orchestrator_full_workflow(self, tmp_path, mock_config, mock_feed_episodes):
         """Test orchestrator processing multiple episodes."""
         podcast_metadata, episodes = mock_feed_episodes
         
@@ -131,7 +131,7 @@ class TestOrchestratorIntegration:
                     assert manifest['total_episodes'] == 2
     
     @pytest.mark.asyncio
-    async def test_orchestrator_error_handling(self, temp_dir, mock_config, mock_feed_episodes):
+    async def test_orchestrator_error_handling(self, tmp_path, mock_config, mock_feed_episodes):
         """Test orchestrator handling errors gracefully."""
         podcast_metadata, episodes = mock_feed_episodes
         
@@ -178,7 +178,7 @@ class TestOrchestratorIntegration:
                     assert mock_gemini_client.transcribe_audio.call_count == 3
     
     @pytest.mark.asyncio
-    async def test_orchestrator_resume_functionality(self, temp_dir, mock_config, mock_feed_episodes):
+    async def test_orchestrator_resume_functionality(self, tmp_path, mock_config, mock_feed_episodes):
         """Test orchestrator resuming from previous state."""
         podcast_metadata, episodes = mock_feed_episodes
         
@@ -201,7 +201,7 @@ class TestOrchestratorIntegration:
             }
         }
         
-        progress_file = Path(temp_dir) / '.progress.json'
+        progress_file = Path(tmp_path) / '.progress.json'
         with open(progress_file, 'w') as f:
             json.dump(progress_data, f)
         

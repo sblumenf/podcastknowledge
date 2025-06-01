@@ -113,10 +113,10 @@ class TestConfig:
         assert isinstance(config.security, SecurityConfig)
         assert isinstance(config.development, DevelopmentConfig)
     
-    def test_load_from_yaml_file(self, temp_dir, mock_logger, config_file_content):
+    def test_load_from_yaml_file(self, tmp_path, mock_logger, config_file_content):
         """Test loading configuration from YAML file."""
         # Create temporary config file
-        config_path = Path(temp_dir) / "test_config.yaml"
+        config_path = Path(tmp_path) / "test_config.yaml"
         with open(config_path, 'w') as f:
             f.write(config_file_content)
         
@@ -139,10 +139,10 @@ class TestConfig:
         assert config.api.timeout == 300
         assert config.processing.enable_progress_bar is True
     
-    def test_invalid_yaml_file(self, temp_dir, mock_logger):
+    def test_invalid_yaml_file(self, tmp_path, mock_logger):
         """Test handling of invalid YAML file."""
         # Create invalid YAML file
-        config_path = Path(temp_dir) / "invalid_config.yaml"
+        config_path = Path(tmp_path) / "invalid_config.yaml"
         with open(config_path, 'w') as f:
             f.write("invalid: yaml: content: [}")
         

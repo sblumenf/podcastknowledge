@@ -66,19 +66,19 @@ class TestFileOrganizer:
     """Test FileOrganizer class."""
     
     @pytest.fixture
-    def organizer(self, temp_dir):
+    def organizer(self, tmp_path):
         """Create a file organizer for testing."""
-        return FileOrganizer(base_dir=temp_dir)
+        return FileOrganizer(base_dir=str(tmp_path))
     
-    def test_init_creates_directory(self, temp_dir):
+    def test_init_creates_directory(self, tmp_path):
         """Test that initialization creates base directory."""
-        base_path = Path(temp_dir) / "transcripts"
+        base_path = tmp_path / "transcripts"
         organizer = FileOrganizer(base_dir=str(base_path))
         
         assert base_path.exists()
         assert base_path.is_dir()
     
-    def test_init_loads_existing_manifest(self, temp_dir):
+    def test_init_loads_existing_manifest(self, tmp_path):
         """Test loading existing manifest on initialization."""
         # Create manifest file
         manifest_data = {
@@ -95,11 +95,11 @@ class TestFileOrganizer:
             ]
         }
         
-        manifest_path = Path(temp_dir) / "manifest.json"
+        manifest_path = Path(tmp_path) / "manifest.json"
         with open(manifest_path, 'w') as f:
             json.dump(manifest_data, f)
         
-        organizer = FileOrganizer(base_dir=temp_dir)
+        organizer = FileOrganizer(base_dir=tmp_path)
         
         assert len(organizer.episodes) == 1
         assert organizer.episodes[0].title == 'Existing Episode'
@@ -181,7 +181,7 @@ class TestFileOrganizer:
             
             assert "2024-01-20" in relative_path  # Should use current date
     
-    def test_create_episode_file_success(self, organizer, temp_dir):
+    def test_create_episode_file_success(self, organizer, tmp_path):
         """Test successful episode file creation."""
         vtt_content = """WEBVTT
 
@@ -206,7 +206,7 @@ class TestFileOrganizer:
         assert metadata.episode_number == 5
         
         # Check file was created
-        file_path = Path(temp_dir) / metadata.file_path
+        file_path = Path(tmp_path) / metadata.file_path
         assert file_path.exists()
         
         # Check content
@@ -219,7 +219,7 @@ class TestFileOrganizer:
         assert organizer.episodes[0] == metadata
         
         # Check manifest was saved
-        manifest_path = Path(temp_dir) / "manifest.json"
+        manifest_path = Path(tmp_path) / "manifest.json"
         assert manifest_path.exists()
     
     def test_create_episode_file_error(self, organizer):
@@ -234,7 +234,7 @@ class TestFileOrganizer:
                     content="Content"
                 )
     
-    def test_save_and_load_manifest(self, organizer, temp_dir):
+    def test_save_and_load_manifest(self, organizer, tmp_path):
         """Test saving and loading manifest."""
         # Add some episodes
         metadata1 = EpisodeMetadata(
@@ -256,7 +256,7 @@ class TestFileOrganizer:
         organizer._save_manifest()
         
         # Create new organizer and load
-        new_organizer = FileOrganizer(base_dir=temp_dir)
+        new_organizer = FileOrganizer(base_dir=tmp_path)
         
         assert len(new_organizer.episodes) == 2
         assert new_organizer.episodes[0].title == "Episode 1"
@@ -352,13 +352,13 @@ class TestFileOrganizer:
         assert "Podcast_B" in structure
         assert len(structure["Podcast_B"]) == 1
     
-    def test_cleanup_empty_directories(self, organizer, temp_dir):
+    def test_cleanup_empty_directories(self, organizer, tmp_path):
         """Test cleaning up empty directories."""
         # Create some directories
-        empty_dir = Path(temp_dir) / "Empty_Podcast"
+        empty_dir = Path(tmp_path) / "Empty_Podcast"
         empty_dir.mkdir()
         
-        non_empty_dir = Path(temp_dir) / "Non_Empty_Podcast"
+        non_empty_dir = Path(tmp_path) / "Non_Empty_Podcast"
         non_empty_dir.mkdir()
         (non_empty_dir / "file.vtt").touch()
         
@@ -367,7 +367,7 @@ class TestFileOrganizer:
         assert not empty_dir.exists()
         assert non_empty_dir.exists()
     
-    def test_validate_files(self, organizer, temp_dir):
+    def test_validate_files(self, organizer, tmp_path):
         """Test file validation."""
         # Add episodes to manifest
         organizer.episodes = [
@@ -382,7 +382,7 @@ class TestFileOrganizer:
         ]
         
         # Create only one file
-        test_dir = Path(temp_dir) / "Test"
+        test_dir = Path(tmp_path) / "Test"
         test_dir.mkdir()
         (test_dir / "exists.vtt").touch()
         
