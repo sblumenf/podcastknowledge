@@ -16,8 +16,7 @@ setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/yourusername/podcastknowledge",
-    packages=find_packages(where="src"),
-    package_dir={"": "src"},
+    packages=["src", "src.utils"],
     classifiers=[
         "Development Status :: 3 - Alpha",
         "Intended Audience :: Developers",
@@ -33,7 +32,7 @@ setup(
     install_requires=requirements,
     entry_points={
         "console_scripts": [
-            "podcast-transcriber=cli:main",
+            "podcast-transcriber=src.cli:main",
         ],
     },
     include_package_data=True,
