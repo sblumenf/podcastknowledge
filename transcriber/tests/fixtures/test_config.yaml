@@ -1,0 +1,52 @@
+# Test configuration for Podcast Transcription Pipeline
+# This configuration is used for unit and integration tests
+
+api:
+  timeout: 30
+  retry:
+    max_attempts: 2
+    backoff_multiplier: 2
+    max_backoff: 10
+  quota:
+    max_episodes_per_day: 5
+    max_requests_per_key: 10
+    max_tokens_per_key: 10000
+
+processing:
+  parallel_workers: 1
+  enable_progress_bar: false
+  checkpoint_enabled: true
+  max_episode_length: 30
+
+output:
+  default_dir: "test_data/transcripts"
+  naming:
+    pattern: "{podcast_name}/{date}_{episode_title}.vtt"
+    sanitize_filenames: true
+    max_filename_length: 100
+  vtt:
+    include_metadata: true
+    speaker_voice_tags: true
+    timestamp_precision: 3
+
+logging:
+  console_level: "WARNING"
+  file_level: "DEBUG"
+  max_file_size_mb: 5
+  backup_count: 2
+  log_dir: "test_logs"
+
+security:
+  api_key_vars:
+    - "TEST_API_KEY_1"
+    - "TEST_API_KEY_2"
+  rotation:
+    strategy: "round_robin"
+    fail_over_enabled: true
+
+development:
+  dry_run: false
+  debug_mode: true
+  save_raw_responses: false
+  test_mode: true
+  mock_api_calls: true

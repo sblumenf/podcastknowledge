@@ -28,3 +28,26 @@ ValueError: Simulated error for testing
 2025-05-31 18:25:28 - podcast_transcriber.gemini_client - ERROR - Speaker identification failed: API error with quota
 2025-05-31 18:25:28 - podcast_transcriber.feed_parser - ERROR - Failed to parse feed https://example.com/feed.xml: 'dict' object has no attribute 'bozo'
 2025-05-31 18:25:28 - podcast_transcriber.key_rotation_manager - ERROR - No API keys found in environment
+2025-05-31 21:54:50 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - No API keys found in environment variables: ['GEMINI_API_KEY_1', 'GEMINI_API_KEY_2']
+2025-05-31 21:54:50 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - No API keys found in environment variables: ['GEMINI_API_KEY_1', 'GEMINI_API_KEY_2']
+2025-05-31 21:54:50 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - No API keys found in environment variables: ['GEMINI_API_KEY_1', 'GEMINI_API_KEY_2']
+2025-05-31 21:54:50 - podcast_transcriber.config - ERROR - Failed to load configuration: mapping values are not allowed here
+  in "/tmp/tmpa4fguli_/invalid_config.yaml", line 1, column 14
+2025-05-31 21:54:50 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - No API keys found in environment variables: ['GEMINI_API_KEY_1', 'GEMINI_API_KEY_2']
+2025-05-31 21:54:50 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - No API keys found in environment variables: ['GEMINI_API_KEY_1', 'GEMINI_API_KEY_2']
+2025-05-31 21:54:50 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - No API keys found in environment variables: ['GEMINI_API_KEY_1', 'GEMINI_API_KEY_2']
+2025-05-31 21:54:51 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - No API keys found in environment variables: ['GEMINI_API_KEY_1', 'GEMINI_API_KEY_2']
+2025-05-31 21:54:51 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - No API keys found in environment variables: ['GEMINI_API_KEY_1', 'GEMINI_API_KEY_2']
+2025-05-31 21:54:51 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - No API keys found in environment variables: ['GEMINI_API_KEY_1', 'GEMINI_API_KEY_2']
+2025-05-31 21:54:51 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - No API keys found in environment variables: ['GEMINI_API_KEY_1', 'GEMINI_API_KEY_2']
+2025-05-31 21:54:51 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - No API keys found in environment variables: ['GEMINI_API_KEY_1', 'GEMINI_API_KEY_2']
+2025-05-31 21:54:51 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - No API keys found in environment variables: ['GEMINI_API_KEY_1', 'GEMINI_API_KEY_2']
+2025-05-31 21:54:51 - podcast_transcriber.feed_parser - ERROR - Feed parsing error: XML parsing error
+2025-05-31 21:54:51 - podcast_transcriber.feed_parser - ERROR - Failed to parse feed https://example.com/feed.xml: Network error
+2025-05-31 21:54:51 - podcast_transcriber.file_organizer - ERROR - Failed to write episode file /tmp/tmpe4m3751w/Test/2024-01-15_Test.vtt: Write error
+2025-05-31 21:54:51 - podcast_transcriber.gemini_client - ERROR - No API keys available due to rate limits
+2025-05-31 21:54:51 - podcast_transcriber.gemini_client - ERROR - No API keys available due to rate limits
+2025-05-31 21:54:51 - podcast_transcriber.gemini_client - ERROR - Transcription failed: Quota exceeded
+2025-05-31 21:54:51 - podcast_transcriber.gemini_client - ERROR - Speaker identification failed: API error with quota
+2025-05-31 21:54:51 - podcast_transcriber.feed_parser - ERROR - Failed to parse feed https://example.com/feed.xml: 'dict' object has no attribute 'bozo'
+2025-05-31 21:54:51 - podcast_transcriber.key_rotation_manager - ERROR - No API keys found in environment

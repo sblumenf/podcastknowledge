@@ -240,3 +240,151 @@ ValueError: Simulated error for testing
 2025-05-31 21:49:41 - podcast_transcriber - INFO - Logging system initialized
 2025-05-31 21:49:41 - podcast_transcriber - INFO - Log level: INFO
 2025-05-31 21:49:41 - podcast_transcriber - INFO - Log directory: /home/sergeblumenfeld/podcastknowledge/transcriber/logs
+2025-05-31 21:54:14 - podcast_transcriber - INFO - Logging system initialized
+2025-05-31 21:54:14 - podcast_transcriber - INFO - Log level: INFO
+2025-05-31 21:54:14 - podcast_transcriber - INFO - Log directory: /home/sergeblumenfeld/podcastknowledge/transcriber/logs
+2025-05-31 21:54:49 - podcast_transcriber - INFO - Logging system initialized
+2025-05-31 21:54:49 - podcast_transcriber - INFO - Log level: INFO
+2025-05-31 21:54:49 - podcast_transcriber - INFO - Log directory: /home/sergeblumenfeld/podcastknowledge/transcriber/logs
+2025-05-31 21:54:50 - podcast_transcriber.config - INFO - Loaded configuration from: /home/sergeblumenfeld/podcastknowledge/transcriber/config/default.yaml
+2025-05-31 21:54:50 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - No API keys found in environment variables: ['GEMINI_API_KEY_1', 'GEMINI_API_KEY_2']
+2025-05-31 21:54:50 - podcast_transcriber.config - INFO - Loaded configuration from: /tmp/tmpxp_wbfuo/test_config.yaml
+2025-05-31 21:54:50 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - No API keys found in environment variables: ['GEMINI_API_KEY_1', 'GEMINI_API_KEY_2']
+2025-05-31 21:54:50 - podcast_transcriber.config - WARNING - Configuration file not found: /non/existent/config.yaml
+2025-05-31 21:54:50 - podcast_transcriber.config - INFO - Using default configuration values
+2025-05-31 21:54:50 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - No API keys found in environment variables: ['GEMINI_API_KEY_1', 'GEMINI_API_KEY_2']
+2025-05-31 21:54:50 - podcast_transcriber.config - ERROR - Failed to load configuration: mapping values are not allowed here
+  in "/tmp/tmpa4fguli_/invalid_config.yaml", line 1, column 14
+2025-05-31 21:54:50 - podcast_transcriber.config - INFO - Using default configuration values
+2025-05-31 21:54:50 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - No API keys found in environment variables: ['GEMINI_API_KEY_1', 'GEMINI_API_KEY_2']
+2025-05-31 21:54:50 - podcast_transcriber.config - INFO - Loaded configuration from: /home/sergeblumenfeld/podcastknowledge/transcriber/config/default.yaml
+2025-05-31 21:54:50 - podcast_transcriber.config - INFO - Applied environment override: PODCAST_API_TIMEOUT=600
+2025-05-31 21:54:50 - podcast_transcriber.config - INFO - Applied environment override: PODCAST_API_MAX_ATTEMPTS=3
+2025-05-31 21:54:50 - podcast_transcriber.config - INFO - Applied environment override: PODCAST_API_MAX_EPISODES=20
+2025-05-31 21:54:50 - podcast_transcriber.config - INFO - Applied environment override: PODCAST_OUTPUT_DIR=/custom/output
+2025-05-31 21:54:50 - podcast_transcriber.config - INFO - Applied environment override: PODCAST_OUTPUT_PATTERN={date}/{podcast_name}.vtt
+2025-05-31 21:54:50 - podcast_transcriber.config - INFO - Applied environment override: PODCAST_MAX_EPISODE_LENGTH=90
+2025-05-31 21:54:50 - podcast_transcriber.config - INFO - Applied environment override: PODCAST_ENABLE_PROGRESS=False
+2025-05-31 21:54:50 - podcast_transcriber.config - INFO - Applied environment override: PODCAST_LOG_LEVEL=DEBUG
+2025-05-31 21:54:50 - podcast_transcriber.config - INFO - Applied environment override: PODCAST_LOG_DIR=/custom/logs
+2025-05-31 21:54:50 - podcast_transcriber.config - INFO - Applied environment override: PODCAST_DRY_RUN=True
+2025-05-31 21:54:50 - podcast_transcriber.config - INFO - Applied environment override: PODCAST_DEBUG_MODE=True
+2025-05-31 21:54:50 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - No API keys found in environment variables: ['GEMINI_API_KEY_1', 'GEMINI_API_KEY_2']
+2025-05-31 21:54:50 - podcast_transcriber.config - INFO - Loaded configuration from: /home/sergeblumenfeld/podcastknowledge/transcriber/config/default.yaml
+2025-05-31 21:54:50 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - No API keys found in environment variables: ['GEMINI_API_KEY_1', 'GEMINI_API_KEY_2']
+2025-05-31 21:54:50 - podcast_transcriber.config - INFO - Loaded configuration from: /home/sergeblumenfeld/podcastknowledge/transcriber/config/default.yaml
+2025-05-31 21:54:50 - podcast_transcriber.config - INFO - Configuration validation passed
+2025-05-31 21:54:51 - podcast_transcriber.config - INFO - Loaded configuration from: /home/sergeblumenfeld/podcastknowledge/transcriber/config/default.yaml
+2025-05-31 21:54:51 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - No API keys found in environment variables: ['GEMINI_API_KEY_1', 'GEMINI_API_KEY_2']
+2025-05-31 21:54:51 - podcast_transcriber.config - INFO - Loaded configuration from: /home/sergeblumenfeld/podcastknowledge/transcriber/config/default.yaml
+2025-05-31 21:54:51 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - No API keys found in environment variables: ['GEMINI_API_KEY_1', 'GEMINI_API_KEY_2']
+2025-05-31 21:54:51 - podcast_transcriber.config - INFO - Loaded configuration from: /home/sergeblumenfeld/podcastknowledge/transcriber/config/default.yaml
+2025-05-31 21:54:51 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - No API keys found in environment variables: ['GEMINI_API_KEY_1', 'GEMINI_API_KEY_2']
+2025-05-31 21:54:51 - podcast_transcriber.config - INFO - Loaded configuration from: /home/sergeblumenfeld/podcastknowledge/transcriber/config/default.yaml
+2025-05-31 21:54:51 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - No API keys found in environment variables: ['GEMINI_API_KEY_1', 'GEMINI_API_KEY_2']
+2025-05-31 21:54:51 - podcast_transcriber.config - INFO - Loaded configuration from: /home/sergeblumenfeld/podcastknowledge/transcriber/config/default.yaml
+2025-05-31 21:54:51 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - No API keys found in environment variables: ['GEMINI_API_KEY_1', 'GEMINI_API_KEY_2']
+2025-05-31 21:54:51 - podcast_transcriber.config - INFO - Loaded configuration from: /home/sergeblumenfeld/podcastknowledge/transcriber/config/default.yaml
+2025-05-31 21:54:51 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - No API keys found in environment variables: ['GEMINI_API_KEY_1', 'GEMINI_API_KEY_2']
+2025-05-31 21:54:51 - podcast_transcriber.config - INFO - Loaded configuration from: /home/sergeblumenfeld/podcastknowledge/transcriber/config/default.yaml
+2025-05-31 21:54:51 - podcast_transcriber.config - INFO - Configuration validation passed
+2025-05-31 21:54:51 - podcast_transcriber.config - INFO - Loaded configuration from: /home/sergeblumenfeld/podcastknowledge/transcriber/config/default.yaml
+2025-05-31 21:54:51 - podcast_transcriber.config - INFO - Configuration validation passed
+2025-05-31 21:54:51 - podcast_transcriber.config - INFO - Loaded configuration from: /home/sergeblumenfeld/podcastknowledge/transcriber/config/default.yaml
+2025-05-31 21:54:51 - podcast_transcriber.config - INFO - Configuration validation passed
+2025-05-31 21:54:51 - podcast_transcriber.feed_parser - INFO - Parsing RSS feed: https://example.com/feed.xml
+2025-05-31 21:54:51 - podcast_transcriber.feed_parser - INFO - Parsed podcast: Test Podcast
+2025-05-31 21:54:51 - podcast_transcriber.feed_parser - INFO - Found 1 episodes in feed
+2025-05-31 21:54:51 - podcast_transcriber.feed_parser - INFO - Parsing RSS feed: https://example.com/feed.xml
+2025-05-31 21:54:51 - podcast_transcriber.feed_parser - ERROR - Feed parsing error: XML parsing error
+2025-05-31 21:54:51 - podcast_transcriber.feed_parser - INFO - Parsed podcast: Test Podcast
+2025-05-31 21:54:51 - podcast_transcriber.feed_parser - INFO - Found 0 episodes in feed
+2025-05-31 21:54:51 - podcast_transcriber.feed_parser - WARNING - No episodes found in feed
+2025-05-31 21:54:51 - podcast_transcriber.feed_parser - INFO - Parsing RSS feed: https://example.com/feed.xml
+2025-05-31 21:54:51 - podcast_transcriber.feed_parser - ERROR - Failed to parse feed https://example.com/feed.xml: Network error
+2025-05-31 21:54:51 - podcast_transcriber.feed_parser - INFO - Parsing RSS feed: https://example.com/feed.xml
+2025-05-31 21:54:51 - podcast_transcriber.feed_parser - INFO - Parsed podcast: Empty Podcast
+2025-05-31 21:54:51 - podcast_transcriber.feed_parser - INFO - Found 0 episodes in feed
+2025-05-31 21:54:51 - podcast_transcriber.feed_parser - WARNING - No episodes found in feed
+2025-05-31 21:54:51 - podcast_transcriber.file_organizer - INFO - Loaded 1 episodes from manifest
+2025-05-31 21:54:51 - podcast_transcriber.file_organizer - WARNING - Invalid date format: invalid-date, using current date
+2025-05-31 21:54:51 - podcast_transcriber.file_organizer - INFO - Created episode file: Test_Podcast/2024-01-15_Test_Episode.vtt
+2025-05-31 21:54:51 - podcast_transcriber.file_organizer - ERROR - Failed to write episode file /tmp/tmpe4m3751w/Test/2024-01-15_Test.vtt: Write error
+2025-05-31 21:54:51 - podcast_transcriber.file_organizer - INFO - Loaded 2 episodes from manifest
+2025-05-31 21:54:51 - podcast_transcriber.file_organizer - INFO - Removed empty directory: Empty_Podcast
+2025-05-31 21:54:51 - podcast_transcriber.gemini_client - WARNING - API key 1 hit daily request limit
+2025-05-31 21:54:51 - podcast_transcriber.gemini_client - WARNING - API key 1 hit daily token limit
+2025-05-31 21:54:51 - podcast_transcriber.gemini_client - INFO - Reset daily usage for API key 1
+2025-05-31 21:54:51 - podcast_transcriber.gemini_client - INFO - Initialized Gemini client with 2 API keys
+2025-05-31 21:54:51 - podcast_transcriber.gemini_client - INFO - Initialized Gemini client with 2 API keys
+2025-05-31 21:54:51 - podcast_transcriber.gemini_client - INFO - Initialized Gemini client with 2 API keys
+2025-05-31 21:54:51 - podcast_transcriber.gemini_client - INFO - Initialized Gemini client with 2 API keys
+2025-05-31 21:54:51 - podcast_transcriber.gemini_client - INFO - Initialized Gemini client with 2 API keys
+2025-05-31 21:54:51 - podcast_transcriber.gemini_client - WARNING - API key 1 hit daily request limit
+2025-05-31 21:54:51 - podcast_transcriber.gemini_client - WARNING - API key 2 hit daily request limit
+2025-05-31 21:54:51 - podcast_transcriber.gemini_client - ERROR - No API keys available due to rate limits
+2025-05-31 21:54:51 - podcast_transcriber.gemini_client - INFO - Initialized Gemini client with 2 API keys
+2025-05-31 21:54:51 - podcast_transcriber.gemini_client - INFO - Starting transcription for: Test Episode
+2025-05-31 21:54:51 - podcast_transcriber.gemini_client - INFO - Using API key 1
+2025-05-31 21:54:51 - podcast_transcriber.gemini_client - INFO - Initialized Gemini client with 2 API keys
+2025-05-31 21:54:51 - podcast_transcriber.gemini_client - ERROR - No API keys available due to rate limits
+2025-05-31 21:54:51 - podcast_transcriber.gemini_client - INFO - Initialized Gemini client with 2 API keys
+2025-05-31 21:54:51 - podcast_transcriber.gemini_client - INFO - Starting transcription for: Unknown
+2025-05-31 21:54:51 - podcast_transcriber.gemini_client - INFO - Using API key 1
+2025-05-31 21:54:51 - podcast_transcriber.gemini_client - ERROR - Transcription failed: Quota exceeded
+2025-05-31 21:54:51 - podcast_transcriber.gemini_client - INFO - Initialized Gemini client with 2 API keys
+2025-05-31 21:54:51 - podcast_transcriber.gemini_client - INFO - Starting speaker identification
+2025-05-31 21:54:51 - podcast_transcriber.gemini_client - INFO - Using API key 1
+2025-05-31 21:54:51 - podcast_transcriber.gemini_client - INFO - Initialized Gemini client with 2 API keys
+2025-05-31 21:54:51 - podcast_transcriber.gemini_client - INFO - Starting speaker identification
+2025-05-31 21:54:51 - podcast_transcriber.gemini_client - INFO - Using API key 1
+2025-05-31 21:54:51 - podcast_transcriber.gemini_client - ERROR - Speaker identification failed: API error with quota
+2025-05-31 21:54:51 - podcast_transcriber.gemini_client - INFO - Initialized Gemini client with 2 API keys
+2025-05-31 21:54:51 - podcast_transcriber.gemini_client - INFO - Initialized Gemini client with 2 API keys
+2025-05-31 21:54:51 - podcast_transcriber.gemini_client - INFO - Initialized Gemini client with 2 API keys
+2025-05-31 21:54:51 - podcast_transcriber.gemini_client - INFO - Initialized Gemini client with 2 API keys
+2025-05-31 21:54:51 - podcast_transcriber.gemini_client - INFO - Found 3 API key(s) in environment
+2025-05-31 21:54:51 - podcast_transcriber.gemini_client - INFO - Found 1 API key(s) in environment
+2025-05-31 21:54:51 - podcast_transcriber.feed_parser - INFO - Parsing RSS feed: https://example.com/feed.xml
+2025-05-31 21:54:51 - podcast_transcriber.feed_parser - ERROR - Failed to parse feed https://example.com/feed.xml: 'dict' object has no attribute 'bozo'
+2025-05-31 21:54:51 - podcast_transcriber.progress_tracker - INFO - Progress tracker initialized with 0 episodes
+2025-05-31 21:54:51 - podcast_transcriber.progress_tracker - INFO - Progress tracker initialized with 0 episodes
+2025-05-31 21:54:51 - podcast_transcriber.key_rotation_manager - INFO - Initialized key rotation manager with 3 keys
+2025-05-31 21:54:51 - podcast_transcriber.key_rotation_manager - INFO - Initialized key rotation manager with 3 keys
+2025-05-31 21:54:51 - podcast_transcriber.key_rotation_manager - INFO - Selected key_1 (test_key...) for next request
+2025-05-31 21:54:51 - podcast_transcriber.key_rotation_manager - INFO - Selected key_2 (test_key...) for next request
+2025-05-31 21:54:51 - podcast_transcriber.key_rotation_manager - INFO - Selected key_3 (test_key...) for next request
+2025-05-31 21:54:51 - podcast_transcriber.key_rotation_manager - INFO - Selected key_1 (test_key...) for next request
+2025-05-31 21:54:51 - podcast_transcriber.key_rotation_manager - INFO - Initialized key rotation manager with 3 keys
+2025-05-31 21:54:51 - podcast_transcriber.key_rotation_manager - INFO - Selected key_2 (test_key...) for next request
+2025-05-31 21:54:51 - podcast_transcriber.key_rotation_manager - INFO - Selected key_2 (test_key...) for next request
+2025-05-31 21:54:51 - podcast_transcriber.key_rotation_manager - INFO - Initialized key rotation manager with 3 keys
+2025-05-31 21:54:51 - podcast_transcriber.key_rotation_manager - INFO - Current key status:
+2025-05-31 21:54:51 - podcast_transcriber.key_rotation_manager - INFO -   key_1 (test_key...): quota_exceeded
+2025-05-31 21:54:51 - podcast_transcriber.key_rotation_manager - INFO -   key_2 (test_key...): quota_exceeded
+2025-05-31 21:54:51 - podcast_transcriber.key_rotation_manager - INFO -   key_3 (test_key...): quota_exceeded
+2025-05-31 21:54:51 - podcast_transcriber.key_rotation_manager - INFO - Initialized key rotation manager with 3 keys
+2025-05-31 21:54:51 - podcast_transcriber.key_rotation_manager - INFO - Initialized key rotation manager with 3 keys
+2025-05-31 21:54:51 - podcast_transcriber.key_rotation_manager - WARNING - key_1 (test_key...) marked as failed: Rate limit exceeded
+2025-05-31 21:54:51 - podcast_transcriber.key_rotation_manager - INFO - Initialized key rotation manager with 3 keys
+2025-05-31 21:54:51 - podcast_transcriber.key_rotation_manager - INFO - Initialized key rotation manager with 3 keys
+2025-05-31 21:54:51 - podcast_transcriber.key_rotation_manager - INFO - Initialized key rotation manager with 3 keys
+2025-05-31 21:54:51 - podcast_transcriber.key_rotation_manager - INFO - Force reset key_2 (test_key...) to available
+2025-05-31 21:54:51 - podcast_transcriber.key_rotation_manager - INFO - Initialized key rotation manager with 3 keys
+2025-05-31 21:54:51 - podcast_transcriber.key_rotation_manager - INFO - Performing daily reset of key states
+2025-05-31 21:54:51 - podcast_transcriber.key_rotation_manager - INFO - Initialized key rotation manager with 3 keys
+2025-05-31 21:54:51 - podcast_transcriber.key_rotation_manager - INFO - Loaded rotation state, current index: 2
+2025-05-31 21:54:51 - podcast_transcriber.key_rotation_manager - INFO - Initialized key rotation manager with 3 keys
+2025-05-31 21:54:51 - podcast_transcriber.key_rotation_manager - INFO - Performing daily reset of key states
+2025-05-31 21:54:51 - podcast_transcriber.key_rotation_manager - INFO - Loaded rotation state, current index: 1
+2025-05-31 21:54:51 - podcast_transcriber.key_rotation_manager - INFO - Initialized key rotation manager with 3 keys
+2025-05-31 21:54:51 - podcast_transcriber.key_rotation_manager - INFO - Initialized key rotation manager with 3 keys
+2025-05-31 21:54:51 - podcast_transcriber.key_rotation_manager - INFO - Initialized key rotation manager with 2 keys
+2025-05-31 21:54:51 - podcast_transcriber.key_rotation_manager - INFO - Initialized key rotation manager with 1 keys
+2025-05-31 21:54:51 - podcast_transcriber.key_rotation_manager - ERROR - No API keys found in environment
+2025-05-31 21:54:51 - podcast_transcriber - INFO - Logging system initialized
+2025-05-31 21:54:51 - podcast_transcriber - INFO - Log level: INFO
+2025-05-31 21:54:51 - podcast_transcriber - INFO - Log directory: /home/sergeblumenfeld/podcastknowledge/transcriber/logs
+2025-05-31 22:03:17 - podcast_transcriber - INFO - Logging system initialized
+2025-05-31 22:03:17 - podcast_transcriber - INFO - Log level: INFO
+2025-05-31 22:03:17 - podcast_transcriber - INFO - Log directory: /home/sergeblumenfeld/podcastknowledge/transcriber/logs
