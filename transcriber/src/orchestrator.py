@@ -17,9 +17,11 @@ from src.key_rotation_manager import KeyRotationManager, create_key_rotation_man
 from src.transcription_processor import TranscriptionProcessor
 from src.speaker_identifier import SpeakerIdentifier
 from src.vtt_generator import VTTGenerator, VTTMetadata
+from src.youtube_searcher import YouTubeSearcher
 from src.checkpoint_recovery import CheckpointManager
 from src.retry_wrapper import QuotaExceededException, CircuitBreakerOpenException
 from src.utils.logging import get_logger, log_progress
+from src.config import Config
 
 logger = get_logger('orchestrator')
 
@@ -40,6 +42,9 @@ class TranscriptionOrchestrator:
         self.output_dir = output_dir
         self.output_dir.mkdir(parents=True, exist_ok=True)
         
+        # Initialize configuration
+        self.config = Config()
+        
         # Initialize components
         # Use data directory for progress tracking
         data_dir = Path("data")
@@ -59,6 +64,7 @@ class TranscriptionOrchestrator:
             self.gemini_client, self.key_manager, self.checkpoint_manager
         )
         self.vtt_generator = VTTGenerator(self.checkpoint_manager)
+        self.youtube_searcher = YouTubeSearcher(self.config)
         
         # Check for resumable checkpoint
         self.resume_mode = resume
@@ -233,6 +239,37 @@ class TranscriptionOrchestrator:
         """
         episode_data = episode.to_dict()
         episode_data['podcast_name'] = podcast_metadata.title
+        
+        # Search for YouTube URL if enabled
+        if self.youtube_searcher.search_enabled:
+            try:
+                # Parse duration to seconds if available
+                duration_seconds = None
+                if episode.duration:
+                    # Try to parse duration string (e.g., "1:23:45" or "45:30")
+                    duration_parts = episode.duration.split(':')
+                    if len(duration_parts) == 3:  # hours:minutes:seconds
+                        duration_seconds = int(duration_parts[0]) * 3600 + int(duration_parts[1]) * 60 + int(duration_parts[2])
+                    elif len(duration_parts) == 2:  # minutes:seconds
+                        duration_seconds = int(duration_parts[0]) * 60 + int(duration_parts[1])
+                
+                youtube_url = self.youtube_searcher.search_youtube_url(
+                    podcast_name=podcast_metadata.title,
+                    episode_title=episode.title,
+                    episode_description=episode.description,
+                    episode_number=episode.episode_number,
+                    duration_seconds=duration_seconds
+                )
+                
+                if youtube_url:
+                    episode.youtube_url = youtube_url
+                    episode_data['youtube_url'] = youtube_url
+                    logger.info(f"Found YouTube URL for {episode.title}: {youtube_url}")
+                else:
+                    logger.debug(f"No YouTube URL found for {episode.title}")
+                    
+            except Exception as e:
+                logger.warning(f"YouTube search failed for {episode.title}: {e}")
         
         # Start checkpoint
         if self.checkpoint_manager:

@@ -1,0 +1,279 @@
+"""YouTube URL Search Module for Podcast Transcription Pipeline.
+
+This module handles finding YouTube URLs for podcast episodes through
+RSS extraction and optional external search methods.
+"""
+
+import json
+import re
+from pathlib import Path
+from typing import Dict, List, Optional, Any
+from difflib import SequenceMatcher
+
+from src.utils.logging import get_logger
+from src.config import Config
+
+logger = get_logger('youtube_searcher')
+
+
+class YouTubeSearcher:
+    """Searches for YouTube URLs related to podcast episodes."""
+    
+    def __init__(self, config: Config):
+        """Initialize YouTube searcher.
+        
+        Args:
+            config: Application configuration
+        """
+        self.search_enabled = getattr(config.youtube_search, 'enabled', True)
+        self.method = getattr(config.youtube_search, 'method', 'rss_only')
+        self.cache_results = getattr(config.youtube_search, 'cache_results', True)
+        self.fuzzy_match_threshold = getattr(config.youtube_search, 'fuzzy_match_threshold', 0.85)
+        self.duration_tolerance = getattr(config.youtube_search, 'duration_tolerance', 0.1)
+        self.max_search_results = getattr(config.youtube_search, 'max_search_results', 5)
+        
+        # Initialize cache
+        self.cache_file = Path("data") / ".youtube_cache.json"
+        self.cache = self._load_cache()
+    
+    def search_youtube_url(self, 
+                          podcast_name: str, 
+                          episode_title: str,
+                          episode_description: Optional[str] = None,
+                          episode_number: Optional[int] = None,
+                          duration_seconds: Optional[int] = None) -> Optional[str]:
+        """Search for YouTube URL for the given episode.
+        
+        Args:
+            podcast_name: Name of the podcast
+            episode_title: Title of the episode
+            episode_description: Episode description (for RSS extraction)
+            episode_number: Episode number if available
+            duration_seconds: Episode duration for validation
+            
+        Returns:
+            YouTube URL if found, None otherwise
+        """
+        if not self.search_enabled:
+            return None
+        
+        # Create cache key
+        cache_key = self._create_cache_key(podcast_name, episode_title, episode_number)
+        
+        # Check cache first
+        if self.cache_results and cache_key in self.cache:
+            cached_result = self.cache[cache_key]
+            logger.debug(f"Cache hit for {episode_title}: {cached_result}")
+            return cached_result if cached_result != "NOT_FOUND" else None
+        
+        # Try RSS extraction first
+        youtube_url = None
+        if episode_description:
+            youtube_url = self._extract_from_rss(episode_description)
+            if youtube_url:
+                logger.info(f"Found YouTube URL in RSS for {episode_title}: {youtube_url}")
+        
+        # Try external search if enabled and RSS extraction failed
+        if not youtube_url and self.method == "yt_dlp":
+            # This would require yt-dlp dependency (pending approval)
+            # youtube_url = self._search_with_yt_dlp(podcast_name, episode_title, episode_number, duration_seconds)
+            logger.debug("yt-dlp search not implemented (requires approval)")
+        
+        # Cache the result
+        if self.cache_results:
+            cache_value = youtube_url if youtube_url else "NOT_FOUND"
+            self.cache[cache_key] = cache_value
+            self._save_cache()
+        
+        return youtube_url
+    
+    def _extract_from_rss(self, text: str) -> Optional[str]:
+        """Extract YouTube URL from RSS text content.
+        
+        Args:
+            text: Text content to search (description, content, etc.)
+            
+        Returns:
+            First valid YouTube URL found, None otherwise
+        """
+        youtube_patterns = [
+            r'https?://(?:www\.)?youtube\.com/watch\?v=[\w-]+',
+            r'https?://(?:www\.)?youtu\.be/[\w-]+',
+            r'https?://(?:www\.)?youtube\.com/embed/[\w-]+',
+            r'https?://(?:m\.)?youtube\.com/watch\?v=[\w-]+',
+            r'https?://(?:music\.)?youtube\.com/watch\?v=[\w-]+'
+        ]
+        
+        for pattern in youtube_patterns:
+            matches = re.findall(pattern, text, re.IGNORECASE)
+            if matches:
+                # Return the first valid match
+                url = matches[0]
+                # Normalize URL (convert youtu.be to youtube.com format)
+                return self._normalize_youtube_url(url)
+        
+        return None
+    
+    def _normalize_youtube_url(self, url: str) -> str:
+        """Normalize YouTube URL to standard format.
+        
+        Args:
+            url: Raw YouTube URL
+            
+        Returns:
+            Normalized YouTube URL
+        """
+        # Extract video ID from various YouTube URL formats
+        video_id_pattern = r'(?:v=|be/|embed/)([a-zA-Z0-9_-]{11})'
+        match = re.search(video_id_pattern, url)
+        
+        if match:
+            video_id = match.group(1)
+            return f"https://www.youtube.com/watch?v={video_id}"
+        
+        # Return original URL if can't extract video ID
+        return url
+    
+    def _search_with_yt_dlp(self,
+                           podcast_name: str,
+                           episode_title: str,
+                           episode_number: Optional[int] = None,
+                           duration_seconds: Optional[int] = None) -> Optional[str]:
+        """Search YouTube using yt-dlp (requires approval for implementation).
+        
+        Args:
+            podcast_name: Name of the podcast
+            episode_title: Title of the episode
+            episode_number: Episode number if available
+            duration_seconds: Episode duration for validation
+            
+        Returns:
+            YouTube URL if found, None otherwise
+        """
+        # This method would be implemented if yt-dlp dependency is approved
+        # Implementation would:
+        # 1. Use yt-dlp to search YouTube with various query combinations
+        # 2. Filter results using fuzzy matching
+        # 3. Validate results using duration if available
+        # 4. Return best match
+        
+        logger.debug("yt-dlp search method not implemented (requires approval)")
+        return None
+    
+    def _fuzzy_match_title(self, search_title: str, result_title: str) -> float:
+        """Calculate fuzzy match score between titles.
+        
+        Args:
+            search_title: Title we're searching for
+            result_title: Title from search results
+            
+        Returns:
+            Match score between 0.0 and 1.0
+        """
+        # Normalize titles for comparison
+        search_normalized = self._normalize_title(search_title)
+        result_normalized = self._normalize_title(result_title)
+        
+        return SequenceMatcher(None, search_normalized, result_normalized).ratio()
+    
+    def _normalize_title(self, title: str) -> str:
+        """Normalize title for comparison.
+        
+        Args:
+            title: Raw title
+            
+        Returns:
+            Normalized title
+        """
+        # Convert to lowercase and remove common podcast/episode prefixes
+        normalized = title.lower()
+        
+        # Remove common prefixes
+        prefixes_to_remove = [
+            r'^episode\s*\d+\s*:?\s*',
+            r'^ep\.?\s*\d+\s*:?\s*',
+            r'^#\d+\s*:?\s*',
+            r'^\d+\s*-\s*',
+            r'^\d+\.\s*'
+        ]
+        
+        for prefix in prefixes_to_remove:
+            normalized = re.sub(prefix, '', normalized)
+        
+        # Remove extra whitespace and punctuation
+        normalized = re.sub(r'[^\w\s]', ' ', normalized)
+        normalized = re.sub(r'\s+', ' ', normalized).strip()
+        
+        return normalized
+    
+    def _create_cache_key(self, 
+                         podcast_name: str, 
+                         episode_title: str,
+                         episode_number: Optional[int] = None) -> str:
+        """Create cache key for episode.
+        
+        Args:
+            podcast_name: Name of the podcast
+            episode_title: Title of the episode
+            episode_number: Episode number if available
+            
+        Returns:
+            Cache key string
+        """
+        base_key = f"{podcast_name}|{episode_title}"
+        if episode_number is not None:
+            base_key += f"|{episode_number}"
+        
+        # Use hash to keep keys manageable
+        return str(hash(base_key))
+    
+    def _load_cache(self) -> Dict[str, str]:
+        """Load cache from file.
+        
+        Returns:
+            Cache dictionary
+        """
+        if not self.cache_file.exists():
+            return {}
+        
+        try:
+            with open(self.cache_file, 'r', encoding='utf-8') as f:
+                return json.load(f)
+        except Exception as e:
+            logger.warning(f"Failed to load YouTube cache: {e}")
+            return {}
+    
+    def _save_cache(self):
+        """Save cache to file."""
+        try:
+            # Ensure data directory exists
+            self.cache_file.parent.mkdir(exist_ok=True)
+            
+            with open(self.cache_file, 'w', encoding='utf-8') as f:
+                json.dump(self.cache, f, indent=2)
+        except Exception as e:
+            logger.warning(f"Failed to save YouTube cache: {e}")
+    
+    def clear_cache(self):
+        """Clear the YouTube URL cache."""
+        self.cache = {}
+        if self.cache_file.exists():
+            self.cache_file.unlink()
+        logger.info("YouTube URL cache cleared")
+    
+    def get_cache_stats(self) -> Dict[str, Any]:
+        """Get cache statistics.
+        
+        Returns:
+            Dictionary with cache statistics
+        """
+        total_entries = len(self.cache)
+        found_entries = len([v for v in self.cache.values() if v != "NOT_FOUND"])
+        not_found_entries = total_entries - found_entries
+        
+        return {
+            'total_entries': total_entries,
+            'found_urls': found_entries,
+            'not_found': not_found_entries,
+            'cache_file_size': self.cache_file.stat().st_size if self.cache_file.exists() else 0
+        }

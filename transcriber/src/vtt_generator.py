@@ -27,6 +27,7 @@ class VTTMetadata:
     host: Optional[str] = None
     guests: Optional[List[str]] = None
     description: Optional[str] = None
+    youtube_url: Optional[str] = None
     transcription_date: Optional[str] = None
     speakers: Optional[Dict[str, str]] = None
     
@@ -51,6 +52,9 @@ class VTTMetadata:
             desc_lines = self._wrap_text(f"Description: {self.description}", 80)
             lines.extend(desc_lines)
         
+        if self.youtube_url:
+            lines.append(f"YouTube: {self.youtube_url}")
+        
         if self.transcription_date:
             lines.append(f"Transcribed: {self.transcription_date}")
         
@@ -65,11 +69,12 @@ class VTTMetadata:
             "host": self.host,
             "guests": self.guests,
             "description": self.description,
+            "youtube_url": self.youtube_url,
             "speakers": self.speakers,
             "transcription_date": self.transcription_date
         }
-        # Remove None values for cleaner JSON, but always keep description
-        json_data = {k: v for k, v in json_data.items() if v is not None or k == 'description'}
+        # Remove None values for cleaner JSON, but always keep description and youtube_url
+        json_data = {k: v for k, v in json_data.items() if v is not None or k in ['description', 'youtube_url']}
         lines.append(json.dumps(json_data, indent=2))
         
         return '\n'.join(lines)
@@ -364,6 +369,7 @@ class VTTGenerator:
             host=host,
             guests=guests if guests else None,
             description=episode_data.get('description'),
+            youtube_url=episode_data.get('youtube_url'),
             transcription_date=datetime.now().isoformat(),
             speakers=speaker_mapping
         )

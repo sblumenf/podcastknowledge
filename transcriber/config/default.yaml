@@ -72,6 +72,26 @@ security:
     strategy: "round_robin"  # round_robin or random
     fail_over_enabled: true
 
+# YouTube Search Configuration
+youtube_search:
+  # Enable/disable YouTube URL search
+  enabled: true
+  
+  # Search method: "rss_only" or "yt_dlp" (yt_dlp requires approval)
+  method: "rss_only"
+  
+  # Cache search results to avoid repeated searches
+  cache_results: true
+  
+  # Fuzzy matching threshold for validating search results (0.0-1.0)
+  fuzzy_match_threshold: 0.85
+  
+  # Duration tolerance for validation (10% = 0.1)
+  duration_tolerance: 0.1
+  
+  # Maximum search results to consider
+  max_search_results: 5
+
 # Development Configuration
 development:
   # Enable dry run mode by default

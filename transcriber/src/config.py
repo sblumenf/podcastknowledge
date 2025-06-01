@@ -72,6 +72,17 @@ class SecurityConfig:
 
 
 @dataclass
+class YouTubeSearchConfig:
+    """YouTube search configuration settings."""
+    enabled: bool = True
+    method: str = "rss_only"
+    cache_results: bool = True
+    fuzzy_match_threshold: float = 0.85
+    duration_tolerance: float = 0.1
+    max_search_results: int = 5
+
+
+@dataclass
 class DevelopmentConfig:
     """Development configuration settings."""
     dry_run: bool = False
@@ -100,6 +111,7 @@ class Config:
         self.output = OutputConfig()
         self.logging = LoggingConfig()
         self.security = SecurityConfig()
+        self.youtube_search = YouTubeSearchConfig()
         self.development = DevelopmentConfig()
         
         # Set test mode if specified
@@ -142,6 +154,7 @@ class Config:
         self._apply_config_section('output', self.output)
         self._apply_config_section('logging', self.logging)
         self._apply_config_section('security', self.security)
+        self._apply_config_section('youtube_search', self.youtube_search)
         self._apply_config_section('development', self.development)
         
         # Apply environment variable overrides
