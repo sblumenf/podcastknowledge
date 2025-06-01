@@ -13,7 +13,7 @@ from datetime import datetime
 from src.feed_parser import parse_feed, Episode, PodcastMetadata
 from src.progress_tracker import ProgressTracker, EpisodeStatus
 from src.gemini_client import create_gemini_client, RateLimitedGeminiClient
-from src.key_rotation_manager import KeyRotationManager
+from src.key_rotation_manager import KeyRotationManager, create_key_rotation_manager
 from src.transcription_processor import TranscriptionProcessor
 from src.speaker_identifier import SpeakerIdentifier
 from src.vtt_generator import VTTGenerator, VTTMetadata
@@ -41,8 +41,11 @@ class TranscriptionOrchestrator:
         self.output_dir.mkdir(parents=True, exist_ok=True)
         
         # Initialize components
-        self.progress_tracker = ProgressTracker()
-        self.key_manager = KeyRotationManager()
+        # Use data directory for progress tracking
+        data_dir = Path("data")
+        data_dir.mkdir(exist_ok=True)
+        self.progress_tracker = ProgressTracker(data_dir / ".progress.json")
+        self.key_manager = create_key_rotation_manager()
         self.gemini_client = create_gemini_client()
         
         # Initialize checkpoint manager if enabled
@@ -81,7 +84,7 @@ class TranscriptionOrchestrator:
         # Parse RSS feed
         try:
             podcast_metadata, episodes = parse_feed(rss_url)
-            logger.info(f"Found {len(episodes)} episodes in feed: {podcast_metadata.name}")
+            logger.info(f"Found {len(episodes)} episodes in feed: {podcast_metadata.title}")
         except Exception as e:
             logger.error(f"Failed to parse RSS feed: {e}")
             return {'status': 'failed', 'error': str(e)}
@@ -113,7 +116,7 @@ class TranscriptionOrchestrator:
         }
         
         for i, episode in enumerate(pending_episodes):
-            log_progress(i + 1, len(pending_episodes), f"Processing: {episode.title}")
+            log_progress(i + 1, len(pending_episodes), f"Processing: {episode.title}", "starting")
             
             # Check daily quota
             usage = self.gemini_client.get_usage_summary()
@@ -229,7 +232,7 @@ class TranscriptionOrchestrator:
             Processing result for the episode
         """
         episode_data = episode.to_dict()
-        episode_data['podcast_name'] = podcast_metadata.name
+        episode_data['podcast_name'] = podcast_metadata.title
         
         # Start checkpoint
         if self.checkpoint_manager:
@@ -438,8 +441,12 @@ class TranscriptionOrchestrator:
         pending = []
         
         for episode in episodes:
-            state = self.progress_tracker.get_episode_state(episode.guid)
-            if state in [None, EpisodeStatus.PENDING, EpisodeStatus.FAILED]:
+            # Check if episode is in progress tracker
+            episode_progress = self.progress_tracker.state.episodes.get(episode.guid)
+            
+            # If not tracked or pending/failed, add to pending list
+            if (episode_progress is None or 
+                episode_progress.status in [EpisodeStatus.PENDING, EpisodeStatus.FAILED]):
                 pending.append(episode)
                 
                 if len(pending) >= max_episodes:
@@ -456,7 +463,7 @@ class TranscriptionOrchestrator:
             podcast_metadata: Podcast metadata
         """
         report = {
-            'podcast': podcast_metadata.name,
+            'podcast': podcast_metadata.title,
             'processing_date': datetime.now().isoformat(),
             'summary': {
                 'total_processed': results['processed'],
@@ -469,7 +476,7 @@ class TranscriptionOrchestrator:
         }
         
         # Save report
-        report_file = self.output_dir / f"{podcast_metadata.name}_report.json"
+        report_file = self.output_dir / f"{podcast_metadata.title}_report.json"
         with open(report_file, 'w') as f:
             json.dump(report, f, indent=2)
         

@@ -259,6 +259,15 @@ class TestLoggingIntegration:
     @patch('src.utils.logging.logging.StreamHandler')
     def test_multiple_logger_requests(self, mock_stream, mock_file, mock_mkdir):
         """Test multiple logger requests don't create multiple handlers."""
+        # Setup mock handlers with proper level attribute
+        mock_stream_instance = MagicMock()
+        mock_stream_instance.level = logging.INFO
+        mock_stream.return_value = mock_stream_instance
+        
+        mock_file_instance = MagicMock()
+        mock_file_instance.level = logging.INFO
+        mock_file.return_value = mock_file_instance
+        
         # Get logger multiple times
         logger1 = get_logger()
         logger2 = get_logger('module1')

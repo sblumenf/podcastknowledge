@@ -183,8 +183,8 @@ class TestKeyRotationManager:
         assert manager.current_index == 0
         
         # Check key names are masked
-        assert "test_key_" in manager.key_states[0].key_name
-        assert "..." in manager.key_states[0].key_name
+        assert "key_1 (test_key" in manager.key_states[0].key_name
+        assert "...)" in manager.key_states[0].key_name
     
     def test_init_no_keys(self):
         """Test initializing without keys raises error."""

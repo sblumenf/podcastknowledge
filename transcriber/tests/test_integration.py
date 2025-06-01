@@ -18,6 +18,7 @@ from src.vtt_generator import VTTGenerator, VTTMetadata
 from src.file_organizer import FileOrganizer
 from src.orchestrator import TranscriptionOrchestrator
 from src.checkpoint_recovery import CheckpointManager
+from tenacity import RetryError
 
 
 class TestEndToEndPipeline:
@@ -26,20 +27,23 @@ class TestEndToEndPipeline:
     @pytest.fixture
     def mock_rss_feed(self):
         """Create a mock RSS feed response."""
-        return {
-            'feed': {
-                'title': 'Integration Test Podcast',
-                'description': 'A podcast for integration testing',
-                'link': 'https://example.com/podcast',
-                'language': 'en',
-                'itunes_author': 'Test Host'
-            },
-            'entries': [
+        from unittest.mock import MagicMock
+        mock_feed = MagicMock()
+        mock_feed.bozo = False
+        mock_feed.feed = {
+            'title': 'Integration Test Podcast',
+            'description': 'A podcast for integration testing',
+            'link': 'https://example.com/podcast',
+            'language': 'en',
+            'itunes_author': 'Test Host'
+        }
+        mock_feed.entries = [
                 {
                     'title': 'Episode 1: Introduction',
                     'id': 'ep1-guid',
                     'description': 'First test episode',
                     'published': 'Mon, 15 Jan 2024 10:00:00 GMT',
+                    'published_parsed': (2024, 1, 15, 10, 0, 0, 0, 15, 0),
                     'link': 'https://example.com/episodes/1',
                     'enclosures': [{
                         'href': 'https://example.com/audio/episode1.mp3',
@@ -54,6 +58,7 @@ class TestEndToEndPipeline:
                     'id': 'ep2-guid',
                     'description': 'Second test episode',
                     'published': 'Mon, 22 Jan 2024 10:00:00 GMT',
+                    'published_parsed': (2024, 1, 22, 10, 0, 0, 0, 22, 0),
                     'link': 'https://example.com/episodes/2',
                     'enclosures': [{
                         'href': 'https://example.com/audio/episode2.mp3',
@@ -64,7 +69,7 @@ class TestEndToEndPipeline:
                     'itunes_episode': '2'
                 }
             ]
-        }
+        return mock_feed
     
     @pytest.fixture
     def mock_transcription_response(self):
@@ -136,7 +141,7 @@ Date: 2024-01-15
             
             # Mock Gemini client
             mock_genai_client = MagicMock()
-            mock_genai_client.aio.models.generate_content = AsyncMock()
+            mock_genai_client.generate_content_async = AsyncMock()
             
             # Mock transcription response
             mock_transcript_response = MagicMock()
@@ -146,14 +151,17 @@ Date: 2024-01-15
             mock_speaker_response = MagicMock()
             mock_speaker_response.text = json.dumps(mock_speaker_identification)
             
-            mock_genai_client.aio.models.generate_content.side_effect = [
+            mock_genai_client.generate_content_async.side_effect = [
                 mock_transcript_response,
                 mock_speaker_response
             ]
             
-            with patch('src.gemini_client.genai.Client', return_value=mock_genai_client):
-                # Initialize Gemini client
-                gemini_client = RateLimitedGeminiClient(['test_key_1', 'test_key_2'])
+            with patch('src.gemini_client.genai.configure'):
+                with patch('src.gemini_client.genai.GenerativeModel', return_value=mock_genai_client):
+                    # Patch Path.exists to prevent loading usage state file
+                    with patch('src.gemini_client.Path.exists', return_value=False):
+                        # Initialize Gemini client
+                        gemini_client = RateLimitedGeminiClient(['test_key_1', 'test_key_2'])
                 
                 # Process first episode
                 episode = episodes[1]  # Episode 1 (older)
@@ -225,7 +233,7 @@ Date: 2024-01-15
                 )
                 
                 # Verify results
-                assert saved_metadata.file_path == "Integration_Test_Podcast/2024-01-15_Episode_1__Introduction.vtt"
+                assert saved_metadata.file_path == "Integration_Test_Podcast/2024-01-15_Episode_1_Introduction.vtt"
                 
                 # Check file was created
                 vtt_file = Path(data_dir) / 'transcripts' / saved_metadata.file_path
@@ -264,7 +272,7 @@ Date: 2024-01-15
         with patch.dict(os.environ, {'GEMINI_API_KEY_1': 'test_key_1'}):
             # Initialize components
             progress_tracker = ProgressTracker(data_dir / '.progress.json')
-            checkpoint_manager = CheckpointManager(data_dir / '.checkpoints')
+            checkpoint_manager = CheckpointManager(data_dir)
             
             # Add test episode
             episode_data = {
@@ -282,23 +290,26 @@ Date: 2024-01-15
             mock_response = MagicMock()
             mock_response.text = "Transcription result"
             
-            # First call fails, second succeeds
-            mock_genai_client.aio.models.generate_content = AsyncMock(
+            # First two calls fail (to exhaust retry attempts), then succeeds
+            mock_genai_client.generate_content_async = AsyncMock(
                 side_effect=[
+                    Exception("Rate limit exceeded"),
                     Exception("Rate limit exceeded"),
                     mock_response
                 ]
             )
             
-            with patch('src.gemini_client.genai.Client', return_value=mock_genai_client):
-                gemini_client = RateLimitedGeminiClient(['test_key_1'])
+            with patch('src.gemini_client.genai.configure'):
+                with patch('src.gemini_client.genai.GenerativeModel', return_value=mock_genai_client):
+                    with patch('src.gemini_client.Path.exists', return_value=False):
+                        gemini_client = RateLimitedGeminiClient(['test_key_1'])
                 
                 # First attempt should fail
                 progress_tracker.mark_started(episode_data, api_key_index=0)
                 
-                with pytest.raises(Exception, match="Rate limit exceeded"):
+                with pytest.raises(RetryError):
                     await gemini_client._transcribe_with_retry(
-                        gemini_client.clients[0],
+                        gemini_client.models[0],
                         0,
                         episode_data['audio_url'],
                         episode_data
@@ -325,7 +336,7 @@ Date: 2024-01-15
                 progress_tracker.mark_started(episode_data, api_key_index=0)
                 
                 result = await gemini_client._transcribe_with_retry(
-                    gemini_client.clients[0],
+                    gemini_client.models[0],
                     0,
                     episode_data['audio_url'],
                     episode_data
@@ -342,45 +353,44 @@ Date: 2024-01-15
         """Test pipeline checkpoint and recovery functionality."""
         data_dir = Path(temp_dir) / "data"
         
-        # Create interrupted checkpoint
+        # Create interrupted checkpoint using EpisodeCheckpoint format
         checkpoint_data = {
-            'episode_guid': 'checkpoint-test-ep',
-            'stage': 'transcription',
-            'timestamp': datetime.now().isoformat(),
-            'data': {
-                'transcript': 'Partial transcript...',
+            'episode_id': 'checkpoint-test-ep',
+            'audio_url': 'https://example.com/audio/test.mp3',
+            'title': 'Test Episode',
+            'status': 'transcribing',
+            'stage_completed': [],
+            'temporary_files': {
+                'transcription': str(data_dir / '.temp' / 'partial_transcript.txt')
+            },
+            'start_time': datetime.now().isoformat(),
+            'last_update': datetime.now().isoformat(),
+            'metadata': {
                 'processed_segments': 5,
                 'total_segments': 10
             }
         }
         
-        checkpoint_file = data_dir / '.checkpoints' / 'checkpoint-test-ep.json'
+        checkpoint_file = data_dir / 'checkpoints' / 'active_checkpoint.json'
         checkpoint_file.parent.mkdir(parents=True, exist_ok=True)
         
         with open(checkpoint_file, 'w') as f:
             json.dump(checkpoint_data, f)
         
         # Initialize checkpoint manager
-        checkpoint_manager = CheckpointManager(data_dir / '.checkpoints')
+        checkpoint_manager = CheckpointManager(data_dir)
         
-        # Check for existing checkpoint
-        has_checkpoint = checkpoint_manager.has_checkpoint('checkpoint-test-ep')
-        assert has_checkpoint is True
+        # Check if checkpoint manager can resume
+        assert checkpoint_manager.can_resume() is True
         
-        # Load checkpoint data
-        checkpoint = checkpoint_manager.load_checkpoint('checkpoint-test-ep')
-        assert checkpoint['stage'] == 'transcription'
-        assert checkpoint['data']['processed_segments'] == 5
+        # Get resume info
+        resume_info = checkpoint_manager.get_resume_info()
+        assert resume_info is not None
+        assert checkpoint_manager.current_checkpoint.status == 'transcribing'
         
         # Simulate continuing from checkpoint
-        checkpoint_manager.update_checkpoint('checkpoint-test-ep', {
-            'stage': 'transcription',
-            'data': {
-                'transcript': 'Complete transcript',
-                'processed_segments': 10,
-                'total_segments': 10
-            }
-        })
+        # Update the stage to speaker_identification
+        checkpoint_manager.update_stage('speaker_identification')
         
         # Complete processing
         checkpoint_manager.complete_stage('transcription')
@@ -415,10 +425,12 @@ Date: 2024-01-15
             mock_genai_client = MagicMock()
             mock_response = MagicMock()
             mock_response.text = "Transcription"
-            mock_genai_client.aio.models.generate_content = AsyncMock(return_value=mock_response)
+            mock_genai_client.generate_content_async = AsyncMock(return_value=mock_response)
             
-            with patch('src.gemini_client.genai.Client', return_value=mock_genai_client):
-                gemini_client = RateLimitedGeminiClient(['test_key_1'])
+            with patch('src.gemini_client.genai.configure'):
+                with patch('src.gemini_client.genai.GenerativeModel', return_value=mock_genai_client):
+                    with patch('src.gemini_client.Path.exists', return_value=False):
+                        gemini_client = RateLimitedGeminiClient(['test_key_1'])
                 
                 # Process episodes until quota limit
                 processed_count = 0

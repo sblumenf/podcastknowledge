@@ -309,7 +309,7 @@ class VTTGenerator:
         """
         # Extract guest names from speaker mapping if available
         guests = []
-        host = episode_data.get('author')
+        host = None
         
         if speaker_mapping:
             for label, name in speaker_mapping.items():
@@ -318,8 +318,12 @@ class VTTGenerator:
                     guest_name = name.split('(')[0].strip()
                     if guest_name and guest_name != 'Guest':
                         guests.append(guest_name)
-                elif 'Host' in name and not host:
+                elif 'Host' in name:
                     host = name.split('(')[0].strip()
+        
+        # Fall back to author if no host found in speaker mapping
+        if not host:
+            host = episode_data.get('author')
         
         return VTTMetadata(
             podcast_name=episode_data.get('podcast_name', 'Unknown Podcast'),
@@ -349,6 +353,9 @@ class VTTGenerator:
         
         # Replace forward/back slashes
         filename = filename.replace('/', '_').replace('\\', '_')
+        
+        # Replace spaces with underscores
+        filename = filename.replace(' ', '_')
         
         # Remove leading/trailing dots and spaces
         filename = filename.strip('. ')
