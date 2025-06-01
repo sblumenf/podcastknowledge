@@ -889,3 +889,45 @@ ValueError: Simulated error for testing
 2025-05-31 23:15:35 - podcast_transcriber.feed_parser - INFO - Parsed podcast: Empty Podcast
 2025-05-31 23:15:35 - podcast_transcriber.feed_parser - INFO - Found 0 episodes in feed
 2025-05-31 23:15:35 - podcast_transcriber.feed_parser - WARNING - No episodes found in feed
+2025-05-31 23:16:24 - podcast_transcriber - INFO - Logging system initialized
+2025-05-31 23:16:24 - podcast_transcriber - INFO - Log level: INFO
+2025-05-31 23:16:24 - podcast_transcriber - INFO - Log directory: /home/sergeblumenfeld/podcastknowledge/transcriber/logs
+2025-05-31 23:16:24 - podcast_transcriber.file_organizer - INFO - Loaded 1 episodes from manifest
+2025-05-31 23:16:24 - podcast_transcriber.file_organizer - WARNING - Invalid date format: invalid-date, using current date
+2025-05-31 23:16:24 - podcast_transcriber.file_organizer - INFO - Created episode file: Test_Podcast/2024-01-15_Test_Episode.vtt
+2025-05-31 23:16:24 - podcast_transcriber.file_organizer - ERROR - Failed to write episode file /tmp/tmpceyhy52e/Test/2024-01-15_Test.vtt: Write error
+2025-05-31 23:16:24 - podcast_transcriber.file_organizer - INFO - Loaded 2 episodes from manifest
+2025-05-31 23:16:24 - podcast_transcriber.file_organizer - INFO - Removed empty directory: Empty_Podcast
+2025-05-31 23:17:50 - podcast_transcriber - INFO - Logging system initialized
+2025-05-31 23:17:50 - podcast_transcriber - INFO - Log level: INFO
+2025-05-31 23:17:50 - podcast_transcriber - INFO - Log directory: /home/sergeblumenfeld/podcastknowledge/transcriber/logs
+2025-05-31 23:17:50 - podcast_transcriber.file_organizer - INFO - Loaded 1 episodes from manifest
+2025-05-31 23:17:50 - podcast_transcriber.file_organizer - WARNING - Invalid date format: invalid-date, using current date
+2025-05-31 23:17:50 - podcast_transcriber.file_organizer - INFO - Created episode file: Test_Podcast/2024-01-15_Test_Episode.vtt
+2025-05-31 23:17:50 - podcast_transcriber.file_organizer - ERROR - Failed to write episode file /tmp/tmp_gl21ava/Test/2024-01-15_Test.vtt: Write error
+2025-05-31 23:17:50 - podcast_transcriber.file_organizer - INFO - Loaded 2 episodes from manifest
+2025-05-31 23:17:50 - podcast_transcriber.file_organizer - INFO - Removed empty directory: Empty_Podcast
+2025-05-31 23:18:07 - podcast_transcriber - INFO - Logging system initialized
+2025-05-31 23:18:07 - podcast_transcriber - INFO - Log level: INFO
+2025-05-31 23:18:07 - podcast_transcriber - INFO - Log directory: /home/sergeblumenfeld/podcastknowledge/transcriber/logs
+2025-05-31 23:19:12 - podcast_transcriber - INFO - Logging system initialized
+2025-05-31 23:19:12 - podcast_transcriber - INFO - Log level: INFO
+2025-05-31 23:19:12 - podcast_transcriber - INFO - Log directory: /home/sergeblumenfeld/podcastknowledge/transcriber/logs
+2025-05-31 23:19:40 - podcast_transcriber - INFO - Logging system initialized
+2025-05-31 23:19:40 - podcast_transcriber - INFO - Log level: INFO
+2025-05-31 23:19:40 - podcast_transcriber - INFO - Log directory: /home/sergeblumenfeld/podcastknowledge/transcriber/logs
+2025-05-31 23:19:40 - podcast_transcriber.file_organizer - INFO - Loaded 1 episodes from manifest
+2025-05-31 23:19:40 - podcast_transcriber.file_organizer - WARNING - Invalid date format: invalid-date, using current date
+2025-05-31 23:19:40 - podcast_transcriber.file_organizer - INFO - Created episode file: Test_Podcast/2024-01-15_Test_Episode.vtt
+2025-05-31 23:19:40 - podcast_transcriber.file_organizer - ERROR - Failed to write episode file /tmp/tmpx61rp7k6/Test/2024-01-15_Test.vtt: Write error
+2025-05-31 23:19:40 - podcast_transcriber.file_organizer - INFO - Loaded 2 episodes from manifest
+2025-05-31 23:19:40 - podcast_transcriber.file_organizer - INFO - Removed empty directory: Empty_Podcast
+2025-05-31 23:19:59 - podcast_transcriber - INFO - Logging system initialized
+2025-05-31 23:19:59 - podcast_transcriber - INFO - Log level: INFO
+2025-05-31 23:19:59 - podcast_transcriber - INFO - Log directory: /home/sergeblumenfeld/podcastknowledge/transcriber/logs
+2025-05-31 23:19:59 - podcast_transcriber.file_organizer - INFO - Loaded 1 episodes from manifest
+2025-05-31 23:19:59 - podcast_transcriber.file_organizer - WARNING - Invalid date format: invalid-date, using current date
+2025-05-31 23:19:59 - podcast_transcriber.file_organizer - INFO - Created episode file: Test_Podcast/2024-01-15_Test_Episode.vtt
+2025-05-31 23:19:59 - podcast_transcriber.file_organizer - ERROR - Failed to write episode file /tmp/tmpkgxu8cjd/Test/2024-01-15_Test.vtt: Write error
+2025-05-31 23:19:59 - podcast_transcriber.file_organizer - INFO - Loaded 2 episodes from manifest
+2025-05-31 23:19:59 - podcast_transcriber.file_organizer - INFO - Removed empty directory: Empty_Podcast

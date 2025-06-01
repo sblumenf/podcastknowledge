@@ -112,3 +112,7 @@ ValueError: Simulated error for testing
 2025-05-31 23:14:32 - podcast_transcriber.feed_parser - ERROR - Failed to parse feed https://example.com/feed.xml: Network error
 2025-05-31 23:15:35 - podcast_transcriber.feed_parser - ERROR - Feed parsing error: XML parsing error
 2025-05-31 23:15:35 - podcast_transcriber.feed_parser - ERROR - Failed to parse feed https://example.com/feed.xml: Network error
+2025-05-31 23:16:24 - podcast_transcriber.file_organizer - ERROR - Failed to write episode file /tmp/tmpceyhy52e/Test/2024-01-15_Test.vtt: Write error
+2025-05-31 23:17:50 - podcast_transcriber.file_organizer - ERROR - Failed to write episode file /tmp/tmp_gl21ava/Test/2024-01-15_Test.vtt: Write error
+2025-05-31 23:19:40 - podcast_transcriber.file_organizer - ERROR - Failed to write episode file /tmp/tmpx61rp7k6/Test/2024-01-15_Test.vtt: Write error
+2025-05-31 23:19:59 - podcast_transcriber.file_organizer - ERROR - Failed to write episode file /tmp/tmpkgxu8cjd/Test/2024-01-15_Test.vtt: Write error
