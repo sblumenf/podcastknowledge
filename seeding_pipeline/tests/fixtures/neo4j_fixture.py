@@ -38,7 +38,7 @@ def neo4j_driver(neo4j_container):
         # Get connection details
         connection_url = neo4j_container.get_connection_url()
         username = "neo4j"
-        password = neo4j_container.ADMIN_PASSWORD
+        password = neo4j_container.NEO4J_ADMIN_PASSWORD
         
         logger.debug(f"Connecting to Neo4j at {connection_url}")
         driver = GraphDatabase.driver(

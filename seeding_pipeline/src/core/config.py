@@ -35,6 +35,8 @@ class PipelineConfig:
     # Processing Settings
     min_segment_tokens: int = 150
     max_segment_tokens: int = 800
+    min_speakers: int = 1
+    max_speakers: int = 10
     
     # Neo4j Database Settings (from environment)
     neo4j_uri: str = field(default_factory=lambda: os.environ.get("NEO4J_URI", "bolt://localhost:7687"))
@@ -54,6 +56,7 @@ class PipelineConfig:
     
     # File Paths
     base_dir: Path = field(default_factory=lambda: Path("."))
+    audio_dir: Path = field(default_factory=lambda: Path("./audio"))
     output_dir: Path = field(default_factory=lambda: Path("./processed_podcasts"))
     checkpoint_dir: Path = field(default_factory=lambda: Path("./checkpoints"))
     

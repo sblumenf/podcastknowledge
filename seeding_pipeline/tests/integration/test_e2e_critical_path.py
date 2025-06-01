@@ -13,13 +13,13 @@ from src.storage.graph_storage import GraphStorageService
 class TestE2ECriticalPath:
     """Test complete pipeline from VTT to Neo4j."""
     
-    def test_vtt_to_neo4j_pipeline(self, test_data_dir, neo4j_driver, temp_dir):
+    def test_vtt_to_neo4j_pipeline(self, test_data_dir, neo4j_driver, neo4j_container, temp_dir):
         """Test complete pipeline from VTT to Neo4j."""
         # Create config with test Neo4j connection
         config = SeedingConfig()
-        config.neo4j_uri = neo4j_driver._uri
-        config.neo4j_username = neo4j_driver._auth[0]
-        config.neo4j_password = neo4j_driver._auth[1]
+        config.neo4j_uri = neo4j_container.get_connection_url()
+        config.neo4j_username = "neo4j"
+        config.neo4j_password = neo4j_container.NEO4J_ADMIN_PASSWORD
         config.checkpoint_dir = str(temp_dir / "checkpoints")
         config.use_schemaless_extraction = True
         
@@ -32,7 +32,6 @@ class TestE2ECriticalPath:
             username=config.neo4j_username,
             password=config.neo4j_password
         )
-        orchestrator.storage_service._driver = neo4j_driver
         
         # Process single VTT file
         vtt_file = test_data_dir / "minimal.vtt"
@@ -60,13 +59,13 @@ class TestE2ECriticalPath:
                 ).single()["count"]
                 assert node_count >= 0  # May have created nodes
                 
-    def test_batch_processing(self, test_data_dir, neo4j_driver, temp_dir):
+    def test_batch_processing(self, test_data_dir, neo4j_driver, neo4j_container, temp_dir):
         """Test processing batch of files."""
         # Create config
         config = SeedingConfig()
-        config.neo4j_uri = neo4j_driver._uri
-        config.neo4j_username = neo4j_driver._auth[0]
-        config.neo4j_password = neo4j_driver._auth[1]
+        config.neo4j_uri = neo4j_container.get_connection_url()
+        config.neo4j_username = "neo4j"
+        config.neo4j_password = neo4j_container.NEO4J_ADMIN_PASSWORD
         config.checkpoint_dir = str(temp_dir / "checkpoints")
         config.batch_size = 5
         config.use_schemaless_extraction = True
@@ -79,7 +78,7 @@ class TestE2ECriticalPath:
             username=config.neo4j_username,
             password=config.neo4j_password
         )
-        orchestrator.storage_service._driver = neo4j_driver
+        # Storage service will handle driver creation
         
         # Create test batch
         vtt_file = test_data_dir / "minimal.vtt"
@@ -98,12 +97,12 @@ class TestE2ECriticalPath:
         assert result["files_processed"] + result["files_failed"] <= 10
         assert "checkpoint_saved" not in result or isinstance(result.get("checkpoint_saved"), bool)
         
-    def test_batch_with_failures(self, test_data_dir, neo4j_driver, temp_dir):
+    def test_batch_with_failures(self, test_data_dir, neo4j_driver, neo4j_container, temp_dir):
         """Test batch processing with some failures."""
         config = SeedingConfig()
-        config.neo4j_uri = neo4j_driver._uri
-        config.neo4j_username = neo4j_driver._auth[0]
-        config.neo4j_password = neo4j_driver._auth[1]
+        config.neo4j_uri = neo4j_container.get_connection_url()
+        config.neo4j_username = "neo4j"
+        config.neo4j_password = neo4j_container.NEO4J_ADMIN_PASSWORD
         config.checkpoint_dir = str(temp_dir / "checkpoints")
         config.use_schemaless_extraction = True
         
@@ -115,7 +114,7 @@ class TestE2ECriticalPath:
             username=config.neo4j_username,
             password=config.neo4j_password
         )
-        orchestrator.storage_service._driver = neo4j_driver
+        # Storage service will handle driver creation
         
         good_file = test_data_dir / "minimal.vtt"
         bad_file = temp_dir / "nonexistent.vtt"
@@ -140,12 +139,12 @@ class TestE2ECriticalPath:
         assert len(result["errors"]) >= 1
         assert any("nonexistent.vtt" in str(err.get("file", "")) for err in result["errors"])
         
-    def test_checkpoint_recovery(self, test_data_dir, neo4j_driver, temp_dir):
+    def test_checkpoint_recovery(self, test_data_dir, neo4j_driver, neo4j_container, temp_dir):
         """Test checkpoint recovery during batch processing."""
         config = SeedingConfig()
-        config.neo4j_uri = neo4j_driver._uri
-        config.neo4j_username = neo4j_driver._auth[0]
-        config.neo4j_password = neo4j_driver._auth[1]
+        config.neo4j_uri = neo4j_container.get_connection_url()
+        config.neo4j_username = "neo4j"
+        config.neo4j_password = neo4j_container.NEO4J_ADMIN_PASSWORD
         config.checkpoint_dir = str(temp_dir / "checkpoints")
         config.use_schemaless_extraction = True
         
@@ -156,7 +155,7 @@ class TestE2ECriticalPath:
             username=config.neo4j_username,
             password=config.neo4j_password
         )
-        orchestrator1.storage_service._driver = neo4j_driver
+        # Storage service will handle driver creation
         
         vtt_file = test_data_dir / "minimal.vtt"
         
@@ -178,7 +177,7 @@ class TestE2ECriticalPath:
             username=config.neo4j_username,
             password=config.neo4j_password
         )
-        orchestrator2.storage_service._driver = neo4j_driver
+        # Storage service will handle driver creation
         
         # Process remaining batch
         result2 = orchestrator2.process_vtt_files(batch[2:])
