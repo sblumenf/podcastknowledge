@@ -149,3 +149,195 @@
 2025-06-01 01:03:50 - podcast_transcriber.progress_tracker - ERROR - Failed to load progress file: Expecting value: line 1 column 1 (char 0)
 2025-06-01 01:03:50 - podcast_transcriber.progress_tracker - ERROR - Failed to save progress state: Write failed
 2025-06-01 01:03:50 - podcast_transcriber.progress_tracker - ERROR - Episode non-existent not found in progress tracker
+2025-06-01 11:28:58 - podcast_transcriber.config - ERROR - Failed to load configuration: mapping values are not allowed here
+  in "/tmp/pytest-of-sergeblumenfeld/pytest-5/test_invalid_yaml_file0/invalid_config.yaml", line 1, column 14
+2025-06-01 11:28:58 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - API timeout must be positive
+2025-06-01 11:28:58 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - API max_attempts must be between 1 and 5
+2025-06-01 11:28:58 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Max episodes per day must be positive
+2025-06-01 11:28:58 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Console log level must be one of: ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL']
+2025-06-01 11:28:58 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - No API keys found in environment variables: ['GEMINI_API_KEY_1', 'GEMINI_API_KEY_2']
+2025-06-01 11:28:58 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Timestamp precision must be between 0 and 3
+2025-06-01 11:28:58 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Rotation strategy must be one of: ['round_robin', 'random']
+2025-06-01 11:28:58 - podcast_transcriber.feed_parser - ERROR - Feed parsing error: XML parsing error
+2025-06-01 11:28:58 - podcast_transcriber.feed_parser - ERROR - Failed to parse feed https://example.com/feed.xml: Network error
+2025-06-01 11:28:58 - podcast_transcriber.file_organizer - ERROR - Failed to write episode file /tmp/pytest-of-sergeblumenfeld/pytest-5/test_create_episode_file_error0/Test/2024-01-15_Test.vtt: Write error
+2025-06-01 11:28:59 - podcast_transcriber.gemini_client - ERROR - No API keys available due to rate limits
+2025-06-01 11:28:59 - podcast_transcriber.gemini_client - ERROR - No API keys available due to rate limits
+2025-06-01 11:28:59 - podcast_transcriber.gemini_client - ERROR - Transcription failed: Quota exceeded
+2025-06-01 11:28:59 - podcast_transcriber.gemini_client - ERROR - Speaker identification failed: API error with quota
+2025-06-01 11:29:03 - podcast_transcriber.retry_wrapper - ERROR - transcribe_audio failed after 2 attempts
+2025-06-01 11:29:03 - podcast_transcriber.key_rotation_manager - ERROR - No API keys found in environment
+2025-06-01 11:29:03 - podcast_transcriber.transcription_processor - ERROR - Transcription failed: not enough values to unpack (expected 2, got 0)
+2025-06-01 11:29:03 - podcast_transcriber.orchestrator - ERROR - Episode processing failed: Transcription failed
+2025-06-01 11:29:03 - podcast_transcriber.checkpoint_recovery - ERROR - Episode failed: Episode 1 - Transcription failed
+2025-06-01 11:29:03 - podcast_transcriber.transcription_processor - ERROR - Transcription failed: not enough values to unpack (expected 2, got 0)
+2025-06-01 11:29:03 - podcast_transcriber.orchestrator - ERROR - Episode processing failed: Transcription failed
+2025-06-01 11:29:03 - podcast_transcriber.checkpoint_recovery - ERROR - Episode failed: Episode 2 - Transcription failed
+2025-06-01 11:29:04 - podcast_transcriber.progress_tracker - ERROR - Failed to load progress file: Expecting value: line 1 column 1 (char 0)
+2025-06-01 11:29:04 - podcast_transcriber.progress_tracker - ERROR - Failed to save progress state: Write failed
+2025-06-01 11:29:04 - podcast_transcriber.progress_tracker - ERROR - Episode non-existent not found in progress tracker
+2025-06-01 11:29:07 - podcast_transcriber.config - ERROR - Failed to load configuration: mapping values are not allowed here
+  in "/tmp/pytest-of-sergeblumenfeld/pytest-6/test_invalid_yaml_file0/invalid_config.yaml", line 1, column 14
+2025-06-01 11:29:07 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - API timeout must be positive
+2025-06-01 11:29:07 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - API max_attempts must be between 1 and 5
+2025-06-01 11:29:07 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Max episodes per day must be positive
+2025-06-01 11:29:07 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Console log level must be one of: ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL']
+2025-06-01 11:29:07 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - No API keys found in environment variables: ['GEMINI_API_KEY_1', 'GEMINI_API_KEY_2']
+2025-06-01 11:29:07 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Timestamp precision must be between 0 and 3
+2025-06-01 11:29:07 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Rotation strategy must be one of: ['round_robin', 'random']
+2025-06-01 11:29:07 - podcast_transcriber.feed_parser - ERROR - Feed parsing error: XML parsing error
+2025-06-01 11:29:07 - podcast_transcriber.feed_parser - ERROR - Failed to parse feed https://example.com/feed.xml: Network error
+2025-06-01 11:29:07 - podcast_transcriber.file_organizer - ERROR - Failed to write episode file /tmp/pytest-of-sergeblumenfeld/pytest-6/test_create_episode_file_error0/Test/2024-01-15_Test.vtt: Write error
+2025-06-01 11:29:07 - podcast_transcriber.gemini_client - ERROR - No API keys available due to rate limits
+2025-06-01 11:29:07 - podcast_transcriber.gemini_client - ERROR - No API keys available due to rate limits
+2025-06-01 11:29:07 - podcast_transcriber.gemini_client - ERROR - Transcription failed: Quota exceeded
+2025-06-01 11:29:07 - podcast_transcriber.gemini_client - ERROR - Speaker identification failed: API error with quota
+2025-06-01 11:29:11 - podcast_transcriber.retry_wrapper - ERROR - transcribe_audio failed after 2 attempts
+2025-06-01 11:29:12 - podcast_transcriber.key_rotation_manager - ERROR - No API keys found in environment
+2025-06-01 11:29:12 - podcast_transcriber.transcription_processor - ERROR - Transcription failed: not enough values to unpack (expected 2, got 0)
+2025-06-01 11:29:12 - podcast_transcriber.orchestrator - ERROR - Episode processing failed: Transcription failed
+2025-06-01 11:29:12 - podcast_transcriber.checkpoint_recovery - ERROR - Episode failed: Episode 1 - Transcription failed
+2025-06-01 11:29:12 - podcast_transcriber.transcription_processor - ERROR - Transcription failed: not enough values to unpack (expected 2, got 0)
+2025-06-01 11:29:12 - podcast_transcriber.orchestrator - ERROR - Episode processing failed: Transcription failed
+2025-06-01 11:29:12 - podcast_transcriber.checkpoint_recovery - ERROR - Episode failed: Episode 2 - Transcription failed
+2025-06-01 11:29:12 - podcast_transcriber.progress_tracker - ERROR - Failed to load progress file: Expecting value: line 1 column 1 (char 0)
+2025-06-01 11:29:13 - podcast_transcriber.progress_tracker - ERROR - Failed to save progress state: Write failed
+2025-06-01 11:29:13 - podcast_transcriber.progress_tracker - ERROR - Episode non-existent not found in progress tracker
+2025-06-01 11:38:02 - podcast_transcriber.config - ERROR - Failed to load configuration: mapping values are not allowed here
+  in "/tmp/pytest-of-sergeblumenfeld/pytest-7/test_invalid_yaml_file0/invalid_config.yaml", line 1, column 14
+2025-06-01 11:38:02 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - API timeout must be positive
+2025-06-01 11:38:02 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - API max_attempts must be between 1 and 5
+2025-06-01 11:38:02 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Max episodes per day must be positive
+2025-06-01 11:38:02 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Console log level must be one of: ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL']
+2025-06-01 11:38:02 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - No API keys found in environment variables: ['GEMINI_API_KEY_1', 'GEMINI_API_KEY_2']
+2025-06-01 11:38:02 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Timestamp precision must be between 0 and 3
+2025-06-01 11:38:02 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Rotation strategy must be one of: ['round_robin', 'random']
+2025-06-01 11:38:02 - podcast_transcriber.feed_parser - ERROR - Feed parsing error: XML parsing error
+2025-06-01 11:38:02 - podcast_transcriber.feed_parser - ERROR - Failed to parse feed https://example.com/feed.xml: Network error
+2025-06-01 11:38:02 - podcast_transcriber.file_organizer - ERROR - Failed to write episode file /tmp/pytest-of-sergeblumenfeld/pytest-7/test_create_episode_file_error0/Test/2024-01-15_Test.vtt: Write error
+2025-06-01 11:38:02 - podcast_transcriber.gemini_client - ERROR - No API keys available due to rate limits
+2025-06-01 11:38:02 - podcast_transcriber.gemini_client - ERROR - No API keys available due to rate limits
+2025-06-01 11:38:02 - podcast_transcriber.gemini_client - ERROR - Transcription failed: Quota exceeded
+2025-06-01 11:38:02 - podcast_transcriber.gemini_client - ERROR - Speaker identification failed: API error with quota
+2025-06-01 11:38:07 - podcast_transcriber.retry_wrapper - ERROR - transcribe_audio failed after 2 attempts
+2025-06-01 11:38:07 - podcast_transcriber.key_rotation_manager - ERROR - No API keys found in environment
+2025-06-01 11:38:07 - podcast_transcriber.transcription_processor - ERROR - Transcription failed: not enough values to unpack (expected 2, got 0)
+2025-06-01 11:38:07 - podcast_transcriber.orchestrator - ERROR - Episode processing failed: Transcription failed
+2025-06-01 11:38:07 - podcast_transcriber.checkpoint_recovery - ERROR - Episode failed: Episode 1 - Transcription failed
+2025-06-01 11:38:07 - podcast_transcriber.transcription_processor - ERROR - Transcription failed: not enough values to unpack (expected 2, got 0)
+2025-06-01 11:38:07 - podcast_transcriber.orchestrator - ERROR - Episode processing failed: Transcription failed
+2025-06-01 11:38:07 - podcast_transcriber.checkpoint_recovery - ERROR - Episode failed: Episode 2 - Transcription failed
+2025-06-01 11:38:07 - podcast_transcriber.progress_tracker - ERROR - Failed to load progress file: Expecting value: line 1 column 1 (char 0)
+2025-06-01 11:38:07 - podcast_transcriber.progress_tracker - ERROR - Failed to save progress state: Write failed
+2025-06-01 11:38:08 - podcast_transcriber.progress_tracker - ERROR - Episode non-existent not found in progress tracker
+2025-06-01 11:39:04 - podcast_transcriber.gemini_client - ERROR - No API keys available due to rate limits
+2025-06-01 11:39:05 - podcast_transcriber.gemini_client - ERROR - No API keys available due to rate limits
+2025-06-01 11:39:05 - podcast_transcriber.gemini_client - ERROR - Transcription failed: Quota exceeded
+2025-06-01 11:39:05 - podcast_transcriber.gemini_client - ERROR - Speaker identification failed: API error with quota
+2025-06-01 11:39:18 - podcast_transcriber.transcription_processor - ERROR - Transcription failed: not enough values to unpack (expected 2, got 0)
+2025-06-01 11:39:18 - podcast_transcriber.orchestrator - ERROR - Episode processing failed: Transcription failed
+2025-06-01 11:39:18 - podcast_transcriber.checkpoint_recovery - ERROR - Episode failed: Episode 1 - Transcription failed
+2025-06-01 11:39:18 - podcast_transcriber.transcription_processor - ERROR - Transcription failed: not enough values to unpack (expected 2, got 0)
+2025-06-01 11:39:18 - podcast_transcriber.orchestrator - ERROR - Episode processing failed: Transcription failed
+2025-06-01 11:39:18 - podcast_transcriber.checkpoint_recovery - ERROR - Episode failed: Episode 2 - Transcription failed
+2025-06-01 11:39:37 - podcast_transcriber.config - ERROR - Failed to load configuration: mapping values are not allowed here
+  in "/tmp/pytest-of-sergeblumenfeld/pytest-10/test_invalid_yaml_file0/invalid_config.yaml", line 1, column 14
+2025-06-01 11:39:38 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - API timeout must be positive
+2025-06-01 11:39:38 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - API max_attempts must be between 1 and 5
+2025-06-01 11:39:38 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Max episodes per day must be positive
+2025-06-01 11:39:38 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Console log level must be one of: ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL']
+2025-06-01 11:39:38 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - No API keys found in environment variables: ['GEMINI_API_KEY_1', 'GEMINI_API_KEY_2']
+2025-06-01 11:39:38 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Timestamp precision must be between 0 and 3
+2025-06-01 11:39:38 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Rotation strategy must be one of: ['round_robin', 'random']
+2025-06-01 11:39:38 - podcast_transcriber.feed_parser - ERROR - Feed parsing error: XML parsing error
+2025-06-01 11:39:38 - podcast_transcriber.feed_parser - ERROR - Failed to parse feed https://example.com/feed.xml: Network error
+2025-06-01 11:39:38 - podcast_transcriber.file_organizer - ERROR - Failed to write episode file /tmp/pytest-of-sergeblumenfeld/pytest-10/test_create_episode_file_error0/Test/2024-01-15_Test.vtt: Write error
+2025-06-01 11:39:39 - podcast_transcriber.gemini_client - ERROR - No API keys available due to rate limits
+2025-06-01 11:39:39 - podcast_transcriber.gemini_client - ERROR - No API keys available due to rate limits
+2025-06-01 11:39:39 - podcast_transcriber.gemini_client - ERROR - Transcription failed: Quota exceeded
+2025-06-01 11:39:39 - podcast_transcriber.gemini_client - ERROR - Speaker identification failed: API error with quota
+2025-06-01 11:39:43 - podcast_transcriber.retry_wrapper - ERROR - transcribe_audio failed after 2 attempts
+2025-06-01 11:39:44 - podcast_transcriber.key_rotation_manager - ERROR - No API keys found in environment
+2025-06-01 11:39:44 - podcast_transcriber.transcription_processor - ERROR - Transcription failed: not enough values to unpack (expected 2, got 0)
+2025-06-01 11:39:44 - podcast_transcriber.orchestrator - ERROR - Episode processing failed: Transcription failed
+2025-06-01 11:39:44 - podcast_transcriber.checkpoint_recovery - ERROR - Episode failed: Episode 1 - Transcription failed
+2025-06-01 11:39:44 - podcast_transcriber.transcription_processor - ERROR - Transcription failed: not enough values to unpack (expected 2, got 0)
+2025-06-01 11:39:44 - podcast_transcriber.orchestrator - ERROR - Episode processing failed: Transcription failed
+2025-06-01 11:39:44 - podcast_transcriber.checkpoint_recovery - ERROR - Episode failed: Episode 2 - Transcription failed
+2025-06-01 11:40:13 - podcast_transcriber.config - ERROR - Failed to load configuration: mapping values are not allowed here
+  in "/tmp/pytest-of-sergeblumenfeld/pytest-11/test_invalid_yaml_file0/invalid_config.yaml", line 1, column 14
+2025-06-01 11:40:13 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - API timeout must be positive
+2025-06-01 11:40:13 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - API max_attempts must be between 1 and 5
+2025-06-01 11:40:13 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Max episodes per day must be positive
+2025-06-01 11:40:13 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Console log level must be one of: ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL']
+2025-06-01 11:40:13 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - No API keys found in environment variables: ['GEMINI_API_KEY_1', 'GEMINI_API_KEY_2']
+2025-06-01 11:40:14 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Timestamp precision must be between 0 and 3
+2025-06-01 11:40:14 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Rotation strategy must be one of: ['round_robin', 'random']
+2025-06-01 11:40:14 - podcast_transcriber.feed_parser - ERROR - Feed parsing error: XML parsing error
+2025-06-01 11:40:14 - podcast_transcriber.feed_parser - ERROR - Failed to parse feed https://example.com/feed.xml: Network error
+2025-06-01 11:40:14 - podcast_transcriber.file_organizer - ERROR - Failed to write episode file /tmp/pytest-of-sergeblumenfeld/pytest-11/test_create_episode_file_error0/Test/2024-01-15_Test.vtt: Write error
+2025-06-01 11:40:14 - podcast_transcriber.gemini_client - ERROR - No API keys available due to rate limits
+2025-06-01 11:40:14 - podcast_transcriber.gemini_client - ERROR - No API keys available due to rate limits
+2025-06-01 11:40:14 - podcast_transcriber.gemini_client - ERROR - Transcription failed: Quota exceeded
+2025-06-01 11:40:14 - podcast_transcriber.gemini_client - ERROR - Speaker identification failed: API error with quota
+2025-06-01 11:40:18 - podcast_transcriber.retry_wrapper - ERROR - transcribe_audio failed after 2 attempts
+2025-06-01 11:40:18 - podcast_transcriber.key_rotation_manager - ERROR - No API keys found in environment
+2025-06-01 11:40:18 - podcast_transcriber.transcription_processor - ERROR - Transcription failed: not enough values to unpack (expected 2, got 0)
+2025-06-01 11:40:18 - podcast_transcriber.orchestrator - ERROR - Episode processing failed: Transcription failed
+2025-06-01 11:40:18 - podcast_transcriber.checkpoint_recovery - ERROR - Episode failed: Episode 1 - Transcription failed
+2025-06-01 11:40:18 - podcast_transcriber.transcription_processor - ERROR - Transcription failed: not enough values to unpack (expected 2, got 0)
+2025-06-01 11:40:18 - podcast_transcriber.orchestrator - ERROR - Episode processing failed: Transcription failed
+2025-06-01 11:40:18 - podcast_transcriber.checkpoint_recovery - ERROR - Episode failed: Episode 2 - Transcription failed
+2025-06-01 11:40:19 - podcast_transcriber.progress_tracker - ERROR - Failed to load progress file: Expecting value: line 1 column 1 (char 0)
+2025-06-01 11:40:19 - podcast_transcriber.progress_tracker - ERROR - Failed to save progress state: Write failed
+2025-06-01 11:40:19 - podcast_transcriber.progress_tracker - ERROR - Episode non-existent not found in progress tracker
+2025-06-01 11:51:39 - podcast_transcriber.orchestrator - ERROR - Episode processing failed: API error
+2025-06-01 11:51:39 - podcast_transcriber.checkpoint_recovery - ERROR - Episode failed: Episode 2 - API error
+2025-06-01 11:52:27 - podcast_transcriber.orchestrator - ERROR - Episode processing failed: API error
+2025-06-01 11:52:27 - podcast_transcriber.checkpoint_recovery - ERROR - Episode failed: Episode 2 - API error
+2025-06-01 11:52:46 - podcast_transcriber.orchestrator - ERROR - Episode processing failed: API error
+2025-06-01 11:52:46 - podcast_transcriber.checkpoint_recovery - ERROR - Episode failed: Episode 2 - API error
+2025-06-01 11:54:59 - podcast_transcriber.orchestrator - ERROR - Episode processing failed: API error
+2025-06-01 11:54:59 - podcast_transcriber.checkpoint_recovery - ERROR - Episode failed: Episode 2 - API error
+2025-06-01 12:01:01 - podcast_transcriber.config - ERROR - Failed to load configuration: mapping values are not allowed here
+  in "/tmp/pytest-of-sergeblumenfeld/pytest-20/test_invalid_yaml_file0/invalid_config.yaml", line 1, column 14
+2025-06-01 12:01:01 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - API timeout must be positive
+2025-06-01 12:01:01 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - API max_attempts must be between 1 and 5
+2025-06-01 12:01:01 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Max episodes per day must be positive
+2025-06-01 12:01:01 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Console log level must be one of: ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL']
+2025-06-01 12:01:01 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - No API keys found in environment variables: ['GEMINI_API_KEY_1', 'GEMINI_API_KEY_2']
+2025-06-01 12:01:01 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Timestamp precision must be between 0 and 3
+2025-06-01 12:01:01 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Rotation strategy must be one of: ['round_robin', 'random']
+2025-06-01 12:01:01 - podcast_transcriber.feed_parser - ERROR - Feed parsing error: XML parsing error
+2025-06-01 12:01:01 - podcast_transcriber.feed_parser - ERROR - Failed to parse feed https://example.com/feed.xml: Network error
+2025-06-01 12:01:01 - podcast_transcriber.file_organizer - ERROR - Failed to write episode file /tmp/pytest-of-sergeblumenfeld/pytest-20/test_create_episode_file_error0/Test/2024-01-15_Test.vtt: Write error
+2025-06-01 12:01:01 - podcast_transcriber.gemini_client - ERROR - No API keys available due to rate limits
+2025-06-01 12:01:01 - podcast_transcriber.gemini_client - ERROR - No API keys available due to rate limits
+2025-06-01 12:01:01 - podcast_transcriber.gemini_client - ERROR - Transcription failed: Quota exceeded
+2025-06-01 12:01:01 - podcast_transcriber.gemini_client - ERROR - Speaker identification failed: API error with quota
+2025-06-01 12:01:06 - podcast_transcriber.retry_wrapper - ERROR - transcribe_audio failed after 2 attempts
+2025-06-01 12:01:06 - podcast_transcriber.key_rotation_manager - ERROR - No API keys found in environment
+2025-06-01 12:01:07 - podcast_transcriber.orchestrator - ERROR - Episode processing failed: API error
+2025-06-01 12:01:07 - podcast_transcriber.checkpoint_recovery - ERROR - Episode failed: Episode 2 - API error
+2025-06-01 12:01:08 - podcast_transcriber.progress_tracker - ERROR - Failed to load progress file: Expecting value: line 1 column 1 (char 0)
+2025-06-01 12:01:08 - podcast_transcriber.progress_tracker - ERROR - Failed to save progress state: Write failed
+2025-06-01 12:01:08 - podcast_transcriber.progress_tracker - ERROR - Episode non-existent not found in progress tracker
+2025-06-01 12:01:22 - podcast_transcriber.config - ERROR - Failed to load configuration: mapping values are not allowed here
+  in "/tmp/pytest-of-sergeblumenfeld/pytest-21/test_invalid_yaml_file0/invalid_config.yaml", line 1, column 14
+2025-06-01 12:01:22 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - API timeout must be positive
+2025-06-01 12:01:22 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - API max_attempts must be between 1 and 5
+2025-06-01 12:01:22 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Max episodes per day must be positive
+2025-06-01 12:01:22 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Console log level must be one of: ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL']
+2025-06-01 12:01:22 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - No API keys found in environment variables: ['GEMINI_API_KEY_1', 'GEMINI_API_KEY_2']
+2025-06-01 12:01:22 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Timestamp precision must be between 0 and 3
+2025-06-01 12:01:22 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Rotation strategy must be one of: ['round_robin', 'random']
+2025-06-01 12:01:22 - podcast_transcriber.feed_parser - ERROR - Feed parsing error: XML parsing error
+2025-06-01 12:01:22 - podcast_transcriber.feed_parser - ERROR - Failed to parse feed https://example.com/feed.xml: Network error
+2025-06-01 12:01:22 - podcast_transcriber.file_organizer - ERROR - Failed to write episode file /tmp/pytest-of-sergeblumenfeld/pytest-21/test_create_episode_file_error0/Test/2024-01-15_Test.vtt: Write error
+2025-06-01 12:01:22 - podcast_transcriber.gemini_client - ERROR - No API keys available due to rate limits
+2025-06-01 12:01:23 - podcast_transcriber.gemini_client - ERROR - No API keys available due to rate limits
+2025-06-01 12:01:23 - podcast_transcriber.gemini_client - ERROR - Transcription failed: Quota exceeded
+2025-06-01 12:01:23 - podcast_transcriber.gemini_client - ERROR - Speaker identification failed: API error with quota
+2025-06-01 12:01:30 - podcast_transcriber.retry_wrapper - ERROR - transcribe_audio failed after 2 attempts
+2025-06-01 12:01:30 - podcast_transcriber.orchestrator - ERROR - Episode processing failed: API error
+2025-06-01 12:01:30 - podcast_transcriber.checkpoint_recovery - ERROR - Episode failed: Episode 2 - API error

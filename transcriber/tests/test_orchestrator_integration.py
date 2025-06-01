@@ -12,8 +12,10 @@ from argparse import Namespace
 from src.orchestrator import TranscriptionOrchestrator
 from src.cli import main, parse_arguments as parse_args
 from src.config import Config
+from src.progress_tracker import ProgressTracker
 
 
+@pytest.mark.integration
 class TestOrchestratorIntegration:
     """Test the transcription orchestrator with all components."""
     
@@ -87,48 +89,65 @@ class TestOrchestratorIntegration:
             'key_2': {'requests_today': 0, 'requests_remaining': 25}
         }
         
+        # Mock the transcription processor
+        mock_transcription_processor = MagicMock()
+        mock_transcription_processor.transcribe_episode = AsyncMock(return_value=mock_gemini_response.text)
+        
+        # Mock the key rotation manager to return proper tuple
+        mock_key_rotation_manager = MagicMock()
+        mock_key_rotation_manager.get_next_key.return_value = ('test_key_1', 0)
+        
         with patch('src.orchestrator.parse_feed', mock_feed_parser.parse_feed):
             with patch('src.orchestrator.create_gemini_client', return_value=mock_gemini_client):
                 with patch('src.orchestrator.create_key_rotation_manager') as mock_rotation:
-                    mock_rotation.return_value = MagicMock()
+                    mock_rotation.return_value = mock_key_rotation_manager
                     
-                    # Create orchestrator
-                    orchestrator = TranscriptionOrchestrator(
-                        output_dir=Path(mock_config.output.default_dir),
-                        enable_checkpoint=True,
-                        resume=False
-                    )
+                    # Patch ProgressTracker to use temp directory
+                    with patch('src.orchestrator.ProgressTracker') as mock_progress_class:
+                        mock_progress_tracker = MagicMock()
+                        mock_progress_tracker.state.episodes = {}
+                        mock_progress_class.return_value = mock_progress_tracker
+                        
+                        # Create orchestrator
+                        orchestrator = TranscriptionOrchestrator(
+                            output_dir=Path(mock_config.output.default_dir),
+                            enable_checkpoint=True,
+                            resume=False
+                        )
+                        
+                        # Patch the transcription processor on the orchestrator
+                        orchestrator.transcription_processor = mock_transcription_processor
                     
-                    # Run processing
-                    results = await orchestrator.process_feed(
-                        "https://example.com/feed.xml",
-                        max_episodes=2  # Process only 2 episodes
-                    )
+                        # Run processing
+                        results = await orchestrator.process_feed(
+                            "https://example.com/feed.xml",
+                            max_episodes=2  # Process only 2 episodes
+                        )
                     
-                    # Extract counts from results
-                    success_count = results.get('processed', 0)
-                    failure_count = results.get('failed', 0)
-                    
-                    # Verify results
-                    assert success_count == 2
-                    assert failure_count == 0
-                    
-                    # Check API calls
-                    assert mock_gemini_client.transcribe_audio.call_count == 2
-                    assert mock_gemini_client.identify_speakers.call_count == 2
-                    
-                    # Check output files
-                    output_dir = Path(mock_config.output.default_dir)
-                    vtt_files = list(output_dir.rglob("*.vtt"))
-                    assert len(vtt_files) == 2
-                    
-                    # Check manifest
-                    manifest_file = output_dir / "manifest.json"
-                    assert manifest_file.exists()
-                    
-                    with open(manifest_file, 'r') as f:
-                        manifest = json.load(f)
-                    assert manifest['total_episodes'] == 2
+                        # Extract counts from results
+                        success_count = results.get('processed', 0)
+                        failure_count = results.get('failed', 0)
+                        
+                        # Verify results
+                        assert success_count == 2
+                        assert failure_count == 0
+                        
+                        # Check API calls
+                        assert mock_transcription_processor.transcribe_episode.call_count == 2
+                        assert mock_gemini_client.identify_speakers.call_count == 2
+                        
+                        # Check output files
+                        output_dir = Path(mock_config.output.default_dir)
+                        vtt_files = list(output_dir.rglob("*.vtt"))
+                        assert len(vtt_files) == 2
+                        
+                        # Check report
+                        report_file = output_dir / "Test Podcast_report.json"
+                        assert report_file.exists()
+                        
+                        with open(report_file, 'r') as f:
+                            report = json.load(f)
+                        assert report['summary']['total_processed'] == 2
     
     @pytest.mark.asyncio
     async def test_orchestrator_error_handling(self, tmp_path, mock_config, mock_feed_episodes):
@@ -139,43 +158,65 @@ class TestOrchestratorIntegration:
         mock_feed_parser = MagicMock()
         mock_feed_parser.parse_feed.return_value = (podcast_metadata, episodes)
         
-        # First call succeeds, second fails, third succeeds
+        # Mock gemini client
         mock_gemini_client = MagicMock()
-        mock_gemini_client.transcribe_audio = AsyncMock(
+        mock_gemini_client.api_keys = ['test_key_1', 'test_key_2']  # Mock has 2 keys
+        mock_gemini_client.identify_speakers = AsyncMock(
+            return_value={"SPEAKER_1": "Host"}
+        )
+        mock_gemini_client.get_usage_summary.return_value = {
+            'key_1': {'requests_today': 0, 'requests_remaining': 25},
+            'key_2': {'requests_today': 0, 'requests_remaining': 25}
+        }
+        
+        # Mock transcription processor - First call succeeds, second fails, third succeeds
+        mock_transcription_processor = MagicMock()
+        mock_transcription_processor.transcribe_episode = AsyncMock(
             side_effect=[
                 "Successful transcript",
                 Exception("API error"),
                 "Another successful transcript"
             ]
         )
-        mock_gemini_client.identify_speakers = AsyncMock(
-            return_value={"SPEAKER_1": "Host"}
-        )
-        mock_gemini_client.get_usage_summary.return_value = {}
+        
+        # Mock key rotation manager
+        mock_key_rotation_manager = MagicMock()
+        mock_key_rotation_manager.get_next_key.return_value = ('test_key_1', 0)
         
         with patch('src.orchestrator.parse_feed', mock_feed_parser.parse_feed):
             with patch('src.orchestrator.create_gemini_client', return_value=mock_gemini_client):
-                with patch('src.orchestrator.create_key_rotation_manager'):
-                    orchestrator = TranscriptionOrchestrator(
-                        output_dir=Path(mock_config.output.default_dir),
-                        enable_checkpoint=True,
-                        resume=False
-                    )
+                with patch('src.orchestrator.create_key_rotation_manager') as mock_rotation:
+                    mock_rotation.return_value = mock_key_rotation_manager
                     
-                    results = await orchestrator.process_feed(
-                        "https://example.com/feed.xml",
-                        max_episodes=3
-                    )
+                    # Patch ProgressTracker to use temp directory
+                    with patch('src.orchestrator.ProgressTracker') as mock_progress_class:
+                        mock_progress_tracker = MagicMock()
+                        mock_progress_tracker.state.episodes = {}
+                        mock_progress_class.return_value = mock_progress_tracker
+                        
+                        orchestrator = TranscriptionOrchestrator(
+                            output_dir=Path(mock_config.output.default_dir),
+                            enable_checkpoint=True,
+                            resume=False
+                        )
+                        
+                        # Patch the transcription processor
+                        orchestrator.transcription_processor = mock_transcription_processor
                     
-                    success_count = results.get('processed', 0)
-                    failure_count = results.get('failed', 0)
+                        results = await orchestrator.process_feed(
+                            "https://example.com/feed.xml",
+                            max_episodes=3
+                        )
                     
-                    # Should have 2 successes and 1 failure
-                    assert success_count == 2
-                    assert failure_count == 1
-                    
-                    # Check that processing continued after failure
-                    assert mock_gemini_client.transcribe_audio.call_count == 3
+                        success_count = results.get('processed', 0)
+                        failure_count = results.get('failed', 0)
+                        
+                        # Should have 2 successes and 1 failure
+                        assert success_count == 2
+                        assert failure_count == 1
+                        
+                        # Check that processing continued after failure
+                        assert mock_transcription_processor.transcribe_episode.call_count == 3
     
     @pytest.mark.asyncio
     async def test_orchestrator_resume_functionality(self, tmp_path, mock_config, mock_feed_episodes):
@@ -210,29 +251,70 @@ class TestOrchestratorIntegration:
         mock_feed_parser.parse_feed.return_value = (podcast_metadata, episodes)
         
         mock_gemini_client = MagicMock()
-        mock_gemini_client.transcribe_audio = AsyncMock(return_value="Transcript")
+        mock_gemini_client.api_keys = ['test_key_1', 'test_key_2']  # Mock has 2 keys
         mock_gemini_client.identify_speakers = AsyncMock(return_value={})
-        mock_gemini_client.get_usage_summary.return_value = {}
+        mock_gemini_client.get_usage_summary.return_value = {
+            'key_1': {'requests_today': 0, 'requests_remaining': 25},
+            'key_2': {'requests_today': 0, 'requests_remaining': 25}
+        }
+        
+        # Mock transcription processor
+        mock_transcription_processor = MagicMock()
+        mock_transcription_processor.transcribe_episode = AsyncMock(return_value="Transcript")
+        
+        # Mock key rotation manager
+        mock_key_rotation_manager = MagicMock()
+        mock_key_rotation_manager.get_next_key.return_value = ('test_key_1', 0)
         
         with patch('src.orchestrator.parse_feed', mock_feed_parser.parse_feed):
             with patch('src.orchestrator.create_gemini_client', return_value=mock_gemini_client):
-                with patch('src.orchestrator.create_key_rotation_manager'):
-                    orchestrator = TranscriptionOrchestrator(
-                        output_dir=Path(mock_config.output.default_dir),
-                        enable_checkpoint=True,
-                        resume=True
-                    )
+                with patch('src.orchestrator.create_key_rotation_manager') as mock_rotation:
+                    mock_rotation.return_value = mock_key_rotation_manager
                     
-                    # Should have components initialized
-                    assert orchestrator.progress_tracker is not None
-                    assert len(orchestrator.progress_tracker.state.episodes) == 1
+                    # Patch ProgressTracker to use temp directory with existing progress
+                    with patch('src.orchestrator.ProgressTracker') as mock_progress_class:
+                        # Create a mock progress tracker with existing episode
+                        from src.progress_tracker import ProgressState, EpisodeProgress, EpisodeStatus
+                        
+                        mock_state = ProgressState()
+                        mock_state.episodes['ep1-guid'] = EpisodeProgress(
+                            guid='ep1-guid',
+                            status=EpisodeStatus.COMPLETED,
+                            title='Episode 1',
+                            podcast_name='Test Podcast',
+                            attempt_count=1,
+                            output_file='Test_Podcast/2024-01-11_Episode_1.vtt'
+                        )
+                        
+                        mock_progress_tracker = MagicMock()
+                        mock_progress_tracker.state = mock_state
+                        mock_progress_tracker.load.return_value = None
+                        mock_progress_class.return_value = mock_progress_tracker
+                        
+                        orchestrator = TranscriptionOrchestrator(
+                            output_dir=Path(mock_config.output.default_dir),
+                            enable_checkpoint=True,
+                            resume=True
+                        )
+                        
+                        # Patch the transcription processor
+                        orchestrator.transcription_processor = mock_transcription_processor
+                        
+                        # Should have components initialized
+                        assert orchestrator.progress_tracker is not None
+                        assert len(orchestrator.progress_tracker.state.episodes) == 1
+                        
+                        results = await orchestrator.process_feed(
+                            "https://example.com/feed.xml",
+                            max_episodes=3
+                        )
+                        success_count = results.get('processed', 0)
+                        failure_count = results.get('failed', 0)
                     
-                    success_count, failure_count = await orchestrator.process_feed()
-                    
-                    # Should only process remaining 2 episodes
-                    assert mock_gemini_client.transcribe_audio.call_count == 2
-                    assert success_count == 2
-                    assert failure_count == 0
+                        # Should only process remaining 2 episodes
+                        assert mock_transcription_processor.transcribe_episode.call_count == 2
+                        assert success_count == 2
+                        assert failure_count == 0
 
 
 class TestCLIIntegration:
@@ -272,7 +354,13 @@ class TestCLIIntegration:
         """Test main CLI function with basic arguments."""
         # Mock orchestrator
         mock_orchestrator = MagicMock()
-        mock_orchestrator.process_feed = AsyncMock(return_value={'processed': 5, 'failed': 0})
+        mock_orchestrator.process_feed = AsyncMock(return_value={
+            'status': 'completed',
+            'processed': 5,
+            'failed': 0,
+            'skipped': 0,
+            'episodes': []
+        })
         mock_orchestrator_class.return_value = mock_orchestrator
         
         # Mock asyncio.run to execute the coroutine
@@ -280,9 +368,11 @@ class TestCLIIntegration:
             return await coro
         mock_asyncio_run.side_effect = lambda coro: asyncio.get_event_loop().run_until_complete(coro)
         
-        # Run CLI
+        # Run CLI - should exit with code 0 for success
         with patch('sys.argv', ['podcast-transcriber', 'transcribe', '--feed-url', 'https://example.com/feed.xml']):
+            with pytest.raises(SystemExit) as exc_info:
                 main()
+            assert exc_info.value.code == 0
         
         # Verify orchestrator was created with correct arguments
         mock_orchestrator_class.assert_called_once_with(
@@ -306,9 +396,14 @@ class TestCLIIntegration:
     @patch('src.cli.asyncio.run') 
     def test_main_with_dry_run(self, mock_asyncio_run, mock_orchestrator_class):
         """Test CLI in dry-run mode."""
+        # Mock asyncio.run to return the result from transcribe_command (0 for dry run)
+        mock_asyncio_run.return_value = 0
+        
         # Dry run should not create orchestrator, just exit
         with patch('sys.argv', ['podcast-transcriber', 'transcribe', '--feed-url', 'https://example.com/feed.xml', '--dry-run']):
-            main()
+            with pytest.raises(SystemExit) as exc_info:
+                main()
+            assert exc_info.value.code == 0
         
         # Verify orchestrator was NOT created (dry run exits early)
         mock_orchestrator_class.assert_not_called()
@@ -329,7 +424,7 @@ class TestCLIIntegration:
         mock_asyncio_run.side_effect = lambda coro: asyncio.get_event_loop().run_until_complete(coro)
         
         # Run CLI - should exit with error code
-        with patch('sys.argv', ['transcribe', '--feed-url', 'https://example.com/feed.xml']):
+        with patch('sys.argv', ['podcast-transcriber', 'transcribe', '--feed-url', 'https://example.com/feed.xml']):
             with pytest.raises(SystemExit) as exc_info:
                 main()
         

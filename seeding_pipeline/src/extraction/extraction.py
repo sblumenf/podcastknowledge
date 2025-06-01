@@ -148,13 +148,12 @@ class KnowledgeExtractor:
             contribution = ComponentContribution(
                 component_name="knowledge_extractor",
                 contribution_type="knowledge_extracted",
-                details={
+                count=len(entities) + len(quotes) + len(relationships),
+                metadata={
                     "entity_types": list(set(e.get('type', 'Unknown') for e in entities)),
                     "quote_types": list(set(q.get('type', 'general') for q in quotes)),
                     "extraction_methods": ['pattern_matching', 'llm_analysis']
-                },
-                count=len(entities) + len(quotes) + len(relationships),
-                timestamp=kwargs.get('timestamp', '')
+                }
             )
             tracker.track_contribution(contribution)
         

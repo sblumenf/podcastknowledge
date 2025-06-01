@@ -12,6 +12,7 @@ from src.key_rotation_manager import (
 )
 
 
+@pytest.mark.unit
 class TestKeyStatus:
     """Test KeyStatus enum."""
     
@@ -23,6 +24,7 @@ class TestKeyStatus:
         assert KeyStatus.ERROR.value == "error"
 
 
+@pytest.mark.unit
 class TestAPIKeyState:
     """Test APIKeyState dataclass."""
     
@@ -158,6 +160,7 @@ class TestAPIKeyState:
         assert state.error_message == 'Quota error'
 
 
+@pytest.mark.unit
 class TestKeyRotationManager:
     """Test KeyRotationManager class."""
     

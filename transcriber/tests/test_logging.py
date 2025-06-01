@@ -13,6 +13,7 @@ from src.utils.logging import (
 )
 
 
+@pytest.mark.unit
 class TestPodcastTranscriberLogger:
     """Test PodcastTranscriberLogger class."""
     
@@ -136,6 +137,7 @@ class TestPodcastTranscriberLogger:
         error_handler.setLevel.assert_called_with(logging.ERROR)
 
 
+@pytest.mark.unit
 class TestConvenienceFunctions:
     """Test convenience functions."""
     
@@ -242,6 +244,7 @@ class TestConvenienceFunctions:
         assert os.environ['LOG_LEVEL'] == 'DEBUG'
 
 
+@pytest.mark.unit
 class TestLoggingIntegration:
     """Test logging integration scenarios."""
     

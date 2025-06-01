@@ -21,6 +21,7 @@ from src.checkpoint_recovery import CheckpointManager
 from tenacity import RetryError
 
 
+@pytest.mark.integration
 class TestEndToEndPipeline:
     """Test complete transcription pipeline from RSS feed to VTT files."""
     

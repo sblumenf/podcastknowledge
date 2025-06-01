@@ -50,32 +50,22 @@ class TestNeo4jStorage:
         return Episode(
             id="ep123",
             title="Test Episode",
-            podcast_name="Test Podcast",
-            url="https://example.com/ep123.mp3",
-            metadata={"duration": 3600}
+            description="A test episode for Neo4j storage",
+            published_date="2025-01-06",
+            audio_url="https://example.com/ep123.mp3",
+            duration=3600
         )
     
     @pytest.fixture
     def sample_segment(self):
         """Create sample segment with extraction results."""
         return Segment(
+            id="seg001",
             text="Dr. Jane Smith discusses AI advances.",
             start_time=0.0,
             end_time=10.0,
             speaker="Host",
-            extraction_result={
-                "entities": [
-                    {"name": "Dr. Jane Smith", "type": "PERSON", "id": "jane-smith"},
-                    {"name": "AI", "type": "TECHNOLOGY", "id": "ai-tech"}
-                ],
-                "relationships": [
-                    {
-                        "source": "jane-smith",
-                        "target": "ai-tech",
-                        "type": "DISCUSSES"
-                    }
-                ]
-            }
+            episode_id="ep123"
         )
     
     def test_create_episode_node(self, graph_storage, sample_episode, mock_driver):

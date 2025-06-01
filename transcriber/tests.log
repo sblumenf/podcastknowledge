@@ -1,125 +1,6 @@
 INFO     podcast_transcriber.retry_wrapper:retry_wrapper.py:116 Loaded retry state from file
 INFO     podcast_transcriber.retry_wrapper:retry_wrapper.py:116 Loaded retry state from file
-INFO     podcast_transcriber.config:config.py:131 Loaded configuration from: /home/sergeblumenfeld/podcastknowledge/transcriber/config/default.yaml
-INFO     podcast_transcriber.config:config.py:319 Configuration validation passed
-INFO     podcast_transcriber.config:config.py:131 Loaded configuration from: /tmp/pytest-of-sergeblumenfeld/pytest-4/test_load_from_yaml_file0/test_config.yaml
-INFO     podcast_transcriber.config:config.py:264 Running in test mode - relaxed validation
-WARNING  podcast_transcriber.config:config.py:133 Configuration file not found: /non/existent/config.yaml
-INFO     podcast_transcriber.config:config.py:134 Using default configuration values
-INFO     podcast_transcriber.config:config.py:264 Running in test mode - relaxed validation
-ERROR    podcast_transcriber.config:config.py:136 Failed to load configuration: mapping values are not allowed here
-  in "/tmp/pytest-of-sergeblumenfeld/pytest-4/test_invalid_yaml_file0/invalid_config.yaml", line 1, column 14
-INFO     podcast_transcriber.config:config.py:137 Using default configuration values
-INFO     podcast_transcriber.config:config.py:264 Running in test mode - relaxed validation
-INFO     podcast_transcriber.config:config.py:131 Loaded configuration from: /home/sergeblumenfeld/podcastknowledge/transcriber/config/default.yaml
-INFO     podcast_transcriber.config:config.py:253 Applied environment override: PODCAST_API_TIMEOUT=600
-INFO     podcast_transcriber.config:config.py:253 Applied environment override: PODCAST_API_MAX_ATTEMPTS=3
-INFO     podcast_transcriber.config:config.py:253 Applied environment override: PODCAST_API_MAX_EPISODES=20
-INFO     podcast_transcriber.config:config.py:253 Applied environment override: PODCAST_OUTPUT_DIR=/custom/output
-INFO     podcast_transcriber.config:config.py:253 Applied environment override: PODCAST_OUTPUT_PATTERN={date}/{podcast_name}.vtt
-INFO     podcast_transcriber.config:config.py:253 Applied environment override: PODCAST_MAX_EPISODE_LENGTH=90
-INFO     podcast_transcriber.config:config.py:253 Applied environment override: PODCAST_ENABLE_PROGRESS=False
-INFO     podcast_transcriber.config:config.py:253 Applied environment override: PODCAST_LOG_LEVEL=DEBUG
-INFO     podcast_transcriber.config:config.py:253 Applied environment override: PODCAST_LOG_DIR=/custom/logs
-INFO     podcast_transcriber.config:config.py:253 Applied environment override: PODCAST_DRY_RUN=True
-INFO     podcast_transcriber.config:config.py:253 Applied environment override: PODCAST_DEBUG_MODE=True
-INFO     podcast_transcriber.config:config.py:319 Configuration validation passed
-INFO     podcast_transcriber.config:config.py:131 Loaded configuration from: /home/sergeblumenfeld/podcastknowledge/transcriber/config/default.yaml
-INFO     podcast_transcriber.config:config.py:319 Configuration validation passed
-ERROR    podcast_transcriber.config:config.py:316 Configuration validation failed:\n  - API timeout must be positive
-ERROR    podcast_transcriber.config:config.py:316 Configuration validation failed:\n  - API max_attempts must be between 1 and 5
-ERROR    podcast_transcriber.config:config.py:316 Configuration validation failed:\n  - Max episodes per day must be positive
-ERROR    podcast_transcriber.config:config.py:316 Configuration validation failed:\n  - Console log level must be one of: ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL']
-ERROR    podcast_transcriber.config:config.py:316 Configuration validation failed:\n  - No API keys found in environment variables: ['GEMINI_API_KEY_1', 'GEMINI_API_KEY_2']
-INFO     podcast_transcriber.config:config.py:131 Loaded configuration from: /home/sergeblumenfeld/podcastknowledge/transcriber/config/default.yaml
-INFO     podcast_transcriber.config:config.py:319 Configuration validation passed
-INFO     podcast_transcriber.config:config.py:131 Loaded configuration from: /home/sergeblumenfeld/podcastknowledge/transcriber/config/default.yaml
-INFO     podcast_transcriber.config:config.py:319 Configuration validation passed
-INFO     podcast_transcriber.config:config.py:131 Loaded configuration from: /home/sergeblumenfeld/podcastknowledge/transcriber/config/default.yaml
-INFO     podcast_transcriber.config:config.py:319 Configuration validation passed
-INFO     podcast_transcriber.config:config.py:131 Loaded configuration from: /home/sergeblumenfeld/podcastknowledge/transcriber/config/default.yaml
-INFO     podcast_transcriber.config:config.py:319 Configuration validation passed
-INFO     podcast_transcriber.config:config.py:131 Loaded configuration from: /home/sergeblumenfeld/podcastknowledge/transcriber/config/default.yaml
-INFO     podcast_transcriber.config:config.py:319 Configuration validation passed
-INFO     podcast_transcriber.config:config.py:131 Loaded configuration from: /home/sergeblumenfeld/podcastknowledge/transcriber/config/default.yaml
-INFO     podcast_transcriber.config:config.py:319 Configuration validation passed
-ERROR    podcast_transcriber.config:config.py:316 Configuration validation failed:\n  - Timestamp precision must be between 0 and 3
-INFO     podcast_transcriber.config:config.py:319 Configuration validation passed
-INFO     podcast_transcriber.config:config.py:131 Loaded configuration from: /home/sergeblumenfeld/podcastknowledge/transcriber/config/default.yaml
-INFO     podcast_transcriber.config:config.py:319 Configuration validation passed
-ERROR    podcast_transcriber.config:config.py:316 Configuration validation failed:\n  - Rotation strategy must be one of: ['round_robin', 'random']
-INFO     podcast_transcriber.config:config.py:319 Configuration validation passed
-INFO     podcast_transcriber.config:config.py:319 Configuration validation passed
-INFO     podcast_transcriber.config:config.py:131 Loaded configuration from: /home/sergeblumenfeld/podcastknowledge/transcriber/config/default.yaml
-INFO     podcast_transcriber.config:config.py:319 Configuration validation passed
-INFO     podcast_transcriber.config:config.py:131 Loaded configuration from: /home/sergeblumenfeld/podcastknowledge/transcriber/config/default.yaml
-INFO     podcast_transcriber.config:config.py:319 Configuration validation passed
-INFO     podcast_transcriber.config:config.py:131 Loaded configuration from: /home/sergeblumenfeld/podcastknowledge/transcriber/config/default.yaml
-INFO     podcast_transcriber.config:config.py:319 Configuration validation passed
-INFO     podcast_transcriber.feed_parser:feed_parser.py:105 Parsing RSS feed: https://example.com/feed.xml
-INFO     podcast_transcriber.feed_parser:feed_parser.py:119 Parsed podcast: Test Podcast
-INFO     podcast_transcriber.feed_parser:feed_parser.py:123 Found 1 episodes in feed
-INFO     podcast_transcriber.feed_parser:feed_parser.py:105 Parsing RSS feed: https://example.com/feed.xml
-ERROR    podcast_transcriber.feed_parser:feed_parser.py:114 Feed parsing error: XML parsing error
-INFO     podcast_transcriber.feed_parser:feed_parser.py:119 Parsed podcast: Test Podcast
-INFO     podcast_transcriber.feed_parser:feed_parser.py:123 Found 0 episodes in feed
-WARNING  podcast_transcriber.feed_parser:feed_parser.py:126 No episodes found in feed
-INFO     podcast_transcriber.feed_parser:feed_parser.py:105 Parsing RSS feed: https://example.com/feed.xml
-ERROR    podcast_transcriber.feed_parser:feed_parser.py:131 Failed to parse feed https://example.com/feed.xml: Network error
-INFO     podcast_transcriber.feed_parser:feed_parser.py:105 Parsing RSS feed: https://example.com/feed.xml
-INFO     podcast_transcriber.feed_parser:feed_parser.py:119 Parsed podcast: Empty Podcast
-INFO     podcast_transcriber.feed_parser:feed_parser.py:123 Found 0 episodes in feed
-WARNING  podcast_transcriber.feed_parser:feed_parser.py:126 No episodes found in feed
-INFO     podcast_transcriber.file_organizer:file_organizer.py:230 Loaded 1 episodes from manifest
-WARNING  podcast_transcriber.file_organizer:file_organizer.py:121 Invalid date format: invalid-date, using current date
-INFO     podcast_transcriber.file_organizer:file_organizer.py:188 Created episode file: Test_Podcast/2024-01-15_Test_Episode.vtt
-ERROR    podcast_transcriber.file_organizer:file_organizer.py:191 Failed to write episode file /tmp/pytest-of-sergeblumenfeld/pytest-4/test_create_episode_file_error0/Test/2024-01-15_Test.vtt: Write error
-INFO     podcast_transcriber.file_organizer:file_organizer.py:230 Loaded 2 episodes from manifest
-INFO     podcast_transcriber.file_organizer:file_organizer.py:316 Removed empty directory: Empty_Podcast
-WARNING  podcast_transcriber.gemini_client:gemini_client.py:63 API key 1 hit daily request limit
-WARNING  podcast_transcriber.gemini_client:gemini_client.py:67 API key 1 hit daily token limit
-INFO     podcast_transcriber.gemini_client:gemini_client.py:89 Reset daily usage for API key 1
-INFO     podcast_transcriber.gemini_client:gemini_client.py:118 Initialized Gemini client with 2 API keys
-INFO     podcast_transcriber.gemini_client:gemini_client.py:118 Initialized Gemini client with 2 API keys
-INFO     podcast_transcriber.gemini_client:gemini_client.py:145 Loaded usage state from file
-INFO     podcast_transcriber.gemini_client:gemini_client.py:118 Initialized Gemini client with 2 API keys
-INFO     podcast_transcriber.gemini_client:gemini_client.py:89 Reset daily usage for API key 1
-INFO     podcast_transcriber.gemini_client:gemini_client.py:145 Loaded usage state from file
-INFO     podcast_transcriber.gemini_client:gemini_client.py:118 Initialized Gemini client with 2 API keys
-INFO     podcast_transcriber.gemini_client:gemini_client.py:118 Initialized Gemini client with 2 API keys
-INFO     podcast_transcriber.gemini_client:gemini_client.py:118 Initialized Gemini client with 2 API keys
-INFO     podcast_transcriber.gemini_client:gemini_client.py:118 Initialized Gemini client with 2 API keys
-WARNING  podcast_transcriber.gemini_client:gemini_client.py:63 API key 1 hit daily request limit
-WARNING  podcast_transcriber.gemini_client:gemini_client.py:63 API key 2 hit daily request limit
-ERROR    podcast_transcriber.gemini_client:gemini_client.py:200 No API keys available due to rate limits
-INFO     podcast_transcriber.gemini_client:gemini_client.py:118 Initialized Gemini client with 2 API keys
 DEBUG    asyncio:selector_events.py:54 Using selector: EpollSelector
-DEBUG    asyncio:selector_events.py:54 Using selector: EpollSelector
-INFO     podcast_transcriber.gemini_client:gemini_client.py:223 Starting transcription for: Test Episode
-INFO     podcast_transcriber.gemini_client:gemini_client.py:224 Using API key 1
-INFO     podcast_transcriber.gemini_client:gemini_client.py:118 Initialized Gemini client with 2 API keys
-DEBUG    asyncio:selector_events.py:54 Using selector: EpollSelector
-ERROR    podcast_transcriber.gemini_client:gemini_client.py:200 No API keys available due to rate limits
-INFO     podcast_transcriber.gemini_client:gemini_client.py:118 Initialized Gemini client with 2 API keys
-DEBUG    asyncio:selector_events.py:54 Using selector: EpollSelector
-INFO     podcast_transcriber.gemini_client:gemini_client.py:223 Starting transcription for: Unknown
-INFO     podcast_transcriber.gemini_client:gemini_client.py:224 Using API key 1
-ERROR    podcast_transcriber.gemini_client:gemini_client.py:237 Transcription failed: Quota exceeded
-INFO     podcast_transcriber.gemini_client:gemini_client.py:118 Initialized Gemini client with 2 API keys
-DEBUG    asyncio:selector_events.py:54 Using selector: EpollSelector
-INFO     podcast_transcriber.gemini_client:gemini_client.py:323 Starting speaker identification
-INFO     podcast_transcriber.gemini_client:gemini_client.py:324 Using API key 1
-INFO     podcast_transcriber.gemini_client:gemini_client.py:118 Initialized Gemini client with 2 API keys
-DEBUG    asyncio:selector_events.py:54 Using selector: EpollSelector
-INFO     podcast_transcriber.gemini_client:gemini_client.py:323 Starting speaker identification
-INFO     podcast_transcriber.gemini_client:gemini_client.py:324 Using API key 1
-ERROR    podcast_transcriber.gemini_client:gemini_client.py:337 Speaker identification failed: API error with quota
-INFO     podcast_transcriber.gemini_client:gemini_client.py:118 Initialized Gemini client with 2 API keys
-INFO     podcast_transcriber.gemini_client:gemini_client.py:118 Initialized Gemini client with 2 API keys
-INFO     podcast_transcriber.gemini_client:gemini_client.py:118 Initialized Gemini client with 2 API keys
-INFO     podcast_transcriber.gemini_client:gemini_client.py:118 Initialized Gemini client with 2 API keys
-INFO     podcast_transcriber.gemini_client:gemini_client.py:504 Found 3 API key(s) in environment
-INFO     podcast_transcriber.gemini_client:gemini_client.py:504 Found 1 API key(s) in environment
 DEBUG    asyncio:selector_events.py:54 Using selector: EpollSelector
 INFO     podcast_transcriber.feed_parser:feed_parser.py:105 Parsing RSS feed: https://example.com/feed.xml
 INFO     podcast_transcriber.feed_parser:feed_parser.py:119 Parsed podcast: Integration Test Podcast
@@ -155,117 +36,128 @@ INFO     podcast_transcriber.progress_tracker:progress_tracker.py:267 Episode 'E
 INFO     podcast_transcriber.progress_tracker:progress_tracker.py:294 Episode 'Episode 1' marked as completed in 5.0s
 INFO     podcast_transcriber.progress_tracker:progress_tracker.py:267 Episode 'Episode 2' marked as in-progress (attempt #1)
 INFO     podcast_transcriber.progress_tracker:progress_tracker.py:294 Episode 'Episode 2' marked as completed in 5.0s
-INFO     podcast_transcriber.key_rotation_manager:key_rotation_manager.py:119 Initialized key rotation manager with 3 keys
-INFO     podcast_transcriber.key_rotation_manager:key_rotation_manager.py:119 Initialized key rotation manager with 3 keys
-INFO     podcast_transcriber.key_rotation_manager:key_rotation_manager.py:199 Selected key_1 (test_key...) for next request
-INFO     podcast_transcriber.key_rotation_manager:key_rotation_manager.py:199 Selected key_2 (test_key...) for next request
-INFO     podcast_transcriber.key_rotation_manager:key_rotation_manager.py:199 Selected key_3 (test_key...) for next request
-INFO     podcast_transcriber.key_rotation_manager:key_rotation_manager.py:199 Selected key_1 (test_key...) for next request
-INFO     podcast_transcriber.key_rotation_manager:key_rotation_manager.py:119 Initialized key rotation manager with 3 keys
-INFO     podcast_transcriber.key_rotation_manager:key_rotation_manager.py:199 Selected key_2 (test_key...) for next request
-INFO     podcast_transcriber.key_rotation_manager:key_rotation_manager.py:199 Selected key_2 (test_key...) for next request
-INFO     podcast_transcriber.key_rotation_manager:key_rotation_manager.py:119 Initialized key rotation manager with 3 keys
-INFO     podcast_transcriber.key_rotation_manager:key_rotation_manager.py:274 Current key status:
-INFO     podcast_transcriber.key_rotation_manager:key_rotation_manager.py:279   key_1 (test_key...): quota_exceeded
-INFO     podcast_transcriber.key_rotation_manager:key_rotation_manager.py:279   key_2 (test_key...): quota_exceeded
-INFO     podcast_transcriber.key_rotation_manager:key_rotation_manager.py:279   key_3 (test_key...): quota_exceeded
-INFO     podcast_transcriber.key_rotation_manager:key_rotation_manager.py:119 Initialized key rotation manager with 3 keys
-INFO     podcast_transcriber.key_rotation_manager:key_rotation_manager.py:119 Initialized key rotation manager with 3 keys
-WARNING  podcast_transcriber.key_rotation_manager:key_rotation_manager.py:233 key_1 (test_key...) marked as failed: Rate limit exceeded
-INFO     podcast_transcriber.key_rotation_manager:key_rotation_manager.py:119 Initialized key rotation manager with 3 keys
-INFO     podcast_transcriber.key_rotation_manager:key_rotation_manager.py:119 Initialized key rotation manager with 3 keys
-INFO     podcast_transcriber.key_rotation_manager:key_rotation_manager.py:119 Initialized key rotation manager with 3 keys
-INFO     podcast_transcriber.key_rotation_manager:key_rotation_manager.py:293 Force reset key_2 (test_key...) to available
-INFO     podcast_transcriber.key_rotation_manager:key_rotation_manager.py:119 Initialized key rotation manager with 3 keys
-INFO     podcast_transcriber.key_rotation_manager:key_rotation_manager.py:168 Performing daily reset of key states
-INFO     podcast_transcriber.key_rotation_manager:key_rotation_manager.py:119 Initialized key rotation manager with 3 keys
-INFO     podcast_transcriber.key_rotation_manager:key_rotation_manager.py:144 Loaded rotation state, current index: 2
-INFO     podcast_transcriber.key_rotation_manager:key_rotation_manager.py:119 Initialized key rotation manager with 3 keys
-INFO     podcast_transcriber.key_rotation_manager:key_rotation_manager.py:168 Performing daily reset of key states
-INFO     podcast_transcriber.key_rotation_manager:key_rotation_manager.py:144 Loaded rotation state, current index: 1
-INFO     podcast_transcriber.key_rotation_manager:key_rotation_manager.py:119 Initialized key rotation manager with 3 keys
-INFO     podcast_transcriber.key_rotation_manager:key_rotation_manager.py:119 Initialized key rotation manager with 3 keys
-INFO     podcast_transcriber.key_rotation_manager:key_rotation_manager.py:119 Initialized key rotation manager with 2 keys
-INFO     podcast_transcriber.key_rotation_manager:key_rotation_manager.py:119 Initialized key rotation manager with 1 keys
-ERROR    podcast_transcriber.key_rotation_manager:key_rotation_manager.py:320 No API keys found in environment
-INFO     podcast_transcriber:logging.py:89 Logging system initialized
-INFO     podcast_transcriber:logging.py:90 Log level: INFO
-INFO     podcast_transcriber:logging.py:91 Log directory: /home/sergeblumenfeld/podcastknowledge/transcriber/logs
 INFO     podcast_transcriber.config:config.py:131 Loaded configuration from: /home/sergeblumenfeld/podcastknowledge/transcriber/config/default.yaml
 INFO     podcast_transcriber.config:config.py:319 Configuration validation passed
 DEBUG    asyncio:selector_events.py:54 Using selector: EpollSelector
-INFO     podcast_transcriber.progress_tracker:progress_tracker.py:182 Progress tracker initialized with 2 episodes
 INFO     podcast_transcriber.orchestrator:orchestrator.py:87 Found 3 episodes in feed: Test Podcast
-INFO     podcast_transcriber:logging.py:89 Logging system initialized
-INFO     podcast_transcriber:logging.py:90 Log level: INFO
-INFO     podcast_transcriber:logging.py:91 Log directory: /home/sergeblumenfeld/podcastknowledge/transcriber/logs
 INFO     podcast_transcriber:logging.py:132 Progress: 1/2 (50.0%) - Starting episode: Processing: Episode 1
 INFO     podcast_transcriber.checkpoint_recovery:checkpoint_recovery.py:147 Started checkpoint for episode: Episode 1
-INFO     podcast_transcriber.progress_tracker:progress_tracker.py:267 Episode 'Episode 1' marked as in-progress (attempt #4)
 INFO     podcast_transcriber.checkpoint_recovery:checkpoint_recovery.py:168 Updated checkpoint: stage=transcription
 INFO     podcast_transcriber.orchestrator:orchestrator.py:268 Transcribing: Episode 1
-ERROR    podcast_transcriber.transcription_processor:transcription_processor.py:118 Transcription failed: not enough values to unpack (expected 2, got 0)
-ERROR    podcast_transcriber.orchestrator:orchestrator.py:297 Episode processing failed: Transcription failed
-WARNING  podcast_transcriber.progress_tracker:progress_tracker.py:318 Episode 'Episode 1' marked as failed: Transcription failed
-ERROR    podcast_transcriber.checkpoint_recovery:checkpoint_recovery.py:302 Episode failed: Episode 1 - Transcription failed
+INFO     podcast_transcriber.checkpoint_recovery:checkpoint_recovery.py:168 Updated checkpoint: stage=speaker_identification
+INFO     podcast_transcriber.orchestrator:orchestrator.py:331 Identifying speakers
+INFO     podcast_transcriber.speaker_identifier:speaker_identifier.py:75 Starting speaker identification
+INFO     podcast_transcriber.speaker_identifier:speaker_identifier.py:76 Using API key index: 1
+INFO     podcast_transcriber.speaker_identifier:speaker_identifier.py:80 Found 1 unique speakers: ['SPEAKER_1']
+INFO     podcast_transcriber.checkpoint_recovery:checkpoint_recovery.py:183 Completed stage: speaker_identification
+INFO     podcast_transcriber.speaker_identifier:speaker_identifier.py:107 Speaker identification completed: {'SPEAKER_1': 'Test Host (Host)'}
+INFO     podcast_transcriber.checkpoint_recovery:checkpoint_recovery.py:168 Updated checkpoint: stage=vtt_generation
+INFO     podcast_transcriber.orchestrator:orchestrator.py:371 Generating final VTT file
+INFO     podcast_transcriber.vtt_generator:vtt_generator.py:287 VTT file saved to: /tmp/pytest-of-sergeblumenfeld/pytest-22/test_orchestrator_full_workflo0/transcripts/Test_Podcast/unknown_Episode_1.vtt
+INFO     podcast_transcriber.checkpoint_recovery:checkpoint_recovery.py:183 Completed stage: vtt_generation
+INFO     podcast_transcriber.checkpoint_recovery:checkpoint_recovery.py:272 Episode completed: Episode 1
+INFO     podcast_transcriber.orchestrator:orchestrator.py:402 Episode completed: /tmp/pytest-of-sergeblumenfeld/pytest-22/test_orchestrator_full_workflo0/transcripts/Test_Podcast/unknown_Episode_1.vtt
 INFO     podcast_transcriber:logging.py:132 Progress: 2/2 (100.0%) - Starting episode: Processing: Episode 2
 INFO     podcast_transcriber.checkpoint_recovery:checkpoint_recovery.py:147 Started checkpoint for episode: Episode 2
-INFO     podcast_transcriber.progress_tracker:progress_tracker.py:267 Episode 'Episode 2' marked as in-progress (attempt #4)
 INFO     podcast_transcriber.checkpoint_recovery:checkpoint_recovery.py:168 Updated checkpoint: stage=transcription
 INFO     podcast_transcriber.orchestrator:orchestrator.py:268 Transcribing: Episode 2
-ERROR    podcast_transcriber.transcription_processor:transcription_processor.py:118 Transcription failed: not enough values to unpack (expected 2, got 0)
-ERROR    podcast_transcriber.orchestrator:orchestrator.py:297 Episode processing failed: Transcription failed
-WARNING  podcast_transcriber.progress_tracker:progress_tracker.py:318 Episode 'Episode 2' marked as failed: Transcription failed
-ERROR    podcast_transcriber.checkpoint_recovery:checkpoint_recovery.py:302 Episode failed: Episode 2 - Transcription failed
-INFO     podcast_transcriber.orchestrator:orchestrator.py:483 Summary report saved to: /tmp/pytest-of-sergeblumenfeld/pytest-4/test_orchestrator_full_workflo0/transcripts/Test Podcast_report.json
+INFO     podcast_transcriber.checkpoint_recovery:checkpoint_recovery.py:168 Updated checkpoint: stage=speaker_identification
+INFO     podcast_transcriber.orchestrator:orchestrator.py:331 Identifying speakers
+INFO     podcast_transcriber.speaker_identifier:speaker_identifier.py:75 Starting speaker identification
+INFO     podcast_transcriber.speaker_identifier:speaker_identifier.py:76 Using API key index: 1
+INFO     podcast_transcriber.speaker_identifier:speaker_identifier.py:80 Found 1 unique speakers: ['SPEAKER_1']
+INFO     podcast_transcriber.checkpoint_recovery:checkpoint_recovery.py:183 Completed stage: speaker_identification
+INFO     podcast_transcriber.speaker_identifier:speaker_identifier.py:107 Speaker identification completed: {'SPEAKER_1': 'Test Host (Host)'}
+INFO     podcast_transcriber.checkpoint_recovery:checkpoint_recovery.py:168 Updated checkpoint: stage=vtt_generation
+INFO     podcast_transcriber.orchestrator:orchestrator.py:371 Generating final VTT file
+INFO     podcast_transcriber.vtt_generator:vtt_generator.py:287 VTT file saved to: /tmp/pytest-of-sergeblumenfeld/pytest-22/test_orchestrator_full_workflo0/transcripts/Test_Podcast/unknown_Episode_2.vtt
+INFO     podcast_transcriber.checkpoint_recovery:checkpoint_recovery.py:183 Completed stage: vtt_generation
+INFO     podcast_transcriber.checkpoint_recovery:checkpoint_recovery.py:272 Episode completed: Episode 2
+INFO     podcast_transcriber.orchestrator:orchestrator.py:402 Episode completed: /tmp/pytest-of-sergeblumenfeld/pytest-22/test_orchestrator_full_workflo0/transcripts/Test_Podcast/unknown_Episode_2.vtt
+INFO     podcast_transcriber.orchestrator:orchestrator.py:483 Summary report saved to: /tmp/pytest-of-sergeblumenfeld/pytest-22/test_orchestrator_full_workflo0/transcripts/Test Podcast_report.json
 INFO     podcast_transcriber.config:config.py:131 Loaded configuration from: /home/sergeblumenfeld/podcastknowledge/transcriber/config/default.yaml
 INFO     podcast_transcriber.config:config.py:319 Configuration validation passed
 DEBUG    asyncio:selector_events.py:54 Using selector: EpollSelector
-INFO     podcast_transcriber.progress_tracker:progress_tracker.py:182 Progress tracker initialized with 2 episodes
 INFO     podcast_transcriber.orchestrator:orchestrator.py:87 Found 3 episodes in feed: Test Podcast
 INFO     podcast_transcriber:logging.py:132 Progress: 1/3 (33.3%) - Starting episode: Processing: Episode 1
-WARNING  podcast_transcriber.orchestrator:orchestrator.py:126 Approaching daily quota limit, stopping processing
-INFO     podcast_transcriber.orchestrator:orchestrator.py:483 Summary report saved to: /tmp/pytest-of-sergeblumenfeld/pytest-4/test_orchestrator_error_handli0/transcripts/Test Podcast_report.json
+INFO     podcast_transcriber.checkpoint_recovery:checkpoint_recovery.py:147 Started checkpoint for episode: Episode 1
+INFO     podcast_transcriber.checkpoint_recovery:checkpoint_recovery.py:168 Updated checkpoint: stage=transcription
+INFO     podcast_transcriber.orchestrator:orchestrator.py:268 Transcribing: Episode 1
+INFO     podcast_transcriber.checkpoint_recovery:checkpoint_recovery.py:168 Updated checkpoint: stage=speaker_identification
+INFO     podcast_transcriber.orchestrator:orchestrator.py:331 Identifying speakers
+INFO     podcast_transcriber.speaker_identifier:speaker_identifier.py:75 Starting speaker identification
+INFO     podcast_transcriber.speaker_identifier:speaker_identifier.py:76 Using API key index: 1
+INFO     podcast_transcriber.speaker_identifier:speaker_identifier.py:80 Found 0 unique speakers: []
+INFO     podcast_transcriber.checkpoint_recovery:checkpoint_recovery.py:183 Completed stage: speaker_identification
+INFO     podcast_transcriber.speaker_identifier:speaker_identifier.py:107 Speaker identification completed: {}
+INFO     podcast_transcriber.checkpoint_recovery:checkpoint_recovery.py:168 Updated checkpoint: stage=vtt_generation
+INFO     podcast_transcriber.orchestrator:orchestrator.py:371 Generating final VTT file
+INFO     podcast_transcriber.vtt_generator:vtt_generator.py:287 VTT file saved to: /tmp/pytest-of-sergeblumenfeld/pytest-22/test_orchestrator_error_handli0/transcripts/Test_Podcast/unknown_Episode_1.vtt
+INFO     podcast_transcriber.checkpoint_recovery:checkpoint_recovery.py:183 Completed stage: vtt_generation
+INFO     podcast_transcriber.checkpoint_recovery:checkpoint_recovery.py:272 Episode completed: Episode 1
+INFO     podcast_transcriber.orchestrator:orchestrator.py:402 Episode completed: /tmp/pytest-of-sergeblumenfeld/pytest-22/test_orchestrator_error_handli0/transcripts/Test_Podcast/unknown_Episode_1.vtt
+INFO     podcast_transcriber:logging.py:132 Progress: 2/3 (66.7%) - Starting episode: Processing: Episode 2
+INFO     podcast_transcriber.checkpoint_recovery:checkpoint_recovery.py:147 Started checkpoint for episode: Episode 2
+INFO     podcast_transcriber.checkpoint_recovery:checkpoint_recovery.py:168 Updated checkpoint: stage=transcription
+INFO     podcast_transcriber.orchestrator:orchestrator.py:268 Transcribing: Episode 2
+ERROR    podcast_transcriber.orchestrator:orchestrator.py:297 Episode processing failed: API error
+ERROR    podcast_transcriber.checkpoint_recovery:checkpoint_recovery.py:302 Episode failed: Episode 2 - API error
+INFO     podcast_transcriber:logging.py:132 Progress: 3/3 (100.0%) - Starting episode: Processing: Episode 3
+INFO     podcast_transcriber.checkpoint_recovery:checkpoint_recovery.py:147 Started checkpoint for episode: Episode 3
+INFO     podcast_transcriber.checkpoint_recovery:checkpoint_recovery.py:168 Updated checkpoint: stage=transcription
+INFO     podcast_transcriber.orchestrator:orchestrator.py:268 Transcribing: Episode 3
+INFO     podcast_transcriber.checkpoint_recovery:checkpoint_recovery.py:168 Updated checkpoint: stage=speaker_identification
+INFO     podcast_transcriber.orchestrator:orchestrator.py:331 Identifying speakers
+INFO     podcast_transcriber.speaker_identifier:speaker_identifier.py:75 Starting speaker identification
+INFO     podcast_transcriber.speaker_identifier:speaker_identifier.py:76 Using API key index: 1
+INFO     podcast_transcriber.speaker_identifier:speaker_identifier.py:80 Found 0 unique speakers: []
+INFO     podcast_transcriber.checkpoint_recovery:checkpoint_recovery.py:183 Completed stage: speaker_identification
+INFO     podcast_transcriber.speaker_identifier:speaker_identifier.py:107 Speaker identification completed: {}
+INFO     podcast_transcriber.checkpoint_recovery:checkpoint_recovery.py:168 Updated checkpoint: stage=vtt_generation
+INFO     podcast_transcriber.orchestrator:orchestrator.py:371 Generating final VTT file
+INFO     podcast_transcriber.vtt_generator:vtt_generator.py:287 VTT file saved to: /tmp/pytest-of-sergeblumenfeld/pytest-22/test_orchestrator_error_handli0/transcripts/Test_Podcast/unknown_Episode_3.vtt
+INFO     podcast_transcriber.checkpoint_recovery:checkpoint_recovery.py:183 Completed stage: vtt_generation
+INFO     podcast_transcriber.checkpoint_recovery:checkpoint_recovery.py:272 Episode completed: Episode 3
+INFO     podcast_transcriber.orchestrator:orchestrator.py:402 Episode completed: /tmp/pytest-of-sergeblumenfeld/pytest-22/test_orchestrator_error_handli0/transcripts/Test_Podcast/unknown_Episode_3.vtt
+INFO     podcast_transcriber.orchestrator:orchestrator.py:483 Summary report saved to: /tmp/pytest-of-sergeblumenfeld/pytest-22/test_orchestrator_error_handli0/transcripts/Test Podcast_report.json
 INFO     podcast_transcriber.config:config.py:131 Loaded configuration from: /home/sergeblumenfeld/podcastknowledge/transcriber/config/default.yaml
 INFO     podcast_transcriber.config:config.py:319 Configuration validation passed
 DEBUG    asyncio:selector_events.py:54 Using selector: EpollSelector
-INFO     podcast_transcriber.progress_tracker:progress_tracker.py:182 Progress tracker initialized with 2 episodes
-INFO     podcast_transcriber:logging.py:89 Logging system initialized
-INFO     podcast_transcriber:logging.py:90 Log level: INFO
-INFO     podcast_transcriber:logging.py:91 Log directory: /home/sergeblumenfeld/podcastknowledge/transcriber/logs
-INFO     podcast_transcriber.cli:cli.py:218 Starting transcription of https://example.com/feed.xml
-INFO     podcast_transcriber:logging.py:89 Logging system initialized
-INFO     podcast_transcriber:logging.py:90 Log level: INFO
-INFO     podcast_transcriber:logging.py:91 Log directory: /home/sergeblumenfeld/podcastknowledge/transcriber/logs
-INFO     podcast_transcriber.progress_tracker:progress_tracker.py:182 Progress tracker initialized with 0 episodes
-INFO     podcast_transcriber.progress_tracker:progress_tracker.py:182 Progress tracker initialized with 1 episodes
-ERROR    podcast_transcriber.progress_tracker:progress_tracker.py:192 Failed to load progress file: Expecting value: line 1 column 1 (char 0)
-WARNING  podcast_transcriber.progress_tracker:progress_tracker.py:193 Starting with empty progress state
-INFO     podcast_transcriber.progress_tracker:progress_tracker.py:182 Progress tracker initialized with 0 episodes
-INFO     podcast_transcriber.progress_tracker:progress_tracker.py:182 Progress tracker initialized with 0 episodes
-INFO     podcast_transcriber.progress_tracker:progress_tracker.py:182 Progress tracker initialized with 0 episodes
-ERROR    podcast_transcriber.progress_tracker:progress_tracker.py:223 Failed to save progress state: Write failed
-INFO     podcast_transcriber.progress_tracker:progress_tracker.py:182 Progress tracker initialized with 0 episodes
-INFO     podcast_transcriber.progress_tracker:progress_tracker.py:267 Episode 'Episode 1' marked as in-progress (attempt #1)
-INFO     podcast_transcriber.progress_tracker:progress_tracker.py:182 Progress tracker initialized with 0 episodes
-INFO     podcast_transcriber.progress_tracker:progress_tracker.py:267 Episode 'Episode 1' marked as in-progress (attempt #2)
-INFO     podcast_transcriber.progress_tracker:progress_tracker.py:182 Progress tracker initialized with 0 episodes
-INFO     podcast_transcriber.progress_tracker:progress_tracker.py:294 Episode 'Episode 1' marked as completed in 123.5s
-INFO     podcast_transcriber.progress_tracker:progress_tracker.py:182 Progress tracker initialized with 0 episodes
-ERROR    podcast_transcriber.progress_tracker:progress_tracker.py:278 Episode non-existent not found in progress tracker
-INFO     podcast_transcriber.progress_tracker:progress_tracker.py:182 Progress tracker initialized with 0 episodes
-WARNING  podcast_transcriber.progress_tracker:progress_tracker.py:318 Episode 'Episode 1' marked as failed: Network timeout
-INFO     podcast_transcriber.progress_tracker:progress_tracker.py:182 Progress tracker initialized with 0 episodes
-INFO     podcast_transcriber.progress_tracker:progress_tracker.py:182 Progress tracker initialized with 0 episodes
-INFO     podcast_transcriber.progress_tracker:progress_tracker.py:182 Progress tracker initialized with 0 episodes
-INFO     podcast_transcriber.progress_tracker:progress_tracker.py:182 Progress tracker initialized with 0 episodes
-INFO     podcast_transcriber.progress_tracker:progress_tracker.py:182 Progress tracker initialized with 0 episodes
-INFO     podcast_transcriber.progress_tracker:progress_tracker.py:182 Progress tracker initialized with 0 episodes
-INFO     podcast_transcriber.progress_tracker:progress_tracker.py:182 Progress tracker initialized with 0 episodes
-INFO     podcast_transcriber.progress_tracker:progress_tracker.py:412 Daily quota counters reset
-INFO     podcast_transcriber.progress_tracker:progress_tracker.py:182 Progress tracker initialized with 0 episodes
-WARNING  podcast_transcriber.progress_tracker:progress_tracker.py:318 Episode 'Episode 1' marked as failed: Processing interrupted - marked for retry
-WARNING  podcast_transcriber.progress_tracker:progress_tracker.py:318 Episode 'Episode 2' marked as failed: Processing interrupted - marked for retry
-INFO     podcast_transcriber.progress_tracker:progress_tracker.py:425 Cleaned up 2 interrupted episodes
-INFO     podcast_transcriber.vtt_generator:vtt_generator.py:287 VTT file saved to: /tmp/pytest-of-sergeblumenfeld/pytest-4/test_generate_vtt_save_to_file0/test.vtt
-INFO     podcast_transcriber.vtt_generator:vtt_generator.py:287 VTT file saved to: /tmp/pytest-of-sergeblumenfeld/pytest-4/test_vtt_with_checkpoint_manag0/test.vtt
+INFO     podcast_transcriber.orchestrator:orchestrator.py:87 Found 3 episodes in feed: Test Podcast
+INFO     podcast_transcriber:logging.py:132 Progress: 1/2 (50.0%) - Starting episode: Processing: Episode 2
+INFO     podcast_transcriber.checkpoint_recovery:checkpoint_recovery.py:147 Started checkpoint for episode: Episode 2
+INFO     podcast_transcriber.checkpoint_recovery:checkpoint_recovery.py:168 Updated checkpoint: stage=transcription
+INFO     podcast_transcriber.orchestrator:orchestrator.py:268 Transcribing: Episode 2
+INFO     podcast_transcriber.checkpoint_recovery:checkpoint_recovery.py:168 Updated checkpoint: stage=speaker_identification
+INFO     podcast_transcriber.orchestrator:orchestrator.py:331 Identifying speakers
+INFO     podcast_transcriber.speaker_identifier:speaker_identifier.py:75 Starting speaker identification
+INFO     podcast_transcriber.speaker_identifier:speaker_identifier.py:76 Using API key index: 1
+INFO     podcast_transcriber.speaker_identifier:speaker_identifier.py:80 Found 0 unique speakers: []
+WARNING  podcast_transcriber.speaker_identifier:speaker_identifier.py:93 No speaker mapping returned from API
+INFO     podcast_transcriber.checkpoint_recovery:checkpoint_recovery.py:183 Completed stage: speaker_identification
+INFO     podcast_transcriber.speaker_identifier:speaker_identifier.py:107 Speaker identification completed: {}
+INFO     podcast_transcriber.checkpoint_recovery:checkpoint_recovery.py:168 Updated checkpoint: stage=vtt_generation
+INFO     podcast_transcriber.orchestrator:orchestrator.py:371 Generating final VTT file
+INFO     podcast_transcriber.vtt_generator:vtt_generator.py:287 VTT file saved to: /tmp/pytest-of-sergeblumenfeld/pytest-22/test_orchestrator_resume_funct0/transcripts/Test_Podcast/unknown_Episode_2.vtt
+INFO     podcast_transcriber.checkpoint_recovery:checkpoint_recovery.py:183 Completed stage: vtt_generation
+INFO     podcast_transcriber.checkpoint_recovery:checkpoint_recovery.py:272 Episode completed: Episode 2
+INFO     podcast_transcriber.orchestrator:orchestrator.py:402 Episode completed: /tmp/pytest-of-sergeblumenfeld/pytest-22/test_orchestrator_resume_funct0/transcripts/Test_Podcast/unknown_Episode_2.vtt
+INFO     podcast_transcriber:logging.py:132 Progress: 2/2 (100.0%) - Starting episode: Processing: Episode 3
+INFO     podcast_transcriber.checkpoint_recovery:checkpoint_recovery.py:147 Started checkpoint for episode: Episode 3
+INFO     podcast_transcriber.checkpoint_recovery:checkpoint_recovery.py:168 Updated checkpoint: stage=transcription
+INFO     podcast_transcriber.orchestrator:orchestrator.py:268 Transcribing: Episode 3
+INFO     podcast_transcriber.checkpoint_recovery:checkpoint_recovery.py:168 Updated checkpoint: stage=speaker_identification
+INFO     podcast_transcriber.orchestrator:orchestrator.py:331 Identifying speakers
+INFO     podcast_transcriber.speaker_identifier:speaker_identifier.py:75 Starting speaker identification
+INFO     podcast_transcriber.speaker_identifier:speaker_identifier.py:76 Using API key index: 1
+INFO     podcast_transcriber.speaker_identifier:speaker_identifier.py:80 Found 0 unique speakers: []
+WARNING  podcast_transcriber.speaker_identifier:speaker_identifier.py:93 No speaker mapping returned from API
+INFO     podcast_transcriber.checkpoint_recovery:checkpoint_recovery.py:183 Completed stage: speaker_identification
+INFO     podcast_transcriber.speaker_identifier:speaker_identifier.py:107 Speaker identification completed: {}
+INFO     podcast_transcriber.checkpoint_recovery:checkpoint_recovery.py:168 Updated checkpoint: stage=vtt_generation
+INFO     podcast_transcriber.orchestrator:orchestrator.py:371 Generating final VTT file
+INFO     podcast_transcriber.vtt_generator:vtt_generator.py:287 VTT file saved to: /tmp/pytest-of-sergeblumenfeld/pytest-22/test_orchestrator_resume_funct0/transcripts/Test_Podcast/unknown_Episode_3.vtt
+INFO     podcast_transcriber.checkpoint_recovery:checkpoint_recovery.py:183 Completed stage: vtt_generation
+INFO     podcast_transcriber.checkpoint_recovery:checkpoint_recovery.py:272 Episode completed: Episode 3
+INFO     podcast_transcriber.orchestrator:orchestrator.py:402 Episode completed: /tmp/pytest-of-sergeblumenfeld/pytest-22/test_orchestrator_resume_funct0/transcripts/Test_Podcast/unknown_Episode_3.vtt
+INFO     podcast_transcriber.orchestrator:orchestrator.py:483 Summary report saved to: /tmp/pytest-of-sergeblumenfeld/pytest-22/test_orchestrator_resume_funct0/transcripts/Test Podcast_report.json

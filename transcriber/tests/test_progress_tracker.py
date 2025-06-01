@@ -13,6 +13,7 @@ from src.progress_tracker import (
 )
 
 
+@pytest.mark.unit
 class TestEpisodeStatus:
     """Test EpisodeStatus enum."""
     
@@ -24,6 +25,7 @@ class TestEpisodeStatus:
         assert EpisodeStatus.FAILED.value == "failed"
 
 
+@pytest.mark.unit
 class TestEpisodeProgress:
     """Test EpisodeProgress dataclass."""
     
@@ -108,6 +110,7 @@ class TestEpisodeProgress:
         assert episode.attempt_count == 0
 
 
+@pytest.mark.unit
 class TestProgressState:
     """Test ProgressState dataclass."""
     
@@ -183,6 +186,7 @@ class TestProgressState:
         assert state.episodes['ep2'].error == 'Test error'
 
 
+@pytest.mark.unit
 class TestProgressTracker:
     """Test ProgressTracker class."""
     

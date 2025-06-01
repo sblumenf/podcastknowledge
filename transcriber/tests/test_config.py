@@ -14,6 +14,7 @@ from src.config import (
 )
 
 
+@pytest.mark.unit
 class TestAPIConfig:
     """Test APIConfig dataclass."""
     
@@ -29,6 +30,7 @@ class TestAPIConfig:
         assert config.max_tokens_per_key == 1000000
 
 
+@pytest.mark.unit
 class TestProcessingConfig:
     """Test ProcessingConfig dataclass."""
     
@@ -41,6 +43,7 @@ class TestProcessingConfig:
         assert config.max_episode_length == 60
 
 
+@pytest.mark.unit
 class TestOutputConfig:
     """Test OutputConfig dataclass."""
     
@@ -56,6 +59,7 @@ class TestOutputConfig:
         assert config.timestamp_precision == 3
 
 
+@pytest.mark.unit
 class TestLogginConfig:
     """Test LoggingConfig dataclass."""
     
@@ -69,6 +73,7 @@ class TestLogginConfig:
         assert config.log_dir == "logs"
 
 
+@pytest.mark.unit
 class TestSecurityConfig:
     """Test SecurityConfig dataclass."""
     
@@ -85,6 +90,7 @@ class TestSecurityConfig:
         assert config.api_key_vars == ["KEY1", "KEY2", "KEY3"]
 
 
+@pytest.mark.unit
 class TestDevelopmentConfig:
     """Test DevelopmentConfig dataclass."""
     
@@ -98,6 +104,7 @@ class TestDevelopmentConfig:
         assert config.mock_api_calls is False
 
 
+@pytest.mark.unit
 class TestConfig:
     """Test main Config class."""
     
@@ -352,6 +359,7 @@ class TestConfig:
             config.validate()  # Should not raise
 
 
+@pytest.mark.unit
 class TestConfigSingleton:
     """Test global configuration singleton functionality."""
     

@@ -28,7 +28,7 @@ class VTTParser:
     
     # Regex patterns for VTT parsing
     TIMESTAMP_PATTERN = re.compile(
-        r'(\d{1,2}):(\d{2}):(\d{2})\.(\d{3})'
+        r'(\d+):(\d{2}):(\d{2})\.(\d{3})'
     )
     CUE_TIMING_PATTERN = re.compile(
         r'([\d:\.]+)\s*-->\s*([\d:\.]+)(?:\s+(.+))?'
@@ -120,7 +120,7 @@ class VTTParser:
             
             # Parse timestamp line
             if i < len(lines) and self._is_timestamp_line(lines[i]):
-                timing_match = self.CUE_TIMING_PATTERN.match(lines[i])
+                timing_match = self.CUE_TIMING_PATTERN.match(lines[i].strip())
                 if timing_match:
                     start_str = timing_match.group(1)
                     end_str = timing_match.group(2)

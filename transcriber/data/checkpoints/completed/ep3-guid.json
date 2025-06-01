@@ -1,0 +1,32 @@
+{
+  "episode_id": "ep3-guid",
+  "audio_url": "https://example.com/episode3.mp3",
+  "title": "Episode 3",
+  "status": "completed",
+  "stage_completed": [
+    "speaker_identification",
+    "vtt_generation"
+  ],
+  "temporary_files": {
+    "speaker_mapping": "data/checkpoints/temp/ep3-guid_speaker_mapping.tmp"
+  },
+  "start_time": "2025-06-01T12:01:30.802052",
+  "last_update": "2025-06-01T12:01:30.863831",
+  "metadata": {
+    "title": "Episode 3",
+    "audio_url": "https://example.com/episode3.mp3",
+    "guid": "ep3-guid",
+    "description": "Episode 3 description",
+    "published_date": "2024-01-13T00:00:00",
+    "duration": "30:00",
+    "episode_number": 3,
+    "season_number": null,
+    "link": null,
+    "author": null,
+    "keywords": [],
+    "file_size": null,
+    "mime_type": null,
+    "podcast_name": "Test Podcast"
+  },
+  "final_output": "/tmp/pytest-of-sergeblumenfeld/pytest-22/test_orchestrator_resume_funct0/transcripts/Test_Podcast/unknown_Episode_3.vtt"
+}

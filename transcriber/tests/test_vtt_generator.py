@@ -9,6 +9,7 @@ from unittest.mock import patch, MagicMock, mock_open
 from src.vtt_generator import VTTMetadata, VTTGenerator
 
 
+@pytest.mark.unit
 class TestVTTMetadata:
     """Test VTTMetadata dataclass."""
     
@@ -89,6 +90,7 @@ class TestVTTMetadata:
         assert "guests" not in json_data
 
 
+@pytest.mark.unit
 class TestVTTGenerator:
     """Test VTTGenerator class."""
     

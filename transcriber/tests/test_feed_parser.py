@@ -11,6 +11,7 @@ from src.feed_parser import (
 )
 
 
+@pytest.mark.unit
 class TestEpisode:
     """Test Episode dataclass."""
     
@@ -94,6 +95,7 @@ class TestEpisode:
         assert data['duration'] is None
 
 
+@pytest.mark.unit
 class TestPodcastMetadata:
     """Test PodcastMetadata dataclass."""
     
@@ -125,6 +127,7 @@ class TestPodcastMetadata:
         assert metadata.explicit is False
 
 
+@pytest.mark.unit
 class TestParseFeed:
     """Test parse_feed function."""
     
@@ -191,6 +194,7 @@ class TestParseFeed:
         assert len(episodes) == 0
 
 
+@pytest.mark.unit
 class TestExtractPodcastMetadata:
     """Test _extract_podcast_metadata function."""
     
@@ -260,6 +264,7 @@ class TestExtractPodcastMetadata:
         assert metadata.explicit is False
 
 
+@pytest.mark.unit
 class TestExtractEpisodes:
     """Test _extract_episodes function."""
     
@@ -318,6 +323,7 @@ class TestExtractEpisodes:
         assert episodes[1].title == 'Another Good Episode'
 
 
+@pytest.mark.unit
 class TestParseEpisode:
     """Test _parse_episode function."""
     
@@ -427,6 +433,7 @@ class TestParseEpisode:
         assert episode.guid == 'https://example.com/unique-episode.mp3'
 
 
+@pytest.mark.unit
 class TestUtilityFunctions:
     """Test utility functions."""
     

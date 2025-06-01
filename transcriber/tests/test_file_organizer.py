@@ -9,6 +9,7 @@ from unittest.mock import patch, MagicMock, mock_open
 from src.file_organizer import EpisodeMetadata, FileOrganizer
 
 
+@pytest.mark.unit
 class TestEpisodeMetadata:
     """Test EpisodeMetadata dataclass."""
     
@@ -62,6 +63,7 @@ class TestEpisodeMetadata:
         assert metadata.processed_date == custom_date
 
 
+@pytest.mark.unit
 class TestFileOrganizer:
     """Test FileOrganizer class."""
     

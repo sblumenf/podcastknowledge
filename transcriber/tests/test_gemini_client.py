@@ -15,6 +15,7 @@ from src.gemini_client import (
 from src.retry_wrapper import QuotaExceededException, CircuitBreakerOpenException
 
 
+@pytest.mark.unit
 class TestAPIKeyUsage:
     """Test APIKeyUsage dataclass."""
     
@@ -100,6 +101,7 @@ class TestAPIKeyUsage:
         assert usage.last_reset > old_reset
 
 
+@pytest.mark.unit
 class TestRateLimitedGeminiClient:
     """Test RateLimitedGeminiClient class."""
     
@@ -408,6 +410,7 @@ class TestRateLimitedGeminiClient:
         assert summary['key_2']['tokens_today'] == 2000
 
 
+@pytest.mark.unit
 class TestCreateGeminiClient:
     """Test create_gemini_client factory function."""
     
