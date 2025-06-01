@@ -69,12 +69,14 @@ class TranscriptionProcessor:
     
     async def transcribe_episode(self, 
                                audio_url: str, 
-                               episode_metadata: Dict[str, Any]) -> Optional[str]:
+                               episode_metadata: Dict[str, Any],
+                               validation_config: Optional[Dict[str, Any]] = None) -> Optional[str]:
         """Transcribe a podcast episode to VTT format.
         
         Args:
             audio_url: URL of the audio file
             episode_metadata: Episode information including title, description, etc.
+            validation_config: Optional validation configuration
             
         Returns:
             VTT-formatted transcript or None if failed
@@ -94,7 +96,9 @@ class TranscriptionProcessor:
             prompt = self._build_transcription_prompt(episode_metadata)
             
             # Perform transcription
-            transcript = await self.gemini_client.transcribe_audio(audio_url, episode_metadata)
+            transcript = await self.gemini_client.transcribe_audio(
+                audio_url, episode_metadata, validation_config
+            )
             
             if not transcript:
                 raise Exception("Transcription returned empty result")

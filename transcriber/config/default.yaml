@@ -92,6 +92,17 @@ youtube_search:
   # Maximum search results to consider
   max_search_results: 5
 
+# Transcript Validation Configuration
+validation:
+  # Minimum coverage ratio to consider transcript complete (0.0-1.0)
+  min_coverage_ratio: 0.85
+  
+  # Maximum attempts to continue incomplete transcripts
+  max_continuation_attempts: 10
+  
+  # Enable/disable transcript completeness validation
+  enabled: true
+
 # Development Configuration
 development:
   # Enable dry run mode by default

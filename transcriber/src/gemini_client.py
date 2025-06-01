@@ -200,12 +200,14 @@ class RateLimitedGeminiClient:
         logger.error("No API keys available due to rate limits")
         return None, None
     
-    async def transcribe_audio(self, audio_url: str, episode_metadata: Dict[str, Any]) -> Optional[str]:
+    async def transcribe_audio(self, audio_url: str, episode_metadata: Dict[str, Any], 
+                             validation_config: Optional[Dict[str, Any]] = None) -> Optional[str]:
         """Transcribe audio from URL to VTT format with speaker diarization.
         
         Args:
             audio_url: URL of the audio file to transcribe
             episode_metadata: Episode information for context
+            validation_config: Optional validation configuration
             
         Returns:
             VTT-formatted transcript or None if failed
@@ -228,6 +230,29 @@ class RateLimitedGeminiClient:
             transcript = await self._transcribe_with_retry(
                 model, key_index, audio_url, episode_metadata
             )
+            
+            # Validate transcript completeness if enabled and duration is available
+            if (transcript and validation_config and 
+                validation_config.get('enabled', True) and
+                episode_metadata.get('duration')):
+                
+                # Parse duration to seconds for validation
+                duration_str = episode_metadata.get('duration', '0:00')
+                duration_seconds = self._parse_duration_to_seconds(duration_str)
+                
+                if duration_seconds > 0:
+                    is_complete, coverage = self.validate_transcript_completeness(
+                        transcript, duration_seconds
+                    )
+                    
+                    # Log validation results
+                    min_coverage = validation_config.get('min_coverage_ratio', 0.85)
+                    if not is_complete:
+                        logger.warning(f"Transcript appears incomplete: {coverage:.1%} coverage "
+                                     f"(minimum: {min_coverage:.1%})")
+                    else:
+                        logger.info(f"Transcript validation passed: {coverage:.1%} coverage")
+            
             return transcript
         except (QuotaExceededException, CircuitBreakerOpenException) as e:
             logger.error(f"Cannot retry transcription: {e}")
@@ -467,6 +492,92 @@ Example response format:
                 return float(duration_str)  # Assume minutes
         except:
             return 60.0  # Default to 1 hour
+    
+    def _parse_duration_to_seconds(self, duration_str: str) -> int:
+        """Parse duration string to total seconds."""
+        if not duration_str:
+            return 3600  # Default to 1 hour
+        
+        # Handle different duration formats
+        parts = duration_str.split(':')
+        try:
+            if len(parts) == 3:  # HH:MM:SS
+                hours, minutes, seconds = map(int, parts)
+                return hours * 3600 + minutes * 60 + seconds
+            elif len(parts) == 2:  # MM:SS
+                minutes, seconds = map(int, parts)
+                return minutes * 60 + seconds
+            else:
+                return int(float(duration_str) * 60)  # Assume minutes, convert to seconds
+        except:
+            return 3600  # Default to 1 hour
+    
+    def validate_transcript_completeness(self, transcript: str, duration_seconds: int) -> Tuple[bool, float]:
+        """Validate if transcript covers the full episode duration.
+        
+        Args:
+            transcript: VTT-formatted transcript
+            duration_seconds: Expected episode duration in seconds
+            
+        Returns:
+            Tuple of (is_complete, coverage_percentage)
+        """
+        if not transcript or not duration_seconds:
+            return False, 0.0
+        
+        try:
+            # Find all timestamp lines in the transcript
+            import re
+            timestamp_pattern = r'(\d{1,2}:\d{2}:\d{2}\.\d{3})\s*-->\s*(\d{1,2}:\d{2}:\d{2}\.\d{3})'
+            matches = re.findall(timestamp_pattern, transcript)
+            
+            if not matches:
+                logger.warning("No timestamps found in transcript")
+                return False, 0.0
+            
+            # Get the last end timestamp
+            last_end_timestamp = matches[-1][1]  # End time of last segment
+            
+            # Parse the timestamp to seconds
+            last_seconds = self._parse_timestamp_to_seconds(last_end_timestamp)
+            
+            # Calculate coverage percentage
+            coverage = last_seconds / duration_seconds
+            
+            # Consider complete if coverage is at least 85%
+            min_coverage = 0.85
+            is_complete = coverage >= min_coverage
+            
+            logger.info(f"Transcript coverage: {coverage:.1%} ({last_seconds}s of {duration_seconds}s)")
+            
+            return is_complete, coverage
+            
+        except Exception as e:
+            logger.error(f"Failed to validate transcript completeness: {e}")
+            return False, 0.0
+    
+    def _parse_timestamp_to_seconds(self, timestamp: str) -> float:
+        """Parse VTT timestamp to seconds.
+        
+        Args:
+            timestamp: Timestamp in format HH:MM:SS.mmm or MM:SS.mmm
+            
+        Returns:
+            Total seconds as float
+        """
+        parts = timestamp.split(':')
+        
+        if len(parts) == 3:  # HH:MM:SS.mmm
+            hours = int(parts[0])
+            minutes = int(parts[1])
+            seconds_with_ms = float(parts[2])
+            return hours * 3600 + minutes * 60 + seconds_with_ms
+        elif len(parts) == 2:  # MM:SS.mmm
+            minutes = int(parts[0])
+            seconds_with_ms = float(parts[1])
+            return minutes * 60 + seconds_with_ms
+        else:
+            return float(timestamp)
     
     def get_usage_summary(self) -> Dict[str, Any]:
         """Get current usage summary for all API keys."""

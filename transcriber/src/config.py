@@ -83,6 +83,14 @@ class YouTubeSearchConfig:
 
 
 @dataclass
+class ValidationConfig:
+    """Transcript validation configuration settings."""
+    enabled: bool = True
+    min_coverage_ratio: float = 0.85
+    max_continuation_attempts: int = 10
+
+
+@dataclass
 class DevelopmentConfig:
     """Development configuration settings."""
     dry_run: bool = False
@@ -112,6 +120,7 @@ class Config:
         self.logging = LoggingConfig()
         self.security = SecurityConfig()
         self.youtube_search = YouTubeSearchConfig()
+        self.validation = ValidationConfig()
         self.development = DevelopmentConfig()
         
         # Set test mode if specified
@@ -155,6 +164,7 @@ class Config:
         self._apply_config_section('logging', self.logging)
         self._apply_config_section('security', self.security)
         self._apply_config_section('youtube_search', self.youtube_search)
+        self._apply_config_section('validation', self.validation)
         self._apply_config_section('development', self.development)
         
         # Apply environment variable overrides

@@ -303,8 +303,14 @@ class TranscriptionOrchestrator:
                 self.checkpoint_manager.update_stage('transcription')
             
             logger.info(f"Transcribing: {episode.title}")
+            # Convert validation config to dict for passing to processor
+            validation_config = {
+                'enabled': self.config.validation.enabled,
+                'min_coverage_ratio': self.config.validation.min_coverage_ratio,
+                'max_continuation_attempts': self.config.validation.max_continuation_attempts
+            }
             transcript = await self.transcription_processor.transcribe_episode(
-                episode.audio_url, episode_data
+                episode.audio_url, episode_data, validation_config
             )
             
             if not transcript:
