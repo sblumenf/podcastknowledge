@@ -4,9 +4,7 @@ from typing import List, Dict
 
 import pytest
 
-from src.utils.text_processing import (
-    clean_segment_text,
-    normalize_entity_name,
+from src.utils.text_processing import (,
     calculate_name_similarity,
     extract_key_phrases,
     split_into_sentences,
@@ -29,24 +27,24 @@ from src.utils.text_processing import (
 
 
 class TestCleanSegmentText:
-    """Test clean_segment_text function."""
+    """Test function."""
     
     def test_basic_cleaning(self):
         """Test basic text cleaning."""
         text = "  Hello   World!  \n\n  This is   a test.  "
-        result = clean_segment_text(text)
+        result =(text)
         assert result == "Hello World! This is a test."
     
     def test_empty_text(self):
         """Test cleaning empty text."""
-        assert clean_segment_text("") == ""
-        assert clean_segment_text(None) == ""
-        assert clean_segment_text("   ") == ""
+        assert("") == ""
+        assert(None) == ""
+        assert("   ") == ""
     
     def test_remove_filler_words(self):
         """Test removal of filler words."""
         text = "So um this is uh like a uhm test"
-        result = clean_segment_text(text)
+        result =(text)
         assert "um" not in result
         assert "uh" not in result
         assert "uhm" not in result
@@ -55,46 +53,46 @@ class TestCleanSegmentText:
     def test_control_characters(self):
         """Test removal of control characters."""
         text = "Hello\x00World\x1fTest\x7f"
-        result = clean_segment_text(text)
+        result =(text)
         assert result == "HelloWorldTest"
     
     def test_multiple_spaces(self):
         """Test handling of multiple spaces."""
         text = "This  has   multiple    spaces"
-        result = clean_segment_text(text)
+        result =(text)
         assert result == "This has multiple spaces"
 
 
 class TestNormalizeEntityName:
-    """Test normalize_entity_name function."""
+    """Test function."""
     
     def test_basic_normalization(self):
         """Test basic name normalization."""
-        assert normalize_entity_name("John Doe") == "john doe"
-        assert normalize_entity_name("OPENAI") == "openai"
-        assert normalize_entity_name("  Trimmed  ") == "trimmed"
+        assert("John Doe") == "john doe"
+        assert("OPENAI") == "openai"
+        assert("  Trimmed  ") == "trimmed"
     
     def test_special_characters(self):
         """Test handling of special characters."""
-        assert normalize_entity_name("O'Brien") == "o'brien"
-        assert normalize_entity_name("Jean-Pierre") == "jean-pierre"
-        assert normalize_entity_name("AT&T") == "at&t"
+        assert("O'Brien") == "o'brien"
+        assert("Jean-Pierre") == "jean-pierre"
+        assert("AT&T") == "at&t"
     
     def test_unicode_normalization(self):
         """Test Unicode normalization."""
-        assert normalize_entity_name("Café") == "café"
-        assert normalize_entity_name("naïve") == "naïve"
+        assert("Café") == "café"
+        assert("naïve") == "naïve"
     
     def test_company_suffixes(self):
         """Test handling of company suffixes."""
-        assert normalize_entity_name("Apple Inc.") == "apple inc"
-        assert normalize_entity_name("Google LLC") == "google llc"
-        assert normalize_entity_name("Microsoft Corporation") == "microsoft corporation"
+        assert("Apple Inc.") == "apple inc"
+        assert("Google LLC") == "google llc"
+        assert("Microsoft Corporation") == "microsoft corporation"
     
     def test_empty_name(self):
         """Test empty name handling."""
-        assert normalize_entity_name("") == ""
-        assert normalize_entity_name("   ") == ""
+        assert("") == ""
+        assert("   ") == ""
 
 
 class TestCalculateNameSimilarity:

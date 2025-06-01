@@ -13,7 +13,7 @@ import pytest
 from src.core.config import Config
 from src.core.exceptions import CheckpointError
 from src.seeding.checkpoint import ProgressCheckpoint
-from src.seeding.orchestrator import PodcastKnowledgePipeline
+from src.seeding.orchestrator import VTTKnowledgeExtractor
 class TestCheckpointRecovery:
     """Test checkpoint recovery and compatibility scenarios."""
     
@@ -117,7 +117,7 @@ class TestCheckpointRecovery:
         config.checkpoint_enabled = True
         
         with patch('src.utils.feed_processing.parse_rss_feed') as mock_parse, \
-             patch('src.seeding.orchestrator.PodcastKnowledgePipeline._process_episode') as mock_process:
+             patch('src.seeding.orchestrator.VTTKnowledgeExtractor._process_episode') as mock_process:
             
             mock_parse.return_value = {
                 "title": "Test Podcast",
@@ -125,7 +125,7 @@ class TestCheckpointRecovery:
             }
             mock_process.return_value = True
             
-            pipeline = PodcastKnowledgePipeline(config)
+            pipeline = VTTKnowledgeExtractor(config)
             
             # Process should skip first 3 episodes (already in checkpoint)
             result = pipeline.process_podcast(

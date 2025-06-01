@@ -10,12 +10,12 @@ import tempfile
 import pytest
 
 from src.core.config import PipelineConfig
-from src.core.models import Entity, EntityType, Relationship, RelationshipType
-from src.processing.vtt_parser import VTTParser
+from src.core.extraction_interface import Entity, EntityType, Relationship, RelationshipType
+from src.vtt.vtt_parser import VTTParser
 from src.providers.embeddings.base import EmbeddingProvider
 from src.providers.graph.base import GraphProvider
 from src.providers.llm.base import LLMProvider
-from src.seeding import PodcastKnowledgePipeline
+from src.seeding import VTTKnowledgeExtractor
 from src.seeding.transcript_ingestion import TranscriptIngestionManager
 class TestVTTEndToEnd:
     """End-to-end tests for VTT processing pipeline."""
@@ -205,7 +205,7 @@ class TestVTTEndToEnd:
         }.get(ptype)
         
         # Create pipeline
-        pipeline = PodcastKnowledgePipeline(mock_config)
+        pipeline = VTTKnowledgeExtractor(mock_config)
         pipeline.graph_provider = mock_providers['graph']
         pipeline.llm_provider = mock_providers['llm']
         pipeline.embedding_provider = mock_providers['embeddings']
@@ -285,7 +285,7 @@ class TestVTTEndToEnd:
     
     def test_batch_vtt_processing(self, temp_dir, sample_vtt_files, mock_config):
         """Test batch processing of multiple VTT files."""
-        from cli import find_vtt_files, validate_vtt_file
+        from src.cli.cli import find_vtt_files, validate_vtt_file
         
         # Find all VTT files
         vtt_files = find_vtt_files(temp_dir, pattern="*.vtt", recursive=False)
@@ -304,7 +304,7 @@ class TestVTTEndToEnd:
     def test_checkpoint_integration(self, temp_dir, sample_vtt_files):
         """Test checkpoint system with VTT processing."""
         from src.seeding.checkpoint import ProgressCheckpoint
-        from cli import get_file_hash
+        from src.cli.cli import get_file_hash
         
         checkpoint_dir = temp_dir / "checkpoints"
         checkpoint_dir.mkdir()
@@ -343,7 +343,7 @@ class TestVTTEndToEnd:
         invalid_vtt = temp_dir / "invalid.vtt"
         invalid_vtt.write_text("This is not a valid VTT file")
         
-        from cli import find_vtt_files, validate_vtt_file
+        from src.cli.cli import find_vtt_files, validate_vtt_file
         
         all_files = find_vtt_files(temp_dir, pattern="*.vtt")
         assert len(all_files) == 4  # 3 valid + 1 invalid
@@ -415,7 +415,7 @@ class TestVTTEndToEnd:
     
     def test_vtt_processing_statistics(self, sample_vtt_files):
         """Test collection of processing statistics."""
-        from src.processing.vtt_parser import VTTParser
+        from src.vtt.vtt_parser import VTTParser
         
         parser = VTTParser()
         total_segments = 0

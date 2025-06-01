@@ -5,7 +5,7 @@ from unittest.mock import Mock, MagicMock
 import numpy as np
 import pytest
 
-from src.core.models import Entity, Segment
+from src.core.extraction_interface import Entity, Segment
 from src.processing.episode_flow import EpisodeFlowAnalyzer
 class TestEpisodeFlowAnalyzer:
     """Test suite for EpisodeFlowAnalyzer class."""

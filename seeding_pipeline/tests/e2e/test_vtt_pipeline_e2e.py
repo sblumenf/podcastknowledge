@@ -6,7 +6,7 @@ from typing import Dict, Any
 import tempfile
 import os
 
-from src.api.v1 import seed_podcast, PodcastKnowledgePipeline
+from src.api.v1 import seed_podcast, VTTKnowledgeExtractor
 from src.core.config import SeedingConfig
 from neo4j import GraphDatabase
 

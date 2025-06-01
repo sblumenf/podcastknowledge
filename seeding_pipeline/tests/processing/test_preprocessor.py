@@ -7,12 +7,12 @@ from unittest.mock import patch, MagicMock
 
 import pytest
 
-from src.processing.preprocessor import (
+from src.extraction.preprocessor import (
     TextPreprocessor,
     PreprocessingConfig,
     preprocess_segments_batch
 )
-from src.core.models import Segment
+from src.core.extraction_interface import Segment
 from src.core.interfaces import TranscriptSegment
 
 

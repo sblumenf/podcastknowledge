@@ -17,7 +17,7 @@ import pytest
 
 from src.core.config import Config
 from src.core.exceptions import PodcastKGError
-from src.seeding.orchestrator import PodcastKnowledgePipeline
+from src.seeding.orchestrator import VTTKnowledgeExtractor
 class TestExtractionModes:
     """Test all extraction modes end-to-end."""
     
@@ -196,7 +196,7 @@ class TestExtractionModes:
             mock_get.return_value = mock_response
             
             # Create pipeline
-            pipeline = PodcastKnowledgePipeline(test_config)
+            pipeline = VTTKnowledgeExtractor(test_config)
             
             # Process podcast
             result = pipeline.process_podcast(
@@ -246,7 +246,7 @@ class TestExtractionModes:
             mock_get.return_value = mock_response
             
             # Create pipeline
-            pipeline = PodcastKnowledgePipeline(test_config)
+            pipeline = VTTKnowledgeExtractor(test_config)
             
             # Process podcast
             result = pipeline.process_podcast(
@@ -317,7 +317,7 @@ class TestExtractionModes:
             mock_get.return_value = mock_response
             
             # Create pipeline
-            pipeline = PodcastKnowledgePipeline(test_config)
+            pipeline = VTTKnowledgeExtractor(test_config)
             
             # Process podcast
             result = pipeline.process_podcast(

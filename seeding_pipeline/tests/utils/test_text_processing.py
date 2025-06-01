@@ -6,9 +6,7 @@ import re
 
 import pytest
 
-from src.utils.text_processing import (
-    clean_segment_text,
-    normalize_entity_name,
+from src.utils.text_processing import (,
     calculate_name_similarity,
     extract_entity_aliases,
     extract_key_phrases,
@@ -24,121 +22,121 @@ from src.utils.text_processing import (
 
 
 class TestCleanSegmentText:
-    """Test suite for clean_segment_text function."""
+    """Test suite for function."""
     
     def test_basic_cleaning(self):
         """Test basic text cleaning."""
-        assert clean_segment_text("  Hello World  ") == "Hello World"
-        assert clean_segment_text("Multiple   spaces") == "Multiple spaces"
-        assert clean_segment_text("\n\tNewlines\r\n") == "Newlines"
+        assert("  Hello World  ") == "Hello World"
+        assert("Multiple   spaces") == "Multiple spaces"
+        assert("\n\tNewlines\r\n") == "Newlines"
     
     def test_empty_or_none(self):
         """Test handling of empty or None input."""
-        assert clean_segment_text("") == ""
-        assert clean_segment_text(None) == ""
-        assert clean_segment_text("   ") == ""
+        assert("") == ""
+        assert(None) == ""
+        assert("   ") == ""
     
     def test_filler_word_removal(self):
         """Test removal of filler words."""
-        assert clean_segment_text("I um think so") == "I think so"
-        assert clean_segment_text("Well uh maybe") == "Well maybe"
-        assert clean_segment_text("It's uhm complicated") == "It's complicated"
-        assert clean_segment_text("I umm don't know") == "I don't know"
+        assert("I um think so") == "I think so"
+        assert("Well uh maybe") == "Well maybe"
+        assert("It's uhm complicated") == "It's complicated"
+        assert("I umm don't know") == "I don't know"
     
     def test_special_character_removal(self):
         """Test removal of control characters."""
         # Control characters
-        assert clean_segment_text("Hello\x00World") == "Hello World"
-        assert clean_segment_text("Test\x1fString") == "Test String"
-        assert clean_segment_text("Data\x7fHere") == "Data Here"
+        assert("Hello\x00World") == "Hello World"
+        assert("Test\x1fString") == "Test String"
+        assert("Data\x7fHere") == "Data Here"
     
     def test_multiple_replacements(self):
         """Test multiple replacements in one pass."""
         text = "I um think uh this uhm is umm good"
         expected = "I think this is good"
-        assert clean_segment_text(text) == expected
+        assert(text) == expected
     
     def test_preserve_punctuation(self):
         """Test that punctuation is preserved."""
         text = "Hello, world! How are you? I'm fine."
-        assert clean_segment_text(text) == text
+        assert(text) == text
         
         text_with_special = "Cost: $100.50 (approx.)"
-        assert "$" not in clean_segment_text(text_with_special)  # Control chars removed
+        assert "$" not in(text_with_special)  # Control chars removed
     
     def test_unicode_handling(self):
         """Test handling of Unicode text."""
-        assert clean_segment_text("Café résumé") == "Café résumé"
-        assert clean_segment_text("Hello 🌍 World") == "Hello 🌍 World"
-        assert clean_segment_text("测试 中文") == "测试 中文"
+        assert("Café résumé") == "Café résumé"
+        assert("Hello 🌍 World") == "Hello 🌍 World"
+        assert("测试 中文") == "测试 中文"
     
     def test_whitespace_normalization(self):
         """Test comprehensive whitespace normalization."""
         text = "  Multiple\t\ttabs\nand\r\nnewlines   here  "
         expected = "Multiple tabs and newlines here"
-        assert clean_segment_text(text) == expected
+        assert(text) == expected
 
 
 class TestNormalizeEntityName:
-    """Test suite for normalize_entity_name function."""
+    """Test suite for function."""
     
     def test_basic_normalization(self):
         """Test basic name normalization."""
-        assert normalize_entity_name("John Doe") == "john doe"
-        assert normalize_entity_name("  UPPERCASE  ") == "uppercase"
-        assert normalize_entity_name("Mixed Case Name") == "mixed case name"
+        assert("John Doe") == "john doe"
+        assert("  UPPERCASE  ") == "uppercase"
+        assert("Mixed Case Name") == "mixed case name"
     
     def test_empty_or_none(self):
         """Test handling of empty or None input."""
-        assert normalize_entity_name("") == ""
-        assert normalize_entity_name(None) == ""
-        assert normalize_entity_name("   ") == ""
+        assert("") == ""
+        assert(None) == ""
+        assert("   ") == ""
     
     def test_company_suffix_removal(self):
         """Test removal of company suffixes."""
-        assert normalize_entity_name("Apple Inc.") == "apple"
-        assert normalize_entity_name("Google, Inc") == "google"
-        assert normalize_entity_name("Microsoft Corporation") == "microsoft"
-        assert normalize_entity_name("Amazon LLC") == "amazon"
-        assert normalize_entity_name("Tesla, Ltd") == "tesla"
-        assert normalize_entity_name("IBM Corp") == "ibm"
-        assert normalize_entity_name("Smith & Company") == "smith"
-        assert normalize_entity_name("Jones & Co") == "jones"
+        assert("Apple Inc.") == "apple"
+        assert("Google, Inc") == "google"
+        assert("Microsoft Corporation") == "microsoft"
+        assert("Amazon LLC") == "amazon"
+        assert("Tesla, Ltd") == "tesla"
+        assert("IBM Corp") == "ibm"
+        assert("Smith & Company") == "smith"
+        assert("Jones & Co") == "jones"
     
     def test_abbreviation_expansion(self):
         """Test expansion of common abbreviations."""
-        assert normalize_entity_name("Johnson & Johnson") == "johnson and johnson"
-        assert normalize_entity_name("U.S. Government") == "us government"
-        assert normalize_entity_name("U.K. Parliament") == "uk parliament"
-        assert normalize_entity_name("Dr. Smith") == "doctor smith"
-        assert normalize_entity_name("Mr. Jones") == "mister jones"
-        assert normalize_entity_name("Ms. Davis") == "miss davis"
-        assert normalize_entity_name("Prof. Wilson") == "professor wilson"
+        assert("Johnson & Johnson") == "johnson and johnson"
+        assert("U.S. Government") == "us government"
+        assert("U.K. Parliament") == "uk parliament"
+        assert("Dr. Smith") == "doctor smith"
+        assert("Mr. Jones") == "mister jones"
+        assert("Ms. Davis") == "miss davis"
+        assert("Prof. Wilson") == "professor wilson"
     
     def test_multiple_transformations(self):
         """Test multiple transformations in one name."""
-        assert normalize_entity_name("Dr. Smith & Associates, Inc.") == "doctor smith and associates"
-        assert normalize_entity_name("U.S. Steel Corp") == "us steel"
-        assert normalize_entity_name("Mr. Brown & Co., Ltd") == "mister brown"
+        assert("Dr. Smith & Associates, Inc.") == "doctor smith and associates"
+        assert("U.S. Steel Corp") == "us steel"
+        assert("Mr. Brown & Co., Ltd") == "mister brown"
     
     def test_whitespace_handling(self):
         """Test whitespace normalization."""
-        assert normalize_entity_name("John    Doe") == "john doe"
-        assert normalize_entity_name("\tTabbed\tName\t") == "tabbed name"
-        assert normalize_entity_name("New\nLine") == "new line"
+        assert("John    Doe") == "john doe"
+        assert("\tTabbed\tName\t") == "tabbed name"
+        assert("New\nLine") == "new line"
     
     def test_special_cases(self):
         """Test special edge cases."""
-        assert normalize_entity_name("A") == "a"  # Single character
-        assert normalize_entity_name("123") == "123"  # Numbers
-        assert normalize_entity_name("Name, Inc., Inc.") == "name"  # Double suffix
-        assert normalize_entity_name("& Co") == "and co"  # Just suffix
+        assert("A") == "a"  # Single character
+        assert("123") == "123"  # Numbers
+        assert("Name, Inc., Inc.") == "name"  # Double suffix
+        assert("& Co") == "and co"  # Just suffix
     
     def test_unicode_names(self):
         """Test Unicode name handling."""
-        assert normalize_entity_name("Société Générale") == "société générale"
-        assert normalize_entity_name("München AG") == "münchen ag"
-        assert normalize_entity_name("北京公司") == "北京公司"
+        assert("Société Générale") == "société générale"
+        assert("München AG") == "münchen ag"
+        assert("北京公司") == "北京公司"
 
 
 class TestCalculateNameSimilarity:
@@ -768,14 +766,14 @@ class TestIntegrationScenarios:
         """
         
         # Clean the text
-        cleaned = clean_segment_text(raw_text)
+        cleaned =(raw_text)
         assert " um " not in cleaned
         assert " uh " not in cleaned
         assert " uhm " not in cleaned
         
         # Extract entities and normalize
         entities = ["Dr. Smith", "Apple Inc.", "Apple Computer"]
-        normalized_entities = [normalize_entity_name(e) for e in entities]
+        normalized_entities = [(e) for e in entities]
         assert "doctor smith" in normalized_entities
         assert "apple" in normalized_entities
         
@@ -807,13 +805,13 @@ class TestIntegrationScenarios:
         # Normalize names for comparison
         normalized_names = {}
         for entity in entities:
-            norm_name = normalize_entity_name(entity["name"])
+            norm_name =(entity["name"])
             normalized_names[norm_name] = entity["name"]
             
             # Extract aliases
             aliases = extract_entity_aliases(entity["name"], entity["description"])
             for alias in aliases:
-                norm_alias = normalize_entity_name(alias)
+                norm_alias =(alias)
                 normalized_names[norm_alias] = entity["name"]
         
         # Test resolution
@@ -863,7 +861,7 @@ class TestIntegrationScenarios:
         """
         
         # Clean the text
-        cleaned = clean_segment_text(text)
+        cleaned =(text)
         
         # Extract quotes (simplified - in practice would use more sophisticated methods)
         quote_patterns = [
@@ -899,7 +897,7 @@ class TestPerformanceScenarios:
         
         # Test various functions with large input
         start = time.time()
-        cleaned = clean_segment_text(large_text)
+        cleaned =(large_text)
         clean_time = time.time() - start
         assert clean_time < 0.5  # Should be fast
         
@@ -918,7 +916,7 @@ class TestPerformanceScenarios:
         # Run same operation multiple times
         results = []
         for _ in range(10):
-            result = normalize_entity_name(text)
+            result =(text)
             results.append(result)
         
         # All results should be identical
@@ -936,7 +934,7 @@ class TestPerformanceScenarios:
         """Test handling of edge cases."""
         # Very long word
         long_word = "a" * 1000
-        assert len(clean_segment_text(long_word)) == 1000
+        assert len((long_word)) == 1000
         
         # Text with only punctuation
         punct_only = "...!!!???"

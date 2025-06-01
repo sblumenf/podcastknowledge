@@ -13,7 +13,7 @@ import time
 import psutil
 import pytest
 
-from src.api.v1 import seed_podcast, PodcastKnowledgePipeline
+from src.api.v1 import seed_podcast, VTTKnowledgeExtractor
 from src.core.config import Config
 class PerformanceMetrics:
     """Track performance metrics during tests."""

@@ -2,7 +2,7 @@
 
 from typing import List
 
-from src.core.models import Segment
+from src.core.extraction_interface import Segment
 class DomainFixtures:
     """Test fixtures for multiple podcast domains."""
 

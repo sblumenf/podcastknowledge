@@ -8,7 +8,7 @@ import pytest
 
 from src.core.config import SeedingConfig
 from src.core.exceptions import PipelineError
-from src.seeding.orchestrator import PodcastKnowledgePipeline
+from src.seeding.orchestrator import VTTKnowledgeExtractor
 @pytest.fixture
 def mock_providers():
     """Create mock providers for testing."""
@@ -95,11 +95,11 @@ def mock_segments():
 
 
 class TestPodcastKnowledgePipeline:
-    """Integration tests for PodcastKnowledgePipeline."""
+    """Integration tests for VTTKnowledgeExtractor."""
     
     def test_pipeline_initialization(self, test_config):
         """Test pipeline initialization."""
-        pipeline = PodcastKnowledgePipeline(test_config)
+        pipeline = VTTKnowledgeExtractor(test_config)
         assert pipeline.config == test_config
         assert pipeline.factory is not None
         assert pipeline._shutdown_requested is False
@@ -112,7 +112,7 @@ class TestPodcastKnowledgePipeline:
         mock_factory.return_value = mock_factory_instance
         mock_factory_instance.create_provider.side_effect = lambda ptype, *args, **kwargs: mock_providers[ptype]
         
-        pipeline = PodcastKnowledgePipeline(test_config)
+        pipeline = VTTKnowledgeExtractor(test_config)
         result = pipeline.initialize_components()
         
         assert result is True
@@ -133,7 +133,7 @@ class TestPodcastKnowledgePipeline:
         mock_factory.return_value = mock_factory_instance
         mock_factory_instance.create_provider.side_effect = lambda ptype, *args, **kwargs: mock_providers[ptype]
         
-        pipeline = PodcastKnowledgePipeline(test_config)
+        pipeline = VTTKnowledgeExtractor(test_config)
         result = pipeline.initialize_components()
         
         assert result is False
@@ -171,7 +171,7 @@ class TestPodcastKnowledgePipeline:
             {'id': 'e1', 'name': 'Test Entity', 'type': 'PERSON'}
         ]
         
-        pipeline = PodcastKnowledgePipeline(test_config)
+        pipeline = VTTKnowledgeExtractor(test_config)
         pipeline.initialize_components()
         
         # Inject mocked components
@@ -202,7 +202,7 @@ class TestPodcastKnowledgePipeline:
         mock_factory.return_value = mock_factory_instance
         mock_factory_instance.create_provider.side_effect = lambda ptype, *args, **kwargs: mock_providers[ptype]
         
-        pipeline = PodcastKnowledgePipeline(test_config)
+        pipeline = VTTKnowledgeExtractor(test_config)
         pipeline.initialize_components()
         
         # Call cleanup
@@ -214,7 +214,7 @@ class TestPodcastKnowledgePipeline:
     
     def test_graceful_shutdown(self, test_config):
         """Test graceful shutdown handling."""
-        pipeline = PodcastKnowledgePipeline(test_config)
+        pipeline = VTTKnowledgeExtractor(test_config)
         
         # Simulate shutdown request
         pipeline._shutdown_requested = True
@@ -240,7 +240,7 @@ class TestPodcastKnowledgePipeline:
         # Make fetch_feed raise an error
         mock_fetch_feed.side_effect = Exception("Feed parsing error")
         
-        pipeline = PodcastKnowledgePipeline(test_config)
+        pipeline = VTTKnowledgeExtractor(test_config)
         
         podcast_config = {
             'id': 'test-podcast',
@@ -261,7 +261,7 @@ class TestPodcastKnowledgePipeline:
         mock_factory.return_value = mock_factory_instance
         mock_factory_instance.create_provider.side_effect = lambda ptype, *args, **kwargs: mock_providers[ptype]
         
-        pipeline = PodcastKnowledgePipeline(test_config)
+        pipeline = VTTKnowledgeExtractor(test_config)
         
         # Mock checkpoint with completed episode
         with patch.object(pipeline.checkpoint, 'get_completed_episodes', return_value=['ep1']):
@@ -283,7 +283,7 @@ class TestPodcastKnowledgePipeline:
         # Set custom log level
         test_config.log_level = 'DEBUG'
         
-        pipeline = PodcastKnowledgePipeline(test_config)
+        pipeline = VTTKnowledgeExtractor(test_config)
         
         # Check that logging was configured
         assert logging.getLogger().level == logging.DEBUG

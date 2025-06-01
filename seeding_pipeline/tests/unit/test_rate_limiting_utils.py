@@ -11,7 +11,7 @@ import pytest
 from src.utils.rate_limiting import (
     RateLimiter,
     TokenBucketRateLimiter,
-    SlidingWindowRateLimiter,
+    RateLimiter,
     FixedWindowRateLimiter,
     rate_limit,
     async_rate_limit,
@@ -162,12 +162,12 @@ class TestTokenBucketRateLimiter:
         assert bucket.consume(2) is True
 
 
-class TestSlidingWindowRateLimiter:
-    """Test SlidingWindowRateLimiter implementation."""
+class TestRateLimiter:
+    """Test RateLimiter implementation."""
     
     def test_sliding_window_basic(self):
         """Test basic sliding window functionality."""
-        limiter = SlidingWindowRateLimiter(calls=5, period=1.0)
+        limiter = RateLimiter(calls=5, period=1.0)
         
         # Should allow 5 calls
         for _ in range(5):
@@ -178,7 +178,7 @@ class TestSlidingWindowRateLimiter:
     
     def test_sliding_window_expiry(self):
         """Test that old calls expire from window."""
-        limiter = SlidingWindowRateLimiter(calls=3, period=0.3)
+        limiter = RateLimiter(calls=3, period=0.3)
         
         # Make 3 calls
         for _ in range(3):
@@ -193,7 +193,7 @@ class TestSlidingWindowRateLimiter:
     
     def test_sliding_window_cleanup(self):
         """Test cleanup of old timestamps."""
-        limiter = SlidingWindowRateLimiter(calls=100, period=0.1)
+        limiter = RateLimiter(calls=100, period=0.1)
         
         # Make many calls
         for _ in range(50):

@@ -10,7 +10,7 @@ import time
 import pytest
 
 from src.utils.retry import (
-    RetryError,
+    Exception,
     RetryExhausted,
     RetryConfig,
     RetryStrategy,

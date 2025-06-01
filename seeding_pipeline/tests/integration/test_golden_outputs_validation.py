@@ -11,8 +11,8 @@ import tempfile
 import pytest
 
 from src.core.config import Config
-from src.processing.extraction import KnowledgeExtractor
-from src.seeding.orchestrator import PodcastKnowledgePipeline
+from src.extraction.extraction import KnowledgeExtractor
+from src.seeding.orchestrator import VTTKnowledgeExtractor
 class TestGoldenOutputs:
     """Test extraction outputs against golden reference data."""
     

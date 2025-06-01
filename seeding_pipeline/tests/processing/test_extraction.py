@@ -4,8 +4,8 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from src.core.models import Segment
-from src.processing.extraction import KnowledgeExtractor, ExtractionConfig
+from src.core.extraction_interface import Segment
+from src.extraction.extraction import KnowledgeExtractor, ExtractionConfig
 class TestKnowledgeExtractor:
     """Test suite for KnowledgeExtractor."""
 

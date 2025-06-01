@@ -6,8 +6,8 @@ import json
 
 import pytest
 
-from src.core.models import Entity, Insight, Quote, EntityType, InsightType, QuoteType
-from src.processing.parsers import ResponseParser, ParseResult, ValidationUtils
+from src.core.extraction_interface import Entity, Insight, Quote, EntityType, InsightType, QuoteType
+from src.extraction.parsers import ResponseParser, ParseResult, ValidationUtils
 class TestResponseParser:
     """Test suite for ResponseParser class"""
     

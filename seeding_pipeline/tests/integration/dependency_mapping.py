@@ -19,43 +19,43 @@ class DependencyMapper:
         extraction_imports = {
             "src/seeding/orchestrator.py": {
                 "line": 19,
-                "import": "from src.processing.extraction import KnowledgeExtractor",
+                "import": "from src.extraction.extraction import KnowledgeExtractor",
                 "usage": ["Instantiates KnowledgeExtractor in _initialize_extraction()"],
                 "critical": True
             },
             "tests/integration/test_golden_outputs_validation.py": {
                 "line": 14,
-                "import": "from src.processing.extraction import KnowledgeExtractor",
+                "import": "from src.extraction.extraction import KnowledgeExtractor",
                 "usage": ["Tests extraction consistency", "Creates golden outputs"],
                 "critical": False
             },
             "tests/integration/test_performance_benchmarks.py": {
                 "line": 18,
-                "import": "from src.processing.extraction import KnowledgeExtractor",
+                "import": "from src.extraction.extraction import KnowledgeExtractor",
                 "usage": ["Benchmarks extraction performance"],
                 "critical": False
             },
             "tests/processing/test_extraction.py": {
                 "line": 10,
-                "import": "from src.processing.extraction import KnowledgeExtractor",
+                "import": "from src.extraction.extraction import KnowledgeExtractor",
                 "usage": ["Unit tests for KnowledgeExtractor"],
                 "critical": False
             },
             "tests/processing/test_importance_scoring.py": {
                 "line": 388,
-                "import": "from src.processing.extraction import KnowledgeExtractor",
+                "import": "from src.extraction.extraction import KnowledgeExtractor",
                 "usage": ["Tests importance scoring integration"],
                 "critical": False
             },
             "scripts/validate_extraction.py": {
                 "line": 21,
-                "import": "from src.processing.extraction import KnowledgeExtractor",
+                "import": "from src.extraction.extraction import KnowledgeExtractor",
                 "usage": ["Validation script for extraction"],
                 "critical": False
             },
             "docs/examples/processing_examples.py": {
                 "line": 4,
-                "import": "from src.processing.extraction import KnowledgeExtractor",
+                "import": "from src.extraction.extraction import KnowledgeExtractor",
                 "usage": ["Documentation examples"],
                 "critical": False
             }

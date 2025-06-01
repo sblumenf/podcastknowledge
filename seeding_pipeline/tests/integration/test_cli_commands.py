@@ -12,7 +12,7 @@ import pytest
 # Add the seeding_pipeline directory to sys.path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from cli import main, seed_podcasts, health_check, validate_config, schema_stats
+from src.cli.cli import main, seed_podcasts, health_check, validate_config, schema_stats
 
 
 class TestCLICommands:
@@ -68,7 +68,7 @@ class TestCLICommands:
     
     @pytest.fixture
     def mock_pipeline(self):
-        """Mock PodcastKnowledgePipeline."""
+        """Mock VTTKnowledgeExtractor."""
         pipeline = Mock()
         pipeline.initialize_components.return_value = True
         pipeline.cleanup.return_value = None
@@ -93,7 +93,7 @@ class TestCLICommands:
             '--max-episodes', '3'
         ]
         
-        with patch('cli.PodcastKnowledgePipeline', return_value=mock_pipeline), \
+        with patch('cli.VTTKnowledgeExtractor', return_value=mock_pipeline), \
              patch('sys.stdout', new_callable=StringIO) as mock_stdout:
             
             exit_code = main()
@@ -124,7 +124,7 @@ class TestCLICommands:
             '--schema-discovery'
         ]
         
-        with patch('cli.PodcastKnowledgePipeline', return_value=mock_pipeline), \
+        with patch('cli.VTTKnowledgeExtractor', return_value=mock_pipeline), \
              patch('cli.Config') as mock_config_class, \
              patch('sys.stdout', new_callable=StringIO) as mock_stdout:
             
@@ -154,7 +154,7 @@ class TestCLICommands:
             '--migration-mode'
         ]
         
-        with patch('cli.PodcastKnowledgePipeline', return_value=mock_pipeline), \
+        with patch('cli.VTTKnowledgeExtractor', return_value=mock_pipeline), \
              patch('cli.Config') as mock_config_class, \
              patch('sys.stdout', new_callable=StringIO) as mock_stdout:
             
@@ -179,7 +179,7 @@ class TestCLICommands:
             '--max-episodes', '10'
         ]
         
-        with patch('cli.PodcastKnowledgePipeline', return_value=mock_pipeline), \
+        with patch('cli.VTTKnowledgeExtractor', return_value=mock_pipeline), \
              patch('sys.stdout', new_callable=StringIO) as mock_stdout:
             
             exit_code = main()
@@ -201,7 +201,7 @@ class TestCLICommands:
             '--rss-url', 'https://example.com/feed.xml'
         ]
         
-        with patch('cli.PodcastKnowledgePipeline', return_value=mock_pipeline), \
+        with patch('cli.VTTKnowledgeExtractor', return_value=mock_pipeline), \
              patch('cli.Config.from_file') as mock_from_file:
             
             mock_config = Mock()
@@ -221,7 +221,7 @@ class TestCLICommands:
             '--large-context'
         ]
         
-        with patch('cli.PodcastKnowledgePipeline') as mock_pipeline_class:
+        with patch('cli.VTTKnowledgeExtractor') as mock_pipeline_class:
             mock_pipeline_class.return_value = mock_pipeline
             
             exit_code = main()
@@ -238,7 +238,7 @@ class TestCLICommands:
         """Test health check command."""
         sys.argv = ['cli.py', 'health']
         
-        with patch('cli.PodcastKnowledgePipeline', return_value=mock_pipeline), \
+        with patch('cli.VTTKnowledgeExtractor', return_value=mock_pipeline), \
              patch('sys.stdout', new_callable=StringIO) as mock_stdout:
             
             exit_code = main()
@@ -255,7 +255,7 @@ class TestCLICommands:
         """Test health check with large context flag."""
         sys.argv = ['cli.py', 'health', '--large-context']
         
-        with patch('cli.PodcastKnowledgePipeline', return_value=mock_pipeline), \
+        with patch('cli.VTTKnowledgeExtractor', return_value=mock_pipeline), \
              patch('sys.stdout', new_callable=StringIO) as mock_stdout:
             
             exit_code = main()
@@ -270,7 +270,7 @@ class TestCLICommands:
         
         sys.argv = ['cli.py', 'health']
         
-        with patch('cli.PodcastKnowledgePipeline', return_value=mock_pipeline), \
+        with patch('cli.VTTKnowledgeExtractor', return_value=mock_pipeline), \
              patch('sys.stderr', new_callable=StringIO) as mock_stderr:
             
             exit_code = main()
@@ -404,7 +404,7 @@ class TestCLICommands:
             '--rss-url', 'https://example.com/feed.xml'
         ]
         
-        with patch('cli.PodcastKnowledgePipeline', return_value=mock_pipeline), \
+        with patch('cli.VTTKnowledgeExtractor', return_value=mock_pipeline), \
              patch('cli.setup_structured_logging') as mock_setup_logging:
             
             exit_code = main()

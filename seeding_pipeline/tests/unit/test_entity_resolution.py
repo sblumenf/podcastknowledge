@@ -6,7 +6,7 @@ from unittest.mock import Mock, patch, mock_open
 import pytest
 import yaml
 
-from src.processing.entity_resolution import EntityResolver, EntityResolutionConfig
+from src.extraction.entity_resolution import EntityResolver, EntityResolutionConfig
 class TestSchemalessEntityResolver:
     """Test suite for SchemalessEntityResolver."""
 

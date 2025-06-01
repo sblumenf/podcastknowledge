@@ -10,14 +10,14 @@ import json
 import pytest
 
 from src.processing.segmentation import (
-    EnhancedPodcastSegmenter, SegmentationResult, SegmentBoundary
+    VTTSegmenter, SegmentationResult, SegmentBoundary
 )
-from src.core.models import Segment, ComplexityLevel
+from src.core.extraction_interface import Segment, ComplexityLevel
 from src.providers.llm.base import LLMProvider
 
 
 class TestEnhancedPodcastSegmenter:
-    """Test EnhancedPodcastSegmenter class."""
+    """Test VTTSegmenter class."""
     
     @pytest.fixture
     def mock_llm_provider(self):
@@ -29,7 +29,7 @@ class TestEnhancedPodcastSegmenter:
     @pytest.fixture
     def segmenter(self, mock_llm_provider):
         """Create segmenter instance."""
-        return EnhancedPodcastSegmenter(
+        return VTTSegmenter(
             llm_provider=mock_llm_provider,
             min_segment_duration=30,
             max_segment_duration=300,
@@ -38,7 +38,7 @@ class TestEnhancedPodcastSegmenter:
     
     def test_segmenter_initialization(self, mock_llm_provider):
         """Test segmenter initialization."""
-        segmenter = EnhancedPodcastSegmenter(
+        segmenter = VTTSegmenter(
             llm_provider=mock_llm_provider,
             min_segment_duration=60,
             max_segment_duration=600,
@@ -317,7 +317,7 @@ class TestEdgeCases:
     def segmenter(self):
         """Create segmenter for edge case testing."""
         mock_llm = mock.Mock()
-        return EnhancedPodcastSegmenter(llm_provider=mock_llm)
+        return VTTSegmenter(llm_provider=mock_llm)
     
     def test_very_long_transcript(self, segmenter):
         """Test handling very long transcripts."""

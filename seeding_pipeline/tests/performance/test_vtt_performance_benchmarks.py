@@ -15,8 +15,8 @@ import pytest
 import statistics
 
 from src.core.config import PipelineConfig
-from src.processing.extraction import KnowledgeExtractor
-from src.processing.vtt_parser import VTTParser
+from src.extraction.extraction import KnowledgeExtractor
+from src.vtt.vtt_parser import VTTParser
 from src.seeding.transcript_ingestion import TranscriptIngestion
 class TestVTTPerformanceBenchmarks:
     """Performance benchmarks for VTT processing."""

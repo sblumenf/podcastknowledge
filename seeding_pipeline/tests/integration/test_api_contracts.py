@@ -10,7 +10,7 @@ import tempfile
 import pytest
 
 from src.api.v1.seeding import (
-    PodcastKnowledgePipeline, 
+    VTTKnowledgeExtractor, 
     seed_podcast, 
     seed_podcasts,
     deprecated, 
@@ -66,10 +66,10 @@ class TestAPIv1Contracts:
         self, test_config, sample_podcast_config, mock_pipeline_result
     ):
         """Test seed_podcast API response format for fixed schema."""
-        with patch('src.seeding.orchestrator.PodcastKnowledgePipeline.seed_podcast',
+        with patch('src.seeding.orchestrator.VTTKnowledgeExtractor.seed_podcast',
                   return_value=mock_pipeline_result):
             
-            pipeline = PodcastKnowledgePipeline(test_config)
+            pipeline = VTTKnowledgeExtractor(test_config)
             result = pipeline.seed_podcast(
                 podcast_config=sample_podcast_config,
                 max_episodes=5,
@@ -113,10 +113,10 @@ class TestAPIv1Contracts:
             'processing_time_seconds': 350.0
         }
         
-        with patch('src.seeding.orchestrator.PodcastKnowledgePipeline.seed_podcast',
+        with patch('src.seeding.orchestrator.VTTKnowledgeExtractor.seed_podcast',
                   return_value=mock_result):
             
-            pipeline = PodcastKnowledgePipeline(test_config)
+            pipeline = VTTKnowledgeExtractor(test_config)
             result = pipeline.seed_podcast(
                 podcast_config=sample_podcast_config,
                 max_episodes=5,
@@ -161,10 +161,10 @@ class TestAPIv1Contracts:
             'processing_time_seconds': 900.0
         }
         
-        with patch('src.seeding.orchestrator.PodcastKnowledgePipeline.seed_podcasts',
+        with patch('src.seeding.orchestrator.VTTKnowledgeExtractor.seed_podcasts',
                   return_value=mock_result):
             
-            pipeline = PodcastKnowledgePipeline(test_config)
+            pipeline = VTTKnowledgeExtractor(test_config)
             result = pipeline.seed_podcasts(
                 podcast_configs=podcast_configs,
                 max_episodes_each=5,
@@ -200,7 +200,7 @@ class TestAPIv1Contracts:
         with patch('src.seeding.checkpoint.ProgressCheckpoint.get_schema_statistics',
                   return_value=mock_stats):
             
-            pipeline = PodcastKnowledgePipeline(test_config)
+            pipeline = VTTKnowledgeExtractor(test_config)
             result = pipeline.get_schema_evolution()
             
             # Verify response format
@@ -224,7 +224,7 @@ class TestAPIv1Contracts:
         self, test_config, sample_podcast_config, mock_pipeline_result
     ):
         """Test module-level seed_podcast convenience function."""
-        with patch('src.api.v1.seeding.PodcastKnowledgePipeline') as mock_pipeline_class:
+        with patch('src.api.v1.seeding.VTTKnowledgeExtractor') as mock_pipeline_class:
             mock_instance = Mock()
             mock_instance.seed_podcast.return_value = mock_pipeline_result
             mock_instance.cleanup.return_value = None
@@ -248,10 +248,10 @@ class TestAPIv1Contracts:
     @pytest.mark.integration
     def test_deprecated_method_warning(self, test_config, sample_podcast_config):
         """Test deprecated method shows warning."""
-        with patch('src.seeding.orchestrator.PodcastKnowledgePipeline.seed_podcast',
+        with patch('src.seeding.orchestrator.VTTKnowledgeExtractor.seed_podcast',
                   return_value={'episodes_processed': 1}):
             
-            pipeline = PodcastKnowledgePipeline(test_config)
+            pipeline = VTTKnowledgeExtractor(test_config)
             
             with pytest.warns(DeprecationWarning) as warning_info:
                 result = pipeline.process_podcast(sample_podcast_config)
@@ -281,10 +281,10 @@ class TestAPIv1Contracts:
     @pytest.mark.integration
     def test_error_response_format(self, test_config, sample_podcast_config):
         """Test error response maintains consistent format."""
-        with patch('src.seeding.orchestrator.PodcastKnowledgePipeline.seed_podcast',
+        with patch('src.seeding.orchestrator.VTTKnowledgeExtractor.seed_podcast',
                   side_effect=PodcastKGError("Test error")):
             
-            pipeline = PodcastKnowledgePipeline(test_config)
+            pipeline = VTTKnowledgeExtractor(test_config)
             
             with pytest.raises(PodcastKGError) as exc_info:
                 pipeline.seed_podcast(sample_podcast_config)
@@ -294,10 +294,10 @@ class TestAPIv1Contracts:
     @pytest.mark.integration
     def test_extraction_mode_configuration(self, test_config, sample_podcast_config):
         """Test that extraction mode properly configures the pipeline."""
-        with patch('src.seeding.orchestrator.PodcastKnowledgePipeline.seed_podcast') as mock_seed:
+        with patch('src.seeding.orchestrator.VTTKnowledgeExtractor.seed_podcast') as mock_seed:
             mock_seed.return_value = {'episodes_processed': 1}
             
-            pipeline = PodcastKnowledgePipeline(test_config)
+            pipeline = VTTKnowledgeExtractor(test_config)
             
             # Test fixed mode
             pipeline.seed_podcast(
@@ -328,10 +328,10 @@ class TestAPIv1Contracts:
             'metrics': {'custom_metric': 42}
         }
         
-        with patch('src.seeding.orchestrator.PodcastKnowledgePipeline.seed_podcast',
+        with patch('src.seeding.orchestrator.VTTKnowledgeExtractor.seed_podcast',
                   return_value=mock_result):
             
-            pipeline = PodcastKnowledgePipeline(test_config)
+            pipeline = VTTKnowledgeExtractor(test_config)
             result = pipeline.seed_podcast(sample_podcast_config)
             
             # Verify custom fields are preserved

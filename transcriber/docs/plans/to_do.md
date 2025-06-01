@@ -1,0 +1,4 @@
+- sanity check the length of the transcript vs length of episode
+- if llm returns only part of the transcript ask it to continue and stitch the results together
+- look up the youtube url
+- validate that the description of the rss is captured in my download in case I want to use it later

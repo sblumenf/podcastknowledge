@@ -7,7 +7,7 @@ import asyncio
 
 import pytest
 
-from src.core.models import Segment
+from src.core.extraction_interface import Segment
 from src.providers.embeddings.mock import MockEmbeddingProvider
 from src.providers.graph.metadata_enricher import SchemalessMetadataEnricher
 from src.providers.graph.schemaless_neo4j import SchemalessNeo4jProvider

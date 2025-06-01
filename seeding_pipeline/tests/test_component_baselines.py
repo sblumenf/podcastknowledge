@@ -13,7 +13,7 @@ import pytest
 
 from src.core.config import PipelineConfig
 from src.core.feature_flags import FeatureFlag, set_flag, get_all_flags
-from src.seeding import PodcastKnowledgePipeline
+from src.seeding import VTTKnowledgeExtractor
 from src.utils.component_tracker import get_component_tracker
 # Test transcript for baseline comparisons
 TEST_TRANSCRIPT = """
@@ -58,7 +58,7 @@ class BaselineTestRunner:
         tracker = get_component_tracker()
         
         # Run extraction
-        pipeline = PodcastKnowledgePipeline(self.config)
+        pipeline = VTTKnowledgeExtractor(self.config)
         pipeline.initialize_components()
         
         # Process test transcript

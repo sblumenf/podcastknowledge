@@ -11,7 +11,7 @@ import json
 
 import pytest
 
-from src.processing.extraction import (
+from src.extraction.extraction import (
     KnowledgeExtractor, ExtractionResult, create_extractor
 )
 from src.core.models import (

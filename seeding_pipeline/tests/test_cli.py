@@ -10,7 +10,7 @@ import pytest
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from cli import main, load_podcast_configs, seed_podcasts, health_check, validate_config
+from src.cli.cli import main, load_podcast_configs, seed_podcasts, health_check, validate_config
 
 
 class TestCLI:
@@ -63,7 +63,7 @@ class TestCLI:
             with pytest.raises(ValueError, match="Missing 'rss_url'"):
                 load_podcast_configs(Path(f.name))
     
-    @patch('cli.PodcastKnowledgePipeline')
+    @patch('cli.VTTKnowledgeExtractor')
     def test_seed_podcasts_with_rss_url(self, mock_pipeline_class):
         """Test seeding with RSS URL argument."""
         # Create mock pipeline instance
@@ -106,7 +106,7 @@ class TestCLI:
         )
         mock_pipeline.cleanup.assert_called_once()
     
-    @patch('cli.PodcastKnowledgePipeline')
+    @patch('cli.VTTKnowledgeExtractor')
     def test_seed_podcasts_with_config_file(self, mock_pipeline_class):
         """Test seeding with podcast config file."""
         # Create mock pipeline instance
@@ -146,7 +146,7 @@ class TestCLI:
             assert exit_code == 0  # Success even with some failures
             mock_pipeline.seed_podcasts.assert_called_once()
     
-    @patch('cli.PodcastKnowledgePipeline')
+    @patch('cli.VTTKnowledgeExtractor')
     def test_seed_podcasts_all_failed(self, mock_pipeline_class):
         """Test seeding when all episodes fail."""
         # Create mock pipeline instance
@@ -178,7 +178,7 @@ class TestCLI:
         # Verify
         assert exit_code == 1  # Failure when all episodes fail
     
-    @patch('cli.PodcastKnowledgePipeline')
+    @patch('cli.VTTKnowledgeExtractor')
     def test_health_check_success(self, mock_pipeline_class):
         """Test successful health check."""
         # Create mock pipeline instance
@@ -200,7 +200,7 @@ class TestCLI:
         mock_pipeline.initialize_components.assert_called_once_with(use_large_context=False)
         mock_pipeline.cleanup.assert_called_once()
     
-    @patch('cli.PodcastKnowledgePipeline')
+    @patch('cli.VTTKnowledgeExtractor')
     def test_health_check_failure(self, mock_pipeline_class):
         """Test failed health check."""
         # Create mock pipeline instance

@@ -11,7 +11,7 @@ import json
 
 import pytest
 
-from src.processing.extraction import (
+from src.extraction.extraction import (
     KnowledgeExtractor, ExtractionResult, create_extractor
 )
 from src.core.models import (
@@ -19,9 +19,9 @@ from src.core.models import (
     SpeakerRole, ComplexityLevel
 )
 from src.core.exceptions import ExtractionError
-from src.processing.prompts import PromptBuilder
-from src.processing.parsers import ResponseParser
-from src.processing.importance_scoring import ImportanceScorer
+from src.extraction.prompts import PromptBuilder
+from src.extraction.parsers import ResponseParser
+from src.extraction.importance_scoring import ImportanceScorer
 
 
 class TestIntegratedExtraction:

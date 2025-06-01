@@ -27,7 +27,7 @@ import psutil
 # Add parent directories to path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from src.api.v1 import PodcastKnowledgePipeline, seed_podcast
+from src.api.v1 import VTTKnowledgeExtractor, seed_podcast
 from src.core.config import Config
 from src.seeding.checkpoint import ProgressCheckpoint
 
@@ -154,7 +154,7 @@ class LoadTester:
         # Start monitoring
         self.start_monitoring()
         
-        pipeline = PodcastKnowledgePipeline(self.config)
+        pipeline = VTTKnowledgeExtractor(self.config)
         
         try:
             # Process podcasts
@@ -242,7 +242,7 @@ class LoadTester:
         logger.info(f"Run 1: Process {interrupt_after} episodes then interrupt")
         
         self.start_monitoring()
-        pipeline = PodcastKnowledgePipeline(self.config)
+        pipeline = VTTKnowledgeExtractor(self.config)
         
         try:
             # Modify config to use our checkpoint directory
@@ -287,7 +287,7 @@ class LoadTester:
         logger.info("Run 2: Resume from checkpoint")
         
         self.start_monitoring()
-        pipeline2 = PodcastKnowledgePipeline(self.config)
+        pipeline2 = VTTKnowledgeExtractor(self.config)
         
         try:
             start_time = time.time()
@@ -341,7 +341,7 @@ class LoadTester:
         # Start monitoring
         self.start_monitoring()
         
-        pipeline = PodcastKnowledgePipeline(self.config)
+        pipeline = VTTKnowledgeExtractor(self.config)
         end_time = datetime.now() + timedelta(minutes=duration_minutes)
         
         try:

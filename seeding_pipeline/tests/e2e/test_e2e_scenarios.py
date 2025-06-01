@@ -12,7 +12,7 @@ import time
 from neo4j import GraphDatabase
 import pytest
 
-from src.api.v1 import seed_podcast, seed_podcasts, PodcastKnowledgePipeline
+from src.api.v1 import seed_podcast, seed_podcasts, VTTKnowledgeExtractor
 from src.core.config import Config
 from src.core.exceptions import PodcastKGError
 class TestE2EScenarios:
@@ -187,7 +187,7 @@ class TestE2EScenarios:
         }
         
         # Step 1 & 2: Process first batch
-        pipeline1 = PodcastKnowledgePipeline(test_config)
+        pipeline1 = VTTKnowledgeExtractor(test_config)
         try:
             result1 = pipeline1.seed_podcast(
                 podcast,
@@ -214,7 +214,7 @@ class TestE2EScenarios:
             initial_titles = set(initial_episodes['titles'])
         
         # Step 3: Resume processing
-        pipeline2 = PodcastKnowledgePipeline(test_config)
+        pipeline2 = VTTKnowledgeExtractor(test_config)
         try:
             result2 = pipeline2.seed_podcast(
                 podcast,

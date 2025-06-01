@@ -7,8 +7,8 @@ import networkx as nx
 import numpy as np
 import pytest
 
-from src.core.models import Entity, Insight, Segment, EntityType, InsightType
-from src.processing.importance_scoring import ImportanceScorer
+from src.core.extraction_interface import Entity, Insight, Segment, EntityType, InsightType
+from src.extraction.importance_scoring import ImportanceScorer
 class TestImportanceScorer:
     """Test suite for ImportanceScorer class."""
     
@@ -384,7 +384,7 @@ class TestIntegrationWithExtraction:
     
     def test_importance_scoring_in_extraction(self):
         """Test that importance scoring is properly integrated in extraction."""
-        from src.processing.extraction import KnowledgeExtractor
+        from src.extraction.extraction import KnowledgeExtractor
         from src.providers.llm.mock import MockLLMProvider
         
         # Create mock LLM provider

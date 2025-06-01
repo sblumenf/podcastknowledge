@@ -40,14 +40,14 @@ def test_imports():
         errors.append(e)
     
     try:
-        from src.processing.preprocessor import TextPreprocessor
+        from src.extraction.preprocessor import TextPreprocessor
         print("✓ TextPreprocessor (consolidated)")
     except ImportError as e:
         print(f"✗ TextPreprocessor: {e}")
         errors.append(e)
     
     try:
-        from src.processing.entity_resolution import EntityResolver
+        from src.extraction.entity_resolution import EntityResolver
         print("✓ EntityResolver (consolidated)")
     except ImportError as e:
         print(f"✗ EntityResolver: {e}")
@@ -61,7 +61,7 @@ def test_imports():
         errors.append(e)
     
     try:
-        from src.processing.extraction import KnowledgeExtractor
+        from src.extraction.extraction import KnowledgeExtractor
         print("✓ KnowledgeExtractor (consolidated)")
     except ImportError as e:
         print(f"✗ KnowledgeExtractor: {e}")
@@ -109,11 +109,11 @@ def test_basic_instantiation():
     print("\nTesting component instantiation...")
     
     try:
-        from src.processing.preprocessor import TextPreprocessor
+        from src.extraction.preprocessor import TextPreprocessor
         preprocessor = TextPreprocessor()
         print("✓ TextPreprocessor instantiated")
         
-        from src.processing.entity_resolution import EntityResolver
+        from src.extraction.entity_resolution import EntityResolver
         resolver = EntityResolver()
         print("✓ EntityResolver instantiated")
         
@@ -121,7 +121,7 @@ def test_basic_instantiation():
         enricher = SchemalessMetadataEnricher()
         print("✓ SchemalessMetadataEnricher instantiated")
         
-        from src.processing.extraction import KnowledgeExtractor
+        from src.extraction.extraction import KnowledgeExtractor
         extractor = KnowledgeExtractor(None, None)  # Mock services
         print("✓ KnowledgeExtractor instantiated")
         

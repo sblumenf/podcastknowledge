@@ -15,21 +15,21 @@ import pytest
 from src.core.config import PipelineConfig, SeedingConfig
 from src.core.exceptions import PipelineError, ConfigurationError
 from src.factories.provider_factory import ProviderFactory
-from src.processing.extraction import KnowledgeExtractor
-from src.processing.segmentation import EnhancedPodcastSegmenter
+from src.extraction.extraction import KnowledgeExtractor
+from src.processing.segmentation import VTTSegmenter
 from src.providers.audio.base import AudioProvider
 from src.providers.embeddings.base import EmbeddingProvider
 from src.providers.graph.base import GraphProvider
 from src.providers.llm.base import LLMProvider
 from src.seeding.components import (
-from src.seeding.orchestrator import PodcastKnowledgePipeline
+from src.seeding.orchestrator import VTTKnowledgeExtractor
     SignalManager, ProviderCoordinator, CheckpointManager,
     PipelineExecutor, StorageCoordinator
 )
 
 
 class TestPodcastKnowledgePipeline:
-    """Test PodcastKnowledgePipeline class."""
+    """Test VTTKnowledgeExtractor class."""
     
     @pytest.fixture
     def mock_config(self):
@@ -67,7 +67,7 @@ class TestPodcastKnowledgePipeline:
                 with mock.patch('src.seeding.orchestrator.CheckpointManager'):
                     with mock.patch('src.seeding.orchestrator.ProviderFactory'):
                         with mock.patch('src.seeding.orchestrator.init_tracing'):
-                            pipeline = PodcastKnowledgePipeline(config=mock_config)
+                            pipeline = VTTKnowledgeExtractor(config=mock_config)
                             return pipeline
     
     def test_pipeline_initialization(self, mock_config):
@@ -77,7 +77,7 @@ class TestPodcastKnowledgePipeline:
                 with mock.patch('src.seeding.orchestrator.CheckpointManager') as MockCheckpoint:
                     with mock.patch('src.seeding.orchestrator.ProviderFactory') as MockFactory:
                         with mock.patch('src.seeding.orchestrator.init_tracing'):
-                            pipeline = PodcastKnowledgePipeline(config=mock_config)
+                            pipeline = VTTKnowledgeExtractor(config=mock_config)
                             
                             # Verify component creation
                             MockSignal.assert_called_once()
@@ -102,7 +102,7 @@ class TestPodcastKnowledgePipeline:
                 with mock.patch('src.seeding.orchestrator.CheckpointManager'):
                     with mock.patch('src.seeding.orchestrator.ProviderFactory'):
                         with mock.patch('src.seeding.orchestrator.init_tracing'):
-                            pipeline = PodcastKnowledgePipeline()
+                            pipeline = VTTKnowledgeExtractor()
                             assert isinstance(pipeline.config, SeedingConfig)
     
     def test_setup_logging(self, pipeline, mock_config):
@@ -535,7 +535,7 @@ class TestSignalHandling:
                     with mock.patch('src.seeding.orchestrator.init_tracing'):
                         mock_signal_instance = MockSignal.return_value
                         
-                        pipeline = PodcastKnowledgePipeline()
+                        pipeline = VTTKnowledgeExtractor()
                         
                         mock_signal_instance.setup.assert_called_once()
                         # Check cleanup callback was provided
@@ -557,7 +557,7 @@ class TestBackwardCompatibility:
             with mock.patch('src.seeding.orchestrator.ProviderCoordinator') as MockProvider:
                 with mock.patch('src.seeding.orchestrator.CheckpointManager') as MockCheckpoint:
                     with mock.patch('src.seeding.orchestrator.init_tracing'):
-                        pipeline = PodcastKnowledgePipeline()
+                        pipeline = VTTKnowledgeExtractor()
                         
                         # Set up mocks
                         mock_provider_coord = MockProvider.return_value
@@ -602,7 +602,7 @@ class TestEdgeCases:
             with mock.patch('src.seeding.orchestrator.ProviderCoordinator'):
                 with mock.patch('src.seeding.orchestrator.CheckpointManager'):
                     with mock.patch('src.seeding.orchestrator.init_tracing'):
-                        pipeline = PodcastKnowledgePipeline()
+                        pipeline = VTTKnowledgeExtractor()
                         pipeline.audio_provider = mock.Mock()  # Already initialized
                         
                         with mock.patch.object(pipeline, 'cleanup'):
@@ -618,5 +618,5 @@ class TestEdgeCases:
                 with mock.patch('src.seeding.orchestrator.CheckpointManager'):
                     with mock.patch('src.seeding.orchestrator.init_tracing'):
                         # Should handle dict config gracefully
-                        pipeline = PodcastKnowledgePipeline(config={'key': 'value'})
+                        pipeline = VTTKnowledgeExtractor(config={'key': 'value'})
                         assert pipeline.config == {'key': 'value'}

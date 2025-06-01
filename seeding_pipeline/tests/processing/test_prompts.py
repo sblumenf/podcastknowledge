@@ -5,7 +5,7 @@ from datetime import datetime
 
 import pytest
 
-from src.processing.prompts import PromptBuilder, PromptTemplate
+from src.extraction.prompts import PromptBuilder, PromptTemplate
 class TestPromptTemplate:
     """Test suite for PromptTemplate class"""
     

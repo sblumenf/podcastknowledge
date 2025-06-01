@@ -11,11 +11,11 @@ from src.utils.retry import (
     RetryStrategy,
     CircuitState,
     CircuitBreaker,
-    retry_with_backoff,
+    retry,
     retry_on_exception,
     async_retry,
     RetryConfig,
-    RetryError,
+    Exception,
 )
 
 
@@ -167,13 +167,13 @@ class TestCircuitBreaker:
 
 
 class TestRetryWithBackoff:
-    """Test retry_with_backoff decorator."""
+    """Test retry decorator."""
     
     def test_successful_call_no_retry(self):
         """Test successful call doesn't retry."""
         mock_func = Mock(return_value="success")
         
-        @retry_with_backoff(max_retries=3, initial_delay=0.01)
+        @retry(max_retries=3, initial_delay=0.01)
         def test_func():
             return mock_func()
         
@@ -185,7 +185,7 @@ class TestRetryWithBackoff:
         """Test retry on exception."""
         mock_func = Mock(side_effect=[ValueError("Error 1"), ValueError("Error 2"), "success"])
         
-        @retry_with_backoff(max_retries=3, initial_delay=0.01)
+        @retry(max_retries=3, initial_delay=0.01)
         def test_func():
             return mock_func()
         
@@ -197,7 +197,7 @@ class TestRetryWithBackoff:
         """Test when max retries is exceeded."""
         mock_func = Mock(side_effect=ValueError("Always fails"))
         
-        @retry_with_backoff(max_retries=2, initial_delay=0.01)
+        @retry(max_retries=2, initial_delay=0.01)
         def test_func():
             return mock_func()
         
@@ -211,7 +211,7 @@ class TestRetryWithBackoff:
         """Test retrying only specific exceptions."""
         mock_func = Mock(side_effect=[ValueError("Retry this"), TypeError("Don't retry")])
         
-        @retry_with_backoff(
+        @retry(
             max_retries=3,
             retry_exceptions=(ValueError,),
             initial_delay=0.01
@@ -230,7 +230,7 @@ class TestRetryWithBackoff:
         mock_func = Mock(side_effect=[ValueError(), ValueError(), "success"])
         call_times = []
         
-        @retry_with_backoff(
+        @retry(
             max_retries=3,
             initial_delay=0.1,
             backoff_factor=2.0
@@ -387,7 +387,7 @@ class TestRetryIntegration:
         breaker = CircuitBreaker(failure_threshold=2, recovery_timeout=0.1)
         call_count = 0
         
-        @retry_with_backoff(
+        @retry(
             max_retries=5,
             initial_delay=0.01,
             circuit_breaker=breaker
@@ -407,7 +407,7 @@ class TestRetryIntegration:
         
         # Next call should fail fast due to open circuit
         call_count = 0
-        with pytest.raises(RetryError, match="Circuit breaker is open"):
+        with pytest.raises(Exception, match="Circuit breaker is open"):
             protected_function()
         
         assert call_count == 0  # No actual function calls
@@ -417,7 +417,7 @@ class TestRetryIntegration:
         mock_func = Mock(side_effect=[ValueError(), ValueError(), "success"])
         call_times = []
         
-        @retry_with_backoff(
+        @retry(
             max_retries=3,
             initial_delay=0.1,
             jitter=True

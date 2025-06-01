@@ -9,7 +9,7 @@ import time
 import pytest
 import statistics
 
-from src.core.models import Segment, Episode, Podcast
+from src.core.extraction_interface import Segment, Episode, Podcast
 from src.providers.embeddings.mock import MockEmbeddingProvider
 from src.providers.graph.neo4j import Neo4jProvider
 from src.providers.graph.schemaless_neo4j import SchemalessNeo4jProvider

@@ -8,7 +8,7 @@ import pytest
 from src.api.v1 import (
     seed_podcast,
     seed_podcasts,
-    PodcastKnowledgePipeline,
+    VTTKnowledgeExtractor,
     get_api_version,
     check_api_compatibility,
     deprecated,
@@ -76,13 +76,13 @@ class TestAPIVersioning:
 
 
 class TestAPIPipeline:
-    """Test API v1 PodcastKnowledgePipeline."""
+    """Test API v1 VTTKnowledgeExtractor."""
     
     @patch('src.api.v1.seeding._PipelineImpl')
     def test_pipeline_initialization(self, mock_pipeline_class):
         """Test pipeline initialization with API version."""
         config = Mock(spec=Config)
-        pipeline = PodcastKnowledgePipeline(config, api_version="1.0")
+        pipeline = VTTKnowledgeExtractor(config, api_version="1.0")
         
         assert pipeline._api_version == "1.0"
         assert pipeline._created_at is not None
@@ -101,7 +101,7 @@ class TestAPIPipeline:
             'extra_field': 'extra_value'  # Additional field
         }
         
-        pipeline = PodcastKnowledgePipeline()
+        pipeline = VTTKnowledgeExtractor()
         result = pipeline.seed_podcast({'rss_url': 'test.xml'})
         
         # Check v1 schema fields are present
@@ -129,7 +129,7 @@ class TestAPIPipeline:
             'processing_time_seconds': 7200.0,
         }
         
-        pipeline = PodcastKnowledgePipeline()
+        pipeline = VTTKnowledgeExtractor()
         result = pipeline.seed_podcasts([
             {'rss_url': 'test1.xml'},
             {'rss_url': 'test2.xml'}
@@ -142,7 +142,7 @@ class TestAPIPipeline:
     
     def test_deprecated_method(self):
         """Test deprecated method shows warning."""
-        pipeline = PodcastKnowledgePipeline()
+        pipeline = VTTKnowledgeExtractor()
         
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter("always")
@@ -157,7 +157,7 @@ class TestAPIPipeline:
 class TestAPIFunctions:
     """Test module-level API functions."""
     
-    @patch('src.api.v1.seeding.PodcastKnowledgePipeline')
+    @patch('src.api.v1.seeding.VTTKnowledgeExtractor')
     def test_seed_podcast_function(self, mock_pipeline_class):
         """Test module-level seed_podcast function."""
         # Setup mock
@@ -180,7 +180,7 @@ class TestAPIFunctions:
         mock_pipeline.seed_podcast.assert_called_once()
         mock_pipeline.cleanup.assert_called_once()
     
-    @patch('src.api.v1.seeding.PodcastKnowledgePipeline')
+    @patch('src.api.v1.seeding.VTTKnowledgeExtractor')
     def test_seed_podcasts_function(self, mock_pipeline_class):
         """Test module-level seed_podcasts function."""
         # Setup mock
@@ -203,7 +203,7 @@ class TestAPIFunctions:
         mock_pipeline.seed_podcasts.assert_called_once()
         mock_pipeline.cleanup.assert_called_once()
     
-    @patch('src.api.v1.seeding.PodcastKnowledgePipeline')
+    @patch('src.api.v1.seeding.VTTKnowledgeExtractor')
     def test_function_with_custom_config(self, mock_pipeline_class):
         """Test API function with custom config."""
         # Setup
@@ -218,7 +218,7 @@ class TestAPIFunctions:
         # Verify config was passed
         mock_pipeline_class.assert_called_once_with(custom_config)
     
-    @patch('src.api.v1.seeding.PodcastKnowledgePipeline')
+    @patch('src.api.v1.seeding.VTTKnowledgeExtractor')
     def test_function_cleanup_on_error(self, mock_pipeline_class):
         """Test cleanup is called even on error."""
         # Setup mock to raise error
@@ -235,7 +235,7 @@ class TestAPIFunctions:
     
     def test_forward_compatibility_kwargs(self):
         """Test that functions accept **kwargs for forward compatibility."""
-        with patch('src.api.v1.seeding.PodcastKnowledgePipeline') as mock_class:
+        with patch('src.api.v1.seeding.VTTKnowledgeExtractor') as mock_class:
             mock_pipeline = Mock()
             mock_pipeline.seed_podcast.return_value = {'api_version': '1.0'}
             mock_class.return_value = mock_pipeline

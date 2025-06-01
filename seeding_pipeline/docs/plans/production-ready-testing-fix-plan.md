@@ -54,7 +54,7 @@ This plan fixes the completely broken test suite by focusing on practical testin
   - Validation: No tests remain for non-existent code
 
 ### Task 1.4: Fix Import Statements in Salvageable Tests
-- [ ] Update all import statements to match current architecture
+- [x] Update all import statements to match current architecture
   - Purpose: Allow tests to at least load successfully
   - Steps:
     1. Use context7 MCP tool to review Python import system documentation

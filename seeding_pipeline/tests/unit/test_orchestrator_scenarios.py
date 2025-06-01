@@ -15,8 +15,8 @@ import pytest
 
 from src.core.config import SeedingConfig
 from src.core.exceptions import PipelineError
-from src.core.models import Entity, Insight, Quote, EntityType
-from src.seeding.orchestrator import PodcastKnowledgePipeline
+from src.core.extraction_interface import Entity, Insight, Quote, EntityType
+from src.seeding.orchestrator import VTTKnowledgeExtractor
 class TestEndToEndScenarios:
     """Test complete end-to-end pipeline scenarios."""
     
@@ -133,7 +133,7 @@ class TestEndToEndScenarios:
         
         # Create pipeline
         with mock.patch('src.seeding.orchestrator.init_tracing'):
-            pipeline = PodcastKnowledgePipeline(config=config)
+            pipeline = VTTKnowledgeExtractor(config=config)
         
         # Mock component initialization
         with mock.patch.object(pipeline.provider_coordinator, 'initialize_providers') as mock_init:
@@ -407,7 +407,7 @@ class TestConfigurationScenarios:
     def test_minimal_configuration(self):
         """Test pipeline with minimal configuration."""
         with mock.patch('src.seeding.orchestrator.init_tracing'):
-            pipeline = PodcastKnowledgePipeline()
+            pipeline = VTTKnowledgeExtractor()
             
             assert pipeline.config is not None
             assert isinstance(pipeline.config, SeedingConfig)
@@ -424,7 +424,7 @@ class TestConfigurationScenarios:
         with mock.patch('src.seeding.orchestrator.init_tracing'):
             with mock.patch('logging.basicConfig'):
                 with mock.patch('logging.FileHandler'):
-                    pipeline = PodcastKnowledgePipeline(config=config)
+                    pipeline = VTTKnowledgeExtractor(config=config)
                     
                     assert pipeline.config.batch_size == 5
                     assert pipeline.config.checkpoint_interval == 20
@@ -438,7 +438,7 @@ class TestErrorRecovery:
         config = SeedingConfig()
         
         with mock.patch('src.seeding.orchestrator.init_tracing'):
-            pipeline = PodcastKnowledgePipeline(config=config)
+            pipeline = VTTKnowledgeExtractor(config=config)
             
             # Mock initialization to fail then succeed
             pipeline.provider_coordinator.initialize_providers.side_effect = [False, True]

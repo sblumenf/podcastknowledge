@@ -5,8 +5,8 @@ from typing import List
 
 import pytest
 
-from src.core.models import Entity, Insight, Quote, EntityType, InsightType, QuoteType, ComplexityLevel
-from src.processing.complexity_analysis import (
+from src.core.extraction_interface import Entity, Insight, Quote, EntityType, InsightType, QuoteType, ComplexityLevel
+from src.extraction.complexity_analysis import (
     ComplexityAnalyzer, VocabularyMetrics, SegmentComplexity, 
     EpisodeComplexity
 )

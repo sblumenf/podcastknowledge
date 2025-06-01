@@ -10,7 +10,7 @@ import json
 
 import pytest
 
-from src.processing.parsers import (
+from src.extraction.parsers import (
     ResponseParser, ParseResult
 )
 from src.core.models import (
