@@ -12,7 +12,7 @@ import asyncio
 
 from gemini_client import RateLimitedGeminiClient
 from key_rotation_manager import KeyRotationManager
-from utils.logging import get_logger, log_progress
+from src.utils.logging import get_logger, log_progress
 from checkpoint_recovery import CheckpointManager
 
 logger = get_logger('transcription_processor')

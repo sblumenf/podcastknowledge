@@ -10,16 +10,16 @@ from pathlib import Path
 from typing import Dict, List, Optional, Any, Tuple
 from datetime import datetime
 
-from feed_parser import parse_feed, Episode, PodcastMetadata
-from progress_tracker import ProgressTracker, EpisodeState
-from gemini_client import create_gemini_client, RateLimitedGeminiClient
-from key_rotation_manager import KeyRotationManager
-from transcription_processor import TranscriptionProcessor
-from speaker_identifier import SpeakerIdentifier
-from vtt_generator import VTTGenerator, VTTMetadata
-from checkpoint_recovery import CheckpointManager
-from retry_wrapper import QuotaExceededException, CircuitBreakerOpenException
-from utils.logging import get_logger, log_progress
+from src.feed_parser import parse_feed, Episode, PodcastMetadata
+from src.progress_tracker import ProgressTracker, EpisodeStatus
+from src.gemini_client import create_gemini_client, RateLimitedGeminiClient
+from src.key_rotation_manager import KeyRotationManager
+from src.transcription_processor import TranscriptionProcessor
+from src.speaker_identifier import SpeakerIdentifier
+from src.vtt_generator import VTTGenerator, VTTMetadata
+from src.checkpoint_recovery import CheckpointManager
+from src.retry_wrapper import QuotaExceededException, CircuitBreakerOpenException
+from src.utils.logging import get_logger, log_progress
 
 logger = get_logger('orchestrator')
 
@@ -255,7 +255,7 @@ class TranscriptionOrchestrator:
         try:
             # Update progress tracker
             self.progress_tracker.update_episode_state(
-                episode.guid, EpisodeState.IN_PROGRESS, episode_data
+                episode.guid, EpisodeStatus.IN_PROGRESS, episode_data
             )
             
             # Stage 1: Transcription
@@ -276,7 +276,7 @@ class TranscriptionOrchestrator:
         except (QuotaExceededException, CircuitBreakerOpenException) as e:
             logger.error(f"Cannot process episode due to limits: {e}")
             self.progress_tracker.update_episode_state(
-                episode.guid, EpisodeState.FAILED, episode_data,
+                episode.guid, EpisodeStatus.FAILED, episode_data,
                 error=str(e)
             )
             if self.checkpoint_manager:
@@ -293,7 +293,7 @@ class TranscriptionOrchestrator:
         except Exception as e:
             logger.error(f"Episode processing failed: {e}")
             self.progress_tracker.update_episode_state(
-                episode.guid, EpisodeState.FAILED, episode_data,
+                episode.guid, EpisodeStatus.FAILED, episode_data,
                 error=str(e)
             )
             if self.checkpoint_manager:
@@ -392,7 +392,7 @@ class TranscriptionOrchestrator:
             
             # Update progress tracker
             self.progress_tracker.update_episode_state(
-                episode.guid, EpisodeState.COMPLETED, episode_data,
+                episode.guid, EpisodeStatus.COMPLETED, episode_data,
                 output_file=str(output_path)
             )
             
@@ -410,7 +410,7 @@ class TranscriptionOrchestrator:
         except Exception as e:
             logger.error(f"VTT generation failed: {e}")
             self.progress_tracker.update_episode_state(
-                episode.guid, EpisodeState.FAILED, episode_data,
+                episode.guid, EpisodeStatus.FAILED, episode_data,
                 error=str(e)
             )
             if self.checkpoint_manager:
@@ -439,7 +439,7 @@ class TranscriptionOrchestrator:
         
         for episode in episodes:
             state = self.progress_tracker.get_episode_state(episode.guid)
-            if state in [None, EpisodeState.PENDING, EpisodeState.FAILED]:
+            if state in [None, EpisodeStatus.PENDING, EpisodeStatus.FAILED]:
                 pending.append(episode)
                 
                 if len(pending) >= max_episodes:

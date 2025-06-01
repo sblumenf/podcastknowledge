@@ -12,7 +12,7 @@ import asyncio
 
 from gemini_client import RateLimitedGeminiClient
 from key_rotation_manager import KeyRotationManager
-from utils.logging import get_logger
+from src.utils.logging import get_logger
 from checkpoint_recovery import CheckpointManager
 
 logger = get_logger('speaker_identifier')

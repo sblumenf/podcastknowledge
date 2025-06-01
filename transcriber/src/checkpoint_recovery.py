@@ -13,7 +13,7 @@ from typing import Dict, List, Optional, Any, Tuple
 from dataclasses import dataclass, asdict
 import shutil
 
-from utils.logging import get_logger
+from src.utils.logging import get_logger
 
 logger = get_logger('checkpoint_recovery')
 

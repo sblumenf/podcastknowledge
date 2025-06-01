@@ -10,7 +10,7 @@ from unittest.mock import patch, MagicMock, AsyncMock, call
 from argparse import Namespace
 
 from src.orchestrator import TranscriptionOrchestrator
-from src.cli import main, parse_args, create_progress_bar
+from src.cli import main, parse_arguments
 from src.config import Config
 
 

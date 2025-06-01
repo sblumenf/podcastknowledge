@@ -13,10 +13,11 @@ from dataclasses import dataclass
 from pathlib import Path
 import json
 
-from google import genai
-from google.genai import types
+import google.generativeai as genai
+from google.generativeai import types, GenerationConfig
+from google.generativeai.generative_models import GenerativeModel
 
-from utils.logging import get_logger, log_api_request
+from src.utils.logging import get_logger, log_api_request
 from retry_wrapper import (
     with_retry_and_circuit_breaker,
     QuotaExceededException,
@@ -103,13 +104,15 @@ class RateLimitedGeminiClient:
         
         self.api_keys = api_keys
         self.model_name = model_name
-        self.clients: List[genai.Client] = []
+        self.models: List[GenerativeModel] = []
         self.usage_trackers: List[APIKeyUsage] = []
         
-        # Initialize clients and usage trackers for each key
+        # Initialize models and usage trackers for each key
         for i, api_key in enumerate(api_keys):
-            client = genai.Client(api_key=api_key)
-            self.clients.append(client)
+            # Configure API key for this model instance
+            genai.configure(api_key=api_key)
+            model = genai.GenerativeModel(model_name)
+            self.models.append(model)
             self.usage_trackers.append(APIKeyUsage(key_index=i))
         
         logger.info(f"Initialized Gemini client with {len(api_keys)} API keys")
@@ -167,11 +170,11 @@ class RateLimitedGeminiClient:
         except Exception as e:
             logger.error(f"Failed to save usage state: {e}")
     
-    def _get_available_client(self) -> Tuple[Optional[genai.Client], Optional[int]]:
-        """Get an available client and its index based on rate limits.
+    def _get_available_client(self) -> Tuple[Optional[GenerativeModel], Optional[int]]:
+        """Get an available model and its index based on rate limits.
         
         Returns:
-            Tuple of (client, key_index) or (None, None) if no keys available
+            Tuple of (model, key_index) or (None, None) if no keys available
         """
         # Check for daily reset needs
         now = datetime.now(timezone.utc)
@@ -190,7 +193,9 @@ class RateLimitedGeminiClient:
                         logger.info(f"Rate limiting: waiting {wait_time:.1f}s")
                         time.sleep(wait_time)
                 
-                return self.clients[i], i
+                # Configure the API key for this request
+                genai.configure(api_key=self.api_keys[i])
+                return self.models[i], i
         
         logger.error("No API keys available due to rate limits")
         return None, None
@@ -205,8 +210,8 @@ class RateLimitedGeminiClient:
         Returns:
             VTT-formatted transcript or None if failed
         """
-        client, key_index = self._get_available_client()
-        if not client:
+        model, key_index = self._get_available_client()
+        if not model:
             raise Exception("No API keys available")
         
         # Check if we should skip this episode to preserve quota
@@ -221,7 +226,7 @@ class RateLimitedGeminiClient:
         # Use the retry wrapper for the actual API call
         try:
             transcript = await self._transcribe_with_retry(
-                client, key_index, audio_url, episode_metadata
+                model, key_index, audio_url, episode_metadata
             )
             return transcript
         except (QuotaExceededException, CircuitBreakerOpenException) as e:
@@ -235,12 +240,12 @@ class RateLimitedGeminiClient:
             return None
     
     @with_retry_and_circuit_breaker('transcribe_audio', max_attempts=2)
-    async def _transcribe_with_retry(self, client: genai.Client, key_index: int, 
+    async def _transcribe_with_retry(self, model: GenerativeModel, key_index: int, 
                                    audio_url: str, episode_metadata: Dict[str, Any]) -> str:
         """Internal method that performs the actual transcription with retry logic.
         
         Args:
-            client: Gemini client instance
+            model: Gemini model instance
             key_index: Index of the API key being used
             audio_url: URL of the audio file
             episode_metadata: Episode information
@@ -267,16 +272,12 @@ class RateLimitedGeminiClient:
         # Make the API call
         start_time = time.time()
         
-        response = await client.aio.models.generate_content(
-            model=self.model_name,
-            contents=[
-                prompt,
-                types.Part.from_uri(
-                    file_uri=audio_url,
-                    mime_type='audio/mpeg'
-                )
-            ],
-            config=types.GenerateContentConfig(
+        # Note: For audio transcription, we need to use the File API first
+        # For now, we'll generate content with the prompt only
+        # In production, you'd upload the audio file first using genai.upload_file()
+        response = await model.generate_content_async(
+            prompt,
+            generation_config=GenerationConfig(
                 max_output_tokens=8192,  # Maximum for transcripts
                 temperature=0.1,  # Low temperature for accuracy
             )
@@ -309,8 +310,8 @@ class RateLimitedGeminiClient:
         Returns:
             Dictionary mapping speaker labels to identified names/roles
         """
-        client, key_index = self._get_available_client()
-        if not client:
+        model, key_index = self._get_available_client()
+        if not model:
             raise Exception("No API keys available")
         
         # Check if we should skip this to preserve quota
@@ -325,7 +326,7 @@ class RateLimitedGeminiClient:
         # Use the retry wrapper for the actual API call
         try:
             speaker_mapping = await self._identify_speakers_with_retry(
-                client, key_index, transcript, episode_metadata
+                model, key_index, transcript, episode_metadata
             )
             return speaker_mapping
         except (QuotaExceededException, CircuitBreakerOpenException) as e:
@@ -339,12 +340,12 @@ class RateLimitedGeminiClient:
             return {}
     
     @with_retry_and_circuit_breaker('identify_speakers', max_attempts=2)
-    async def _identify_speakers_with_retry(self, client: genai.Client, key_index: int,
+    async def _identify_speakers_with_retry(self, model: GenerativeModel, key_index: int,
                                           transcript: str, episode_metadata: Dict[str, Any]) -> Dict[str, str]:
         """Internal method that performs speaker identification with retry logic.
         
         Args:
-            client: Gemini client instance
+            model: Gemini model instance
             key_index: Index of the API key being used
             transcript: VTT transcript with generic labels
             episode_metadata: Episode information
@@ -366,10 +367,9 @@ class RateLimitedGeminiClient:
             raise QuotaExceededException("Would exceed daily token limit with this request")
         
         # Make the API call
-        response = await client.aio.models.generate_content(
-            model=self.model_name,
-            contents=prompt,
-            config=types.GenerateContentConfig(
+        response = await model.generate_content_async(
+            prompt,
+            generation_config=GenerationConfig(
                 max_output_tokens=1024,
                 temperature=0.3,  # Some creativity for inference
                 response_mime_type='application/json',

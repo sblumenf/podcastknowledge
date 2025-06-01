@@ -1,0 +1,436 @@
+# Python Import Analysis Report
+Generated on: /home/sergeblumenfeld/podcastknowledge/transcriber
+
+## Summary Statistics
+- Total Python files analyzed: 27
+- Total import statements: 237
+
+### Import Categories:
+- absolute_local: 34
+- relative_local: 10
+- stdlib: 156
+- third_party: 36
+- unknown: 1
+
+## Detailed File Analysis
+
+### src/checkpoint_recovery.py
+
+#### Stdlib (8 imports)
+- Line 7: `import json`
+- Line 8: `import os`
+- Line 9: `import tempfile`
+- Line 10: `from datetime import datetime`
+- Line 11: `from pathlib import Path`
+- Line 12: `from typing import Dict, List, Optional, Any, Tuple`
+- Line 13: `from dataclasses import dataclass, asdict`
+- Line 14: `import shutil`
+
+#### Third Party (1 imports)
+- Line 16: `from utils.logging import get_logger`
+
+### src/cli.py
+
+#### Stdlib (9 imports)
+- Line 7: `import argparse`
+- Line 8: `import asyncio`
+- Line 9: `import sys`
+- Line 10: `import os`
+- Line 11: `from pathlib import Path`
+- Line 12: `from typing import Optional, List`
+- Line 13: `import logging`
+- Line 274: `import traceback`
+- Line 389: `import traceback`
+
+#### Absolute Local (5 imports)
+- Line 18: `from src.orchestrator import TranscriptionOrchestrator`
+- Line 19: `from src.utils.logging import setup_logging, get_logger`
+- Line 20: `from src.utils.progress import ProgressBar`
+- Line 21: `from src.metadata_index import get_metadata_index`
+- Line 323: `from src.metadata_index import SearchResult`
+
+#### Unknown (1 imports)
+- Line 4: `from RSS feeds using Gemini 2.5 Pro.`
+
+### src/config.py
+
+#### Stdlib (5 imports)
+- Line 7: `import os`
+- Line 9: `from pathlib import Path`
+- Line 10: `from typing import Dict, Any, Optional, List`
+- Line 11: `from dataclasses import dataclass`
+- Line 12: `import logging`
+
+#### Third Party (1 imports)
+- Line 8: `import yaml`
+
+#### Absolute Local (1 imports)
+- Line 14: `from src.utils.logging import get_logger`
+
+### src/feed_parser.py
+
+#### Stdlib (5 imports)
+- Line 7: `import logging`
+- Line 8: `from dataclasses import dataclass, field`
+- Line 9: `from datetime import datetime`
+- Line 10: `from typing import List, Optional, Dict, Any`
+- Line 11: `from urllib.parse import urlparse`
+
+#### Third Party (2 imports)
+- Line 13: `import feedparser`
+- Line 15: `from utils.logging import get_logger`
+
+### src/file_organizer.py
+
+#### Stdlib (6 imports)
+- Line 7: `import re`
+- Line 8: `import json`
+- Line 9: `from pathlib import Path`
+- Line 10: `from typing import Dict, List, Optional, Set, Tuple`
+- Line 11: `from datetime import datetime`
+- Line 12: `from dataclasses import dataclass, asdict`
+
+#### Absolute Local (1 imports)
+- Line 14: `from src.utils.logging import get_logger`
+
+### src/gemini_client.py
+
+#### Stdlib (8 imports)
+- Line 7: `import asyncio`
+- Line 8: `import os`
+- Line 9: `import time`
+- Line 10: `from datetime import datetime, timezone, timedelta`
+- Line 11: `from typing import Dict, List, Optional, Tuple, Any`
+- Line 12: `from dataclasses import dataclass`
+- Line 13: `from pathlib import Path`
+- Line 14: `import json`
+
+#### Third Party (5 imports)
+- Line 16: `import google.generativeai as genai`
+- Line 17: `from google.generativeai import types, GenerationConfig`
+- Line 18: `from google.generativeai.generative_models import GenerativeModel`
+- Line 20: `from utils.logging import get_logger, log_api_request`
+- Line 21: `from retry_wrapper import (`
+
+### src/key_rotation_manager.py
+
+#### Stdlib (7 imports)
+- Line 7: `import json`
+- Line 8: `import os`
+- Line 9: `from datetime import datetime, timezone`
+- Line 10: `from pathlib import Path`
+- Line 11: `from typing import List, Optional, Dict, Any, Tuple`
+- Line 12: `from dataclasses import dataclass`
+- Line 13: `from enum import Enum`
+
+#### Third Party (1 imports)
+- Line 15: `from utils.logging import get_logger`
+
+### src/metadata_index.py
+
+#### Stdlib (8 imports)
+- Line 7: `import json`
+- Line 8: `import csv`
+- Line 9: `from pathlib import Path`
+- Line 10: `from typing import Dict, List, Optional, Set, Any, Union`
+- Line 11: `from datetime import datetime`
+- Line 12: `from collections import defaultdict`
+- Line 13: `from dataclasses import dataclass, asdict`
+- Line 154: `import re`
+
+#### Absolute Local (2 imports)
+- Line 15: `from src.utils.logging import get_logger`
+- Line 16: `from src.file_organizer import EpisodeMetadata`
+
+### src/orchestrator.py
+
+#### Stdlib (5 imports)
+- Line 7: `import asyncio`
+- Line 8: `import json`
+- Line 9: `from pathlib import Path`
+- Line 10: `from typing import Dict, List, Optional, Any, Tuple`
+- Line 11: `from datetime import datetime`
+
+#### Relative Local (10 imports)
+- Line 13: `from .feed_parser import parse_feed, Episode, PodcastMetadata`
+- Line 14: `from .progress_tracker import ProgressTracker, EpisodeStatus`
+- Line 15: `from .gemini_client import create_gemini_client, RateLimitedGeminiClient`
+- Line 16: `from .key_rotation_manager import KeyRotationManager`
+- Line 17: `from .transcription_processor import TranscriptionProcessor`
+- Line 18: `from .speaker_identifier import SpeakerIdentifier`
+- Line 19: `from .vtt_generator import VTTGenerator, VTTMetadata`
+- Line 20: `from .checkpoint_recovery import CheckpointManager`
+- Line 21: `from .retry_wrapper import QuotaExceededException, CircuitBreakerOpenException`
+- Line 22: `from .utils.logging import get_logger, log_progress`
+
+### src/progress_tracker.py
+
+#### Stdlib (8 imports)
+- Line 8: `import json`
+- Line 9: `import os`
+- Line 10: `import tempfile`
+- Line 11: `from dataclasses import dataclass, field`
+- Line 12: `from datetime import datetime, timezone`
+- Line 13: `from enum import Enum`
+- Line 14: `from pathlib import Path`
+- Line 15: `from typing import Dict, List, Optional, Any`
+
+#### Third Party (1 imports)
+- Line 17: `from utils.logging import get_logger`
+
+### src/retry_wrapper.py
+
+#### Stdlib (7 imports)
+- Line 7: `import asyncio`
+- Line 8: `from typing import Any, Callable, Dict, Optional, TypeVar`
+- Line 9: `from functools import wraps`
+- Line 10: `from datetime import datetime, timedelta`
+- Line 11: `from dataclasses import dataclass`
+- Line 12: `import json`
+- Line 13: `from pathlib import Path`
+
+#### Third Party (2 imports)
+- Line 15: `from tenacity import (`
+- Line 24: `from utils.logging import get_logger`
+
+### src/speaker_identifier.py
+
+#### Stdlib (5 imports)
+- Line 7: `import json`
+- Line 8: `import re`
+- Line 9: `from typing import Dict, List, Optional, Tuple, Any`
+- Line 10: `from dataclasses import dataclass`
+- Line 11: `import asyncio`
+
+#### Third Party (4 imports)
+- Line 13: `from gemini_client import RateLimitedGeminiClient`
+- Line 14: `from key_rotation_manager import KeyRotationManager`
+- Line 15: `from utils.logging import get_logger`
+- Line 16: `from checkpoint_recovery import CheckpointManager`
+
+### src/transcription_processor.py
+
+#### Stdlib (5 imports)
+- Line 7: `import re`
+- Line 8: `from datetime import datetime, timedelta`
+- Line 9: `from typing import Dict, List, Optional, Tuple, Any`
+- Line 10: `from dataclasses import dataclass`
+- Line 11: `import asyncio`
+
+#### Third Party (4 imports)
+- Line 13: `from gemini_client import RateLimitedGeminiClient`
+- Line 14: `from key_rotation_manager import KeyRotationManager`
+- Line 15: `from utils.logging import get_logger, log_progress`
+- Line 16: `from checkpoint_recovery import CheckpointManager`
+
+### src/utils/logging.py
+
+#### Stdlib (6 imports)
+- Line 3: `import logging`
+- Line 4: `import logging.handlers`
+- Line 5: `import os`
+- Line 6: `from pathlib import Path`
+- Line 7: `from datetime import datetime`
+- Line 8: `from typing import Optional`
+
+### src/utils/progress.py
+
+#### Stdlib (3 imports)
+- Line 7: `import sys`
+- Line 8: `import time`
+- Line 9: `from typing import Optional`
+
+### src/vtt_generator.py
+
+#### Stdlib (6 imports)
+- Line 7: `import json`
+- Line 8: `import re`
+- Line 9: `from datetime import datetime, timedelta`
+- Line 10: `from pathlib import Path`
+- Line 11: `from typing import Dict, List, Optional, Any, Union`
+- Line 12: `from dataclasses import dataclass`
+
+#### Third Party (2 imports)
+- Line 14: `from utils.logging import get_logger`
+- Line 15: `from checkpoint_recovery import CheckpointManager`
+
+### tests/conftest.py
+
+#### Stdlib (6 imports)
+- Line 4: `import tempfile`
+- Line 5: `import shutil`
+- Line 6: `from pathlib import Path`
+- Line 7: `from unittest.mock import Mock, MagicMock`
+- Line 8: `import sys`
+- Line 9: `import os`
+
+#### Third Party (1 imports)
+- Line 3: `import pytest`
+
+#### Absolute Local (1 imports)
+- Line 34: `from src.file_organizer import EpisodeMetadata`
+
+### tests/test_config.py
+
+#### Stdlib (4 imports)
+- Line 4: `import os`
+- Line 6: `import tempfile`
+- Line 7: `from pathlib import Path`
+- Line 8: `from unittest.mock import patch, MagicMock`
+
+#### Third Party (2 imports)
+- Line 3: `import pytest`
+- Line 5: `import yaml`
+
+#### Absolute Local (2 imports)
+- Line 10: `from src.config import (`
+- Line 361: `import src.config`
+
+### tests/test_feed_parser.py
+
+#### Stdlib (2 imports)
+- Line 4: `from datetime import datetime`
+- Line 5: `from unittest.mock import patch, MagicMock`
+
+#### Third Party (2 imports)
+- Line 3: `import pytest`
+- Line 6: `import feedparser`
+
+#### Absolute Local (1 imports)
+- Line 8: `from src.feed_parser import (`
+
+### tests/test_file_organizer.py
+
+#### Stdlib (4 imports)
+- Line 4: `import json`
+- Line 5: `from datetime import datetime`
+- Line 6: `from pathlib import Path`
+- Line 7: `from unittest.mock import patch, MagicMock, mock_open`
+
+#### Third Party (1 imports)
+- Line 3: `import pytest`
+
+#### Absolute Local (1 imports)
+- Line 9: `from src.file_organizer import EpisodeMetadata, FileOrganizer`
+
+### tests/test_gemini_client.py
+
+#### Stdlib (6 imports)
+- Line 4: `import json`
+- Line 5: `import os`
+- Line 6: `from datetime import datetime, timezone, timedelta`
+- Line 7: `from pathlib import Path`
+- Line 8: `from unittest.mock import patch, MagicMock, AsyncMock, mock_open`
+- Line 9: `import asyncio`
+
+#### Third Party (1 imports)
+- Line 3: `import pytest`
+
+#### Absolute Local (2 imports)
+- Line 11: `from src.gemini_client import (`
+- Line 15: `from src.retry_wrapper import QuotaExceededException, CircuitBreakerOpenException`
+
+### tests/test_integration.py
+
+#### Stdlib (6 imports)
+- Line 4: `import asyncio`
+- Line 5: `import json`
+- Line 6: `import os`
+- Line 7: `from datetime import datetime`
+- Line 8: `from pathlib import Path`
+- Line 9: `from unittest.mock import patch, MagicMock, AsyncMock, mock_open`
+
+#### Third Party (1 imports)
+- Line 3: `import pytest`
+
+#### Absolute Local (10 imports)
+- Line 11: `from src.feed_parser import parse_feed, Episode, PodcastMetadata`
+- Line 12: `from src.progress_tracker import ProgressTracker, EpisodeStatus`
+- Line 13: `from src.gemini_client import RateLimitedGeminiClient`
+- Line 14: `from src.key_rotation_manager import KeyRotationManager`
+- Line 15: `from src.transcription_processor import TranscriptionProcessor`
+- Line 16: `from src.speaker_identifier import SpeakerIdentifier`
+- Line 17: `from src.vtt_generator import VTTGenerator, VTTMetadata`
+- Line 18: `from src.file_organizer import FileOrganizer`
+- Line 19: `from src.orchestrator import TranscriptionOrchestrator`
+- Line 20: `from src.checkpoint_recovery import CheckpointManager`
+
+### tests/test_key_rotation_manager.py
+
+#### Stdlib (5 imports)
+- Line 4: `import json`
+- Line 5: `import os`
+- Line 6: `from datetime import datetime, timezone, timedelta`
+- Line 7: `from pathlib import Path`
+- Line 8: `from unittest.mock import patch, MagicMock`
+
+#### Third Party (1 imports)
+- Line 3: `import pytest`
+
+#### Absolute Local (1 imports)
+- Line 10: `from src.key_rotation_manager import (`
+
+### tests/test_logging.py
+
+#### Stdlib (4 imports)
+- Line 4: `import logging`
+- Line 5: `import os`
+- Line 6: `from pathlib import Path`
+- Line 7: `from unittest.mock import patch, MagicMock, call`
+
+#### Third Party (1 imports)
+- Line 3: `import pytest`
+
+#### Absolute Local (1 imports)
+- Line 9: `from src.utils.logging import (`
+
+### tests/test_orchestrator_integration.py
+
+#### Stdlib (8 imports)
+- Line 4: `import asyncio`
+- Line 5: `import json`
+- Line 6: `import os`
+- Line 7: `import sys`
+- Line 8: `from pathlib import Path`
+- Line 9: `from unittest.mock import patch, MagicMock, AsyncMock, call`
+- Line 10: `from argparse import Namespace`
+- Line 36: `from datetime import datetime`
+
+#### Third Party (1 imports)
+- Line 3: `import pytest`
+
+#### Absolute Local (4 imports)
+- Line 12: `from src.orchestrator import TranscriptionOrchestrator`
+- Line 13: `from src.cli import main, parse_arguments`
+- Line 14: `from src.config import Config`
+- Line 35: `from src.feed_parser import Episode, PodcastMetadata`
+
+### tests/test_progress_tracker.py
+
+#### Stdlib (6 imports)
+- Line 4: `import json`
+- Line 5: `import os`
+- Line 6: `import tempfile`
+- Line 7: `from datetime import datetime, timezone, timedelta`
+- Line 8: `from pathlib import Path`
+- Line 9: `from unittest.mock import patch, MagicMock`
+
+#### Third Party (1 imports)
+- Line 3: `import pytest`
+
+#### Absolute Local (1 imports)
+- Line 11: `from src.progress_tracker import (`
+
+### tests/test_vtt_generator.py
+
+#### Stdlib (4 imports)
+- Line 4: `import json`
+- Line 5: `from datetime import datetime`
+- Line 6: `from pathlib import Path`
+- Line 7: `from unittest.mock import patch, MagicMock, mock_open`
+
+#### Third Party (1 imports)
+- Line 3: `import pytest`
+
+#### Absolute Local (1 imports)
+- Line 9: `from src.vtt_generator import VTTMetadata, VTTGenerator`

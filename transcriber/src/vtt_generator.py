@@ -11,7 +11,7 @@ from pathlib import Path
 from typing import Dict, List, Optional, Any, Union
 from dataclasses import dataclass
 
-from utils.logging import get_logger
+from src.utils.logging import get_logger
 from checkpoint_recovery import CheckpointManager
 
 logger = get_logger('vtt_generator')

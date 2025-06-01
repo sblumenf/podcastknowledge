@@ -109,36 +109,38 @@ class TestRateLimitedGeminiClient:
         return ['test_key_1', 'test_key_2']
     
     @pytest.fixture
-    def mock_genai_client(self):
-        """Create mock genai client."""
-        with patch('src.gemini_client.genai.Client') as mock:
+    def mock_genai_model(self):
+        """Create mock genai model."""
+        with patch('src.gemini_client.genai.GenerativeModel') as mock:
             yield mock
     
     @pytest.fixture
-    def client(self, test_keys, mock_genai_client):
+    def client(self, test_keys, mock_genai_model):
         """Create a Gemini client for testing."""
-        with patch('src.gemini_client.Path.exists', return_value=False):
-            return RateLimitedGeminiClient(test_keys)
+        with patch('src.gemini_client.genai.configure'):
+            with patch('src.gemini_client.Path.exists', return_value=False):
+                return RateLimitedGeminiClient(test_keys)
     
-    def test_init_with_keys(self, test_keys, mock_genai_client):
+    def test_init_with_keys(self, test_keys, mock_genai_model):
         """Test initializing client with API keys."""
-        with patch('src.gemini_client.Path.exists', return_value=False):
-            client = RateLimitedGeminiClient(test_keys)
+        with patch('src.gemini_client.genai.configure'):
+            with patch('src.gemini_client.Path.exists', return_value=False):
+                client = RateLimitedGeminiClient(test_keys)
         
         assert len(client.api_keys) == 2
-        assert len(client.clients) == 2
+        assert len(client.models) == 2
         assert len(client.usage_trackers) == 2
         assert client.model_name == DEFAULT_MODEL
         
-        # Check genai.Client was called for each key
-        assert mock_genai_client.call_count == 2
+        # Check genai.GenerativeModel was called for each key
+        assert mock_genai_model.call_count == 2
     
     def test_init_no_keys(self):
         """Test initializing without keys raises error."""
         with pytest.raises(ValueError, match="At least one API key"):
             RateLimitedGeminiClient([])
     
-    def test_load_usage_state(self, test_keys, mock_genai_client, temp_dir):
+    def test_load_usage_state(self, test_keys, mock_genai_model, temp_dir):
         """Test loading usage state from file."""
         state_file = Path(temp_dir) / ".gemini_usage.json"
         state_data = {
@@ -161,18 +163,19 @@ class TestRateLimitedGeminiClient:
         with open(state_file, 'w') as f:
             json.dump(state_data, f)
         
-        with patch('src.gemini_client.Path') as mock_path:
-            mock_path.return_value = state_file
-            mock_path.return_value.exists.return_value = True
-            
-            client = RateLimitedGeminiClient(test_keys)
-            
-            assert client.usage_trackers[0].requests_today == 10
-            assert client.usage_trackers[0].tokens_today == 500000
-            assert client.usage_trackers[1].requests_today == 5
-            assert client.usage_trackers[1].tokens_today == 250000
+        with patch('src.gemini_client.genai.configure'):
+            with patch('src.gemini_client.Path') as mock_path:
+                mock_path.return_value = state_file
+                mock_path.return_value.exists.return_value = True
+                
+                client = RateLimitedGeminiClient(test_keys)
+                
+                assert client.usage_trackers[0].requests_today == 10
+                assert client.usage_trackers[0].tokens_today == 500000
+                assert client.usage_trackers[1].requests_today == 5
+                assert client.usage_trackers[1].tokens_today == 250000
     
-    def test_load_usage_state_with_daily_reset(self, test_keys, mock_genai_client, temp_dir):
+    def test_load_usage_state_with_daily_reset(self, test_keys, mock_genai_model, temp_dir):
         """Test loading state triggers daily reset if needed."""
         state_file = Path(temp_dir) / ".gemini_usage.json"
         yesterday = datetime.now(timezone.utc) - timedelta(days=1)
@@ -191,15 +194,16 @@ class TestRateLimitedGeminiClient:
         with open(state_file, 'w') as f:
             json.dump(state_data, f)
         
-        with patch('src.gemini_client.Path') as mock_path:
-            mock_path.return_value = state_file
-            mock_path.return_value.exists.return_value = True
-            
-            client = RateLimitedGeminiClient(test_keys)
-            
-            # Should have reset to 0
-            assert client.usage_trackers[0].requests_today == 0
-            assert client.usage_trackers[0].tokens_today == 0
+        with patch('src.gemini_client.genai.configure'):
+            with patch('src.gemini_client.Path') as mock_path:
+                mock_path.return_value = state_file
+                mock_path.return_value.exists.return_value = True
+                
+                client = RateLimitedGeminiClient(test_keys)
+                
+                # Should have reset to 0
+                assert client.usage_trackers[0].requests_today == 0
+                assert client.usage_trackers[0].tokens_today == 0
     
     def test_save_usage_state(self, client, temp_dir):
         """Test saving usage state to file."""

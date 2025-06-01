@@ -12,7 +12,7 @@ from urllib.parse import urlparse
 
 import feedparser
 
-from utils.logging import get_logger
+from src.utils.logging import get_logger
 
 logger = get_logger('feed_parser')
 

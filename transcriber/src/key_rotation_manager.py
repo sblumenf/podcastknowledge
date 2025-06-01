@@ -12,7 +12,7 @@ from typing import List, Optional, Dict, Any, Tuple
 from dataclasses import dataclass
 from enum import Enum
 
-from utils.logging import get_logger
+from src.utils.logging import get_logger
 
 logger = get_logger('key_rotation_manager')
 
