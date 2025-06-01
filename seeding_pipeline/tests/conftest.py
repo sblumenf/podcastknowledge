@@ -7,6 +7,9 @@ import os
 import tempfile
 
 import pytest
+
+# Import fixtures to make them available globally
+from tests.fixtures.neo4j_fixture import neo4j_container, neo4j_driver
 @pytest.fixture(scope="session")
 def project_root():
     """Get the project root directory."""
