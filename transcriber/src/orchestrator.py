@@ -436,10 +436,12 @@ class TranscriptionOrchestrator:
                 final_transcript, vtt_metadata, output_path
             )
             
-            # Update progress tracker
+            # Update progress tracker with continuation info if available
+            continuation_info = episode_data.get('_continuation_info')
             self.progress_tracker.update_episode_state(
                 episode.guid, EpisodeStatus.COMPLETED, episode_data,
-                output_file=str(output_path)
+                output_file=str(output_path),
+                continuation_info=continuation_info
             )
             
             logger.info(f"Episode completed: {output_path}")

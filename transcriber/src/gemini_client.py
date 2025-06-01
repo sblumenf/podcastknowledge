@@ -242,9 +242,12 @@ class RateLimitedGeminiClient:
                 
                 if duration_seconds > 0:
                     # Start continuation loop
-                    transcript = await self._continuation_loop(
+                    transcript, continuation_info = await self._continuation_loop(
                         transcript, audio_url, episode_metadata, duration_seconds, validation_config
                     )
+                    
+                    # Store continuation info in episode metadata for progress tracking
+                    episode_metadata['_continuation_info'] = continuation_info
             
             return transcript
         except (QuotaExceededException, CircuitBreakerOpenException) as e:
@@ -712,7 +715,7 @@ Continue the transcript:"""
                                audio_url: str,
                                episode_metadata: Dict[str, Any],
                                duration_seconds: int,
-                               validation_config: Dict[str, Any]) -> str:
+                               validation_config: Dict[str, Any]) -> Tuple[str, Dict[str, Any]]:
         """Execute the full continuation loop until transcript is complete.
         
         Args:
@@ -723,7 +726,7 @@ Continue the transcript:"""
             validation_config: Validation configuration
             
         Returns:
-            Complete transcript (stitched if continuations were needed)
+            Tuple of (complete transcript, continuation tracking info)
         """
         segments = [initial_transcript]
         attempts = 0
@@ -746,7 +749,12 @@ Continue the transcript:"""
             
             if is_complete:
                 logger.info(f"Transcript validation passed: {coverage:.1%} coverage")
-                return current_transcript
+                tracking_info = {
+                    'continuation_attempts': attempts,
+                    'final_coverage_ratio': coverage,
+                    'segment_count': len(segments)
+                }
+                return current_transcript, tracking_info
             
             # Extract last timestamp for continuation
             try:
@@ -798,7 +806,13 @@ Continue the transcript:"""
             logger.warning(f"Transcript remains incomplete: {final_coverage:.1%} coverage "
                           f"(minimum: {min_coverage:.1%})")
         
-        return final_transcript
+        tracking_info = {
+            'continuation_attempts': attempts,
+            'final_coverage_ratio': final_coverage,
+            'segment_count': len(segments)
+        }
+        
+        return final_transcript, tracking_info
     
     def stitch_transcripts(self, segments: List[str], overlap_seconds: float = 2.0) -> str:
         """Combine transcript segments into a single VTT file.

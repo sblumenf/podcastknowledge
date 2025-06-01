@@ -1,0 +1,22 @@
+# Minimal Development Requirements for CI/CD
+# Include base minimal requirements
+-r requirements-minimal.txt
+
+# Essential Testing Only
+pytest==7.4.3
+pytest-cov==4.1.0
+pytest-asyncio==0.21.1
+
+# Essential Code Quality
+black==23.11.0
+isort==5.12.0
+
+# Container Testing
+testcontainers[neo4j]==3.7.1
+
+# Excluded for space savings:
+# - jupyter/ipython (can be installed separately for interactive development)  
+# - sphinx documentation tools (build on CI server only)
+# - mypy type checking (can be optional for rapid development)
+# - graphviz visualization (development only)
+# - pre-commit hooks (install separately)

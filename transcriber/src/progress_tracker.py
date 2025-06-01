@@ -438,7 +438,8 @@ class ProgressTracker:
     def update_episode_state(self, guid: str, status: EpisodeStatus, 
                            episode_data: Dict[str, Any],
                            output_file: Optional[str] = None,
-                           error: Optional[str] = None):
+                           error: Optional[str] = None,
+                           continuation_info: Optional[Dict[str, Any]] = None):
         """Update episode state - unified interface for status updates.
         
         This method provides compatibility with the orchestrator's expectations
@@ -450,6 +451,7 @@ class ProgressTracker:
             episode_data: Episode metadata
             output_file: Output file path (for completed status)
             error: Error message (for failed status)
+            continuation_info: Continuation tracking information
         """
         if status == EpisodeStatus.IN_PROGRESS:
             # Add episode if not already tracked
@@ -467,6 +469,12 @@ class ProgressTracker:
                 episode = self.state.episodes[guid]
                 if episode.last_attempt:
                     processing_time = (datetime.now(timezone.utc) - episode.last_attempt).total_seconds()
+                
+                # Update continuation tracking information if provided
+                if continuation_info:
+                    episode.continuation_attempts = continuation_info.get('continuation_attempts', 0)
+                    episode.final_coverage_ratio = continuation_info.get('final_coverage_ratio')
+                    episode.segment_count = continuation_info.get('segment_count', 1)
             
             self.mark_completed(guid, output_file or '', processing_time)
             
