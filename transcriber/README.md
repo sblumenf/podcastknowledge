@@ -135,9 +135,73 @@ Duration: 00:45:32
 
 Detailed logs are saved in the `logs/` directory for debugging.
 
+## Testing
+
+### Quick Start
+
+```bash
+# Set up test environment
+./scripts/setup_test_env.sh
+
+# Run all tests
+make test
+
+# Run with coverage
+make coverage
+```
+
+### Running Specific Tests
+
+```bash
+# Run unit tests only
+make test-unit
+
+# Run integration tests
+make test-integration
+
+# Run a specific test file
+pytest tests/test_config.py
+
+# Run tests matching a pattern
+pytest -k "config"
+```
+
+For detailed testing documentation, see [docs/testing.md](docs/testing.md).
+
+## Development
+
+### Code Style
+
+The project uses:
+- Black for code formatting
+- isort for import sorting
+- flake8 for linting
+
+Format code before committing:
+```bash
+make format
+make lint
+```
+
+### Pre-commit Hooks
+
+Install pre-commit hooks:
+```bash
+pre-commit install
+```
+
 ## Contributing
 
 See the main project's [CONTRIBUTING.md](../CONTRIBUTING.md) for guidelines.
+
+### Development Workflow
+
+1. Create a feature branch
+2. Make your changes
+3. Add tests for new functionality
+4. Ensure all tests pass: `make test`
+5. Update documentation if needed
+6. Submit a pull request
 
 ## License
 
