@@ -102,7 +102,7 @@ This plan fixes the completely broken test suite by focusing on practical testin
   - Validation: All VTT parser tests pass
 
 ### Task 2.2: Create Knowledge Extraction Tests
-- [ ] Test the extraction of entities, relationships, and insights
+- [x] Test the extraction of entities, relationships, and insights
   - Purpose: Verify LLM integration produces expected knowledge
   - Steps:
     1. Use context7 MCP tool to review mocking documentation for external APIs
