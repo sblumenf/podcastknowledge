@@ -295,7 +295,7 @@ class TestVectorEntityMatcher:
             Entity(id="1", name="Apple Inc.", entity_type=EntityType.ORGANIZATION, confidence=0.9),
             Entity(id="2", name="Microsoft Corporation", entity_type=EntityType.ORGANIZATION, confidence=0.95),
             Entity(id="3", name="Steve Jobs", entity_type=EntityType.PERSON, confidence=0.9),
-            Entity(id="4", name="Machine Learning", entity_type=EntityType.TECHNOLOGY, confidence=0.85),
+            Entity(id="4", name="Machine Learning", entity_type=EntityType.CONCEPT, confidence=0.85),
             Entity(id="5", name="Artificial Intelligence", entity_type=EntityType.CONCEPT, confidence=0.88)
         ]
     
@@ -358,7 +358,7 @@ class TestVectorEntityMatcher:
         tech_entity = Entity(
             id="6",
             name="Machine Learning",
-            entity_type=EntityType.TECHNOLOGY,
+            entity_type=EntityType.CONCEPT,
             confidence=0.82
         )
         entities = sample_entities + [tech_entity]

@@ -113,7 +113,7 @@ class TestResponseParser:
         
         assert len(entities) == 1
         assert entities[0].name == "Machine Learning"
-        assert entities[0].entity_type == EntityType.TECHNOLOGY
+        assert entities[0].entity_type == EntityType.CONCEPT
         assert entities[0].description == "AI subset"
     
     def test_parse_insights_structured(self, parser):
@@ -129,7 +129,7 @@ class TestResponseParser:
         
         assert len(insights) == 3
         assert "AI is transforming industries" in insights[0].content
-        assert insights[0].type in [InsightType.TREND, InsightType.OBSERVATION]
+        assert insights[0].type in [InsightType.TREND, InsightType.KEY_POINT]
         assert all(i.confidence > 0 for i in insights)
     
     def test_parse_quotes_structured(self, parser):
@@ -237,7 +237,7 @@ class TestValidationUtils:
         """Test insight validation"""
         valid_insight = Insight(
             content="This is a valid insight",
-            type=InsightType.OBSERVATION,
+            type=InsightType.KEY_POINT,
             confidence=0.7
         )
         
@@ -246,7 +246,7 @@ class TestValidationUtils:
         # Test invalid insight (too short)
         invalid_insight = Insight(
             content="Too short",
-            type=InsightType.OBSERVATION,
+            type=InsightType.KEY_POINT,
             confidence=0.7
         )
         

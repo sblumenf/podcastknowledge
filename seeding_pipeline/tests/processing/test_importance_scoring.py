@@ -36,7 +36,7 @@ class TestImportanceScorer:
             Entity(
                 id="entity_2",
                 name="Python",
-                entity_type=EntityType.TECHNOLOGY,
+                entity_type=EntityType.CONCEPT,
                 description="Programming language",
                 mention_count=3,
                 embedding=np.random.rand(384).tolist()

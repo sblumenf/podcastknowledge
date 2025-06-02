@@ -50,7 +50,7 @@ class TestComplexityAnalyzer:
     def sample_entities(self):
         """Sample entities for testing"""
         return [
-            Entity(name="quantum computing", type=EntityType.TECHNOLOGY, confidence=0.9),
+            Entity(name="quantum computing", type=EntityType.CONCEPT, confidence=0.9),
             Entity(name="superposition", type=EntityType.SCIENTIFIC_THEORY, confidence=0.85),
             Entity(name="entanglement", type=EntityType.SCIENTIFIC_THEORY, confidence=0.85)
         ]

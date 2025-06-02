@@ -137,7 +137,7 @@ class TestVTTKnowledgeExtraction:
         
         # Verify entity types
         person_entities = [e for e in entities if e.type == EntityType.PERSON]
-        tech_entities = [e for e in entities if e.type == EntityType.TECHNOLOGY]
+        tech_entities = [e for e in entities if e.type == EntityType.CONCEPT]
         assert len(person_entities) == 1
         assert len(tech_entities) >= 3
     
@@ -160,7 +160,7 @@ class TestVTTKnowledgeExtraction:
         assert len(insights) >= 3
         assert any("95% accuracy" in i.content for i in insights)
         assert any("Early detection" in i.content for i in insights)
-        assert all(i.type == InsightType.OBSERVATION for i in insights)
+        assert all(i.type == InsightType.KEY_POINT for i in insights)
     
     def test_extract_quotes_from_vtt_segments(self, extractor, mock_llm_provider, mock_vtt_segments):
         """Test quote extraction from VTT segments."""

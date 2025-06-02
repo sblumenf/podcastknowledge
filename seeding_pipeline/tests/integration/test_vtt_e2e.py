@@ -238,7 +238,7 @@ class TestVTTEndToEnd:
         entities = [
             Entity(id="entity_1", name="Dr. Emily Chen", type=EntityType.PERSON, 
                   description="AI researcher in healthcare"),
-            Entity(id="entity_2", name="AI", type=EntityType.TECHNOLOGY,
+            Entity(id="entity_2", name="AI", type=EntityType.CONCEPT,
                   description="Artificial Intelligence"),
             Entity(id="entity_3", name="healthcare", type=EntityType.CONCEPT,
                   description="Medical field")

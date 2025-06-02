@@ -322,7 +322,7 @@ class TestKnowledgeExtractor:
         
         assert len(entities) == 2
         assert entities[0].name == "Python"
-        assert entities[0].entity_type == EntityType.TECHNOLOGY
+        assert entities[0].entity_type == EntityType.CONCEPT
         assert entities[0].confidence_score == 0.8
         assert entities[0].mention_count == 10
         assert entities[1].name == "Django"
@@ -437,9 +437,9 @@ class TestKnowledgeExtractor:
         # Mock combined extraction
         def mock_extract_combined(text, **kwargs):
             if "AI" in text:
-                entities = [Entity(id="ai", name="AI", entity_type=EntityType.TECHNOLOGY)]
+                entities = [Entity(id="ai", name="AI", entity_type=EntityType.CONCEPT)]
             else:
-                entities = [Entity(id="ml", name="ML", entity_type=EntityType.TECHNOLOGY)]
+                entities = [Entity(id="ml", name="ML", entity_type=EntityType.CONCEPT)]
             
             return ExtractionResult(
                 entities=entities,
@@ -494,7 +494,7 @@ class TestKnowledgeExtractor:
             ("PERSON", EntityType.PERSON),
             ("Company", EntityType.ORGANIZATION),
             ("PRODUCT", EntityType.PRODUCT),
-            ("TECHNOLOGY", EntityType.TECHNOLOGY),
+            ("TECHNOLOGY", EntityType.CONCEPT),
             ("CONCEPT", EntityType.CONCEPT),
             ("LOCATION", EntityType.LOCATION),
             ("EVENT", EntityType.EVENT),
@@ -531,8 +531,8 @@ class TestKnowledgeExtractor:
             ("humorous", QuoteType.HUMOROUS),
             ("insightful", QuoteType.INSIGHTFUL),
             ("technical", QuoteType.TECHNICAL),
-            ("general", QuoteType.GENERAL),
-            ("unknown", QuoteType.GENERAL)  # Default
+            ("general", QuoteType.OTHER),
+            ("unknown", QuoteType.OTHER)  # Default
         ]
         
         for type_str, expected in mappings:
@@ -650,8 +650,8 @@ class TestKnowledgeExtractor:
         
         quotes = [
             Quote(id="1", text="Innovation is key to success", speaker="Speaker", quote_type=QuoteType.MEMORABLE),
-            Quote(id="2", text="Short", speaker="Speaker", quote_type=QuoteType.GENERAL),  # Too short
-            Quote(id="3", text="This quote is not in the source text at all", speaker="Unknown", quote_type=QuoteType.GENERAL),
+            Quote(id="2", text="Short", speaker="Speaker", quote_type=QuoteType.OTHER),  # Too short
+            Quote(id="3", text="This quote is not in the source text at all", speaker="Unknown", quote_type=QuoteType.OTHER),
             Quote(id="4", text="Failure is part of learning", speaker="Speaker", quote_type=QuoteType.INSIGHTFUL)
         ]
         

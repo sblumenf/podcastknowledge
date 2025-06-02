@@ -230,7 +230,7 @@ class TestResponseParser:
         # Check second entity
         entity2 = result.data[1]
         assert entity2.name == "GPT-4"
-        assert entity2.entity_type == EntityType.TECHNOLOGY
+        assert entity2.entity_type == EntityType.CONCEPT
         assert entity2.mention_count == 10
     
     def test_parse_entities_missing_fields(self, parser):
@@ -418,7 +418,7 @@ class TestResponseParser:
             ("organization", EntityType.ORGANIZATION),
             ("institution", EntityType.ORGANIZATION),
             ("product", EntityType.PRODUCT),
-            ("technology", EntityType.TECHNOLOGY),
+            ("technology", EntityType.CONCEPT),
             ("concept", EntityType.CONCEPT),
             ("location", EntityType.LOCATION),
             ("event", EntityType.EVENT),
@@ -455,8 +455,8 @@ class TestResponseParser:
             ("humorous", QuoteType.HUMOROUS),
             ("insightful", QuoteType.INSIGHTFUL),
             ("technical", QuoteType.TECHNICAL),
-            ("general", QuoteType.GENERAL),
-            ("unknown", QuoteType.GENERAL),  # Default
+            ("general", QuoteType.OTHER),
+            ("unknown", QuoteType.OTHER),  # Default
         ]
         
         for type_str, expected in test_cases:

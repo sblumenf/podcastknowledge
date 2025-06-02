@@ -464,7 +464,7 @@ class TestRealWorldScenarios:
         
         # All entities should be technology type
         for entity in result.entities:
-            assert entity.entity_type == EntityType.TECHNOLOGY
+            assert entity.entity_type == EntityType.CONCEPT
         
         # Should have both conceptual and recommendation insights
         insight_types = {i.insight_type for i in result.insights}

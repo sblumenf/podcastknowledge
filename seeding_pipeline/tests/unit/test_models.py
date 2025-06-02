@@ -67,7 +67,7 @@ class TestEnums:
         assert EntityType.ORGANIZATION.value == "organization"
         assert EntityType.PRODUCT.value == "product"
         assert EntityType.CONCEPT.value == "concept"
-        assert EntityType.TECHNOLOGY.value == "technology"
+        assert EntityType.CONCEPT.value == "technology"
         assert EntityType.LOCATION.value == "location"
         assert EntityType.EVENT.value == "event"
         assert EntityType.OTHER.value == "other"
@@ -435,7 +435,7 @@ class TestEntity:
         entity = Entity(
             id="entity2",
             name="GPT-4",
-            entity_type=EntityType.TECHNOLOGY,
+            entity_type=EntityType.CONCEPT,
             description="Large language model",
             source_podcasts=["pod1"],
             source_episodes=["ep1", "ep2"],
@@ -466,7 +466,7 @@ class TestEntity:
         entity = Entity(
             id="entity4",
             name="Python",
-            entity_type=EntityType.TECHNOLOGY,
+            entity_type=EntityType.CONCEPT,
             description="Programming language",
             importance_score=0.8,
             importance_factors={"centrality": 0.7}
@@ -876,7 +876,7 @@ class TestEdgeCases:
             episode_id="e1",
             segment_id="seg1",
             timestamp=123.456,  # Float with decimals
-            type=QuoteType.GENERAL
+            type=QuoteType.OTHER
         )
         
         assert quote.timestamp == 123.456
