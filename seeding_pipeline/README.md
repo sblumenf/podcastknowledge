@@ -240,7 +240,15 @@ pytest tests/performance
 
 # Run with coverage
 pytest --cov=src --cov-report=html
+
+# Run tests in parallel for faster execution
+pytest -n auto
+
+# Run tests with detailed output
+pytest -v --tb=short
 ```
+
+For comprehensive test patterns and guidelines, see [Test Fix Summary and Patterns](docs/testing/test-fix-summary.md).
 
 ### Code Quality
 

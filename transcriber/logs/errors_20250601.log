@@ -412,3 +412,16 @@
 2025-06-01 19:48:31 - podcast_transcriber.gemini_client - ERROR - Transcription failed: RetryError[<Future at 0x7f6c3488e610 state=finished raised HTTPError>]
 2025-06-01 20:04:57 - podcast_transcriber.feed_parser - ERROR - Feed parsing error: syntax error
 2025-06-01 20:40:57 - podcast_transcriber.feed_parser - ERROR - Failed to parse feed https://example.com/feed.xml: 'NoneType' object has no attribute 'lower'
+2025-06-01 21:42:15 - podcast_transcriber.checkpoint_recovery - ERROR - Failed to load checkpoint: Expecting property name enclosed in double quotes: line 1 column 3 (char 2)
+2025-06-01 21:42:15 - podcast_transcriber.config - ERROR - Failed to load configuration: mapping values are not allowed here
+  in "/tmp/pytest-of-sergeblumenfeld/pytest-45/test_invalid_yaml_file0/invalid_config.yaml", line 1, column 14
+2025-06-01 21:42:15 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - API timeout must be positive
+2025-06-01 21:42:15 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - API max_attempts must be between 1 and 5
+2025-06-01 21:42:15 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Max episodes per day must be positive
+2025-06-01 21:42:15 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Console log level must be one of: ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL']
+2025-06-01 21:42:15 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - No API keys found in environment variables: ['GEMINI_API_KEY_1', 'GEMINI_API_KEY_2']
+2025-06-01 21:42:15 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Timestamp precision must be between 0 and 3
+2025-06-01 21:42:15 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Rotation strategy must be one of: ['round_robin', 'random']
+2025-06-01 21:42:16 - podcast_transcriber.feed_parser - ERROR - Feed parsing error: syntax error
+2025-06-01 21:42:16 - podcast_transcriber.feed_parser - ERROR - Feed parsing error: XML parsing error
+2025-06-01 21:42:16 - podcast_transcriber.feed_parser - ERROR - Failed to parse feed https://example.com/feed.xml: Network error

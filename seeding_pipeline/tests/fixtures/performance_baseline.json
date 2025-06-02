@@ -1,0 +1,84 @@
+{
+  "single_episode": {
+    "history": [
+      {
+        "timestamp": "2025-06-01T21:34:06.391660",
+        "metrics": {
+          "duration": 0.000675201416015625,
+          "memory_used": 0.0,
+          "peak_memory": 143.58203125
+        }
+      }
+    ],
+    "current": {
+      "duration": 0.000675201416015625,
+      "memory_used": 0.0,
+      "peak_memory": 143.58203125
+    }
+  },
+  "scaling_performance": {
+    "history": [
+      {
+        "timestamp": "2025-06-01T21:34:10.160385",
+        "metrics": {
+          "scaling_results": [
+            {
+              "size": 1,
+              "duration": 0.0004985332489013672,
+              "memory_used": 0.0,
+              "duration_per_episode": 0.0004985332489013672
+            },
+            {
+              "size": 5,
+              "duration": 0.000774383544921875,
+              "memory_used": 0.0,
+              "duration_per_episode": 0.000154876708984375
+            },
+            {
+              "size": 10,
+              "duration": 0.0006363391876220703,
+              "memory_used": 0.0,
+              "duration_per_episode": 6.363391876220703e-05
+            },
+            {
+              "size": 20,
+              "duration": 0.0006155967712402344,
+              "memory_used": 0.0,
+              "duration_per_episode": 3.077983856201172e-05
+            }
+          ],
+          "timestamp": "2025-06-01T21:34:10.160187"
+        }
+      }
+    ],
+    "current": {
+      "scaling_results": [
+        {
+          "size": 1,
+          "duration": 0.0004985332489013672,
+          "memory_used": 0.0,
+          "duration_per_episode": 0.0004985332489013672
+        },
+        {
+          "size": 5,
+          "duration": 0.000774383544921875,
+          "memory_used": 0.0,
+          "duration_per_episode": 0.000154876708984375
+        },
+        {
+          "size": 10,
+          "duration": 0.0006363391876220703,
+          "memory_used": 0.0,
+          "duration_per_episode": 6.363391876220703e-05
+        },
+        {
+          "size": 20,
+          "duration": 0.0006155967712402344,
+          "memory_used": 0.0,
+          "duration_per_episode": 3.077983856201172e-05
+        }
+      ],
+      "timestamp": "2025-06-01T21:34:10.160187"
+    }
+  }
+}

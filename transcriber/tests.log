@@ -1,9 +1,149 @@
 INFO     podcast_transcriber.retry_wrapper:retry_wrapper.py:116 Loaded retry state from file
+DEBUG    asyncio:selector_events.py:54 Using selector: EpollSelector
+DEBUG    asyncio:selector_events.py:54 Using selector: EpollSelector
+INFO     podcast_transcriber.checkpoint_recovery:checkpoint_recovery.py:147 Started checkpoint for episode: Test Episode for Checkpoint
+INFO     podcast_transcriber.checkpoint_recovery:checkpoint_recovery.py:168 Updated checkpoint: stage=transcription
+INFO     podcast_transcriber.checkpoint_recovery:checkpoint_recovery.py:80 Loaded checkpoint for episode: Test Episode for Checkpoint
+INFO     podcast_transcriber.checkpoint_recovery:checkpoint_recovery.py:183 Completed stage: transcription
+INFO     podcast_transcriber.checkpoint_recovery:checkpoint_recovery.py:168 Updated checkpoint: stage=speaker_identification
+INFO     podcast_transcriber.checkpoint_recovery:checkpoint_recovery.py:183 Completed stage: speaker_identification
+INFO     podcast_transcriber.checkpoint_recovery:checkpoint_recovery.py:168 Updated checkpoint: stage=vtt_generation
+INFO     podcast_transcriber.checkpoint_recovery:checkpoint_recovery.py:272 Episode completed: Test Episode for Checkpoint
+DEBUG    asyncio:selector_events.py:54 Using selector: EpollSelector
+DEBUG    asyncio:selector_events.py:54 Using selector: EpollSelector
+DEBUG    asyncio:selector_events.py:54 Using selector: EpollSelector
+DEBUG    asyncio:selector_events.py:54 Using selector: EpollSelector
+INFO     podcast_transcriber.config:config.py:152 Loaded configuration from: /tmp/pytest-of-sergeblumenfeld/pytest-45/test_checkpoint_recovery_with_0/config.yaml
+INFO     podcast_transcriber.config:config.py:287 Running in test mode - relaxed validation
+INFO     podcast_transcriber.progress_tracker:progress_tracker.py:193 Progress tracker initialized with 4 episodes
 INFO     podcast_transcriber.key_rotation_manager:key_rotation_manager.py:144 Loaded rotation state, current index: 2
-INFO     podcast_transcriber.key_rotation_manager:key_rotation_manager.py:119 Initialized key rotation manager with 3 keys
-INFO     podcast_transcriber.key_rotation_manager:key_rotation_manager.py:199 Selected key_1 (test_key...) for next request
-INFO     podcast_transcriber.key_rotation_manager:key_rotation_manager.py:199 Selected key_2 (key2...) for next request
-INFO     podcast_transcriber.key_rotation_manager:key_rotation_manager.py:199 Selected key_3 (key3...) for next request
-INFO     podcast_transcriber.key_rotation_manager:key_rotation_manager.py:199 Selected key_1 (test_key...) for next request
-WARNING  podcast_transcriber.key_rotation_manager:key_rotation_manager.py:233 key_1 (test_key...) marked as failed: Test error
-INFO     podcast_transcriber.key_rotation_manager:key_rotation_manager.py:199 Selected key_2 (key2...) for next request
+INFO     podcast_transcriber.key_rotation_manager:key_rotation_manager.py:119 Initialized key rotation manager with 1 keys
+INFO     podcast_transcriber.gemini_client:gemini_client.py:1136 Found 1 API key(s) in environment
+INFO     podcast_transcriber.gemini_client:gemini_client.py:122 Initialized Gemini client with 1 API keys
+INFO     podcast_transcriber.gemini_client:gemini_client.py:93 Reset daily usage for API key 1
+INFO     podcast_transcriber.gemini_client:gemini_client.py:149 Loaded usage state from file
+INFO     podcast_transcriber.checkpoint_recovery:checkpoint_recovery.py:80 Loaded checkpoint for episode: Test Episode 1
+INFO     podcast_transcriber.orchestrator:orchestrator.py:73 Found resumable checkpoint: Test Episode 1
+INFO     podcast_transcriber.orchestrator:orchestrator.py:74 Last updated 1.4 hours ago
+ERROR    podcast_transcriber.checkpoint_recovery:checkpoint_recovery.py:82 Failed to load checkpoint: Expecting property name enclosed in double quotes: line 1 column 3 (char 2)
+INFO     podcast_transcriber.checkpoint_recovery:checkpoint_recovery.py:80 Loaded checkpoint for episode: Test
+DEBUG    asyncio:selector_events.py:54 Using selector: EpollSelector
+INFO     podcast_transcriber.config:config.py:152 Loaded configuration from: /home/sergeblumenfeld/podcastknowledge/transcriber/config/default.yaml
+INFO     podcast_transcriber.config:config.py:342 Configuration validation passed
+INFO     podcast_transcriber.config:config.py:152 Loaded configuration from: /tmp/pytest-of-sergeblumenfeld/pytest-45/test_load_from_yaml_file0/test_config.yaml
+INFO     podcast_transcriber.config:config.py:287 Running in test mode - relaxed validation
+WARNING  podcast_transcriber.config:config.py:154 Configuration file not found: /non/existent/config.yaml
+INFO     podcast_transcriber.config:config.py:155 Using default configuration values
+INFO     podcast_transcriber.config:config.py:287 Running in test mode - relaxed validation
+ERROR    podcast_transcriber.config:config.py:157 Failed to load configuration: mapping values are not allowed here
+  in "/tmp/pytest-of-sergeblumenfeld/pytest-45/test_invalid_yaml_file0/invalid_config.yaml", line 1, column 14
+INFO     podcast_transcriber.config:config.py:158 Using default configuration values
+INFO     podcast_transcriber.config:config.py:287 Running in test mode - relaxed validation
+INFO     podcast_transcriber.config:config.py:152 Loaded configuration from: /home/sergeblumenfeld/podcastknowledge/transcriber/config/default.yaml
+INFO     podcast_transcriber.config:config.py:276 Applied environment override: PODCAST_API_TIMEOUT=600
+INFO     podcast_transcriber.config:config.py:276 Applied environment override: PODCAST_API_MAX_ATTEMPTS=3
+INFO     podcast_transcriber.config:config.py:276 Applied environment override: PODCAST_API_MAX_EPISODES=20
+INFO     podcast_transcriber.config:config.py:276 Applied environment override: PODCAST_OUTPUT_DIR=/custom/output
+INFO     podcast_transcriber.config:config.py:276 Applied environment override: PODCAST_OUTPUT_PATTERN={date}/{podcast_name}.vtt
+INFO     podcast_transcriber.config:config.py:276 Applied environment override: PODCAST_MAX_EPISODE_LENGTH=90
+INFO     podcast_transcriber.config:config.py:276 Applied environment override: PODCAST_ENABLE_PROGRESS=False
+INFO     podcast_transcriber.config:config.py:276 Applied environment override: PODCAST_LOG_LEVEL=DEBUG
+INFO     podcast_transcriber.config:config.py:276 Applied environment override: PODCAST_LOG_DIR=/custom/logs
+INFO     podcast_transcriber.config:config.py:276 Applied environment override: PODCAST_DRY_RUN=True
+INFO     podcast_transcriber.config:config.py:276 Applied environment override: PODCAST_DEBUG_MODE=True
+INFO     podcast_transcriber.config:config.py:342 Configuration validation passed
+INFO     podcast_transcriber.config:config.py:152 Loaded configuration from: /home/sergeblumenfeld/podcastknowledge/transcriber/config/default.yaml
+INFO     podcast_transcriber.config:config.py:342 Configuration validation passed
+ERROR    podcast_transcriber.config:config.py:339 Configuration validation failed:\n  - API timeout must be positive
+ERROR    podcast_transcriber.config:config.py:339 Configuration validation failed:\n  - API max_attempts must be between 1 and 5
+ERROR    podcast_transcriber.config:config.py:339 Configuration validation failed:\n  - Max episodes per day must be positive
+ERROR    podcast_transcriber.config:config.py:339 Configuration validation failed:\n  - Console log level must be one of: ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL']
+ERROR    podcast_transcriber.config:config.py:339 Configuration validation failed:\n  - No API keys found in environment variables: ['GEMINI_API_KEY_1', 'GEMINI_API_KEY_2']
+INFO     podcast_transcriber.config:config.py:152 Loaded configuration from: /home/sergeblumenfeld/podcastknowledge/transcriber/config/default.yaml
+INFO     podcast_transcriber.config:config.py:342 Configuration validation passed
+INFO     podcast_transcriber.config:config.py:152 Loaded configuration from: /home/sergeblumenfeld/podcastknowledge/transcriber/config/default.yaml
+INFO     podcast_transcriber.config:config.py:342 Configuration validation passed
+INFO     podcast_transcriber.config:config.py:152 Loaded configuration from: /home/sergeblumenfeld/podcastknowledge/transcriber/config/default.yaml
+INFO     podcast_transcriber.config:config.py:342 Configuration validation passed
+INFO     podcast_transcriber.config:config.py:152 Loaded configuration from: /home/sergeblumenfeld/podcastknowledge/transcriber/config/default.yaml
+INFO     podcast_transcriber.config:config.py:342 Configuration validation passed
+INFO     podcast_transcriber.config:config.py:152 Loaded configuration from: /home/sergeblumenfeld/podcastknowledge/transcriber/config/default.yaml
+INFO     podcast_transcriber.config:config.py:342 Configuration validation passed
+INFO     podcast_transcriber.config:config.py:152 Loaded configuration from: /home/sergeblumenfeld/podcastknowledge/transcriber/config/default.yaml
+INFO     podcast_transcriber.config:config.py:342 Configuration validation passed
+ERROR    podcast_transcriber.config:config.py:339 Configuration validation failed:\n  - Timestamp precision must be between 0 and 3
+INFO     podcast_transcriber.config:config.py:342 Configuration validation passed
+INFO     podcast_transcriber.config:config.py:152 Loaded configuration from: /home/sergeblumenfeld/podcastknowledge/transcriber/config/default.yaml
+INFO     podcast_transcriber.config:config.py:342 Configuration validation passed
+ERROR    podcast_transcriber.config:config.py:339 Configuration validation failed:\n  - Rotation strategy must be one of: ['round_robin', 'random']
+INFO     podcast_transcriber.config:config.py:342 Configuration validation passed
+INFO     podcast_transcriber.config:config.py:342 Configuration validation passed
+INFO     podcast_transcriber.config:config.py:152 Loaded configuration from: /home/sergeblumenfeld/podcastknowledge/transcriber/config/default.yaml
+INFO     podcast_transcriber.config:config.py:342 Configuration validation passed
+INFO     podcast_transcriber.config:config.py:152 Loaded configuration from: /home/sergeblumenfeld/podcastknowledge/transcriber/config/default.yaml
+INFO     podcast_transcriber.config:config.py:342 Configuration validation passed
+INFO     podcast_transcriber.config:config.py:152 Loaded configuration from: /home/sergeblumenfeld/podcastknowledge/transcriber/config/default.yaml
+INFO     podcast_transcriber.config:config.py:342 Configuration validation passed
+DEBUG    asyncio:selector_events.py:54 Using selector: EpollSelector
+INFO     podcast_transcriber.config:config.py:152 Loaded configuration from: /tmp/pytest-of-sergeblumenfeld/pytest-45/test_full_pipeline_with_audio_0/config/test_config.yaml
+INFO     podcast_transcriber.config:config.py:287 Running in test mode - relaxed validation
+INFO     podcast_transcriber.progress_tracker:progress_tracker.py:193 Progress tracker initialized with 4 episodes
+INFO     podcast_transcriber.key_rotation_manager:key_rotation_manager.py:144 Loaded rotation state, current index: 2
+INFO     podcast_transcriber.key_rotation_manager:key_rotation_manager.py:119 Initialized key rotation manager with 1 keys
+INFO     podcast_transcriber.gemini_client:gemini_client.py:1136 Found 1 API key(s) in environment
+INFO     podcast_transcriber.gemini_client:gemini_client.py:122 Initialized Gemini client with 1 API keys
+INFO     podcast_transcriber.gemini_client:gemini_client.py:93 Reset daily usage for API key 1
+INFO     podcast_transcriber.gemini_client:gemini_client.py:149 Loaded usage state from file
+INFO     podcast_transcriber.checkpoint_recovery:checkpoint_recovery.py:80 Loaded checkpoint for episode: Test Episode 1
+INFO     podcast_transcriber.feed_parser:feed_parser.py:107 Parsing RSS feed: https://example.com/feed.xml
+INFO     podcast_transcriber.feed_parser:feed_parser.py:121 Parsed podcast: E2E Test Podcast
+INFO     podcast_transcriber.feed_parser:feed_parser.py:125 Found 1 episodes in feed
+INFO     podcast_transcriber.orchestrator:orchestrator.py:93 Found 1 episodes in feed: E2E Test Podcast
+INFO     podcast_transcriber.orchestrator:orchestrator.py:108 No pending episodes to process
+DEBUG    asyncio:selector_events.py:54 Using selector: EpollSelector
+INFO     podcast_transcriber.config:config.py:152 Loaded configuration from: /tmp/pytest-of-sergeblumenfeld/pytest-45/test_pipeline_audio_download_f0/config/test_config.yaml
+INFO     podcast_transcriber.config:config.py:287 Running in test mode - relaxed validation
+INFO     podcast_transcriber.progress_tracker:progress_tracker.py:193 Progress tracker initialized with 4 episodes
+INFO     podcast_transcriber.key_rotation_manager:key_rotation_manager.py:144 Loaded rotation state, current index: 2
+INFO     podcast_transcriber.key_rotation_manager:key_rotation_manager.py:119 Initialized key rotation manager with 1 keys
+INFO     podcast_transcriber.gemini_client:gemini_client.py:1136 Found 1 API key(s) in environment
+INFO     podcast_transcriber.gemini_client:gemini_client.py:122 Initialized Gemini client with 1 API keys
+INFO     podcast_transcriber.gemini_client:gemini_client.py:93 Reset daily usage for API key 1
+INFO     podcast_transcriber.gemini_client:gemini_client.py:149 Loaded usage state from file
+INFO     podcast_transcriber.checkpoint_recovery:checkpoint_recovery.py:80 Loaded checkpoint for episode: Test Episode 1
+INFO     podcast_transcriber.feed_parser:feed_parser.py:107 Parsing RSS feed: https://example.com/feed.xml
+ERROR    podcast_transcriber.feed_parser:feed_parser.py:116 Feed parsing error: syntax error
+INFO     podcast_transcriber.feed_parser:feed_parser.py:121 Parsed podcast: Unknown Podcast
+INFO     podcast_transcriber.feed_parser:feed_parser.py:125 Found 0 episodes in feed
+WARNING  podcast_transcriber.feed_parser:feed_parser.py:128 No episodes found in feed
+INFO     podcast_transcriber.orchestrator:orchestrator.py:93 Found 0 episodes in feed: Unknown Podcast
+INFO     podcast_transcriber.orchestrator:orchestrator.py:108 No pending episodes to process
+INFO     podcast_transcriber.feed_parser:feed_parser.py:107 Parsing RSS feed: https://example.com/feed.xml
+INFO     podcast_transcriber.feed_parser:feed_parser.py:121 Parsed podcast: Test Podcast
+INFO     podcast_transcriber.feed_parser:feed_parser.py:125 Found 1 episodes in feed
+INFO     podcast_transcriber.feed_parser:feed_parser.py:107 Parsing RSS feed: https://example.com/feed.xml
+ERROR    podcast_transcriber.feed_parser:feed_parser.py:116 Feed parsing error: XML parsing error
+INFO     podcast_transcriber.feed_parser:feed_parser.py:121 Parsed podcast: Test Podcast
+INFO     podcast_transcriber.feed_parser:feed_parser.py:125 Found 0 episodes in feed
+WARNING  podcast_transcriber.feed_parser:feed_parser.py:128 No episodes found in feed
+INFO     podcast_transcriber.feed_parser:feed_parser.py:107 Parsing RSS feed: https://example.com/feed.xml
+ERROR    podcast_transcriber.feed_parser:feed_parser.py:133 Failed to parse feed https://example.com/feed.xml: Network error
+INFO     podcast_transcriber.feed_parser:feed_parser.py:107 Parsing RSS feed: https://example.com/feed.xml
+INFO     podcast_transcriber.feed_parser:feed_parser.py:121 Parsed podcast: Empty Podcast
+INFO     podcast_transcriber.feed_parser:feed_parser.py:125 Found 0 episodes in feed
+WARNING  podcast_transcriber.feed_parser:feed_parser.py:128 No episodes found in feed
+INFO     podcast_transcriber.feed_parser:feed_parser.py:107 Parsing RSS feed: https://example.com/feed.xml
+INFO     podcast_transcriber.feed_parser:feed_parser.py:121 Parsed podcast: Standard Podcast
+INFO     podcast_transcriber.feed_parser:feed_parser.py:125 Found 2 episodes in feed
+INFO     podcast_transcriber.feed_parser:feed_parser.py:107 Parsing RSS feed: https://example.com/itunes-feed.xml
+INFO     podcast_transcriber.feed_parser:feed_parser.py:121 Parsed podcast: iTunes Enhanced Podcast
+INFO     podcast_transcriber.feed_parser:feed_parser.py:125 Found 0 episodes in feed
+WARNING  podcast_transcriber.feed_parser:feed_parser.py:128 No episodes found in feed
+INFO     podcast_transcriber.feed_parser:feed_parser.py:107 Parsing RSS feed: https://example.com/no-duration-feed.xml
+INFO     podcast_transcriber.feed_parser:feed_parser.py:121 Parsed podcast: No Duration Podcast
+INFO     podcast_transcriber.feed_parser:feed_parser.py:125 Found 0 episodes in feed
+WARNING  podcast_transcriber.feed_parser:feed_parser.py:128 No episodes found in feed
+INFO     podcast_transcriber.feed_parser:feed_parser.py:107 Parsing RSS feed: https://example.com/youtube-feed.xml
+INFO     podcast_transcriber.feed_parser:feed_parser.py:121 Parsed podcast: YouTube Linked Podcast
+INFO     podcast_transcriber.feed_parser:feed_parser.py:125 Found 0 episodes in feed
+WARNING  podcast_transcriber.feed_parser:feed_parser.py:128 No episodes found in feed

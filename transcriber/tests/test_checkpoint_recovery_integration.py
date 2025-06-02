@@ -189,7 +189,8 @@ Date: 2025-06-01
         checkpoint_manager.start_episode(
             episode_id="multi-interrupt-001",
             audio_url="https://example.com/multi.mp3",
-            title="Multi Interrupt Test"
+            title="Multi Interrupt Test",
+            metadata={}
         )
         
         checkpoint_manager.update_stage('transcription')
@@ -238,7 +239,8 @@ Date: 2025-06-01
         checkpoint_manager.start_episode(
             episode_id="cleanup-test-001",
             audio_url="https://example.com/cleanup.mp3",
-            title="Cleanup Test"
+            title="Cleanup Test",
+            metadata={}
         )
         
         # Create temporary files
@@ -288,7 +290,8 @@ Date: 2025-06-01
         manager1.start_episode(
             episode_id="concurrent-001",
             audio_url="https://example.com/concurrent1.mp3",
-            title="Concurrent Test 1"
+            title="Concurrent Test 1",
+            metadata={}
         )
         
         # Try to create second checkpoint
@@ -297,7 +300,8 @@ Date: 2025-06-01
             manager2.start_episode(
                 episode_id="concurrent-002",
                 audio_url="https://example.com/concurrent2.mp3",
-                title="Concurrent Test 2"
+                title="Concurrent Test 2",
+                metadata={}
             )
         
         assert "checkpoint already exists" in str(exc_info.value).lower()
@@ -370,7 +374,7 @@ Date: 2025-06-01
                     
                     # Simulate resume
                     resume_info = orchestrator.checkpoint_manager.get_resume_info()
-                    assert resume_info['episode_id'] == mock_episode.guid
+                    assert resume_info['episode_title'] == mock_episode.title
                     
                     # Complete the checkpoint
                     orchestrator.checkpoint_manager.mark_completed("test_output.vtt")
@@ -443,7 +447,8 @@ Date: 2025-06-01
         checkpoint_manager.start_episode(
             episode_id="completed-001",
             audio_url="https://example.com/completed.mp3",
-            title="Already Completed Episode"
+            title="Already Completed Episode",
+            metadata={}
         )
         
         # Add metadata to track this is a retry of completed episode
