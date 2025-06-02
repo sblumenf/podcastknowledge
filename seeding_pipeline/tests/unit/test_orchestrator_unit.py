@@ -22,10 +22,10 @@ from src.providers.embeddings.base import EmbeddingProvider
 from src.providers.graph.base import GraphProvider
 from src.providers.llm.base import LLMProvider
 from src.seeding.components import (
-from src.seeding.orchestrator import VTTKnowledgeExtractor
     SignalManager, ProviderCoordinator, CheckpointManager,
     PipelineExecutor, StorageCoordinator
 )
+from src.seeding.orchestrator import VTTKnowledgeExtractor
 
 
 class TestPodcastKnowledgePipeline:

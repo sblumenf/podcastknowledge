@@ -24,7 +24,7 @@ This plan will systematically fix all 742 failing tests in the podcast knowledge
   - Validation: JSON file exists with all 35 import errors documented
 
 ### Task 1.2: Fix CLI Module Imports
-- [ ] Resolve missing CLI functions
+- [x] Resolve missing CLI functions
   - Purpose: Enable CLI tests to import successfully
   - Steps:
     1. Use context7 MCP tool to check CLI documentation
@@ -37,7 +37,7 @@ This plan will systematically fix all 742 failing tests in the podcast knowledge
   - Validation: `pytest tests/test_cli.py --collect-only` succeeds
 
 ### Task 1.3: Fix API Module Imports
-- [ ] Resolve missing API classes and functions
+- [x] Resolve missing API classes and functions
   - Purpose: Enable API tests to import successfully
   - Steps:
     1. Use context7 MCP tool to review API documentation
@@ -48,7 +48,7 @@ This plan will systematically fix all 742 failing tests in the podcast knowledge
   - Validation: `pytest tests/api/ --collect-only` succeeds
 
 ### Task 1.4: Fix Remaining Import Errors
-- [ ] Resolve all other import issues
+- [x] Resolve all other import issues
   - Purpose: Ensure all tests can be collected
   - Steps:
     1. Use context7 MCP tool for any relevant documentation
@@ -63,7 +63,7 @@ This plan will systematically fix all 742 failing tests in the podcast knowledge
 ## Phase 2: Model and Data Structure Alignment
 
 ### Task 2.1: Audit Model Definitions
-- [ ] Document all model mismatches
+- [x] Document all model mismatches
   - Purpose: Understand divergence between tests and implementation
   - Steps:
     1. Use context7 MCP tool to review model documentation

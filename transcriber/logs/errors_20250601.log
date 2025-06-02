@@ -411,3 +411,4 @@
 2025-06-01 19:48:31 - podcast_transcriber.retry_wrapper - ERROR - transcribe_audio failed after 2 attempts
 2025-06-01 19:48:31 - podcast_transcriber.gemini_client - ERROR - Transcription failed: RetryError[<Future at 0x7f6c3488e610 state=finished raised HTTPError>]
 2025-06-01 20:04:57 - podcast_transcriber.feed_parser - ERROR - Feed parsing error: syntax error
+2025-06-01 20:40:57 - podcast_transcriber.feed_parser - ERROR - Failed to parse feed https://example.com/feed.xml: 'NoneType' object has no attribute 'lower'

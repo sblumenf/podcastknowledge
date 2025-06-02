@@ -6,7 +6,7 @@ import re
 
 import pytest
 
-from src.utils.text_processing import (,
+from src.utils.text_processing import (
     calculate_name_similarity,
     extract_entity_aliases,
     extract_key_phrases,

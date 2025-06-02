@@ -14,6 +14,7 @@ import re
 
 from src.core.models import Segment
 from src.utils.component_tracker import track_component_impact, ComponentContribution, get_tracker
+
 logger = logging.getLogger(__name__)
 
 
@@ -42,6 +43,24 @@ class ExtractionResult:
     quotes: List[Dict[str, Any]]
     relationships: List[Dict[str, Any]]
     metadata: Dict[str, Any]
+
+
+def create_extractor(llm_service: Any, embedding_service: Any = None, config: Optional[ExtractionConfig] = None) -> 'KnowledgeExtractor':
+    """Factory function to create a knowledge extractor.
+    
+    Args:
+        llm_service: LLM service for extraction
+        embedding_service: Optional embedding service
+        config: Optional extraction configuration
+        
+    Returns:
+        Configured KnowledgeExtractor instance
+    """
+    return KnowledgeExtractor(
+        llm_service=llm_service,
+        embedding_service=embedding_service,
+        config=config
+    )
 
 
 class KnowledgeExtractor:

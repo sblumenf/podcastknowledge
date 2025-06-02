@@ -236,6 +236,65 @@ class WindowedRateLimiter(RateLimiter):
         }
 
 
+class FixedWindowRateLimiter(RateLimiter):
+    """Fixed window rate limiter implementation."""
+    
+    def __init__(self, requests_per_window: int, window_seconds: int = 60):
+        """
+        Initialize fixed window rate limiter.
+        
+        Args:
+            requests_per_window: Max requests per window
+            window_seconds: Window size in seconds
+        """
+        self.requests_per_window = requests_per_window
+        self.window_seconds = window_seconds
+        self.window_start = time.time()
+        self.request_count = 0
+        self.request_history = deque(maxlen=1000)
+        self.error_counts = {}
+        
+    def _reset_window_if_needed(self) -> None:
+        """Reset window if current window has expired."""
+        current_time = time.time()
+        if current_time - self.window_start >= self.window_seconds:
+            self.window_start = current_time
+            self.request_count = 0
+            
+    def can_make_request(self, identifier: str, cost: float = 1.0) -> bool:
+        """Check if request can be made within window."""
+        self._reset_window_if_needed()
+        return self.request_count + cost <= self.requests_per_window
+        
+    def record_request(self, identifier: str, cost: float = 1.0) -> None:
+        """Record a successful request."""
+        self._reset_window_if_needed()
+        self.request_count += cost
+        self.request_history.append({
+            'identifier': identifier,
+            'timestamp': time.time(),
+            'cost': cost
+        })
+        
+    def record_error(self, identifier: str, error_type: str) -> None:
+        """Record an error for monitoring."""
+        if error_type not in self.error_counts:
+            self.error_counts[error_type] = 0
+        self.error_counts[error_type] += 1
+        
+    def get_status(self) -> Dict[str, Any]:
+        """Get current rate limit status."""
+        self._reset_window_if_needed()
+        return {
+            'window_seconds': self.window_seconds,
+            'requests_per_window': self.requests_per_window,
+            'current_requests': self.request_count,
+            'remaining_requests': self.requests_per_window - self.request_count,
+            'window_reset_time': self.window_start + self.window_seconds,
+            'error_counts': dict(self.error_counts)
+        }
+
+
 class CompositeRateLimiter(RateLimiter):
     """Composite rate limiter that combines multiple rate limiters."""
     

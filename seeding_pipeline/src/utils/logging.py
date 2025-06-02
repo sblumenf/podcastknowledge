@@ -92,6 +92,35 @@ class StructuredFormatter(logging.Formatter):
         return json.dumps(log_data, default=str)
 
 
+class ContextFilter(logging.Filter):
+    """Add context information to log records."""
+    
+    def __init__(self, context_data: Optional[Dict[str, Any]] = None):
+        """Initialize context filter.
+        
+        Args:
+            context_data: Static context data to add to all records
+        """
+        super().__init__()
+        self.context_data = context_data or {}
+        
+    def filter(self, record: logging.LogRecord) -> bool:
+        """Add context data to log record."""
+        # Add correlation ID
+        record.correlation_id = get_correlation_id()
+        
+        # Add any static context data
+        for key, value in self.context_data.items():
+            setattr(record, key, value)
+            
+        # Add dynamic context if available
+        if hasattr(record, 'context'):
+            for key, value in record.context.items():
+                setattr(record, key, value)
+                
+        return True
+
+
 def setup_logging(
     level: Union[str, int] = "INFO",
     log_file: Optional[str] = None,

@@ -4,7 +4,7 @@ from typing import List, Dict
 
 import pytest
 
-from src.utils.text_processing import (,
+from src.utils.text_processing import (
     calculate_name_similarity,
     extract_key_phrases,
     split_into_sentences,

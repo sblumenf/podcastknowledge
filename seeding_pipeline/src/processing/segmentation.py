@@ -12,6 +12,7 @@ import re
 
 from ..core import constants
 from ..core.interfaces import TranscriptSegment
+
 logger = logging.getLogger(__name__)
 
 
@@ -268,3 +269,6 @@ class VTTTranscriptSegmenter:
             "speakers": sorted(list(speakers)),
             "sentiment_distribution": sentiment_distribution,
         }
+
+# Alias for backward compatibility
+VTTSegmenter = VTTTranscriptSegmenter

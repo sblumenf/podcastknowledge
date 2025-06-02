@@ -20,20 +20,32 @@ def check_api_compatibility(required_version: str) -> bool:
     current_major = API_VERSION_INFO[0]
     return current_major >= required_major
 
-def deprecated(func):
-    """Decorator to mark functions as deprecated."""
-    import functools
-    import warnings
+def deprecated(version=None, replacement=None):
+    """Decorator to mark functions as deprecated.
     
-    @functools.wraps(func)
-    def wrapper(*args, **kwargs):
-        warnings.warn(
-            f"{func.__name__} is deprecated",
-            DeprecationWarning,
-            stacklevel=2
-        )
-        return func(*args, **kwargs)
-    return wrapper
+    Args:
+        version: Version when the function will be removed
+        replacement: Name of the replacement function
+    """
+    def decorator(func):
+        import functools
+        import warnings
+        
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            message = f"{func.__name__} is deprecated"
+            if version:
+                message += f" and will be removed in version {version}"
+            if replacement:
+                message += f". Use {replacement} instead"
+            warnings.warn(
+                message,
+                DeprecationWarning,
+                stacklevel=2
+            )
+            return func(*args, **kwargs)
+        return wrapper
+    return decorator
 
 def api_version_check(required_version: str):
     """Decorator to check API version compatibility."""
@@ -50,8 +62,13 @@ def api_version_check(required_version: str):
 
 # Lazy imports to avoid circular dependencies
 def __getattr__(name):
-    if name in ['seed_podcast', 'seed_podcasts', 'PodcastKnowledgePipeline']:
+    if name in ['seed_podcast', 'seed_podcasts', 'PodcastKnowledgePipeline', 'VTTKnowledgeExtractor']:
         from .podcast_api import seed_podcast, seed_podcasts, PodcastKnowledgePipeline
+        # VTTKnowledgeExtractor is an alias for PodcastKnowledgePipeline
+        if name == 'VTTKnowledgeExtractor':
+            VTTKnowledgeExtractor = PodcastKnowledgePipeline
+            globals()[name] = VTTKnowledgeExtractor
+            return VTTKnowledgeExtractor
         globals()[name] = locals()[name]
         return locals()[name]
     raise AttributeError(f"module {__name__} has no attribute {name}")
@@ -62,6 +79,7 @@ __all__ = [
     'seed_podcast',
     'seed_podcasts',
     'PodcastKnowledgePipeline',
+    'VTTKnowledgeExtractor',  # Alias for PodcastKnowledgePipeline
     'get_api_version',
     'check_api_compatibility',
     'deprecated',

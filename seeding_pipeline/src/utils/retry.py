@@ -50,6 +50,59 @@ class CircuitState(Enum):
     HALF_OPEN = "half_open"  # Testing if service recovered
 
 
+def retry(
+    exceptions: Union[Type[Exception], Tuple[Type[Exception], ...]] = Exception,
+    tries: int = 3,
+    delay: float = 1.0,
+    max_delay: float = 60.0,
+    backoff: float = 2.0,
+    jitter: bool = True
+) -> Callable:
+    """Decorator to retry a function on exception.
+    
+    Args:
+        exceptions: Exception(s) to catch
+        tries: Number of attempts
+        delay: Initial delay between retries
+        max_delay: Maximum delay between retries
+        backoff: Backoff multiplier
+        jitter: Add random jitter to delays
+        
+    Returns:
+        Decorated function
+    """
+    def decorator(func: Callable) -> Callable:
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs) -> Any:
+            attempt = 0
+            current_delay = delay
+            
+            while attempt < tries:
+                try:
+                    return func(*args, **kwargs)
+                except exceptions as e:
+                    attempt += 1
+                    if attempt >= tries:
+                        logger.error(f"Failed after {tries} attempts: {e}")
+                        raise
+                    
+                    # Calculate next delay
+                    if jitter:
+                        actual_delay = current_delay * (0.5 + random.random())
+                    else:
+                        actual_delay = current_delay
+                    
+                    logger.warning(f"Attempt {attempt}/{tries} failed: {e}. "
+                                 f"Retrying in {actual_delay:.1f}s...")
+                    
+                    time.sleep(actual_delay)
+                    current_delay = min(current_delay * backoff, max_delay)
+                    
+            return None  # Should never reach here
+        return wrapper
+    return decorator
+
+
 def with_retry(max_retries: int = 3, 
                backoff_factor: float = 2.0,
                strategy: RetryStrategy = RetryStrategy.EXPONENTIAL,

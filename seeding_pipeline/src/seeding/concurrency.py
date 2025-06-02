@@ -6,10 +6,20 @@ Removed complex job queuing, deadlock detection, and priority systems as part of
 
 from concurrent.futures import ThreadPoolExecutor, Future
 from contextlib import contextmanager
+from enum import Enum
 from typing import Any, Callable, List, Optional
 import logging
 import threading
+
 logger = logging.getLogger(__name__)
+
+
+class Priority(Enum):
+    """Task priority levels."""
+    LOW = 0
+    NORMAL = 1
+    HIGH = 2
+    CRITICAL = 3
 
 
 class SimpleThreadPool:

@@ -4,9 +4,12 @@ This module provides text utility functions that complement the main
 preprocessing and extraction modules without duplicating their functionality.
 """
 
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, Tuple
 import logging
 import re
+import unicodedata
+from difflib import SequenceMatcher
+
 logger = logging.getLogger(__name__)
 
 
@@ -307,3 +310,100 @@ def extract_speaker_turns(text: str) -> List[Dict[str, str]]:
                 })
     
     return turns
+
+
+def normalize_entity_name(name: str) -> str:
+    """Normalize an entity name for comparison.
+    
+    Args:
+        name: Entity name to normalize
+        
+    Returns:
+        Normalized name
+    """
+    if not name:
+        return ""
+    
+    # Convert to lowercase
+    name = name.lower()
+    
+    # Remove accents and special characters
+    name = ''.join(
+        c for c in unicodedata.normalize('NFD', name)
+        if unicodedata.category(c) != 'Mn'
+    )
+    
+    # Remove punctuation except hyphens and apostrophes
+    name = re.sub(r"[^\w\s'-]", '', name)
+    
+    # Normalize whitespace
+    name = ' '.join(name.split())
+    
+    # Common abbreviations
+    abbreviations = {
+        'inc': 'incorporated',
+        'corp': 'corporation',
+        'ltd': 'limited',
+        'llc': 'limited liability company',
+        'co': 'company',
+        'dr': 'doctor',
+        'mr': 'mister',
+        'ms': 'miss',
+        'mrs': 'missus',
+        'prof': 'professor'
+    }
+    
+    words = name.split()
+    normalized_words = []
+    for word in words:
+        if word in abbreviations:
+            normalized_words.append(abbreviations[word])
+        else:
+            normalized_words.append(word)
+    
+    return ' '.join(normalized_words)
+
+
+def calculate_name_similarity(name1: str, name2: str) -> float:
+    """Calculate similarity between two names.
+    
+    Args:
+        name1: First name
+        name2: Second name
+        
+    Returns:
+        Similarity score between 0 and 1
+    """
+    if not name1 or not name2:
+        return 0.0
+    
+    # Normalize names
+    norm1 = normalize_entity_name(name1)
+    norm2 = normalize_entity_name(name2)
+    
+    # Exact match after normalization
+    if norm1 == norm2:
+        return 1.0
+    
+    # Use sequence matcher for fuzzy matching
+    matcher = SequenceMatcher(None, norm1, norm2)
+    base_similarity = matcher.ratio()
+    
+    # Check for subset matches (one name contains the other)
+    if norm1 in norm2 or norm2 in norm1:
+        base_similarity = max(base_similarity, 0.8)
+    
+    # Check for word-level matches
+    words1 = set(norm1.split())
+    words2 = set(norm2.split())
+    
+    if words1 and words2:
+        word_overlap = len(words1.intersection(words2))
+        total_words = len(words1.union(words2))
+        word_similarity = word_overlap / total_words if total_words > 0 else 0
+        
+        # Weight word similarity higher for multi-word names
+        if len(words1) > 1 or len(words2) > 1:
+            base_similarity = max(base_similarity, word_similarity * 0.9)
+    
+    return round(base_similarity, 3)

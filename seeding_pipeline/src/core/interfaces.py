@@ -39,6 +39,48 @@ class TranscriptSegment:
     confidence: Optional[float] = None
 
 
+# Audio Provider Interfaces
+class AudioProvider(ABC):
+    """Abstract base class for audio providers."""
+    
+    @abstractmethod
+    def download_audio(self, url: str, output_path: str) -> str:
+        """Download audio from URL.
+        
+        Args:
+            url: URL of the audio file
+            output_path: Path to save the audio file
+            
+        Returns:
+            Path to the downloaded file
+        """
+        pass
+    
+    @abstractmethod
+    def get_audio_duration(self, file_path: str) -> float:
+        """Get duration of an audio file in seconds.
+        
+        Args:
+            file_path: Path to the audio file
+            
+        Returns:
+            Duration in seconds
+        """
+        pass
+    
+    @abstractmethod
+    def validate_audio_format(self, file_path: str) -> bool:
+        """Validate if audio format is supported.
+        
+        Args:
+            file_path: Path to the audio file
+            
+        Returns:
+            True if format is supported
+        """
+        pass
+
+
 # LLM Provider Interfaces
 @dataclass
 class LLMResponse:

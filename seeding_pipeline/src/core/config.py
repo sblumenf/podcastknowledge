@@ -38,6 +38,9 @@ class PipelineConfig:
     min_speakers: int = 1
     max_speakers: int = 10
     
+    # Whisper Settings
+    whisper_model_size: str = "large-v3"
+    
     # Neo4j Database Settings (from environment)
     neo4j_uri: str = field(default_factory=lambda: os.environ.get("NEO4J_URI", "bolt://localhost:7687"))
     neo4j_username: str = field(default_factory=lambda: os.environ.get("NEO4J_USERNAME", "neo4j"))

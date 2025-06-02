@@ -6,18 +6,30 @@ and orchestration systems (Kubernetes, Docker, etc.).
 """
 
 from datetime import datetime
+from dataclasses import dataclass
 from enum import Enum
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 import time
 
 from ..core.config import PipelineConfig
 from ..utils.resources import get_system_resources
 from neo4j import GraphDatabase
 from neo4j.exceptions import ServiceUnavailable
+
+
 class HealthStatus(Enum):
     """Health check status levels."""
     HEALTHY = "healthy"
     UNHEALTHY = "unhealthy"
+
+
+@dataclass
+class ComponentHealth:
+    """Health status of a component."""
+    name: str
+    status: HealthStatus
+    message: str
+    details: Optional[Dict[str, Any]] = None
 
 
 class HealthChecker:
@@ -27,7 +39,7 @@ class HealthChecker:
         self.config = config or PipelineConfig.from_env()
         self._start_time = time.time()
         
-    def _check_neo4j(self) -> Dict[str, Any]:
+    def _check_neo4j(self) -> ComponentHealth:
         """Check Neo4j database health."""
         try:
             driver = GraphDatabase.driver(
@@ -42,26 +54,23 @@ class HealthChecker:
                 
             driver.close()
             
-            return {
-                "name": "neo4j",
-                "status": HealthStatus.HEALTHY.value,
-                "healthy": True,
-                "message": "Neo4j is responsive"
-            }
+            return ComponentHealth(
+                name="neo4j",
+                status=HealthStatus.HEALTHY,
+                message="Neo4j is responsive"
+            )
         except ServiceUnavailable as e:
-            return {
-                "name": "neo4j",
-                "status": HealthStatus.UNHEALTHY.value,
-                "healthy": False,
-                "message": f"Neo4j unavailable: {str(e)}"
-            }
+            return ComponentHealth(
+                name="neo4j",
+                status=HealthStatus.UNHEALTHY,
+                message=f"Neo4j unavailable: {str(e)}"
+            )
         except Exception as e:
-            return {
-                "name": "neo4j",
-                "status": HealthStatus.UNHEALTHY.value,
-                "healthy": False,
-                "message": f"Neo4j error: {str(e)}"
-            }
+            return ComponentHealth(
+                name="neo4j",
+                status=HealthStatus.UNHEALTHY,
+                message=f"Neo4j error: {str(e)}"
+            )
     
     def _check_system_resources(self) -> Dict[str, Any]:
         """Check system resource usage."""

@@ -1,0 +1,3 @@
+==================================== ERRORS ====================================
+_____________________ ERROR collecting unit/test_models.py _____________________
+ERROR tests/unit/test_models.py - NameError: name 'ExtractionConfig' is not d...

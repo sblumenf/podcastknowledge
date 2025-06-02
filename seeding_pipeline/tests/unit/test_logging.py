@@ -27,7 +27,7 @@ from src.utils.logging import (
     get_correlation_id,
     set_correlation_id,
     with_correlation_id,
-    StructuredFormatter
+    StructuredFormatter,
     LevelFilter,
     NameFilter,
     ContextFilter,

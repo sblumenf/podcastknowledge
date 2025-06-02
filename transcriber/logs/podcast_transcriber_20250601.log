@@ -5393,3 +5393,56 @@
 2025-06-01 20:15:44 - podcast_transcriber.gemini_client - INFO - Using API key 1
 2025-06-01 20:15:44 - podcast_transcriber.gemini_client - INFO - Downloading audio from: https://example.com/audio/test-ep1.mp3
 2025-06-01 20:15:44 - podcast_transcriber.gemini_client - INFO - Downloading audio to: /tmp/tmpfq2rwwoz.mp3
+2025-06-01 20:35:09 - podcast_transcriber - INFO - Logging system initialized
+2025-06-01 20:35:09 - podcast_transcriber - INFO - Log level: INFO
+2025-06-01 20:35:09 - podcast_transcriber - INFO - Log directory: /home/sergeblumenfeld/podcastknowledge/transcriber/logs
+2025-06-01 20:37:01 - podcast_transcriber - INFO - Logging system initialized
+2025-06-01 20:37:01 - podcast_transcriber - INFO - Log level: INFO
+2025-06-01 20:37:01 - podcast_transcriber - INFO - Log directory: /home/sergeblumenfeld/podcastknowledge/transcriber/logs
+2025-06-01 20:37:01 - podcast_transcriber.feed_parser - INFO - Parsing RSS feed: https://example.com/feed.xml
+2025-06-01 20:37:01 - podcast_transcriber.feed_parser - INFO - Parsed podcast: Standard Podcast
+2025-06-01 20:37:01 - podcast_transcriber.feed_parser - INFO - Found 0 episodes in feed
+2025-06-01 20:37:01 - podcast_transcriber.feed_parser - WARNING - No episodes found in feed
+2025-06-01 20:39:56 - podcast_transcriber - INFO - Logging system initialized
+2025-06-01 20:39:56 - podcast_transcriber - INFO - Log level: INFO
+2025-06-01 20:39:56 - podcast_transcriber - INFO - Log directory: /home/sergeblumenfeld/podcastknowledge/transcriber/logs
+2025-06-01 20:39:56 - podcast_transcriber.feed_parser - INFO - Parsing RSS feed: https://example.com/feed.xml
+2025-06-01 20:39:56 - podcast_transcriber.feed_parser - INFO - Parsed podcast: Standard Podcast
+2025-06-01 20:39:56 - podcast_transcriber.feed_parser - INFO - Found 2 episodes in feed
+2025-06-01 20:40:57 - podcast_transcriber - INFO - Logging system initialized
+2025-06-01 20:40:57 - podcast_transcriber - INFO - Log level: INFO
+2025-06-01 20:40:57 - podcast_transcriber - INFO - Log directory: /home/sergeblumenfeld/podcastknowledge/transcriber/logs
+2025-06-01 20:40:57 - podcast_transcriber.feed_parser - INFO - Parsing RSS feed: https://example.com/feed.xml
+2025-06-01 20:40:57 - podcast_transcriber.feed_parser - ERROR - Failed to parse feed https://example.com/feed.xml: 'NoneType' object has no attribute 'lower'
+2025-06-01 20:41:43 - podcast_transcriber - INFO - Logging system initialized
+2025-06-01 20:41:43 - podcast_transcriber - INFO - Log level: INFO
+2025-06-01 20:41:43 - podcast_transcriber - INFO - Log directory: /home/sergeblumenfeld/podcastknowledge/transcriber/logs
+2025-06-01 20:41:43 - podcast_transcriber.feed_parser - INFO - Parsing RSS feed: https://example.com/feed.xml
+2025-06-01 20:41:43 - podcast_transcriber.feed_parser - INFO - Parsed podcast: Standard Podcast
+2025-06-01 20:41:43 - podcast_transcriber.feed_parser - INFO - Found 2 episodes in feed
+2025-06-01 20:41:58 - podcast_transcriber - INFO - Logging system initialized
+2025-06-01 20:41:58 - podcast_transcriber - INFO - Log level: INFO
+2025-06-01 20:41:58 - podcast_transcriber - INFO - Log directory: /home/sergeblumenfeld/podcastknowledge/transcriber/logs
+2025-06-01 20:41:58 - podcast_transcriber.feed_parser - INFO - Parsing RSS feed: https://example.com/feed.xml
+2025-06-01 20:41:58 - podcast_transcriber.feed_parser - INFO - Parsed podcast: Standard Podcast
+2025-06-01 20:41:58 - podcast_transcriber.feed_parser - INFO - Found 2 episodes in feed
+2025-06-01 20:41:58 - podcast_transcriber.feed_parser - INFO - Parsing RSS feed: https://example.com/itunes-feed.xml
+2025-06-01 20:41:58 - podcast_transcriber.feed_parser - INFO - Parsed podcast: iTunes Enhanced Podcast
+2025-06-01 20:41:58 - podcast_transcriber.feed_parser - INFO - Found 0 episodes in feed
+2025-06-01 20:41:58 - podcast_transcriber.feed_parser - WARNING - No episodes found in feed
+2025-06-01 20:41:58 - podcast_transcriber.feed_parser - INFO - Parsing RSS feed: https://example.com/no-duration-feed.xml
+2025-06-01 20:41:58 - podcast_transcriber.feed_parser - INFO - Parsed podcast: No Duration Podcast
+2025-06-01 20:41:58 - podcast_transcriber.feed_parser - INFO - Found 0 episodes in feed
+2025-06-01 20:41:58 - podcast_transcriber.feed_parser - WARNING - No episodes found in feed
+2025-06-01 20:41:58 - podcast_transcriber.feed_parser - INFO - Parsing RSS feed: https://example.com/youtube-feed.xml
+2025-06-01 20:41:58 - podcast_transcriber.feed_parser - INFO - Parsed podcast: YouTube Linked Podcast
+2025-06-01 20:41:58 - podcast_transcriber.feed_parser - INFO - Found 0 episodes in feed
+2025-06-01 20:41:58 - podcast_transcriber.feed_parser - WARNING - No episodes found in feed
+2025-06-01 20:41:58 - podcast_transcriber.feed_parser - INFO - Parsing RSS feed: https://example.com/complex-feed.xml
+2025-06-01 20:41:58 - podcast_transcriber.feed_parser - INFO - Parsed podcast: Complex & Technical Podcast
+2025-06-01 20:41:58 - podcast_transcriber.feed_parser - INFO - Found 0 episodes in feed
+2025-06-01 20:41:58 - podcast_transcriber.feed_parser - WARNING - No episodes found in feed
+2025-06-01 20:41:58 - podcast_transcriber.feed_parser - INFO - Parsing RSS feed: https://example.com/standard-rss.xml
+2025-06-01 20:41:58 - podcast_transcriber.feed_parser - INFO - Parsed podcast: Standard RSS Feed
+2025-06-01 20:41:58 - podcast_transcriber.feed_parser - INFO - Found 0 episodes in feed
+2025-06-01 20:41:58 - podcast_transcriber.feed_parser - WARNING - No episodes found in feed
