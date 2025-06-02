@@ -40,6 +40,7 @@ class PipelineConfig:
     
     # Whisper Settings
     whisper_model_size: str = "large-v3"
+    use_faster_whisper: bool = True
     
     # Neo4j Database Settings (from environment)
     neo4j_uri: str = field(default_factory=lambda: os.environ.get("NEO4J_URI", "bolt://localhost:7687"))

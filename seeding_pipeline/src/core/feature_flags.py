@@ -21,6 +21,8 @@ class FeatureFlag(Enum):
     # Schemaless extraction flags (schemaless is now the only mode)
     LOG_SCHEMA_DISCOVERY = "LOG_SCHEMA_DISCOVERY"
     ENABLE_ENTITY_RESOLUTION_V2 = "ENABLE_ENTITY_RESOLUTION_V2"
+    ENABLE_SCHEMALESS_EXTRACTION = "ENABLE_SCHEMALESS_EXTRACTION"
+    SCHEMALESS_MIGRATION_MODE = "SCHEMALESS_MIGRATION_MODE"
     
     # Component enhancement flags (for Phase 9.5)
     ENABLE_TIMESTAMP_INJECTION = "ENABLE_TIMESTAMP_INJECTION"
@@ -83,6 +85,16 @@ class FeatureFlagManager:
                 name="ENABLE_ENTITY_RESOLUTION_POSTPROCESS",
                 default_value=True,
                 description="Enable entity resolution post-processing"
+            ),
+            FeatureFlag.ENABLE_SCHEMALESS_EXTRACTION: FlagConfig(
+                name="ENABLE_SCHEMALESS_EXTRACTION",
+                default_value=False,
+                description="Enable schemaless knowledge extraction"
+            ),
+            FeatureFlag.SCHEMALESS_MIGRATION_MODE: FlagConfig(
+                name="SCHEMALESS_MIGRATION_MODE",
+                default_value=False,
+                description="Enable migration from fixed to schemaless schema"
             ),
         }
         

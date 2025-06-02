@@ -5446,3 +5446,25 @@
 2025-06-01 20:41:58 - podcast_transcriber.feed_parser - INFO - Parsed podcast: Standard RSS Feed
 2025-06-01 20:41:58 - podcast_transcriber.feed_parser - INFO - Found 0 episodes in feed
 2025-06-01 20:41:58 - podcast_transcriber.feed_parser - WARNING - No episodes found in feed
+2025-06-01 20:53:38 - podcast_transcriber - INFO - Logging system initialized
+2025-06-01 20:53:38 - podcast_transcriber - INFO - Log level: INFO
+2025-06-01 20:53:38 - podcast_transcriber - INFO - Log directory: /home/sergeblumenfeld/podcastknowledge/transcriber/logs
+2025-06-01 20:53:40 - podcast_transcriber.retry_wrapper - INFO - Loaded retry state from file
+2025-06-01 20:59:13 - podcast_transcriber - INFO - Logging system initialized
+2025-06-01 20:59:13 - podcast_transcriber - INFO - Log level: INFO
+2025-06-01 20:59:13 - podcast_transcriber - INFO - Log directory: /home/sergeblumenfeld/podcastknowledge/transcriber/logs
+2025-06-01 20:59:14 - podcast_transcriber.retry_wrapper - INFO - Loaded retry state from file
+2025-06-01 20:59:14 - podcast_transcriber.checkpoint_recovery - INFO - Started checkpoint for episode: Test Episode for Checkpoint
+2025-06-01 20:59:14 - podcast_transcriber.checkpoint_recovery - INFO - Updated checkpoint: stage=transcription
+2025-06-01 21:01:05 - podcast_transcriber - INFO - Logging system initialized
+2025-06-01 21:01:05 - podcast_transcriber - INFO - Log level: INFO
+2025-06-01 21:01:05 - podcast_transcriber - INFO - Log directory: /home/sergeblumenfeld/podcastknowledge/transcriber/logs
+2025-06-01 21:01:06 - podcast_transcriber.retry_wrapper - INFO - Loaded retry state from file
+2025-06-01 21:01:06 - podcast_transcriber.checkpoint_recovery - INFO - Started checkpoint for episode: Test Episode for Checkpoint
+2025-06-01 21:01:06 - podcast_transcriber.checkpoint_recovery - INFO - Updated checkpoint: stage=transcription
+2025-06-01 21:01:06 - podcast_transcriber.checkpoint_recovery - INFO - Loaded checkpoint for episode: Test Episode for Checkpoint
+2025-06-01 21:01:06 - podcast_transcriber.checkpoint_recovery - INFO - Completed stage: transcription
+2025-06-01 21:01:06 - podcast_transcriber.checkpoint_recovery - INFO - Updated checkpoint: stage=speaker_identification
+2025-06-01 21:01:06 - podcast_transcriber.checkpoint_recovery - INFO - Completed stage: speaker_identification
+2025-06-01 21:01:06 - podcast_transcriber.checkpoint_recovery - INFO - Updated checkpoint: stage=vtt_generation
+2025-06-01 21:01:06 - podcast_transcriber.checkpoint_recovery - INFO - Episode completed: Test Episode for Checkpoint

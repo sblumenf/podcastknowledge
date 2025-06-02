@@ -34,7 +34,7 @@ class VTTParser:
         r'([\d:\.]+)\s*-->\s*([\d:\.]+)(?:\s+(.+))?'
     )
     SPEAKER_PATTERN = re.compile(
-        r'<v\s+([^>]+)>'
+        r'<v\s*([^>]*)>'
     )
     
     def __init__(self) -> None:
@@ -217,7 +217,9 @@ class VTTParser:
         """
         match = self.SPEAKER_PATTERN.search(text)
         if match:
-            return match.group(1).strip()
+            speaker = match.group(1).strip()
+            # Return empty string for empty speaker tags
+            return speaker if speaker else ""
         return None
     
     def _convert_to_segments(self, cues: List[VTTCue]) -> List[TranscriptSegment]:
@@ -260,35 +262,42 @@ class VTTParser:
             return segments
         
         merged = []
-        current = segments[0]
+        i = 0
         
-        for next_segment in segments[1:]:
+        while i < len(segments):
+            current = segments[i]
             current_duration = current.end_time - current.start_time
             
-            # Check if we should merge
+            # If current segment is short and there's a next segment with same speaker
             if (current_duration < min_duration and 
-                current.speaker == next_segment.speaker):
-                # Merge segments
-                current = TranscriptSegment(
-                    id=current.id,
-                    text=f"{current.text} {next_segment.text}",
-                    start_time=current.start_time,
-                    end_time=next_segment.end_time,
-                    speaker=current.speaker,
-                    confidence=min(current.confidence or 1.0, 
-                                 next_segment.confidence or 1.0)
-                )
+                i + 1 < len(segments) and
+                current.speaker == segments[i + 1].speaker):
+                
+                # Check if next segment is also short
+                next_duration = segments[i + 1].end_time - segments[i + 1].start_time
+                if next_duration < min_duration:
+                    # Merge the two short segments
+                    merged_segment = TranscriptSegment(
+                        id=f"seg_{len(merged)}",
+                        text=f"{current.text} {segments[i + 1].text}",
+                        start_time=current.start_time,
+                        end_time=segments[i + 1].end_time,
+                        speaker=current.speaker,
+                        confidence=min(current.confidence or 1.0, 
+                                     segments[i + 1].confidence or 1.0)
+                    )
+                    merged.append(merged_segment)
+                    i += 2  # Skip both segments
+                else:
+                    # Don't merge, keep current as is
+                    current.id = f"seg_{len(merged)}"
+                    merged.append(current)
+                    i += 1
             else:
-                # Add current segment and move to next
+                # Keep segment as is
+                current.id = f"seg_{len(merged)}"
                 merged.append(current)
-                current = next_segment
-        
-        # Don't forget the last segment
-        merged.append(current)
-        
-        # Re-index segments
-        for i, segment in enumerate(merged):
-            segment.id = f"seg_{i}"
+                i += 1
         
         return merged
     

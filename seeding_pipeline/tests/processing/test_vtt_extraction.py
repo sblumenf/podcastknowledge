@@ -31,9 +31,9 @@ class TestVTTKnowledgeExtraction:
     def extractor(self, mock_llm_provider):
         """Create KnowledgeExtractor instance."""
         return KnowledgeExtractor(
-            llm_provider=mock_llm_provider,
-            use_large_context=True,
-            max_retries=2
+            llm_service=mock_llm_provider,
+            embedding_service=None,
+            config=None
         )
     
     @pytest.fixture

@@ -77,7 +77,7 @@ This plan will systematically fix all 742 failing tests in the podcast knowledge
   - Validation: Comparison table saved as `model_audit.json`
 
 ### Task 2.2: Fix PipelineConfig Model
-- [ ] Add missing configuration fields
+- [x] Add missing configuration fields
   - Purpose: Align configuration with test expectations
   - Steps:
     1. Use context7 MCP tool for configuration documentation
@@ -88,7 +88,7 @@ This plan will systematically fix all 742 failing tests in the podcast knowledge
   - Validation: `pytest tests/unit/test_config.py::TestPipelineConfig -v` passes
 
 ### Task 2.3: Fix Speaker Model
-- [ ] Add missing Speaker fields
+- [x] Add missing Speaker fields
   - Purpose: Enable speaker-related tests to pass
   - Steps:
     1. Use context7 MCP tool for any speaker model documentation
@@ -98,7 +98,7 @@ This plan will systematically fix all 742 failing tests in the podcast knowledge
   - Validation: `pytest tests/unit/test_models.py::TestSpeaker -v` passes
 
 ### Task 2.4: Fix Remaining Models
-- [ ] Update all other models with missing fields
+- [x] Update all other models with missing fields
   - Purpose: Complete model alignment
   - Steps:
     1. Use context7 MCP tool for model documentation
@@ -112,7 +112,7 @@ This plan will systematically fix all 742 failing tests in the podcast knowledge
 ## Phase 3: Feature Flag System Repair
 
 ### Task 3.1: Analyze Feature Flag Requirements
-- [ ] Document expected feature flags
+- [x] Document expected feature flags
   - Purpose: Understand schemaless system requirements
   - Steps:
     1. Use context7 MCP tool for feature flag documentation
@@ -123,7 +123,7 @@ This plan will systematically fix all 742 failing tests in the podcast knowledge
   - Validation: Feature flag requirements documented
 
 ### Task 3.2: Implement Schemaless Feature Flags
-- [ ] Add required feature flag enum members
+- [x] Add required feature flag enum members
   - Purpose: Support schemaless knowledge graph system
   - Steps:
     1. Use context7 MCP tool for schemaless extraction documentation
