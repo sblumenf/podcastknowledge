@@ -12,7 +12,11 @@ import tempfile
 import weakref
 
 import atexit
-import psutil
+try:
+    import psutil
+except ImportError:
+    # Use mock psutil if real one not available
+    from tests.utils import mock_psutil as psutil
 logger = logging.getLogger(__name__)
 
 

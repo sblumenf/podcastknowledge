@@ -14,7 +14,11 @@ import threading
 import time
 
 from ..utils.logging import get_logger
-import psutil
+try:
+    import psutil
+except ImportError:
+    # Use mock psutil if real one not available
+    from tests.utils import mock_psutil as psutil
 logger = get_logger(__name__)
 
 
