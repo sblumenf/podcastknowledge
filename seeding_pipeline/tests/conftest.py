@@ -12,6 +12,7 @@ from unittest.mock import patch
 # Import fixtures to make them available globally
 from tests.fixtures.neo4j_fixture import neo4j_container, neo4j_driver
 from tests.utils.neo4j_mocks import create_mock_neo4j_driver, patch_neo4j_for_tests
+from tests.utils.external_service_mocks import patch_external_services_for_tests, mock_external_requests
 @pytest.fixture(scope="session")
 def project_root():
     """Get the project root directory."""
@@ -61,11 +62,28 @@ def auto_mock_neo4j(request, monkeypatch):
     patch_neo4j_for_tests(monkeypatch)
 
 
+@pytest.fixture(autouse=True)
+def auto_mock_external_services(request, monkeypatch):
+    """Automatically mock external services unless test has 'requires_external_services' marker."""
+    # Skip mocking if test requires real external services
+    if 'requires_external_services' in request.keywords:
+        return
+    
+    # Apply external service mocks
+    patch_external_services_for_tests(monkeypatch)
+    
+    # Also mock HTTP requests
+    mock_external_requests(monkeypatch)
+
+
 # Register custom markers
 def pytest_configure(config):
     """Register custom pytest markers."""
     config.addinivalue_line(
         "markers", "requires_neo4j: mark test as requiring a real Neo4j instance"
+    )
+    config.addinivalue_line(
+        "markers", "requires_external_services: mark test as requiring real external services"
     )
     config.addinivalue_line(
         "markers", "e2e: mark test as end-to-end test"
