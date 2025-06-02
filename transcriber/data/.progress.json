@@ -1,6 +1,6 @@
 {
   "meta": {
-    "last_updated": "2025-06-01T15:49:24.832818+00:00",
+    "last_updated": "2025-06-02T00:15:44.602677+00:00",
     "total_processed": 3,
     "daily_quota_used": 6,
     "quota_reset_time": null,
@@ -21,7 +21,10 @@
       "output_file": "/tmp/pytest-of-sergeblumenfeld/pytest-12/test_orchestrator_full_workflo0/transcripts/Test_Podcast/unknown_Episode_1.vtt",
       "error": null,
       "error_type": null,
-      "api_key_used": "key_1"
+      "api_key_used": "key_1",
+      "continuation_attempts": 0,
+      "final_coverage_ratio": null,
+      "segment_count": 1
     },
     "ep2-guid": {
       "guid": "ep2-guid",
@@ -37,7 +40,10 @@
       "output_file": "/tmp/pytest-of-sergeblumenfeld/pytest-12/test_orchestrator_full_workflo0/transcripts/Test_Podcast/unknown_Episode_2.vtt",
       "error": null,
       "error_type": null,
-      "api_key_used": "key_1"
+      "api_key_used": "key_1",
+      "continuation_attempts": 0,
+      "final_coverage_ratio": null,
+      "segment_count": 1
     },
     "ep3-guid": {
       "guid": "ep3-guid",
@@ -53,7 +59,29 @@
       "output_file": "/tmp/pytest-of-sergeblumenfeld/pytest-13/test_orchestrator_full_workflo0/transcripts/Test_Podcast/unknown_Episode_3.vtt",
       "error": null,
       "error_type": null,
-      "api_key_used": "key_1"
+      "api_key_used": "key_1",
+      "continuation_attempts": 0,
+      "final_coverage_ratio": null,
+      "segment_count": 1
+    },
+    "e2e-test-ep1": {
+      "guid": "e2e-test-ep1",
+      "status": "in_progress",
+      "podcast_name": "E2E Test Podcast",
+      "title": "Test Episode 1",
+      "audio_url": "https://example.com/audio/test-ep1.mp3",
+      "publication_date": null,
+      "attempt_count": 1,
+      "last_attempt": "2025-06-02T00:15:44.602665+00:00",
+      "completed_at": null,
+      "processing_time_seconds": null,
+      "output_file": null,
+      "error": null,
+      "error_type": null,
+      "api_key_used": "key_1",
+      "continuation_attempts": 0,
+      "final_coverage_ratio": null,
+      "segment_count": 1
     }
   }
 }

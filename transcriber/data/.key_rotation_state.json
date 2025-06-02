@@ -1,0 +1,15 @@
+{
+  "current_index": 0,
+  "last_reset": "2025-06-02",
+  "key_states": [
+    {
+      "index": 0,
+      "key_name": "key_1 (test_key...)",
+      "status": "available",
+      "last_used": null,
+      "consecutive_failures": 0,
+      "error_message": null
+    }
+  ],
+  "last_updated": "2025-06-02T00:15:44.618501+00:00"
+}

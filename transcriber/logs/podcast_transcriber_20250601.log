@@ -5306,3 +5306,90 @@
 2025-06-01 19:45:20 - podcast_transcriber - INFO - Log level: INFO
 2025-06-01 19:45:20 - podcast_transcriber - INFO - Log directory: /home/sergeblumenfeld/podcastknowledge/transcriber/logs
 2025-06-01 19:45:21 - podcast_transcriber.retry_wrapper - INFO - Loaded retry state from file
+2025-06-01 19:48:25 - podcast_transcriber - INFO - Logging system initialized
+2025-06-01 19:48:25 - podcast_transcriber - INFO - Log level: INFO
+2025-06-01 19:48:25 - podcast_transcriber - INFO - Log directory: /home/sergeblumenfeld/podcastknowledge/transcriber/logs
+2025-06-01 19:48:25 - podcast_transcriber.retry_wrapper - INFO - Loaded retry state from file
+2025-06-01 19:48:25 - podcast_transcriber.feed_parser - INFO - Parsing RSS feed: https://example.com/feed.xml
+2025-06-01 19:48:25 - podcast_transcriber.feed_parser - INFO - Parsed podcast: Integration Test Podcast
+2025-06-01 19:48:25 - podcast_transcriber.feed_parser - INFO - Found 2 episodes in feed
+2025-06-01 19:48:25 - podcast_transcriber.progress_tracker - INFO - Progress tracker initialized with 0 episodes
+2025-06-01 19:48:25 - podcast_transcriber.gemini_client - INFO - Initialized Gemini client with 2 API keys
+2025-06-01 19:48:25 - podcast_transcriber.progress_tracker - INFO - Episode 'Episode 1: Introduction' marked as in-progress (attempt #1)
+2025-06-01 19:48:25 - podcast_transcriber.gemini_client - INFO - Starting transcription for: Episode 1: Introduction
+2025-06-01 19:48:25 - podcast_transcriber.gemini_client - INFO - Using API key 1
+2025-06-01 19:48:25 - podcast_transcriber.gemini_client - INFO - Downloading audio from: https://example.com/audio/episode1.mp3
+2025-06-01 19:48:25 - podcast_transcriber.gemini_client - INFO - Downloading audio to: /tmp/tmp8ldhwjq0.mp3
+2025-06-01 19:48:26 - podcast_transcriber.gemini_client - ERROR - Failed to download audio file: HTTP Error 404: Not Found
+2025-06-01 19:48:30 - podcast_transcriber.gemini_client - INFO - Downloading audio from: https://example.com/audio/episode1.mp3
+2025-06-01 19:48:30 - podcast_transcriber.gemini_client - INFO - Downloading audio to: /tmp/tmpwqcr1l61.mp3
+2025-06-01 19:48:31 - podcast_transcriber.gemini_client - ERROR - Failed to download audio file: HTTP Error 404: Not Found
+2025-06-01 19:48:31 - podcast_transcriber.retry_wrapper - ERROR - transcribe_audio failed after 2 attempts
+2025-06-01 19:48:31 - podcast_transcriber.gemini_client - ERROR - Transcription failed: RetryError[<Future at 0x7f6c3488e610 state=finished raised HTTPError>]
+2025-06-01 19:57:24 - podcast_transcriber - INFO - Logging system initialized
+2025-06-01 19:57:24 - podcast_transcriber - INFO - Log level: INFO
+2025-06-01 19:57:24 - podcast_transcriber - INFO - Log directory: /home/sergeblumenfeld/podcastknowledge/transcriber/logs
+2025-06-01 19:57:26 - podcast_transcriber.retry_wrapper - INFO - Loaded retry state from file
+2025-06-01 19:58:24 - podcast_transcriber - INFO - Logging system initialized
+2025-06-01 19:58:24 - podcast_transcriber - INFO - Log level: INFO
+2025-06-01 19:58:24 - podcast_transcriber - INFO - Log directory: /home/sergeblumenfeld/podcastknowledge/transcriber/logs
+2025-06-01 19:58:27 - podcast_transcriber.retry_wrapper - INFO - Loaded retry state from file
+2025-06-01 20:00:06 - podcast_transcriber - INFO - Logging system initialized
+2025-06-01 20:00:06 - podcast_transcriber - INFO - Log level: INFO
+2025-06-01 20:00:06 - podcast_transcriber - INFO - Log directory: /home/sergeblumenfeld/podcastknowledge/transcriber/logs
+2025-06-01 20:00:08 - podcast_transcriber.retry_wrapper - INFO - Loaded retry state from file
+2025-06-01 20:00:08 - podcast_transcriber.config - INFO - Loaded configuration from: /tmp/pytest-of-sergeblumenfeld/pytest-29/test_full_pipeline_with_audio_0/config/test_config.yaml
+2025-06-01 20:00:08 - podcast_transcriber.config - INFO - Running in test mode - relaxed validation
+2025-06-01 20:02:59 - podcast_transcriber - INFO - Logging system initialized
+2025-06-01 20:02:59 - podcast_transcriber - INFO - Log level: INFO
+2025-06-01 20:02:59 - podcast_transcriber - INFO - Log directory: /home/sergeblumenfeld/podcastknowledge/transcriber/logs
+2025-06-01 20:03:01 - podcast_transcriber.retry_wrapper - INFO - Loaded retry state from file
+2025-06-01 20:03:01 - podcast_transcriber.config - INFO - Loaded configuration from: /tmp/pytest-of-sergeblumenfeld/pytest-30/test_full_pipeline_with_audio_0/config/test_config.yaml
+2025-06-01 20:03:01 - podcast_transcriber.config - INFO - Running in test mode - relaxed validation
+2025-06-01 20:04:56 - podcast_transcriber - INFO - Logging system initialized
+2025-06-01 20:04:56 - podcast_transcriber - INFO - Log level: INFO
+2025-06-01 20:04:56 - podcast_transcriber - INFO - Log directory: /home/sergeblumenfeld/podcastknowledge/transcriber/logs
+2025-06-01 20:04:56 - podcast_transcriber.retry_wrapper - INFO - Loaded retry state from file
+2025-06-01 20:04:56 - podcast_transcriber.config - INFO - Loaded configuration from: /tmp/pytest-of-sergeblumenfeld/pytest-31/test_full_pipeline_with_audio_0/config/test_config.yaml
+2025-06-01 20:04:56 - podcast_transcriber.config - INFO - Running in test mode - relaxed validation
+2025-06-01 20:04:56 - podcast_transcriber.progress_tracker - INFO - Progress tracker initialized with 3 episodes
+2025-06-01 20:04:56 - podcast_transcriber.key_rotation_manager - INFO - Initialized key rotation manager with 1 keys
+2025-06-01 20:04:56 - podcast_transcriber.gemini_client - INFO - Found 1 API key(s) in environment
+2025-06-01 20:04:56 - podcast_transcriber.gemini_client - INFO - Initialized Gemini client with 1 API keys
+2025-06-01 20:04:56 - podcast_transcriber.gemini_client - INFO - Reset daily usage for API key 1
+2025-06-01 20:04:56 - podcast_transcriber.gemini_client - INFO - Loaded usage state from file
+2025-06-01 20:04:56 - podcast_transcriber.feed_parser - INFO - Parsing RSS feed: https://example.com/feed.xml
+2025-06-01 20:04:57 - podcast_transcriber.feed_parser - ERROR - Feed parsing error: syntax error
+2025-06-01 20:04:57 - podcast_transcriber.feed_parser - INFO - Parsed podcast: Unknown Podcast
+2025-06-01 20:04:57 - podcast_transcriber.feed_parser - INFO - Found 0 episodes in feed
+2025-06-01 20:04:57 - podcast_transcriber.feed_parser - WARNING - No episodes found in feed
+2025-06-01 20:04:57 - podcast_transcriber.orchestrator - INFO - Found 0 episodes in feed: Unknown Podcast
+2025-06-01 20:04:57 - podcast_transcriber.orchestrator - INFO - No pending episodes to process
+2025-06-01 20:15:42 - podcast_transcriber - INFO - Logging system initialized
+2025-06-01 20:15:42 - podcast_transcriber - INFO - Log level: INFO
+2025-06-01 20:15:42 - podcast_transcriber - INFO - Log directory: /home/sergeblumenfeld/podcastknowledge/transcriber/logs
+2025-06-01 20:15:44 - podcast_transcriber.retry_wrapper - INFO - Loaded retry state from file
+2025-06-01 20:15:44 - podcast_transcriber.config - INFO - Loaded configuration from: /tmp/pytest-of-sergeblumenfeld/pytest-32/test_full_pipeline_with_audio_0/config/test_config.yaml
+2025-06-01 20:15:44 - podcast_transcriber.config - INFO - Running in test mode - relaxed validation
+2025-06-01 20:15:44 - podcast_transcriber.progress_tracker - INFO - Progress tracker initialized with 3 episodes
+2025-06-01 20:15:44 - podcast_transcriber.key_rotation_manager - INFO - Initialized key rotation manager with 1 keys
+2025-06-01 20:15:44 - podcast_transcriber.gemini_client - INFO - Found 1 API key(s) in environment
+2025-06-01 20:15:44 - podcast_transcriber.gemini_client - INFO - Initialized Gemini client with 1 API keys
+2025-06-01 20:15:44 - podcast_transcriber.gemini_client - INFO - Reset daily usage for API key 1
+2025-06-01 20:15:44 - podcast_transcriber.gemini_client - INFO - Loaded usage state from file
+2025-06-01 20:15:44 - podcast_transcriber.feed_parser - INFO - Parsing RSS feed: https://example.com/feed.xml
+2025-06-01 20:15:44 - podcast_transcriber.feed_parser - INFO - Parsed podcast: E2E Test Podcast
+2025-06-01 20:15:44 - podcast_transcriber.feed_parser - INFO - Found 1 episodes in feed
+2025-06-01 20:15:44 - podcast_transcriber.orchestrator - INFO - Found 1 episodes in feed: E2E Test Podcast
+2025-06-01 20:15:44 - podcast_transcriber - INFO - Progress: 1/1 (100.0%) - Starting episode: Processing: Test Episode 1
+2025-06-01 20:15:44 - podcast_transcriber.checkpoint_recovery - INFO - Started checkpoint for episode: Test Episode 1
+2025-06-01 20:15:44 - podcast_transcriber.progress_tracker - INFO - Episode 'Test Episode 1' marked as in-progress (attempt #1)
+2025-06-01 20:15:44 - podcast_transcriber.checkpoint_recovery - INFO - Updated checkpoint: stage=transcription
+2025-06-01 20:15:44 - podcast_transcriber.orchestrator - INFO - Transcribing: Test Episode 1
+2025-06-01 20:15:44 - podcast_transcriber.key_rotation_manager - INFO - Selected key_1 (test_key...) for next request
+2025-06-01 20:15:44 - podcast_transcriber.transcription_processor - INFO - Starting transcription for: Test Episode 1
+2025-06-01 20:15:44 - podcast_transcriber.transcription_processor - INFO - Using API key index: 1
+2025-06-01 20:15:44 - podcast_transcriber.gemini_client - INFO - Starting transcription for: Test Episode 1
+2025-06-01 20:15:44 - podcast_transcriber.gemini_client - INFO - Using API key 1
+2025-06-01 20:15:44 - podcast_transcriber.gemini_client - INFO - Downloading audio from: https://example.com/audio/test-ep1.mp3
+2025-06-01 20:15:44 - podcast_transcriber.gemini_client - INFO - Downloading audio to: /tmp/tmpfq2rwwoz.mp3

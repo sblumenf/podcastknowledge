@@ -1,10 +1,10 @@
 {
-  "last_updated": "2025-06-01T12:07:08.981417",
+  "last_updated": "2025-06-01T19:48:31.563582",
   "circuit_breakers": {
     "transcribe_audio_key_0": {
-      "failure_count": 0,
+      "failure_count": 1,
       "is_open": false,
-      "last_failure": null,
+      "last_failure": "2025-06-01T19:48:31.563370",
       "recovery_time": null
     },
     "identify_speakers_key_0": {

@@ -406,3 +406,8 @@
 2025-06-01 12:07:08 - podcast_transcriber.retry_wrapper - ERROR - transcribe_audio failed after 2 attempts
 2025-06-01 12:07:09 - podcast_transcriber.orchestrator - ERROR - Episode processing failed: API error
 2025-06-01 12:07:09 - podcast_transcriber.checkpoint_recovery - ERROR - Episode failed: Episode 2 - API error
+2025-06-01 19:48:26 - podcast_transcriber.gemini_client - ERROR - Failed to download audio file: HTTP Error 404: Not Found
+2025-06-01 19:48:31 - podcast_transcriber.gemini_client - ERROR - Failed to download audio file: HTTP Error 404: Not Found
+2025-06-01 19:48:31 - podcast_transcriber.retry_wrapper - ERROR - transcribe_audio failed after 2 attempts
+2025-06-01 19:48:31 - podcast_transcriber.gemini_client - ERROR - Transcription failed: RetryError[<Future at 0x7f6c3488e610 state=finished raised HTTPError>]
+2025-06-01 20:04:57 - podcast_transcriber.feed_parser - ERROR - Feed parsing error: syntax error

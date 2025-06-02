@@ -1,1 +1,27 @@
 INFO     podcast_transcriber.retry_wrapper:retry_wrapper.py:116 Loaded retry state from file
+DEBUG    asyncio:selector_events.py:54 Using selector: EpollSelector
+DEBUG    asyncio:selector_events.py:54 Using selector: EpollSelector
+INFO     podcast_transcriber.config:config.py:152 Loaded configuration from: /tmp/pytest-of-sergeblumenfeld/pytest-32/test_full_pipeline_with_audio_0/config/test_config.yaml
+INFO     podcast_transcriber.config:config.py:287 Running in test mode - relaxed validation
+INFO     podcast_transcriber.progress_tracker:progress_tracker.py:193 Progress tracker initialized with 3 episodes
+INFO     podcast_transcriber.key_rotation_manager:key_rotation_manager.py:119 Initialized key rotation manager with 1 keys
+INFO     podcast_transcriber.gemini_client:gemini_client.py:1136 Found 1 API key(s) in environment
+INFO     podcast_transcriber.gemini_client:gemini_client.py:122 Initialized Gemini client with 1 API keys
+INFO     podcast_transcriber.gemini_client:gemini_client.py:93 Reset daily usage for API key 1
+INFO     podcast_transcriber.gemini_client:gemini_client.py:149 Loaded usage state from file
+INFO     podcast_transcriber.feed_parser:feed_parser.py:107 Parsing RSS feed: https://example.com/feed.xml
+INFO     podcast_transcriber.feed_parser:feed_parser.py:121 Parsed podcast: E2E Test Podcast
+INFO     podcast_transcriber.feed_parser:feed_parser.py:125 Found 1 episodes in feed
+INFO     podcast_transcriber.orchestrator:orchestrator.py:93 Found 1 episodes in feed: E2E Test Podcast
+INFO     podcast_transcriber:logging.py:132 Progress: 1/1 (100.0%) - Starting episode: Processing: Test Episode 1
+INFO     podcast_transcriber.checkpoint_recovery:checkpoint_recovery.py:147 Started checkpoint for episode: Test Episode 1
+INFO     podcast_transcriber.progress_tracker:progress_tracker.py:278 Episode 'Test Episode 1' marked as in-progress (attempt #1)
+INFO     podcast_transcriber.checkpoint_recovery:checkpoint_recovery.py:168 Updated checkpoint: stage=transcription
+INFO     podcast_transcriber.orchestrator:orchestrator.py:305 Transcribing: Test Episode 1
+INFO     podcast_transcriber.key_rotation_manager:key_rotation_manager.py:199 Selected key_1 (test_key...) for next request
+INFO     podcast_transcriber.transcription_processor:transcription_processor.py:92 Starting transcription for: Test Episode 1
+INFO     podcast_transcriber.transcription_processor:transcription_processor.py:93 Using API key index: 1
+INFO     podcast_transcriber.gemini_client:gemini_client.py:229 Starting transcription for: Test Episode 1
+INFO     podcast_transcriber.gemini_client:gemini_client.py:230 Using API key 1
+INFO     podcast_transcriber.gemini_client:gemini_client.py:305 Downloading audio from: https://example.com/audio/test-ep1.mp3
+INFO     podcast_transcriber.gemini_client:gemini_client.py:1080 Downloading audio to: /tmp/tmpfq2rwwoz.mp3

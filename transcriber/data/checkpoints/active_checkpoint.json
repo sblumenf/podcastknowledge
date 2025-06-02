@@ -1,0 +1,27 @@
+{
+  "episode_id": "e2e-test-ep1",
+  "audio_url": "https://example.com/audio/test-ep1.mp3",
+  "title": "Test Episode 1",
+  "status": "transcription",
+  "stage_completed": [],
+  "temporary_files": {},
+  "start_time": "2025-06-01T20:15:44.521634",
+  "last_update": "2025-06-01T20:15:44.613530",
+  "metadata": {
+    "title": "Test Episode 1",
+    "audio_url": "https://example.com/audio/test-ep1.mp3",
+    "guid": "e2e-test-ep1",
+    "description": "This is a test episode for E2E testing",
+    "published_date": "2025-06-01T12:00:00",
+    "duration": "30:00",
+    "episode_number": null,
+    "season_number": null,
+    "link": "https://example.com/episodes/1",
+    "author": null,
+    "keywords": [],
+    "youtube_url": null,
+    "file_size": 5242880,
+    "mime_type": "audio/mpeg",
+    "podcast_name": "E2E Test Podcast"
+  }
+}
