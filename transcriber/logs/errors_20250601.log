@@ -440,3 +440,10 @@
 2025-06-01 22:03:34 - podcast_transcriber.feed_parser - ERROR - Feed parsing error: syntax error
 2025-06-01 22:03:34 - podcast_transcriber.feed_parser - ERROR - Feed parsing error: XML parsing error
 2025-06-01 22:03:34 - podcast_transcriber.feed_parser - ERROR - Failed to parse feed https://example.com/feed.xml: Network error
+2025-06-01 23:09:54 - podcast_transcriber.vtt_generator - ERROR - Failed to save VTT file: Permission denied
+2025-06-01 23:09:55 - podcast_transcriber.speaker_identifier - ERROR - Speaker identification failed: API Error
+2025-06-01 23:09:55 - podcast_transcriber.transcription_processor - ERROR - Transcription failed: Transcription returned empty result
+2025-06-01 23:09:55 - podcast_transcriber.transcription_processor - ERROR - Transcription failed: API Error
+2025-06-01 23:09:55 - podcast_transcriber.transcription_processor - ERROR - VTT must start with WEBVTT
+2025-06-01 23:09:55 - podcast_transcriber.transcription_processor - ERROR - VTT must contain at least one cue
+2025-06-01 23:09:55 - podcast_transcriber.transcription_processor - ERROR - Invalid timestamp order: 00:00:05.000 --> 00:00:01.000

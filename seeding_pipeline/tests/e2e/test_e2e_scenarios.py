@@ -13,7 +13,7 @@ import time
 from neo4j import GraphDatabase
 import pytest
 
-from src.api.v1 import seed_podcast, seed_podcasts, VTTKnowledgeExtractor
+from src.api.v1.podcast_api import seed_podcast, seed_podcasts, VTTKnowledgeExtractor
 from src.core.config import Config
 from src.core.exceptions import PodcastKGError
 class TestE2EScenarios:

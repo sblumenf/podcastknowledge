@@ -494,7 +494,7 @@ Hello & welcome < everyone >"""
         output_dir = Path("/output")
         result = generator.generate_output_path(episode_data, output_dir)
         
-        assert result == Path("/output/Test__Podcast_/2025-06-01_Episode__Special_.vtt")
+        assert result == Path("/output/Test__Podcast!/2025-06-01_Episode__Special_.vtt")
     
     def test_generate_output_path_invalid_date(self, generator):
         """Test output path with invalid date."""

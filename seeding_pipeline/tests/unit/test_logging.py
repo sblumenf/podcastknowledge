@@ -40,12 +40,12 @@ from src.utils.logging import (
 )
 
 
-class TestStructuredLogger:
-    """Test StructuredLogger functionality."""
+class TestStructuredFormatter:
+    """Test StructuredFormatter functionality."""
     
     def test_create_logger(self):
         """Test creating a structured logger."""
-        logger = StructuredLogger("test.module")
+        logger = StructuredFormatter("test.module")
         
         assert logger.name == "test.module"
         assert isinstance(logger.logger, logging.Logger)
@@ -54,7 +54,7 @@ class TestStructuredLogger:
     def test_log_with_structure(self):
         """Test logging with structured data."""
         handler = Mock()
-        logger = StructuredLogger("test")
+        logger = StructuredFormatter("test")
         logger.logger.addHandler(handler)
         logger.logger.setLevel(logging.INFO)
         
@@ -73,7 +73,7 @@ class TestStructuredLogger:
     def test_log_levels(self):
         """Test different log levels."""
         handler = Mock()
-        logger = StructuredLogger("test")
+        logger = StructuredFormatter("test")
         logger.logger.addHandler(handler)
         logger.logger.setLevel(logging.DEBUG)
         
@@ -97,7 +97,7 @@ class TestStructuredLogger:
     def test_with_context(self):
         """Test logger with context."""
         handler = Mock()
-        logger = StructuredLogger("test")
+        logger = StructuredFormatter("test")
         logger.logger.addHandler(handler)
         logger.logger.setLevel(logging.INFO)
         
@@ -114,7 +114,7 @@ class TestStructuredLogger:
     
     def test_child_logger(self):
         """Test creating child loggers."""
-        parent = StructuredLogger("parent")
+        parent = StructuredFormatter("parent")
         parent.set_context(app="myapp")
         
         # Create child
@@ -130,7 +130,7 @@ class TestStructuredLogger:
     
     def test_clear_context(self):
         """Test clearing logger context."""
-        logger = StructuredLogger("test")
+        logger = StructuredFormatter("test")
         logger.set_context(key1="value1", key2="value2")
         
         assert len(logger.context) == 2
@@ -144,7 +144,7 @@ class TestLogContext:
     
     def test_log_context_manager(self):
         """Test log context manager."""
-        logger = StructuredLogger("test")
+        logger = StructuredFormatter("test")
         handler = Mock()
         logger.logger.addHandler(handler)
         logger.logger.setLevel(logging.INFO)
@@ -166,7 +166,7 @@ class TestLogContext:
     
     def test_nested_contexts(self):
         """Test nested log contexts."""
-        logger = StructuredLogger("test")
+        logger = StructuredFormatter("test")
         handler = Mock()
         logger.logger.addHandler(handler)
         logger.logger.setLevel(logging.INFO)
@@ -190,7 +190,7 @@ class TestLogContext:
     
     def test_context_exception_handling(self):
         """Test context manager handles exceptions."""
-        logger = StructuredLogger("test")
+        logger = StructuredFormatter("test")
         
         try:
             with log_context(logger, operation="risky"):
@@ -808,7 +808,7 @@ class TestThreadSafeLogging:
     
     def test_concurrent_logging(self):
         """Test logging from multiple threads."""
-        logger = StructuredLogger("test_concurrent")
+        logger = StructuredFormatter("test_concurrent")
         messages = []
         
         class CollectingHandler(logging.Handler):
@@ -842,7 +842,7 @@ class TestThreadSafeLogging:
     
     def test_context_isolation(self):
         """Test context isolation between threads."""
-        logger = StructuredLogger("test_isolation")
+        logger = StructuredFormatter("test_isolation")
         results = {}
         
         def thread_function(thread_id):
@@ -879,7 +879,7 @@ class TestAsyncLogging:
     @pytest.mark.asyncio
     async def test_async_logging(self):
         """Test logging in async context."""
-        logger = StructuredLogger("test_async")
+        logger = StructuredFormatter("test_async")
         handler = Mock()
         logger.logger.addHandler(handler)
         logger.logger.setLevel(logging.INFO)
@@ -896,7 +896,7 @@ class TestAsyncLogging:
     @pytest.mark.asyncio
     async def test_async_context_manager(self):
         """Test async context manager for logging."""
-        logger = StructuredLogger("test_async_context")
+        logger = StructuredFormatter("test_async_context")
         messages = []
         
         class CollectingHandler(logging.Handler):
