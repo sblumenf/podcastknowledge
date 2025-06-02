@@ -447,3 +447,25 @@
 2025-06-01 23:09:55 - podcast_transcriber.transcription_processor - ERROR - VTT must start with WEBVTT
 2025-06-01 23:09:55 - podcast_transcriber.transcription_processor - ERROR - VTT must contain at least one cue
 2025-06-01 23:09:55 - podcast_transcriber.transcription_processor - ERROR - Invalid timestamp order: 00:00:05.000 --> 00:00:01.000
+2025-06-01 23:22:35 - podcast_transcriber.checkpoint_recovery - ERROR - Episode failed: Cleanup Test - Test error
+2025-06-01 23:22:35 - podcast_transcriber.checkpoint_recovery - ERROR - Episode failed: Concurrent Test 1 - New episode started before previous completed
+2025-06-01 23:22:35 - podcast_transcriber.checkpoint_recovery - ERROR - Failed to load checkpoint: Expecting property name enclosed in double quotes: line 1 column 3 (char 2)
+2025-06-01 23:22:36 - podcast_transcriber.config - ERROR - Failed to load configuration: mapping values are not allowed here
+  in "/tmp/pytest-of-sergeblumenfeld/pytest-47/test_invalid_yaml_file0/invalid_config.yaml", line 1, column 14
+2025-06-01 23:22:36 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - API timeout must be positive
+2025-06-01 23:22:36 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - API max_attempts must be between 1 and 5
+2025-06-01 23:22:36 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Max episodes per day must be positive
+2025-06-01 23:22:36 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Console log level must be one of: ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL']
+2025-06-01 23:22:36 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - No API keys found in environment variables: ['GEMINI_API_KEY_1', 'GEMINI_API_KEY_2']
+2025-06-01 23:22:37 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Timestamp precision must be between 0 and 3
+2025-06-01 23:22:37 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Rotation strategy must be one of: ['round_robin', 'random']
+2025-06-01 23:22:38 - podcast_transcriber.feed_parser - ERROR - Feed parsing error: syntax error
+2025-06-01 23:22:39 - podcast_transcriber.feed_parser - ERROR - Feed parsing error: XML parsing error
+2025-06-01 23:22:39 - podcast_transcriber.feed_parser - ERROR - Failed to parse feed https://example.com/feed.xml: Network error
+2025-06-01 23:23:31 - podcast_transcriber.vtt_generator - ERROR - Failed to save VTT file: Permission denied
+2025-06-01 23:23:31 - podcast_transcriber.speaker_identifier - ERROR - Speaker identification failed: API Error
+2025-06-01 23:23:32 - podcast_transcriber.transcription_processor - ERROR - Transcription failed: Transcription returned empty result
+2025-06-01 23:23:32 - podcast_transcriber.transcription_processor - ERROR - Transcription failed: API Error
+2025-06-01 23:23:33 - podcast_transcriber.transcription_processor - ERROR - VTT must start with WEBVTT
+2025-06-01 23:23:33 - podcast_transcriber.transcription_processor - ERROR - VTT must contain at least one cue
+2025-06-01 23:23:33 - podcast_transcriber.transcription_processor - ERROR - Invalid timestamp order: 00:00:05.000 --> 00:00:01.000

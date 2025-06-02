@@ -202,6 +202,82 @@ def test_knowledge_graph_structure():
 3. **Test coupling**: Tests should not depend on execution order
 4. **Missing edge cases**: Test error conditions and boundary values
 5. **Ignoring flaky tests**: Fix or properly mock time-dependent operations
+6. **Invalid enum values**: Always use valid enum values from extraction_interface.py
+7. **Missing mocks**: Ensure Neo4j and external services are mocked for unit tests
+
+## Test Utilities
+
+The test suite now includes comprehensive test utilities in `tests/utils/`:
+
+### test_helpers.py
+Provides standardized test utilities:
+- `TestDataFactory`: Create valid test data (speakers, segments, entities, etc.)
+- `MockFactory`: Create common mocks (LLM, Neo4j, embeddings)
+- Valid enum constants: `VALID_ENTITY_TYPES`, `VALID_QUOTE_TYPES`, etc.
+- Assertion helpers: `assert_valid_entity()`, `assert_valid_extraction_result()`
+- Test fixtures: `test_speaker`, `test_segment`, `mock_llm_provider`, etc.
+
+### neo4j_mocks.py
+Comprehensive Neo4j mocking:
+- `MockNode`, `MockRelationship`: Mock graph objects
+- `MockSession`, `MockDriver`: Full Neo4j driver mocking
+- `create_mock_neo4j_driver()`: Factory function
+- Automatic mocking via conftest.py
+
+### external_service_mocks.py
+Mock external services:
+- `MockGeminiModel`: Mock Google Gemini LLM
+- `MockEmbeddingModel`: Mock sentence transformers
+- `mock_rss_feed_response()`: Generate mock RSS feeds
+- Automatic mocking via conftest.py
+
+### mock_psutil.py
+Fallback for missing psutil:
+- Mock process, memory, CPU, and disk functions
+- Allows tests to run without psutil installed
+
+## Updated Test Patterns
+
+### Using Test Helpers
+```python
+from tests.utils.test_helpers import (
+    TestDataFactory, MockFactory, assert_valid_entity
+)
+
+def test_entity_extraction():
+    # Create valid test data
+    entity = TestDataFactory.create_entity(
+        name="Test Person",
+        entity_type=EntityType.PERSON  # Use valid enum
+    )
+    
+    # Mock external services
+    llm_mock = MockFactory.create_llm_provider_mock()
+    
+    # Test and assert
+    result = extract_entities(text, llm_provider=llm_mock)
+    assert_valid_entity(result[0])
+```
+
+### Mocking Neo4j
+```python
+def test_graph_storage(mock_neo4j_driver):
+    # mock_neo4j_driver is automatically provided
+    storage = GraphStorage(driver=mock_neo4j_driver)
+    storage.store_entity(entity)
+    
+    # Verify
+    mock_neo4j_driver.session().run.assert_called_once()
+```
+
+### Mocking External Services
+Tests automatically mock external services unless marked:
+```python
+@pytest.mark.requires_external_services
+def test_real_llm_integration():
+    # This test will use real external services
+    pass
+```
 
 ## Future Improvements
 

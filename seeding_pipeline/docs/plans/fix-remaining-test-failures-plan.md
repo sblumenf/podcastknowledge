@@ -65,17 +65,17 @@ The fix-failing-tests-plan achieved 74% test pass rate (550/742), falling short 
 ## Phase 4: Standardize Test Patterns
 
 ### Task 4.1: Create Test Utilities
-- **Create**: `tests/utils/test_helpers.py`
-- **Include**:
+- [x] **Create**: `tests/utils/test_helpers.py`
+- [x] **Include**:
   - Standard mocks for Neo4j, LLMs, external services
   - Valid enum value constants
   - Fixture factories
-- **Validation**: All tests use consistent patterns
+- [x] **Validation**: All tests use consistent patterns
 
 ### Task 4.2: Update Test Documentation
-- **Update**: Test documentation with correct patterns
-- **Include**: Examples of proper mocking and enum usage
-- **Validation**: New tests follow patterns
+- [x] **Update**: Test documentation with correct patterns
+- [x] **Include**: Examples of proper mocking and enum usage
+- [x] **Validation**: New tests follow patterns
 
 ## Success Criteria
 1. **All 742 tests pass** (0 failures)

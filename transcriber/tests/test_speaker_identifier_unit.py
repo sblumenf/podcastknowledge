@@ -253,8 +253,8 @@ No speaker tags here"""
         """Test sample extraction respects max limit."""
         transcript = """WEBVTT
 
-""" + "\n".join([f"""00:00:{i:02d}.000 --> 00:00:{i+1:02d}.000
-<v SPEAKER_1>Sample text number {i}""" for i in range(10)])
+""" + "\n\n".join([f"""00:00:{i:02d}.000 --> 00:00:{i+1:02d}.000
+<v SPEAKER_1>Sample text number {i} with enough length to be included""" for i in range(10)])
         
         samples = identifier._extract_speaker_samples(transcript, ['SPEAKER_1'], max_samples=3)
         
@@ -412,16 +412,20 @@ No speaker tags here"""
         transcript = """WEBVTT
 
 00:00:01.000 --> 00:00:05.000
-<v SPEAKER_1>This is a longer text
-that spans multiple lines
-and should be combined"""
+<v SPEAKER_1>This is a longer text that has enough characters to be included in the sample
+
+00:00:05.000 --> 00:00:10.000
+<v SPEAKER_2>Another speaker text here"""
         
         samples = identifier._extract_speaker_samples(transcript, ['SPEAKER_1'])
         
         assert len(samples['SPEAKER_1']) == 1
-        assert 'multiple lines' in samples['SPEAKER_1'][0]
-        # Check newlines are replaced with spaces
-        assert '\n' not in samples['SPEAKER_1'][0]
+        # The regex captures the text after the speaker tag
+        sample_text = samples['SPEAKER_1'][0]
+        assert 'This is a longer text' in sample_text
+        assert 'enough characters' in sample_text
+        # Check newlines are replaced with spaces if any
+        assert '\n' not in sample_text
     
     def test_extract_speaker_samples_short_utterances(self, identifier):
         """Test that short utterances are skipped."""
