@@ -19,7 +19,9 @@ class TestVTTKnowledgeExtraction:
     @pytest.fixture
     def mock_llm_provider(self):
         """Create mock LLM provider."""
-        provider = Mock(spec=LLMProvider)
+        provider = MagicMock()
+        # Set up default return value for process method
+        provider.process.return_value = "{}"
         return provider
     
     @pytest.fixture

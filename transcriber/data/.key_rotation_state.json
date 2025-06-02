@@ -1,15 +1,31 @@
 {
-  "current_index": 0,
+  "current_index": 2,
   "last_reset": "2025-06-02",
   "key_states": [
     {
       "index": 0,
       "key_name": "key_1 (test_key...)",
       "status": "available",
+      "last_used": "2025-06-02T01:15:42.881423+00:00",
+      "consecutive_failures": 1,
+      "error_message": "Test error"
+    },
+    {
+      "index": 1,
+      "key_name": "key_2 (key2...)",
+      "status": "available",
+      "last_used": null,
+      "consecutive_failures": 0,
+      "error_message": null
+    },
+    {
+      "index": 2,
+      "key_name": "key_3 (key3...)",
+      "status": "available",
       "last_used": null,
       "consecutive_failures": 0,
       "error_message": null
     }
   ],
-  "last_updated": "2025-06-02T00:15:44.618501+00:00"
+  "last_updated": "2025-06-02T01:15:42.881731+00:00"
 }

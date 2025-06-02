@@ -1,11 +1,9 @@
 INFO     podcast_transcriber.retry_wrapper:retry_wrapper.py:116 Loaded retry state from file
-DEBUG    asyncio:selector_events.py:54 Using selector: EpollSelector
-DEBUG    asyncio:selector_events.py:54 Using selector: EpollSelector
-INFO     podcast_transcriber.checkpoint_recovery:checkpoint_recovery.py:147 Started checkpoint for episode: Test Episode for Checkpoint
-INFO     podcast_transcriber.checkpoint_recovery:checkpoint_recovery.py:168 Updated checkpoint: stage=transcription
-INFO     podcast_transcriber.checkpoint_recovery:checkpoint_recovery.py:80 Loaded checkpoint for episode: Test Episode for Checkpoint
-INFO     podcast_transcriber.checkpoint_recovery:checkpoint_recovery.py:183 Completed stage: transcription
-INFO     podcast_transcriber.checkpoint_recovery:checkpoint_recovery.py:168 Updated checkpoint: stage=speaker_identification
-INFO     podcast_transcriber.checkpoint_recovery:checkpoint_recovery.py:183 Completed stage: speaker_identification
-INFO     podcast_transcriber.checkpoint_recovery:checkpoint_recovery.py:168 Updated checkpoint: stage=vtt_generation
-INFO     podcast_transcriber.checkpoint_recovery:checkpoint_recovery.py:272 Episode completed: Test Episode for Checkpoint
+INFO     podcast_transcriber.key_rotation_manager:key_rotation_manager.py:144 Loaded rotation state, current index: 2
+INFO     podcast_transcriber.key_rotation_manager:key_rotation_manager.py:119 Initialized key rotation manager with 3 keys
+INFO     podcast_transcriber.key_rotation_manager:key_rotation_manager.py:199 Selected key_1 (test_key...) for next request
+INFO     podcast_transcriber.key_rotation_manager:key_rotation_manager.py:199 Selected key_2 (key2...) for next request
+INFO     podcast_transcriber.key_rotation_manager:key_rotation_manager.py:199 Selected key_3 (key3...) for next request
+INFO     podcast_transcriber.key_rotation_manager:key_rotation_manager.py:199 Selected key_1 (test_key...) for next request
+WARNING  podcast_transcriber.key_rotation_manager:key_rotation_manager.py:233 key_1 (test_key...) marked as failed: Test error
+INFO     podcast_transcriber.key_rotation_manager:key_rotation_manager.py:199 Selected key_2 (key2...) for next request

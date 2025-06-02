@@ -5468,3 +5468,42 @@
 2025-06-01 21:01:06 - podcast_transcriber.checkpoint_recovery - INFO - Completed stage: speaker_identification
 2025-06-01 21:01:06 - podcast_transcriber.checkpoint_recovery - INFO - Updated checkpoint: stage=vtt_generation
 2025-06-01 21:01:06 - podcast_transcriber.checkpoint_recovery - INFO - Episode completed: Test Episode for Checkpoint
+2025-06-01 21:11:31 - podcast_transcriber - INFO - Logging system initialized
+2025-06-01 21:11:31 - podcast_transcriber - INFO - Log level: INFO
+2025-06-01 21:11:31 - podcast_transcriber - INFO - Log directory: /home/sergeblumenfeld/podcastknowledge/transcriber/logs
+2025-06-01 21:11:32 - podcast_transcriber.retry_wrapper - INFO - Loaded retry state from file
+2025-06-01 21:12:31 - podcast_transcriber - INFO - Logging system initialized
+2025-06-01 21:12:31 - podcast_transcriber - INFO - Log level: INFO
+2025-06-01 21:12:31 - podcast_transcriber - INFO - Log directory: /home/sergeblumenfeld/podcastknowledge/transcriber/logs
+2025-06-01 21:12:31 - podcast_transcriber.retry_wrapper - INFO - Loaded retry state from file
+2025-06-01 21:12:31 - podcast_transcriber.key_rotation_manager - INFO - Loaded rotation state, current index: 0
+2025-06-01 21:12:31 - podcast_transcriber.key_rotation_manager - INFO - Initialized key rotation manager with 3 keys
+2025-06-01 21:13:31 - podcast_transcriber - INFO - Logging system initialized
+2025-06-01 21:13:31 - podcast_transcriber - INFO - Log level: INFO
+2025-06-01 21:13:31 - podcast_transcriber - INFO - Log directory: /home/sergeblumenfeld/podcastknowledge/transcriber/logs
+2025-06-01 21:13:33 - podcast_transcriber.retry_wrapper - INFO - Loaded retry state from file
+2025-06-01 21:13:33 - podcast_transcriber.key_rotation_manager - INFO - Loaded rotation state, current index: 0
+2025-06-01 21:13:33 - podcast_transcriber.key_rotation_manager - INFO - Initialized key rotation manager with 3 keys
+2025-06-01 21:13:33 - podcast_transcriber.key_rotation_manager - INFO - Selected key_1 (test_key...) for next request
+2025-06-01 21:13:33 - podcast_transcriber.key_rotation_manager - INFO - Selected key_2 (key2...) for next request
+2025-06-01 21:13:33 - podcast_transcriber.key_rotation_manager - INFO - Selected key_3 (key3...) for next request
+2025-06-01 21:13:33 - podcast_transcriber.key_rotation_manager - INFO - Selected key_1 (test_key...) for next request
+2025-06-01 21:14:34 - podcast_transcriber - INFO - Logging system initialized
+2025-06-01 21:14:34 - podcast_transcriber - INFO - Log level: INFO
+2025-06-01 21:14:34 - podcast_transcriber - INFO - Log directory: /home/sergeblumenfeld/podcastknowledge/transcriber/logs
+2025-06-01 21:14:35 - podcast_transcriber.retry_wrapper - INFO - Loaded retry state from file
+2025-06-01 21:14:35 - podcast_transcriber.key_rotation_manager - INFO - Loaded rotation state, current index: 1
+2025-06-01 21:14:35 - podcast_transcriber.key_rotation_manager - INFO - Initialized key rotation manager with 3 keys
+2025-06-01 21:14:35 - podcast_transcriber.key_rotation_manager - INFO - Selected key_2 (key2...) for next request
+2025-06-01 21:15:41 - podcast_transcriber - INFO - Logging system initialized
+2025-06-01 21:15:41 - podcast_transcriber - INFO - Log level: INFO
+2025-06-01 21:15:41 - podcast_transcriber - INFO - Log directory: /home/sergeblumenfeld/podcastknowledge/transcriber/logs
+2025-06-01 21:15:42 - podcast_transcriber.retry_wrapper - INFO - Loaded retry state from file
+2025-06-01 21:15:42 - podcast_transcriber.key_rotation_manager - INFO - Loaded rotation state, current index: 2
+2025-06-01 21:15:42 - podcast_transcriber.key_rotation_manager - INFO - Initialized key rotation manager with 3 keys
+2025-06-01 21:15:42 - podcast_transcriber.key_rotation_manager - INFO - Selected key_1 (test_key...) for next request
+2025-06-01 21:15:42 - podcast_transcriber.key_rotation_manager - INFO - Selected key_2 (key2...) for next request
+2025-06-01 21:15:42 - podcast_transcriber.key_rotation_manager - INFO - Selected key_3 (key3...) for next request
+2025-06-01 21:15:42 - podcast_transcriber.key_rotation_manager - INFO - Selected key_1 (test_key...) for next request
+2025-06-01 21:15:42 - podcast_transcriber.key_rotation_manager - WARNING - key_1 (test_key...) marked as failed: Test error
+2025-06-01 21:15:42 - podcast_transcriber.key_rotation_manager - INFO - Selected key_2 (key2...) for next request

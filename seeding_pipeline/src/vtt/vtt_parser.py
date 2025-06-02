@@ -268,36 +268,50 @@ class VTTParser:
             current = segments[i]
             current_duration = current.end_time - current.start_time
             
-            # If current segment is short and there's a next segment with same speaker
-            if (current_duration < min_duration and 
-                i + 1 < len(segments) and
-                current.speaker == segments[i + 1].speaker):
-                
-                # Check if next segment is also short
-                next_duration = segments[i + 1].end_time - segments[i + 1].start_time
-                if next_duration < min_duration:
-                    # Merge the two short segments
-                    merged_segment = TranscriptSegment(
-                        id=f"seg_{len(merged)}",
-                        text=f"{current.text} {segments[i + 1].text}",
-                        start_time=current.start_time,
-                        end_time=segments[i + 1].end_time,
-                        speaker=current.speaker,
-                        confidence=min(current.confidence or 1.0, 
-                                     segments[i + 1].confidence or 1.0)
-                    )
-                    merged.append(merged_segment)
-                    i += 2  # Skip both segments
+            # Start with current segment
+            merged_text = current.text
+            start_time = current.start_time
+            end_time = current.end_time
+            speaker = current.speaker
+            min_confidence = current.confidence or 1.0
+            
+            # Look ahead to merge consecutive short segments with same speaker
+            j = i + 1
+            while j < len(segments):
+                # Check if we can merge with next segment
+                if (segments[j].speaker == speaker and
+                    segments[j - 1].end_time == segments[j].start_time):  # Consecutive
+                    
+                    # Check if either current accumulated or next segment is short
+                    accumulated_duration = end_time - start_time
+                    next_duration = segments[j].end_time - segments[j].start_time
+                    
+                    if accumulated_duration < min_duration or next_duration < min_duration:
+                        # Merge this segment
+                        merged_text += f" {segments[j].text}"
+                        end_time = segments[j].end_time
+                        min_confidence = min(min_confidence, segments[j].confidence or 1.0)
+                        j += 1
+                    else:
+                        # Both are long enough, stop merging
+                        break
                 else:
-                    # Don't merge, keep current as is
-                    current.id = f"seg_{len(merged)}"
-                    merged.append(current)
-                    i += 1
-            else:
-                # Keep segment as is
-                current.id = f"seg_{len(merged)}"
-                merged.append(current)
-                i += 1
+                    # Different speaker or not consecutive, stop merging
+                    break
+            
+            # Create the merged segment
+            merged_segment = TranscriptSegment(
+                id=f"seg_{len(merged)}",
+                text=merged_text,
+                start_time=start_time,
+                end_time=end_time,
+                speaker=speaker,
+                confidence=min_confidence
+            )
+            merged.append(merged_segment)
+            
+            # Move to next unprocessed segment
+            i = j
         
         return merged
     
