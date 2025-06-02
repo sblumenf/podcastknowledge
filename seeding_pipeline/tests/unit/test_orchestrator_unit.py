@@ -255,13 +255,12 @@ class TestPodcastKnowledgePipeline:
             
             result = pipeline.seed_podcast(
                 podcast_config,
-                max_episodes=5,
-                use_large_context=True
+                max_episodes=5
             )
             
             mock_seed_podcasts.assert_called_once_with(
                 [podcast_config],
-                max_episodes_each=5,
+                max_episodes_per_podcast=5,
                 use_large_context=True
             )
             assert result == {'success': True}
@@ -284,7 +283,7 @@ class TestPodcastKnowledgePipeline:
                     'extraction_mode': 'fixed'
                 }
                 
-                result = pipeline.seed_podcasts(podcast_config, max_episodes_each=1)
+                result = pipeline.seed_podcasts(podcast_config, max_episodes_per_podcast=1)
                 
                 # Should convert to list
                 mock_process.assert_called_once_with(podcast_config, 1, True)

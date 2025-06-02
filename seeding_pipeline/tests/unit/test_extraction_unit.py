@@ -48,9 +48,8 @@ class TestExtractionResult:
         
         result = ExtractionResult(
             entities=entities,
-            insights=insights,
+            relationships=insights,
             quotes=quotes,
-            topics=topics,
             metadata=metadata
         )
         
@@ -302,7 +301,7 @@ class TestKnowledgeExtractor:
         # Mock individual extraction methods
         with mock.patch.object(extractor, 'extract_all') as mock_extract_all:
             mock_result = ExtractionResult(
-                entities=[], insights=[], quotes=[], topics=[], metadata={}
+                entities=[], relationships=[], quotes=[], metadata={}
             )
             mock_extract_all.return_value = mock_result
             
@@ -443,9 +442,8 @@ class TestKnowledgeExtractor:
             
             return ExtractionResult(
                 entities=entities,
-                insights=[],
+                relationships=[],
                 quotes=[],
-                topics=[],
                 metadata={}
             )
         

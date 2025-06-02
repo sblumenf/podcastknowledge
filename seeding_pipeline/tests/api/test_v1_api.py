@@ -171,8 +171,7 @@ class TestAPIFunctions:
         # Call function
         result = seed_podcast(
             {'rss_url': 'test.xml'},
-            max_episodes=5,
-            use_large_context=True
+            max_episodes=5
         )
         
         # Verify
@@ -196,7 +195,7 @@ class TestAPIFunctions:
             {'rss_url': 'test1.xml'},
             {'rss_url': 'test2.xml'}
         ]
-        result = seed_podcasts(configs, max_episodes_each=10)
+        result = seed_podcasts(configs, max_episodes_per_podcast=10)
         
         # Verify
         assert result['podcasts_processed'] == 2
