@@ -1,4 +1,5 @@
 """Golden output comparison tests for integration testing.
+from tests.utils.neo4j_mocks import create_mock_neo4j_driver
 
 Compares actual outputs against known good outputs to detect regressions.
 """
@@ -13,6 +14,7 @@ import pytest
 
 from src.api.v1 import seed_podcast
 from src.core.config import Config
+@pytest.mark.e2e
 class TestGoldenOutputs:
     """Test against golden (expected) outputs."""
     
@@ -131,7 +133,7 @@ class TestGoldenOutputs:
         }
         
         # Clear database
-        driver = GraphDatabase.driver(
+        driver = create_mock_neo4j_driver(
             test_config.neo4j_uri,
             auth=(test_config.neo4j_user, test_config.neo4j_password)
         )
@@ -173,7 +175,7 @@ class TestGoldenOutputs:
         test_podcast = golden_output['input']
         
         # Clear database
-        driver = GraphDatabase.driver(
+        driver = create_mock_neo4j_driver(
             test_config.neo4j_uri,
             auth=(test_config.neo4j_user, test_config.neo4j_password)
         )
@@ -252,7 +254,7 @@ class TestGoldenOutputs:
         This is not a test but a utility for generating golden outputs.
         """
         # Clear database
-        driver = GraphDatabase.driver(
+        driver = create_mock_neo4j_driver(
             config.neo4j_uri,
             auth=(config.neo4j_user, config.neo4j_password)
         )
@@ -292,6 +294,7 @@ class TestGoldenOutputs:
         print(f"Golden output saved to {output_file}")
 
 
+@pytest.mark.e2e
 class TestPerformanceRegression:
     """Test for performance regressions."""
     
@@ -377,6 +380,7 @@ class TestPerformanceRegression:
             f"Memory usage too high: {memory_used:.1f}MB > {max_allowed:.1f}MB (baseline: {baseline:.1f}MB)"
 
 
+@pytest.mark.e2e
 class TestEndToEndScenarios:
     """End-to-end test scenarios."""
     
@@ -391,7 +395,7 @@ class TestEndToEndScenarios:
         }
         
         # Clear database
-        driver = GraphDatabase.driver(
+        driver = create_mock_neo4j_driver(
             test_config.neo4j_uri,
             auth=(test_config.neo4j_user, test_config.neo4j_password)
         )
@@ -458,7 +462,7 @@ class TestEndToEndScenarios:
         ]
         
         # Clear database
-        driver = GraphDatabase.driver(
+        driver = create_mock_neo4j_driver(
             test_config.neo4j_uri,
             auth=(test_config.neo4j_user, test_config.neo4j_password)
         )

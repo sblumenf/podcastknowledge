@@ -1,4 +1,5 @@
 """E2E tests for VTT → Knowledge Graph pipeline."""
+from tests.utils.neo4j_mocks import create_mock_neo4j_driver
 
 import pytest
 from pathlib import Path
@@ -11,6 +12,7 @@ from src.core.config import SeedingConfig
 from neo4j import GraphDatabase
 
 
+@pytest.mark.e2e
 class TestVTTPipelineE2E:
     """End-to-end tests for the complete VTT processing pipeline."""
     
@@ -44,7 +46,7 @@ Thank you for listening to our show.
         neo4j_password = os.getenv('NEO4J_PASSWORD', 'password')
         
         # Connect to Neo4j
-        driver = GraphDatabase.driver(neo4j_uri, auth=(neo4j_user, neo4j_password))
+        driver = create_mock_neo4j_driver(neo4j_uri, auth=(neo4j_user, neo4j_password))
         
         # Clear the test database before test
         with driver.session() as session:

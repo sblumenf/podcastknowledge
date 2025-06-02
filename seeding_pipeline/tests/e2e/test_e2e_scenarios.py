@@ -1,4 +1,5 @@
 """End-to-end test scenarios for the podcast knowledge graph pipeline.
+from tests.utils.neo4j_mocks import create_mock_neo4j_driver
 
 These tests validate complete user workflows from start to finish.
 """
@@ -32,7 +33,7 @@ class TestE2EScenarios:
     @pytest.fixture
     def neo4j_driver(self, test_config):
         """Neo4j driver for verification."""
-        driver = GraphDatabase.driver(
+        driver = create_mock_neo4j_driver(
             test_config.neo4j_uri,
             auth=(test_config.neo4j_user, test_config.neo4j_password)
         )

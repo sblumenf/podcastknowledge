@@ -7,9 +7,11 @@ import os
 import tempfile
 
 import pytest
+from unittest.mock import patch
 
 # Import fixtures to make them available globally
 from tests.fixtures.neo4j_fixture import neo4j_container, neo4j_driver
+from tests.utils.neo4j_mocks import create_mock_neo4j_driver, patch_neo4j_for_tests
 @pytest.fixture(scope="session")
 def project_root():
     """Get the project root directory."""
@@ -46,6 +48,31 @@ def mock_neo4j_driver(mocker):
     mock_driver.session.return_value.__enter__.return_value = mock_session
     mock_driver.session.return_value.__exit__.return_value = None
     return mock_driver
+
+
+@pytest.fixture(autouse=True)
+def auto_mock_neo4j(request, monkeypatch):
+    """Automatically mock Neo4j for tests unless they have the 'requires_neo4j' marker."""
+    # Skip mocking if test requires real Neo4j
+    if 'requires_neo4j' in request.keywords:
+        return
+    
+    # Apply Neo4j mocks
+    patch_neo4j_for_tests(monkeypatch)
+
+
+# Register custom markers
+def pytest_configure(config):
+    """Register custom pytest markers."""
+    config.addinivalue_line(
+        "markers", "requires_neo4j: mark test as requiring a real Neo4j instance"
+    )
+    config.addinivalue_line(
+        "markers", "e2e: mark test as end-to-end test"
+    )
+    config.addinivalue_line(
+        "markers", "integration: mark test as integration test"
+    )
 
 
 @pytest.fixture
