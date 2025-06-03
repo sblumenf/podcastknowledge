@@ -84,6 +84,12 @@ def parse_arguments(args: Optional[List[str]] = None) -> argparse.Namespace:
         help='Show what would be processed without actually transcribing'
     )
     
+    transcribe_parser.add_argument(
+        '--reset-state',
+        action='store_true',
+        help='Reset all state files before starting (with backup)'
+    )
+    
     # Query command
     query_parser = subparsers.add_parser(
         'query',
@@ -146,6 +152,51 @@ def parse_arguments(args: Optional[List[str]] = None) -> argparse.Namespace:
         help='Show index statistics'
     )
     
+    # State management command
+    state_parser = subparsers.add_parser(
+        'state',
+        help='Manage application state files'
+    )
+    
+    state_subparsers = state_parser.add_subparsers(dest='state_command', help='State management commands')
+    
+    # Show state
+    state_show_parser = state_subparsers.add_parser('show', help='Show state file status')
+    
+    # Reset state
+    state_reset_parser = state_subparsers.add_parser('reset', help='Reset all state files')
+    state_reset_parser.add_argument(
+        '--no-backup',
+        action='store_true',
+        help='Skip creating backup before reset'
+    )
+    state_reset_parser.add_argument(
+        '--force',
+        action='store_true',
+        help='Skip confirmation prompt'
+    )
+    
+    # Export state
+    state_export_parser = state_subparsers.add_parser('export', help='Export state files')
+    state_export_parser.add_argument(
+        '--output',
+        type=str,
+        help='Output file path (default: state_export_TIMESTAMP.tar.gz)'
+    )
+    
+    # Import state
+    state_import_parser = state_subparsers.add_parser('import', help='Import state files')
+    state_import_parser.add_argument(
+        'file',
+        type=str,
+        help='State export file to import'
+    )
+    state_import_parser.add_argument(
+        '--no-backup',
+        action='store_true',
+        help='Skip creating backup before import'
+    )
+    
     # Add global arguments
     parser.add_argument(
         '-v', '--verbose',
@@ -180,6 +231,15 @@ async def transcribe_command(args: argparse.Namespace) -> int:
         Exit code (0 for success, non-zero for failure)
     """
     try:
+        # Reset state if requested
+        if args.reset_state:
+            from src.utils.state_management import reset_state
+            print("\nResetting state files before starting...")
+            if not reset_state(create_backup=True):
+                logger.error("Failed to reset state files")
+                return 1
+            print("State reset completed.\n")
+        
         # Validate output directory
         output_dir = Path(args.output_dir)
         if not output_dir.exists():
@@ -399,6 +459,99 @@ def query_command(args: argparse.Namespace) -> int:
         return 1
 
 
+def state_command(args: argparse.Namespace) -> int:
+    """Execute the state management command.
+    
+    Args:
+        args: Parsed command line arguments
+        
+    Returns:
+        Exit code (0 for success, non-zero for failure)
+    """
+    from src.utils.state_management import (
+        show_state_status, reset_state, export_state, import_state, get_state_directory
+    )
+    
+    try:
+        if args.state_command == 'show':
+            # Show state status
+            status = show_state_status()
+            
+            print("\n" + "="*60)
+            print("STATE FILE STATUS")
+            print("="*60)
+            print(f"State Directory: {status['state_directory']}")
+            print("\nState Files:")
+            
+            for file_path, info in status['state_files'].items():
+                print(f"\n  {file_path}:")
+                if info['exists']:
+                    print(f"    Size: {info['size_bytes']:,} bytes")
+                    print(f"    Modified: {info['modified']}")
+                    if 'entries' in info:
+                        print(f"    Entries: {info['entries']}")
+                    if 'episodes' in info:
+                        print(f"    Episodes: {info['episodes']}")
+                else:
+                    print("    Status: NOT FOUND")
+            
+            print("\n" + "="*60)
+            return 0
+            
+        elif args.state_command == 'reset':
+            # Reset state with confirmation
+            if not args.force:
+                state_dir = get_state_directory()
+                response = input(f"\nAre you sure you want to reset all state files in {state_dir}? (yes/no): ")
+                if response.lower() not in ['yes', 'y']:
+                    print("Reset cancelled.")
+                    return 0
+            
+            print("\nResetting state files...")
+            success = reset_state(create_backup=not args.no_backup)
+            
+            if success:
+                print("State reset completed successfully.")
+                return 0
+            else:
+                print("State reset failed. Check logs for details.")
+                return 1
+                
+        elif args.state_command == 'export':
+            # Export state
+            export_path = export_state(export_path=Path(args.output) if args.output else None)
+            print(f"\nState exported to: {export_path}")
+            return 0
+            
+        elif args.state_command == 'import':
+            # Import state
+            import_path = Path(args.file)
+            if not import_path.exists():
+                print(f"Error: Import file not found: {import_path}")
+                return 1
+            
+            print(f"\nImporting state from: {import_path}")
+            success = import_state(import_path, create_backup=not args.no_backup)
+            
+            if success:
+                print("State import completed successfully.")
+                return 0
+            else:
+                print("State import failed. Check logs for details.")
+                return 1
+                
+        else:
+            print("Error: No state subcommand specified. Use --help for usage.")
+            return 1
+            
+    except Exception as e:
+        logger.error(f"State command failed: {e}")
+        if args.verbose:
+            import traceback
+            traceback.print_exc()
+        return 1
+
+
 def main():
     """Main entry point for the CLI."""
     # Parse arguments
@@ -415,6 +568,9 @@ def main():
     elif args.command == 'query':
         # Run query command
         exit_code = query_command(args)
+    elif args.command == 'state':
+        # Run state management command
+        exit_code = state_command(args)
     else:
         logger.error(f"Unknown command: {args.command}")
         exit_code = 1
