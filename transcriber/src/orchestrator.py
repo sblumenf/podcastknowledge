@@ -8,7 +8,7 @@ import asyncio
 import json
 from pathlib import Path
 from typing import Dict, List, Optional, Any, Tuple
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from src.feed_parser import parse_feed, Episode, PodcastMetadata
 from src.progress_tracker import ProgressTracker, EpisodeStatus
@@ -138,15 +138,46 @@ class TranscriptionOrchestrator:
                 break
             
             # Process episode
-            episode_result = await self._process_episode(episode, podcast_metadata)
-            results['episodes'].append(episode_result)
-            
-            if episode_result['status'] == 'completed':
-                results['processed'] += 1
-            elif episode_result['status'] == 'failed':
-                results['failed'] += 1
-            elif episode_result['status'] == 'skipped':
-                results['skipped'] += 1
+            try:
+                episode_result = await self._process_episode(episode, podcast_metadata)
+                results['episodes'].append(episode_result)
+                
+                if episode_result['status'] == 'completed':
+                    results['processed'] += 1
+                elif episode_result['status'] == 'failed':
+                    results['failed'] += 1
+                elif episode_result['status'] == 'skipped':
+                    results['skipped'] += 1
+                    
+            except QuotaExceededException as e:
+                logger.warning(f"Quota exceeded during processing: {e}")
+                
+                # Check if we should wait for quota reset
+                if self.config.processing.quota_wait_enabled:
+                    # Update results to show we're waiting
+                    results['status'] = 'quota_wait'
+                    results['skipped'] = len(pending_episodes) - i
+                    
+                    # Wait for quota reset
+                    wait_success = await self._wait_for_quota_reset()
+                    
+                    if wait_success:
+                        # Reset API client usage tracking
+                        self.gemini_client._load_usage_state()
+                        
+                        # Continue processing remaining episodes
+                        logger.info("Resuming processing after quota reset")
+                        i -= 1  # Retry the current episode
+                        continue
+                    else:
+                        # Wait was interrupted or exceeded max time
+                        results['status'] = 'quota_wait_failed'
+                        break
+                else:
+                    # Quota wait disabled, skip remaining episodes
+                    results['status'] = 'quota_reached'
+                    results['skipped'] = len(pending_episodes) - i
+                    break
         
         # Generate summary report
         self._generate_summary_report(results, podcast_metadata)
@@ -322,8 +353,32 @@ class TranscriptionOrchestrator:
             # Continue with speaker identification
             return await self._process_from_speaker_id(episode, episode_data, transcript)
             
-        except (QuotaExceededException, CircuitBreakerOpenException) as e:
-            logger.error(f"Cannot process episode due to limits: {e}")
+        except QuotaExceededException as e:
+            logger.warning(f"Quota exceeded for episode: {e}")
+            
+            # Check if quota wait is enabled
+            if self.config.processing.quota_wait_enabled:
+                # Raise the exception to be handled at the process_feed level
+                raise
+            else:
+                # Original behavior: mark as failed
+                self.progress_tracker.update_episode_state(
+                    episode.guid, EpisodeStatus.FAILED, episode_data,
+                    error=str(e)
+                )
+                if self.checkpoint_manager:
+                    self.checkpoint_manager.mark_failed(str(e))
+                
+                return {
+                    'episode_id': episode.guid,
+                    'title': episode.title,
+                    'status': 'skipped',
+                    'reason': 'quota_exceeded',
+                    'error': str(e)
+                }
+        
+        except CircuitBreakerOpenException as e:
+            logger.error(f"Circuit breaker open for episode: {e}")
             self.progress_tracker.update_episode_state(
                 episode.guid, EpisodeStatus.FAILED, episode_data,
                 error=str(e)
@@ -335,7 +390,7 @@ class TranscriptionOrchestrator:
                 'episode_id': episode.guid,
                 'title': episode.title,
                 'status': 'skipped',
-                'reason': 'quota_exceeded',
+                'reason': 'circuit_breaker_open',
                 'error': str(e)
             }
         
@@ -529,6 +584,69 @@ class TranscriptionOrchestrator:
             json.dump(report, f, indent=2)
         
         logger.info(f"Summary report saved to: {report_file}")
+    
+    async def _wait_for_quota_reset(self) -> bool:
+        """Wait for API quota to reset.
+        
+        Returns:
+            True if wait completed successfully, False if interrupted
+        """
+        # Calculate wait time until midnight Pacific Time (quota reset time)
+        from datetime import timezone
+        now = datetime.now(timezone.utc)
+        
+        # Gemini uses Pacific Time for quota reset (UTC-8 or UTC-7 for DST)
+        # For simplicity, use UTC-8
+        pacific_tz = timezone(timedelta(hours=-8))
+        pacific_now = now.astimezone(pacific_tz)
+        
+        # Calculate time until midnight Pacific
+        midnight = pacific_now.replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(days=1)
+        wait_seconds = (midnight - pacific_now).total_seconds()
+        
+        # Add a small buffer to ensure quota has reset
+        wait_seconds += 300  # 5 minute buffer
+        
+        # Check max wait time
+        max_wait_seconds = self.config.processing.max_quota_wait_hours * 3600
+        if wait_seconds > max_wait_seconds:
+            logger.warning(
+                f"Wait time ({wait_seconds/3600:.1f} hours) exceeds maximum "
+                f"({self.config.processing.max_quota_wait_hours} hours)"
+            )
+            return False
+        
+        wait_hours = wait_seconds / 3600
+        logger.info(f"Waiting {wait_hours:.1f} hours for quota reset at midnight Pacific Time")
+        
+        # Wait with periodic progress updates
+        check_interval = self.config.processing.quota_check_interval_minutes * 60
+        elapsed = 0
+        
+        while elapsed < wait_seconds:
+            # Calculate remaining time
+            remaining = wait_seconds - elapsed
+            remaining_hours = remaining / 3600
+            
+            # Log progress
+            if elapsed > 0:
+                logger.info(
+                    f"Quota wait progress: {elapsed/3600:.1f} hours elapsed, "
+                    f"{remaining_hours:.1f} hours remaining"
+                )
+            
+            # Sleep for interval or remaining time, whichever is less
+            sleep_time = min(check_interval, remaining)
+            
+            try:
+                await asyncio.sleep(sleep_time)
+                elapsed += sleep_time
+            except asyncio.CancelledError:
+                logger.warning("Quota wait interrupted")
+                return False
+        
+        logger.info("Quota wait completed, resuming processing")
+        return True
     
     def cleanup_old_data(self, days: int = 7):
         """Clean up old checkpoint and progress data.

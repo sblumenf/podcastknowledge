@@ -35,6 +35,9 @@ class ProcessingConfig:
     enable_progress_bar: bool = True
     checkpoint_enabled: bool = True
     max_episode_length: int = 60
+    quota_wait_enabled: bool = True
+    max_quota_wait_hours: int = 25
+    quota_check_interval_minutes: int = 5
 
 
 @dataclass
