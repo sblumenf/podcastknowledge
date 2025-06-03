@@ -54,9 +54,10 @@ class PipelineConfig:
     hf_token: Optional[str] = field(default_factory=lambda: os.environ.get("HF_TOKEN"))
     
     # Embedding Settings
-    embedding_dimensions: int = 1536
+    embedding_dimensions: int = 768  # Gemini text-embedding-004 dimensions
     embedding_similarity: str = "cosine"
-    embedding_model: str = "text-embedding-ada-002"
+    embedding_model: str = "models/text-embedding-004"  # Gemini embedding model
+    gemini_embedding_batch_size: int = 100  # Optimal batch size for Gemini API
     
     # File Paths
     base_dir: Path = field(default_factory=lambda: Path("."))
@@ -190,7 +191,7 @@ class SeedingConfig(PipelineConfig):
     
     # Batch processing settings
     batch_size: int = 10
-    embedding_batch_size: int = 50
+    embedding_batch_size: int = 100  # Increased for Gemini API efficiency
     save_checkpoints: bool = True
     checkpoint_every_n: int = 5  # Episodes
     
