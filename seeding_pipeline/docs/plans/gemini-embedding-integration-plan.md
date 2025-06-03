@@ -131,7 +131,7 @@ This plan outlines the complete replacement of the current sentence-transformers
 - **Validation**: Config loads successfully with new options
 
 ### Task 3.3: Update Dimension Dependencies
-- [ ] Update all code that depends on embedding dimensions
+- [x] Update all code that depends on embedding dimensions
 - **Purpose**: Ensure compatibility with 768-dimension embeddings
 - **Steps**:
   1. Use context7 MCP tool to review dimension dependencies

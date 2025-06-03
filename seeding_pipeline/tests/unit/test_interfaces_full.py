@@ -353,13 +353,13 @@ class TestEmbeddingProvider:
             def generate_embedding(self, text: str) -> List[float]:
                 # Simulate embedding generation
                 # Return a vector of fixed dimension based on text length
-                return [0.1 * i for i in range(384)]  # 384-dimensional embedding
+                return [0.1 * i for i in range(768)]  # 768-dimensional embedding
             
             def generate_embeddings_batch(self, texts: List[str]) -> List[List[float]]:
                 return [self.generate_embedding(text) for text in texts]
             
             def get_embedding_dimension(self) -> int:
-                return 384
+                return 768
             
             def health_check(self) -> Dict[str, Any]:
                 return {"status": "healthy", "details": {}, "timestamp": "now"}
@@ -368,17 +368,17 @@ class TestEmbeddingProvider:
         
         # Test single embedding
         embedding = provider.generate_embedding("Test text")
-        assert len(embedding) == 384
+        assert len(embedding) == 768
         assert all(isinstance(x, float) for x in embedding)
         
         # Test batch embeddings
         texts = ["Text 1", "Text 2", "Text 3"]
         embeddings = provider.generate_embeddings_batch(texts)
         assert len(embeddings) == 3
-        assert all(len(emb) == 384 for emb in embeddings)
+        assert all(len(emb) == 768 for emb in embeddings)
         
         # Test embedding dimension
-        assert provider.get_embedding_dimension() == 384
+        assert provider.get_embedding_dimension() == 768
 
 
 class TestExtractedEntities:

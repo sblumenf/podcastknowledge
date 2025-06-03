@@ -125,9 +125,9 @@ class MockGeminiModel:
 class MockEmbeddingModel:
     """Mock sentence transformer embedding model."""
     
-    def __init__(self, model_name: str = "all-MiniLM-L6-v2"):
+    def __init__(self, model_name: str = "models/text-embedding-004"):
         self.model_name = model_name
-        self.embedding_size = 384  # Standard size for MiniLM
+        self.embedding_size = 768  # Gemini text-embedding-004 size
     
     def encode(self, texts: Union[str, List[str]], **kwargs) -> Union[List[float], List[List[float]]]:
         """Generate mock embeddings."""
