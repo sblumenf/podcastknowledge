@@ -6,7 +6,10 @@ components to avoid adding dependencies.
 
 import sys
 import time
-from typing import Optional
+from typing import Optional, Iterator, TypeVar, Any
+
+
+T = TypeVar('T')
 
 
 class ProgressBar:
@@ -27,7 +30,7 @@ class ProgressBar:
         self.start_time = time.time()
         self.last_update_time = 0
         
-    def update(self, current: int, suffix: str = ""):
+    def update(self, current: int, suffix: str = "") -> None:
         """Update progress bar.
         
         Args:
@@ -98,7 +101,7 @@ class ProgressBar:
             minutes = int((seconds % 3600) / 60)
             return f"{hours}h {minutes}m"
     
-    def finish(self, message: Optional[str] = None):
+    def finish(self, message: Optional[str] = None) -> None:
         """Finish progress bar with optional message.
         
         Args:
@@ -115,7 +118,7 @@ class ProgressBar:
         sys.stdout.flush()
 
 
-def simple_progress(iterable, prefix: str = "Progress"):
+def simple_progress(iterable: Any, prefix: str = "Progress") -> Iterator[Any]:
     """Wrap an iterable with a simple progress bar.
     
     Args:
@@ -141,7 +144,7 @@ def simple_progress(iterable, prefix: str = "Progress"):
 
 
 # For backward compatibility with existing code
-def log_progress(current: int, total: int, message: str = ""):
+def log_progress(current: int, total: int, message: str = "") -> None:
     """Simple progress logging function.
     
     Args:

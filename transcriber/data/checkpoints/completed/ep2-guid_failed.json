@@ -5,8 +5,8 @@
   "status": "failed",
   "stage_completed": [],
   "temporary_files": {},
-  "start_time": "2025-06-01T12:07:09.291469",
-  "last_update": "2025-06-01T12:07:09.299603",
+  "start_time": "2025-06-02T20:51:41.763437",
+  "last_update": "2025-06-02T20:51:41.802217",
   "metadata": {
     "title": "Episode 2",
     "audio_url": "https://example.com/episode2.mp3",
@@ -19,9 +19,10 @@
     "link": null,
     "author": null,
     "keywords": [],
+    "youtube_url": null,
     "file_size": null,
     "mime_type": null,
     "podcast_name": "Test Podcast"
   },
-  "error": "API error"
+  "error": "New episode started before previous completed"
 }

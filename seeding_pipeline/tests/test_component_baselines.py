@@ -226,6 +226,19 @@ class BaselineTestRunner:
 
 # Test fixtures
 @pytest.fixture
+def pipeline_config():
+    """Create a test pipeline configuration."""
+    return PipelineConfig(
+        # Use test-specific settings
+        checkpoint_dir=Path("test_checkpoints"),
+        output_dir=Path("test_output"),
+        audio_dir=Path("test_audio"),
+        use_gpu=False,  # Disable GPU for tests
+        max_episodes=1,
+        checkpoint_interval=1
+    )
+
+@pytest.fixture
 def baseline_runner(pipeline_config):
     """Create a baseline test runner."""
     return BaselineTestRunner(pipeline_config)

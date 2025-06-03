@@ -5,6 +5,7 @@ with special handling for quota limits and circuit breaker functionality.
 """
 
 import asyncio
+import os
 from typing import Any, Callable, Dict, Optional, TypeVar
 from functools import wraps
 from datetime import datetime, timedelta
@@ -35,6 +36,8 @@ class CircuitBreakerState:
     last_failure: Optional[datetime] = None
     is_open: bool = False
     recovery_time: Optional[datetime] = None
+    open_count: int = 0  # Track how many times circuit has opened
+    last_reset: Optional[datetime] = None  # Track when circuit was last reset
     
     def record_failure(self):
         """Record a failure and potentially open the circuit."""
@@ -44,8 +47,21 @@ class CircuitBreakerState:
         # Open circuit after 3 consecutive failures
         if self.failure_count >= 3:
             self.is_open = True
-            self.recovery_time = datetime.now() + timedelta(minutes=30)
-            logger.warning(f"Circuit breaker opened. Will recover at {self.recovery_time}")
+            self.open_count += 1
+            
+            # Exponential backoff: 30min -> 1hr -> 2hr -> 2hr (max)
+            if self.open_count == 1:
+                recovery_minutes = 30
+            elif self.open_count == 2:
+                recovery_minutes = 60
+            else:
+                recovery_minutes = 120  # Cap at 2 hours
+            
+            self.recovery_time = datetime.now() + timedelta(minutes=recovery_minutes)
+            logger.warning(
+                f"Circuit breaker opened (count: {self.open_count}). "
+                f"Will recover at {self.recovery_time} ({recovery_minutes} minutes)"
+            )
     
     def record_success(self):
         """Record a success and reset the circuit."""
@@ -53,6 +69,10 @@ class CircuitBreakerState:
         self.last_failure = None
         self.is_open = False
         self.recovery_time = None
+        self.last_reset = datetime.now()
+        # Reset open count after successful operation
+        if self.last_reset and (datetime.now() - self.last_reset).days > 1:
+            self.open_count = 0  # Reset count after 24 hours of stability
     
     def can_attempt(self) -> bool:
         """Check if we can attempt a call."""
@@ -61,7 +81,10 @@ class CircuitBreakerState:
         
         # Check if recovery time has passed
         if self.recovery_time and datetime.now() >= self.recovery_time:
-            logger.info("Circuit breaker recovery time reached, attempting reset")
+            logger.info(
+                f"Circuit breaker recovery time reached (was open {self.open_count} times), "
+                "attempting reset"
+            )
             self.is_open = False
             self.failure_count = 0
             return True
@@ -82,10 +105,23 @@ class CircuitBreakerOpenException(Exception):
 class RetryManager:
     """Manages retry logic and circuit breaker state."""
     
-    def __init__(self):
-        """Initialize retry manager."""
+    def __init__(self, state_dir: Optional[Path] = None):
+        """Initialize retry manager.
+        
+        Args:
+            state_dir: Directory for state files. Uses env var STATE_DIR or 'data' if not provided.
+        """
         self.circuit_breakers: Dict[str, CircuitBreakerState] = {}
-        self.state_file = Path("data/.retry_state.json")
+        
+        # Determine state directory
+        if state_dir:
+            base_dir = state_dir
+        elif os.environ.get('STATE_DIR'):
+            base_dir = Path(os.environ['STATE_DIR'])
+        else:
+            base_dir = Path("data")
+        
+        self.state_file = base_dir / ".retry_state.json"
         self._load_state()
     
     def _load_state(self):
@@ -98,7 +134,8 @@ class RetryManager:
                 for key, state_data in data.get('circuit_breakers', {}).items():
                     breaker = CircuitBreakerState(
                         failure_count=state_data.get('failure_count', 0),
-                        is_open=state_data.get('is_open', False)
+                        is_open=state_data.get('is_open', False),
+                        open_count=state_data.get('open_count', 0)
                     )
                     
                     if state_data.get('last_failure'):
@@ -170,10 +207,68 @@ class RetryManager:
         breaker = self.get_circuit_breaker(breaker_key)
         breaker.record_failure()
         self._save_state()
+    
+    def force_reset(self, api_name: str, key_index: int):
+        """Force reset a circuit breaker for a specific API and key."""
+        breaker_key = f"{api_name}_key_{key_index}"
+        if breaker_key in self.circuit_breakers:
+            breaker = self.circuit_breakers[breaker_key]
+            breaker.is_open = False
+            breaker.failure_count = 0
+            breaker.recovery_time = None
+            breaker.last_reset = datetime.now()
+            breaker.open_count = 0  # Reset open count on force reset
+            logger.info(f"Force reset circuit breaker for {breaker_key}")
+            self._save_state()
+        else:
+            logger.warning(f"No circuit breaker found for {breaker_key}")
+    
+    def force_reset_all(self):
+        """Force reset all circuit breakers."""
+        reset_count = 0
+        for key, breaker in self.circuit_breakers.items():
+            if breaker.is_open:
+                breaker.is_open = False
+                breaker.failure_count = 0
+                breaker.recovery_time = None
+                breaker.last_reset = datetime.now()
+                breaker.open_count = 0
+                reset_count += 1
+                logger.info(f"Force reset circuit breaker: {key}")
+        
+        self._save_state()
+        logger.info(f"Force reset {reset_count} circuit breakers")
+        return reset_count
+    
+    def check_and_reset_expired_breakers(self):
+        """Check for expired circuit breakers and reset them."""
+        reset_count = 0
+        current_time = datetime.now()
+        
+        for key, breaker in self.circuit_breakers.items():
+            if breaker.is_open and breaker.recovery_time and current_time >= breaker.recovery_time:
+                logger.info(f"Auto-resetting expired circuit breaker: {key}")
+                breaker.is_open = False
+                breaker.failure_count = 0
+                breaker.last_reset = current_time
+                reset_count += 1
+        
+        if reset_count > 0:
+            self._save_state()
+            logger.info(f"Auto-reset {reset_count} expired circuit breakers")
+        
+        return reset_count
 
 
 # Global retry manager instance
 retry_manager = RetryManager()
+
+
+def force_reset_circuit_breakers():
+    """Force reset all circuit breakers - utility function for manual intervention."""
+    global retry_manager
+    count = retry_manager.force_reset_all()
+    return count
 
 
 def is_retryable_error(error: Exception) -> bool:

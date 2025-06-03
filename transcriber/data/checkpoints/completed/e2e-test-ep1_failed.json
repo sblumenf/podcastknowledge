@@ -2,11 +2,11 @@
   "episode_id": "e2e-test-ep1",
   "audio_url": "https://example.com/audio/test-ep1.mp3",
   "title": "Test Episode 1",
-  "status": "transcription",
+  "status": "failed",
   "stage_completed": [],
   "temporary_files": {},
   "start_time": "2025-06-01T20:15:44.521634",
-  "last_update": "2025-06-01T20:15:44.613530",
+  "last_update": "2025-06-02T20:11:39.284431",
   "metadata": {
     "title": "Test Episode 1",
     "audio_url": "https://example.com/audio/test-ep1.mp3",
@@ -23,5 +23,6 @@
     "file_size": 5242880,
     "mime_type": "audio/mpeg",
     "podcast_name": "E2E Test Podcast"
-  }
+  },
+  "error": "New episode started before previous completed"
 }

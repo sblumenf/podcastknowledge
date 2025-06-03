@@ -3,6 +3,7 @@
 import logging
 import logging.handlers
 import os
+import re
 from pathlib import Path
 from datetime import datetime
 from typing import Optional
@@ -13,6 +14,40 @@ DEFAULT_LOG_FORMAT = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 DEFAULT_DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
 DEFAULT_MAX_BYTES = 10 * 1024 * 1024  # 10MB
 DEFAULT_BACKUP_COUNT = 5
+
+
+class SensitiveDataFilter(logging.Filter):
+    """Filter to redact sensitive information from logs."""
+    
+    # Patterns to redact
+    PATTERNS = [
+        # API Keys
+        (r'(api[_-]?key["\s:=]+)([^"\s,}]+)', r'\1[REDACTED]'),
+        (r'(GEMINI_API_KEY_\d+["\s:=]+)([^"\s,}]+)', r'\1[REDACTED]'),
+        # Authorization headers
+        (r'(authorization["\s:=]+)(bearer\s+)?([^"\s,}]+)', r'\1\2[REDACTED]'),
+        # URLs with potential keys
+        (r'(https?://[^/]+/[^?]+\?[^&]*key=)([^&\s]+)', r'\1[REDACTED]'),
+    ]
+    
+    def filter(self, record: logging.LogRecord) -> bool:
+        """Filter and redact sensitive data from log records."""
+        if hasattr(record, 'msg'):
+            msg = str(record.msg)
+            for pattern, replacement in self.PATTERNS:
+                msg = re.sub(pattern, replacement, msg, flags=re.IGNORECASE)
+            record.msg = msg
+        
+        if hasattr(record, 'args') and record.args:
+            args = list(record.args)
+            for i, arg in enumerate(args):
+                if isinstance(arg, str):
+                    for pattern, replacement in self.PATTERNS:
+                        arg = re.sub(pattern, replacement, arg, flags=re.IGNORECASE)
+                    args[i] = arg
+            record.args = tuple(args)
+        
+        return True
 
 
 class PodcastTranscriberLogger:
@@ -55,10 +90,14 @@ class PodcastTranscriberLogger:
             datefmt=DEFAULT_DATE_FORMAT
         )
         
+        # Create sensitive data filter
+        sensitive_filter = SensitiveDataFilter()
+        
         # Console handler - INFO and above
         console_handler = logging.StreamHandler()
         console_handler.setLevel(logging.INFO)
         console_handler.setFormatter(formatter)
+        console_handler.addFilter(sensitive_filter)
         self.logger.addHandler(console_handler)
         
         # File handler with rotation - All levels
@@ -71,6 +110,7 @@ class PodcastTranscriberLogger:
         )
         file_handler.setLevel(logging.DEBUG)
         file_handler.setFormatter(formatter)
+        file_handler.addFilter(sensitive_filter)
         self.logger.addHandler(file_handler)
         
         # Error file handler - ERROR and above only
@@ -83,6 +123,7 @@ class PodcastTranscriberLogger:
         )
         error_handler.setLevel(logging.ERROR)
         error_handler.setFormatter(formatter)
+        error_handler.addFilter(sensitive_filter)
         self.logger.addHandler(error_handler)
         
         # Log initialization

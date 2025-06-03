@@ -86,7 +86,7 @@ class VTTMetadata:
         
         words = text.split()
         lines = []
-        current_line = []
+        current_line: List[str] = []
         current_length = 0
         
         for word in words:
@@ -305,7 +305,7 @@ class VTTGenerator:
         
         return content
     
-    def _save_vtt_file(self, content: str, path: Path):
+    def _save_vtt_file(self, content: str, path: Path) -> None:
         """Save VTT content to file.
         
         Args:

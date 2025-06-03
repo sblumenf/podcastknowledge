@@ -192,9 +192,9 @@ Please transcribe the entire audio file following this format exactly."""
             lines.insert(0, 'WEBVTT')
         
         # Clean up the transcript
-        cleaned_lines = []
+        cleaned_lines: List[str] = []
         in_cue = False
-        current_cue_lines = []
+        current_cue_lines: List[str] = []
         
         for line in lines:
             line = line.strip()

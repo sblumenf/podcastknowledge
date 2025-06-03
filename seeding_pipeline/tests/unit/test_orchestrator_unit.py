@@ -14,17 +14,16 @@ import pytest
 
 from src.core.config import PipelineConfig, SeedingConfig
 from src.core.exceptions import PipelineError, ConfigurationError
-from src.factories.provider_factory import ProviderFactory
 from src.extraction.extraction import KnowledgeExtractor
 from src.processing.segmentation import VTTSegmenter
-from src.providers.audio.base import AudioProvider
-from src.providers.embeddings.base import EmbeddingProvider
-from src.providers.graph.base import GraphProvider
-from src.providers.llm.base import LLMProvider
-from src.seeding.components import (
-    SignalManager, ProviderCoordinator, CheckpointManager,
-    PipelineExecutor, StorageCoordinator
-)
+from src.services.embeddings import EmbeddingsService
+from src.storage.graph_storage import GraphStorageService
+from src.services.llm import LLMService
+from src.seeding.components.signal_manager import SignalManager
+from src.seeding.components.provider_coordinator import ProviderCoordinator
+from src.seeding.components.checkpoint_manager import CheckpointManager
+from src.seeding.components.pipeline_executor import PipelineExecutor
+from src.storage.storage_coordinator import StorageCoordinator
 from src.seeding.orchestrator import VTTKnowledgeExtractor
 
 

@@ -225,6 +225,8 @@ def patch_neo4j_for_tests(monkeypatch):
     except ImportError:
         pass
     
-    # Also patch common import paths
-    monkeypatch.setattr("src.storage.graph_storage.GraphDatabase.driver", mock_driver, raising=False)
-    monkeypatch.setattr("src.api.health.GraphDatabase.driver", mock_driver, raising=False)
+    # Also patch common import paths - but only if neo4j is imported
+    try:
+        monkeypatch.setattr("neo4j.GraphDatabase", MockDriver)
+    except:
+        pass

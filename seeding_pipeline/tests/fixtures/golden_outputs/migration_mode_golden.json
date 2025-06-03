@@ -1,6 +1,6 @@
 {
   "extraction_mode": "migration",
-  "created_at": "2025-06-01T21:33:45.840367",
+  "created_at": "2025-06-02T20:55:31.533970",
   "segments_count": 5,
   "results": [
     {
@@ -134,11 +134,11 @@
         "schemaless_entity_count": 6,
         "new_entity_types": [
           "AI Expert",
+          "Podcast Host",
+          "Performance Metric",
           "AI Company",
           "Medical Institution",
-          "AI Technology",
-          "Podcast Host",
-          "Performance Metric"
+          "AI Technology"
         ]
       }
     },
@@ -273,11 +273,11 @@
         "schemaless_entity_count": 6,
         "new_entity_types": [
           "AI Expert",
+          "Podcast Host",
+          "Performance Metric",
           "AI Company",
           "Medical Institution",
-          "AI Technology",
-          "Podcast Host",
-          "Performance Metric"
+          "AI Technology"
         ]
       }
     },
@@ -412,11 +412,11 @@
         "schemaless_entity_count": 6,
         "new_entity_types": [
           "AI Expert",
+          "Podcast Host",
+          "Performance Metric",
           "AI Company",
           "Medical Institution",
-          "AI Technology",
-          "Podcast Host",
-          "Performance Metric"
+          "AI Technology"
         ]
       }
     },
@@ -551,11 +551,11 @@
         "schemaless_entity_count": 6,
         "new_entity_types": [
           "AI Expert",
+          "Podcast Host",
+          "Performance Metric",
           "AI Company",
           "Medical Institution",
-          "AI Technology",
-          "Podcast Host",
-          "Performance Metric"
+          "AI Technology"
         ]
       }
     },
@@ -690,11 +690,11 @@
         "schemaless_entity_count": 6,
         "new_entity_types": [
           "AI Expert",
+          "Podcast Host",
+          "Performance Metric",
           "AI Company",
           "Medical Institution",
-          "AI Technology",
-          "Podcast Host",
-          "Performance Metric"
+          "AI Technology"
         ]
       }
     }

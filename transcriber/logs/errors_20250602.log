@@ -1,0 +1,474 @@
+2025-06-02 20:10:56 - podcast_transcriber.checkpoint_recovery - ERROR - Episode failed: Cleanup Test - Test error
+2025-06-02 20:10:56 - podcast_transcriber.checkpoint_recovery - ERROR - Episode failed: Concurrent Test 1 - New episode started before previous completed
+2025-06-02 20:10:56 - podcast_transcriber.checkpoint_recovery - ERROR - Failed to load checkpoint: Expecting property name enclosed in double quotes: line 1 column 3 (char 2)
+2025-06-02 20:10:56 - podcast_transcriber.config - ERROR - Failed to load configuration: mapping values are not allowed here
+  in "/tmp/pytest-of-sergeblumenfeld/pytest-53/test_invalid_yaml_file0/invalid_config.yaml", line 1, column 14
+2025-06-02 20:10:56 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - API timeout must be positive
+2025-06-02 20:10:56 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - API max_attempts must be between 1 and 5
+2025-06-02 20:10:56 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Max episodes per day must be positive
+2025-06-02 20:10:56 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Console log level must be one of: ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL']
+2025-06-02 20:10:56 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - No API keys found in environment variables: ['GEMINI_API_KEY_1', 'GEMINI_API_KEY_2']
+2025-06-02 20:10:56 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Timestamp precision must be between 0 and 3
+2025-06-02 20:10:56 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Rotation strategy must be one of: ['round_robin', 'random']
+2025-06-02 20:10:57 - podcast_transcriber.feed_parser - ERROR - Feed parsing error: syntax error
+2025-06-02 20:10:57 - podcast_transcriber.feed_parser - ERROR - Feed parsing error: XML parsing error
+2025-06-02 20:10:57 - podcast_transcriber.feed_parser - ERROR - Failed to parse feed https://example.com/feed.xml: Network error
+2025-06-02 20:11:09 - podcast_transcriber.checkpoint_recovery - ERROR - Episode failed: Cleanup Test - Test error
+2025-06-02 20:11:10 - podcast_transcriber.checkpoint_recovery - ERROR - Episode failed: Concurrent Test 1 - New episode started before previous completed
+2025-06-02 20:11:10 - podcast_transcriber.checkpoint_recovery - ERROR - Failed to load checkpoint: Expecting property name enclosed in double quotes: line 1 column 3 (char 2)
+2025-06-02 20:11:10 - podcast_transcriber.config - ERROR - Failed to load configuration: mapping values are not allowed here
+  in "/tmp/pytest-of-sergeblumenfeld/pytest-54/test_invalid_yaml_file0/invalid_config.yaml", line 1, column 14
+2025-06-02 20:11:10 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - API timeout must be positive
+2025-06-02 20:11:10 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - API max_attempts must be between 1 and 5
+2025-06-02 20:11:10 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Max episodes per day must be positive
+2025-06-02 20:11:10 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Console log level must be one of: ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL']
+2025-06-02 20:11:10 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - No API keys found in environment variables: ['GEMINI_API_KEY_1', 'GEMINI_API_KEY_2']
+2025-06-02 20:11:10 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Timestamp precision must be between 0 and 3
+2025-06-02 20:11:10 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Rotation strategy must be one of: ['round_robin', 'random']
+2025-06-02 20:11:11 - podcast_transcriber.feed_parser - ERROR - Feed parsing error: syntax error
+2025-06-02 20:11:11 - podcast_transcriber.feed_parser - ERROR - Feed parsing error: XML parsing error
+2025-06-02 20:11:11 - podcast_transcriber.feed_parser - ERROR - Failed to parse feed https://example.com/feed.xml: Network error
+2025-06-02 20:11:25 - podcast_transcriber.checkpoint_recovery - ERROR - Episode failed: Cleanup Test - Test error
+2025-06-02 20:11:26 - podcast_transcriber.checkpoint_recovery - ERROR - Episode failed: Concurrent Test 1 - New episode started before previous completed
+2025-06-02 20:11:26 - podcast_transcriber.checkpoint_recovery - ERROR - Failed to load checkpoint: Expecting property name enclosed in double quotes: line 1 column 3 (char 2)
+2025-06-02 20:11:26 - podcast_transcriber.config - ERROR - Failed to load configuration: mapping values are not allowed here
+  in "/tmp/pytest-of-sergeblumenfeld/pytest-55/test_invalid_yaml_file0/invalid_config.yaml", line 1, column 14
+2025-06-02 20:11:26 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - API timeout must be positive
+2025-06-02 20:11:26 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - API max_attempts must be between 1 and 5
+2025-06-02 20:11:26 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Max episodes per day must be positive
+2025-06-02 20:11:26 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Console log level must be one of: ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL']
+2025-06-02 20:11:26 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - No API keys found in environment variables: ['GEMINI_API_KEY_1', 'GEMINI_API_KEY_2']
+2025-06-02 20:11:26 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Timestamp precision must be between 0 and 3
+2025-06-02 20:11:26 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Rotation strategy must be one of: ['round_robin', 'random']
+2025-06-02 20:11:26 - podcast_transcriber.feed_parser - ERROR - Feed parsing error: syntax error
+2025-06-02 20:11:26 - podcast_transcriber.feed_parser - ERROR - Feed parsing error: XML parsing error
+2025-06-02 20:11:26 - podcast_transcriber.feed_parser - ERROR - Failed to parse feed https://example.com/feed.xml: Network error
+2025-06-02 20:11:27 - podcast_transcriber.feed_parser - ERROR - Feed parsing error: Parsing error
+2025-06-02 20:11:27 - podcast_transcriber.feed_parser - ERROR - Failed to parse feed https://example.com/feed.xml: Network error
+2025-06-02 20:11:27 - podcast_transcriber.file_organizer - ERROR - Failed to write episode file /tmp/pytest-of-sergeblumenfeld/pytest-55/test_create_episode_file_error0/Test/2024-01-15_Test.vtt: Write error
+2025-06-02 20:11:27 - podcast_transcriber.file_organizer - ERROR - Failed to load manifest: 'list' object has no attribute 'get'
+2025-06-02 20:11:28 - podcast_transcriber.gemini_client - ERROR - No API keys available due to rate limits
+2025-06-02 20:11:28 - podcast_transcriber.gemini_client - ERROR - No API keys available due to rate limits
+2025-06-02 20:11:28 - podcast_transcriber.gemini_client - ERROR - Cannot retry transcription: Quota exceeded
+2025-06-02 20:11:28 - podcast_transcriber.gemini_client - ERROR - Speaker identification failed: API error with quota
+2025-06-02 20:11:29 - podcast_transcriber.gemini_client - ERROR - Failed to download audio file: HTTP Error 404: Not Found
+2025-06-02 20:11:33 - podcast_transcriber.gemini_client - ERROR - Failed to download audio file: HTTP Error 404: Not Found
+2025-06-02 20:11:33 - podcast_transcriber.retry_wrapper - ERROR - transcribe_audio failed after 2 attempts
+2025-06-02 20:11:33 - podcast_transcriber.gemini_client - ERROR - Transcription failed: RetryError[<Future at 0x7fb76a2b3950 state=finished raised HTTPError>]
+2025-06-02 20:11:34 - podcast_transcriber.gemini_client - ERROR - Failed to download audio file: HTTP Error 404: Not Found
+2025-06-02 20:11:38 - podcast_transcriber.gemini_client - ERROR - Failed to download audio file: HTTP Error 404: Not Found
+2025-06-02 20:11:38 - podcast_transcriber.retry_wrapper - ERROR - transcribe_audio failed after 2 attempts
+2025-06-02 20:11:38 - podcast_transcriber.retry_wrapper - ERROR - Circuit breaker is open for transcribe_audio_key_0. Recovery at 2025-06-02 20:41:38.869403
+2025-06-02 20:11:39 - podcast_transcriber.key_rotation_manager - ERROR - No API keys found in environment
+2025-06-02 20:11:39 - podcast_transcriber.checkpoint_recovery - ERROR - Episode failed: Test Episode 1 - New episode started before previous completed
+2025-06-02 20:11:39 - podcast_transcriber.orchestrator - ERROR - Episode processing failed: API error
+2025-06-02 20:11:39 - podcast_transcriber.checkpoint_recovery - ERROR - Episode failed: Episode 2 - API error
+2025-06-02 20:11:39 - podcast_transcriber.progress_tracker - ERROR - Failed to load progress file: Expecting value: line 1 column 1 (char 0)
+2025-06-02 20:11:39 - podcast_transcriber.progress_tracker - ERROR - Failed to save progress state: Write failed
+2025-06-02 20:11:39 - podcast_transcriber.progress_tracker - ERROR - Episode non-existent not found in progress tracker
+2025-06-02 20:11:39 - podcast_transcriber.retry_wrapper - ERROR - Circuit breaker is open for transcribe_audio_key_0. Recovery at 2025-06-02 20:41:38.869403
+2025-06-02 20:11:39 - podcast_transcriber.retry_wrapper - ERROR - Circuit breaker is open for transcribe_audio_key_0. Recovery at 2025-06-02 20:41:38.869403
+2025-06-02 20:11:39 - podcast_transcriber.gemini_client - ERROR - Cannot retry transcription: Circuit breaker is open for transcribe_audio_key_0. Recovery at 2025-06-02 20:41:38.869403
+2025-06-02 20:11:39 - podcast_transcriber.retry_wrapper - ERROR - Circuit breaker is open for transcribe_audio_key_0. Recovery at 2025-06-02 20:41:38.869403
+2025-06-02 20:11:39 - podcast_transcriber.gemini_client - ERROR - Cannot retry transcription: Circuit breaker is open for transcribe_audio_key_0. Recovery at 2025-06-02 20:41:38.869403
+2025-06-02 20:11:39 - podcast_transcriber.retry_wrapper - ERROR - Circuit breaker is open for transcribe_audio_key_0. Recovery at 2025-06-02 20:41:38.869403
+2025-06-02 20:11:39 - podcast_transcriber.gemini_client - ERROR - Cannot retry transcription: Circuit breaker is open for transcribe_audio_key_0. Recovery at 2025-06-02 20:41:38.869403
+2025-06-02 20:11:39 - podcast_transcriber.gemini_client - ERROR - No API keys available due to rate limits
+2025-06-02 20:11:39 - podcast_transcriber.gemini_client - ERROR - No API keys available due to rate limits
+2025-06-02 20:11:39 - podcast_transcriber.gemini_client - ERROR - No API keys available due to rate limits
+2025-06-02 20:11:39 - podcast_transcriber.gemini_client - ERROR - No API keys available due to rate limits
+2025-06-02 20:11:39 - podcast_transcriber.retry_wrapper - ERROR - Circuit breaker is open for transcribe_audio_key_0. Recovery at 2025-06-02 20:41:38.869403
+2025-06-02 20:11:39 - podcast_transcriber.gemini_client - ERROR - Cannot retry transcription: Circuit breaker is open for transcribe_audio_key_0. Recovery at 2025-06-02 20:41:38.869403
+2025-06-02 20:11:40 - podcast_transcriber.speaker_identifier - ERROR - Speaker identification failed: API Error
+2025-06-02 20:11:40 - podcast_transcriber.transcription_processor - ERROR - Transcription failed: Transcription returned empty result
+2025-06-02 20:11:40 - podcast_transcriber.transcription_processor - ERROR - Transcription failed: API Error
+2025-06-02 20:11:40 - podcast_transcriber.transcription_processor - ERROR - VTT must start with WEBVTT
+2025-06-02 20:11:40 - podcast_transcriber.transcription_processor - ERROR - VTT must contain at least one cue
+2025-06-02 20:11:40 - podcast_transcriber.transcription_processor - ERROR - Invalid timestamp order: 00:00:05.000 --> 00:00:01.000
+2025-06-02 20:11:40 - podcast_transcriber.progress_tracker - ERROR - Episode test-guid not found in progress tracker
+2025-06-02 20:11:40 - podcast_transcriber.vtt_generator - ERROR - Failed to save VTT file: Permission denied
+2025-06-02 20:11:56 - podcast_transcriber.checkpoint_recovery - ERROR - Episode failed: Cleanup Test - Test error
+2025-06-02 20:11:56 - podcast_transcriber.checkpoint_recovery - ERROR - Episode failed: Concurrent Test 1 - New episode started before previous completed
+2025-06-02 20:11:56 - podcast_transcriber.checkpoint_recovery - ERROR - Failed to load checkpoint: Expecting property name enclosed in double quotes: line 1 column 3 (char 2)
+2025-06-02 20:11:56 - podcast_transcriber.config - ERROR - Failed to load configuration: mapping values are not allowed here
+  in "/tmp/pytest-of-sergeblumenfeld/pytest-56/test_invalid_yaml_file0/invalid_config.yaml", line 1, column 14
+2025-06-02 20:11:56 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - API timeout must be positive
+2025-06-02 20:11:56 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - API max_attempts must be between 1 and 5
+2025-06-02 20:11:56 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Max episodes per day must be positive
+2025-06-02 20:11:56 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Console log level must be one of: ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL']
+2025-06-02 20:11:56 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - No API keys found in environment variables: ['GEMINI_API_KEY_1', 'GEMINI_API_KEY_2']
+2025-06-02 20:11:56 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Timestamp precision must be between 0 and 3
+2025-06-02 20:11:56 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Rotation strategy must be one of: ['round_robin', 'random']
+2025-06-02 20:11:57 - podcast_transcriber.feed_parser - ERROR - Feed parsing error: syntax error
+2025-06-02 20:11:57 - podcast_transcriber.feed_parser - ERROR - Feed parsing error: XML parsing error
+2025-06-02 20:11:57 - podcast_transcriber.feed_parser - ERROR - Failed to parse feed https://example.com/feed.xml: Network error
+2025-06-02 20:21:48 - podcast_transcriber.file_organizer - ERROR - Failed to load manifest: [Errno 2] No such file or directory: '/test/manifest.json'
+2025-06-02 20:21:48 - podcast_transcriber.file_organizer - ERROR - Failed to load manifest: [Errno 2] No such file or directory: '/test/manifest.json'
+2025-06-02 20:22:08 - podcast_transcriber.file_organizer - ERROR - Failed to load manifest: [Errno 2] No such file or directory: '/test/manifest.json'
+2025-06-02 20:22:08 - podcast_transcriber.file_organizer - ERROR - Failed to load manifest: [Errno 2] No such file or directory: '/test/manifest.json'
+2025-06-02 20:36:20 - podcast_transcriber.checkpoint_recovery - ERROR - Episode failed: Cleanup Test - Test error
+2025-06-02 20:36:21 - podcast_transcriber.checkpoint_recovery - ERROR - Episode failed: Concurrent Test 1 - New episode started before previous completed
+2025-06-02 20:36:21 - podcast_transcriber.checkpoint_recovery - ERROR - Failed to load checkpoint: Expecting property name enclosed in double quotes: line 1 column 3 (char 2)
+2025-06-02 20:36:21 - podcast_transcriber.config - ERROR - Failed to load configuration: mapping values are not allowed here
+  in "/tmp/pytest-of-sergeblumenfeld/pytest-69/test_invalid_yaml_file0/invalid_config.yaml", line 1, column 14
+2025-06-02 20:36:21 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - API timeout must be positive
+2025-06-02 20:36:21 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - API max_attempts must be between 1 and 5
+2025-06-02 20:36:21 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Max episodes per day must be positive
+2025-06-02 20:36:21 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Console log level must be one of: ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL']
+2025-06-02 20:36:21 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - No API keys found in environment variables: ['GEMINI_API_KEY_1', 'GEMINI_API_KEY_2']
+2025-06-02 20:36:21 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Timestamp precision must be between 0 and 3
+2025-06-02 20:36:21 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Rotation strategy must be one of: ['round_robin', 'random']
+2025-06-02 20:36:21 - podcast_transcriber.feed_parser - ERROR - Feed parsing error: syntax error
+2025-06-02 20:36:21 - podcast_transcriber.feed_parser - ERROR - Feed parsing error: XML parsing error
+2025-06-02 20:36:21 - podcast_transcriber.feed_parser - ERROR - Failed to parse feed https://example.com/feed.xml: Network error
+2025-06-02 20:36:22 - podcast_transcriber.feed_parser - ERROR - Feed parsing error: Parsing error
+2025-06-02 20:36:22 - podcast_transcriber.feed_parser - ERROR - Failed to parse feed https://example.com/feed.xml: Network error
+2025-06-02 20:37:59 - podcast_transcriber.checkpoint_recovery - ERROR - Episode failed: Cleanup Test - Test error
+2025-06-02 20:37:59 - podcast_transcriber.checkpoint_recovery - ERROR - Episode failed: Concurrent Test 1 - New episode started before previous completed
+2025-06-02 20:37:59 - podcast_transcriber.checkpoint_recovery - ERROR - Failed to load checkpoint: Expecting property name enclosed in double quotes: line 1 column 3 (char 2)
+2025-06-02 20:37:59 - podcast_transcriber.config - ERROR - Failed to load configuration: mapping values are not allowed here
+  in "/tmp/pytest-of-sergeblumenfeld/pytest-70/test_invalid_yaml_file0/invalid_config.yaml", line 1, column 14
+2025-06-02 20:37:59 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - API timeout must be positive
+2025-06-02 20:37:59 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - API max_attempts must be between 1 and 5
+2025-06-02 20:37:59 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Max episodes per day must be positive
+2025-06-02 20:37:59 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Console log level must be one of: ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL']
+2025-06-02 20:37:59 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - No API keys found in environment variables: ['GEMINI_API_KEY_1', 'GEMINI_API_KEY_2']
+2025-06-02 20:38:00 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Timestamp precision must be between 0 and 3
+2025-06-02 20:38:00 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Rotation strategy must be one of: ['round_robin', 'random']
+2025-06-02 20:38:00 - podcast_transcriber.feed_parser - ERROR - Feed parsing error: syntax error
+2025-06-02 20:38:00 - podcast_transcriber.feed_parser - ERROR - Feed parsing error: XML parsing error
+2025-06-02 20:38:00 - podcast_transcriber.feed_parser - ERROR - Failed to parse feed https://example.com/feed.xml: Network error
+2025-06-02 20:38:00 - podcast_transcriber.feed_parser - ERROR - Feed parsing error: Parsing error
+2025-06-02 20:38:00 - podcast_transcriber.feed_parser - ERROR - Failed to parse feed https://example.com/feed.xml: Network error
+2025-06-02 20:38:00 - podcast_transcriber.file_organizer - ERROR - Failed to write episode file /tmp/pytest-of-sergeblumenfeld/pytest-70/test_create_episode_file_error0/Test/2024-01-15_Test.vtt: Write error
+2025-06-02 20:38:00 - podcast_transcriber.file_organizer - ERROR - Failed to load manifest: [Errno 2] No such file or directory: '/test/manifest.json'
+2025-06-02 20:38:00 - podcast_transcriber.file_organizer - ERROR - Failed to load manifest: [Errno 2] No such file or directory: '/test/manifest.json'
+2025-06-02 20:38:01 - podcast_transcriber.gemini_client - ERROR - No API keys available due to rate limits
+2025-06-02 20:38:01 - podcast_transcriber.gemini_client - ERROR - No API keys available due to rate limits
+2025-06-02 20:38:01 - podcast_transcriber.gemini_client - ERROR - Cannot retry transcription: Quota exceeded
+2025-06-02 20:38:01 - podcast_transcriber.gemini_client - ERROR - Speaker identification failed: API error with quota
+2025-06-02 20:38:01 - podcast_transcriber.retry_wrapper - ERROR - Circuit breaker is open for transcribe_audio_key_0. Recovery at 2025-06-02 20:41:38.869403
+2025-06-02 20:38:01 - podcast_transcriber.gemini_client - ERROR - Cannot retry transcription: Circuit breaker is open for transcribe_audio_key_0. Recovery at 2025-06-02 20:41:38.869403
+2025-06-02 20:39:37 - podcast_transcriber.checkpoint_recovery - ERROR - Episode failed: Cleanup Test - Test error
+2025-06-02 20:39:37 - podcast_transcriber.checkpoint_recovery - ERROR - Episode failed: Concurrent Test 1 - New episode started before previous completed
+2025-06-02 20:39:37 - podcast_transcriber.checkpoint_recovery - ERROR - Failed to load checkpoint: Expecting property name enclosed in double quotes: line 1 column 3 (char 2)
+2025-06-02 20:39:37 - podcast_transcriber.config - ERROR - Failed to load configuration: mapping values are not allowed here
+  in "/tmp/pytest-of-sergeblumenfeld/pytest-73/test_invalid_yaml_file0/invalid_config.yaml", line 1, column 14
+2025-06-02 20:39:37 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - API timeout must be positive
+2025-06-02 20:39:37 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - API max_attempts must be between 1 and 5
+2025-06-02 20:39:37 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Max episodes per day must be positive
+2025-06-02 20:39:37 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Console log level must be one of: ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL']
+2025-06-02 20:39:37 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - No API keys found in environment variables: ['GEMINI_API_KEY_1', 'GEMINI_API_KEY_2']
+2025-06-02 20:39:37 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Timestamp precision must be between 0 and 3
+2025-06-02 20:39:37 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Rotation strategy must be one of: ['round_robin', 'random']
+2025-06-02 20:39:38 - podcast_transcriber.feed_parser - ERROR - Feed parsing error: syntax error
+2025-06-02 20:39:38 - podcast_transcriber.feed_parser - ERROR - Feed parsing error: XML parsing error
+2025-06-02 20:39:38 - podcast_transcriber.feed_parser - ERROR - Failed to parse feed https://example.com/feed.xml: Network error
+2025-06-02 20:39:38 - podcast_transcriber.feed_parser - ERROR - Feed parsing error: Parsing error
+2025-06-02 20:39:38 - podcast_transcriber.feed_parser - ERROR - Failed to parse feed https://example.com/feed.xml: Network error
+2025-06-02 20:39:38 - podcast_transcriber.file_organizer - ERROR - Failed to write episode file /tmp/pytest-of-sergeblumenfeld/pytest-73/test_create_episode_file_error0/Test/2024-01-15_Test.vtt: Write error
+2025-06-02 20:39:38 - podcast_transcriber.file_organizer - ERROR - Failed to load manifest: [Errno 2] No such file or directory: '/test/manifest.json'
+2025-06-02 20:39:38 - podcast_transcriber.file_organizer - ERROR - Failed to load manifest: [Errno 2] No such file or directory: '/test/manifest.json'
+2025-06-02 20:39:39 - podcast_transcriber.gemini_client - ERROR - No API keys available due to rate limits
+2025-06-02 20:39:39 - podcast_transcriber.gemini_client - ERROR - No API keys available due to rate limits
+2025-06-02 20:39:39 - podcast_transcriber.gemini_client - ERROR - Cannot retry transcription: Quota exceeded
+2025-06-02 20:39:39 - podcast_transcriber.gemini_client - ERROR - Speaker identification failed: API error with quota
+2025-06-02 20:39:39 - podcast_transcriber.retry_wrapper - ERROR - Circuit breaker is open for transcribe_audio_key_0. Recovery at 2025-06-02 20:41:38.869403
+2025-06-02 20:39:39 - podcast_transcriber.gemini_client - ERROR - Cannot retry transcription: Circuit breaker is open for transcribe_audio_key_0. Recovery at 2025-06-02 20:41:38.869403
+2025-06-02 20:39:39 - podcast_transcriber.retry_wrapper - ERROR - Circuit breaker is open for transcribe_audio_key_0. Recovery at 2025-06-02 20:41:38.869403
+2025-06-02 20:39:39 - podcast_transcriber.key_rotation_manager - ERROR - No API keys found in environment
+2025-06-02 20:39:39 - podcast_transcriber.checkpoint_recovery - ERROR - Failed to save checkpoint: cannot pickle 'coroutine' object
+2025-06-02 20:39:39 - podcast_transcriber.checkpoint_recovery - ERROR - Failed to save checkpoint: cannot pickle 'coroutine' object
+2025-06-02 20:39:39 - podcast_transcriber.checkpoint_recovery - ERROR - Failed to save checkpoint: cannot pickle 'coroutine' object
+2025-06-02 20:39:39 - podcast_transcriber.checkpoint_recovery - ERROR - Failed to save checkpoint: cannot pickle 'coroutine' object
+2025-06-02 20:39:39 - podcast_transcriber.checkpoint_recovery - ERROR - Failed to save checkpoint: cannot pickle 'coroutine' object
+2025-06-02 20:39:39 - podcast_transcriber.checkpoint_recovery - ERROR - Failed to save checkpoint: cannot pickle 'coroutine' object
+2025-06-02 20:39:39 - podcast_transcriber.orchestrator - ERROR - VTT generation failed: Object of type coroutine is not JSON serializable
+2025-06-02 20:39:39 - podcast_transcriber.orchestrator - ERROR - Speaker identification failed: cannot pickle 'coroutine' object
+2025-06-02 20:39:39 - podcast_transcriber.checkpoint_recovery - ERROR - Failed to save checkpoint: cannot pickle 'coroutine' object
+2025-06-02 20:39:39 - podcast_transcriber.orchestrator - ERROR - VTT generation failed: Object of type coroutine is not JSON serializable
+2025-06-02 20:39:39 - podcast_transcriber.orchestrator - ERROR - Episode processing failed: cannot pickle 'coroutine' object
+2025-06-02 20:39:53 - podcast_transcriber.checkpoint_recovery - ERROR - Episode failed: Cleanup Test - Test error
+2025-06-02 20:39:53 - podcast_transcriber.checkpoint_recovery - ERROR - Episode failed: Concurrent Test 1 - New episode started before previous completed
+2025-06-02 20:39:53 - podcast_transcriber.checkpoint_recovery - ERROR - Failed to load checkpoint: Expecting property name enclosed in double quotes: line 1 column 3 (char 2)
+2025-06-02 20:39:53 - podcast_transcriber.config - ERROR - Failed to load configuration: mapping values are not allowed here
+  in "/tmp/pytest-of-sergeblumenfeld/pytest-74/test_invalid_yaml_file0/invalid_config.yaml", line 1, column 14
+2025-06-02 20:39:53 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - API timeout must be positive
+2025-06-02 20:39:53 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - API max_attempts must be between 1 and 5
+2025-06-02 20:39:53 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Max episodes per day must be positive
+2025-06-02 20:39:53 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Console log level must be one of: ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL']
+2025-06-02 20:39:53 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - No API keys found in environment variables: ['GEMINI_API_KEY_1', 'GEMINI_API_KEY_2']
+2025-06-02 20:39:53 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Timestamp precision must be between 0 and 3
+2025-06-02 20:39:53 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Rotation strategy must be one of: ['round_robin', 'random']
+2025-06-02 20:39:54 - podcast_transcriber.feed_parser - ERROR - Feed parsing error: syntax error
+2025-06-02 20:39:54 - podcast_transcriber.feed_parser - ERROR - Feed parsing error: XML parsing error
+2025-06-02 20:39:54 - podcast_transcriber.feed_parser - ERROR - Failed to parse feed https://example.com/feed.xml: Network error
+2025-06-02 20:39:54 - podcast_transcriber.feed_parser - ERROR - Feed parsing error: Parsing error
+2025-06-02 20:39:54 - podcast_transcriber.feed_parser - ERROR - Failed to parse feed https://example.com/feed.xml: Network error
+2025-06-02 20:39:54 - podcast_transcriber.file_organizer - ERROR - Failed to write episode file /tmp/pytest-of-sergeblumenfeld/pytest-74/test_create_episode_file_error0/Test/2024-01-15_Test.vtt: Write error
+2025-06-02 20:39:54 - podcast_transcriber.file_organizer - ERROR - Failed to load manifest: [Errno 2] No such file or directory: '/test/manifest.json'
+2025-06-02 20:39:54 - podcast_transcriber.file_organizer - ERROR - Failed to load manifest: [Errno 2] No such file or directory: '/test/manifest.json'
+2025-06-02 20:39:54 - podcast_transcriber.gemini_client - ERROR - No API keys available due to rate limits
+2025-06-02 20:39:54 - podcast_transcriber.gemini_client - ERROR - No API keys available due to rate limits
+2025-06-02 20:39:54 - podcast_transcriber.gemini_client - ERROR - Cannot retry transcription: Quota exceeded
+2025-06-02 20:39:54 - podcast_transcriber.gemini_client - ERROR - Speaker identification failed: API error with quota
+2025-06-02 20:39:54 - podcast_transcriber.retry_wrapper - ERROR - Circuit breaker is open for transcribe_audio_key_0. Recovery at 2025-06-02 20:41:38.869403
+2025-06-02 20:39:54 - podcast_transcriber.gemini_client - ERROR - Cannot retry transcription: Circuit breaker is open for transcribe_audio_key_0. Recovery at 2025-06-02 20:41:38.869403
+2025-06-02 20:39:54 - podcast_transcriber.retry_wrapper - ERROR - Circuit breaker is open for transcribe_audio_key_0. Recovery at 2025-06-02 20:41:38.869403
+2025-06-02 20:39:54 - podcast_transcriber.key_rotation_manager - ERROR - No API keys found in environment
+2025-06-02 20:39:55 - podcast_transcriber.checkpoint_recovery - ERROR - Failed to save checkpoint: cannot pickle 'coroutine' object
+2025-06-02 20:39:55 - podcast_transcriber.checkpoint_recovery - ERROR - Failed to save checkpoint: cannot pickle 'coroutine' object
+2025-06-02 20:39:55 - podcast_transcriber.checkpoint_recovery - ERROR - Failed to save checkpoint: cannot pickle 'coroutine' object
+2025-06-02 20:39:55 - podcast_transcriber.checkpoint_recovery - ERROR - Failed to save checkpoint: cannot pickle 'coroutine' object
+2025-06-02 20:39:55 - podcast_transcriber.checkpoint_recovery - ERROR - Failed to save checkpoint: cannot pickle 'coroutine' object
+2025-06-02 20:39:55 - podcast_transcriber.checkpoint_recovery - ERROR - Failed to save checkpoint: cannot pickle 'coroutine' object
+2025-06-02 20:39:55 - podcast_transcriber.orchestrator - ERROR - VTT generation failed: Object of type coroutine is not JSON serializable
+2025-06-02 20:39:55 - podcast_transcriber.orchestrator - ERROR - Speaker identification failed: cannot pickle 'coroutine' object
+2025-06-02 20:39:55 - podcast_transcriber.checkpoint_recovery - ERROR - Failed to save checkpoint: cannot pickle 'coroutine' object
+2025-06-02 20:39:55 - podcast_transcriber.orchestrator - ERROR - VTT generation failed: Object of type coroutine is not JSON serializable
+2025-06-02 20:39:55 - podcast_transcriber.orchestrator - ERROR - Episode processing failed: cannot pickle 'coroutine' object
+2025-06-02 20:40:04 - podcast_transcriber.checkpoint_recovery - ERROR - Episode failed: Cleanup Test - Test error
+2025-06-02 20:40:04 - podcast_transcriber.checkpoint_recovery - ERROR - Episode failed: Concurrent Test 1 - New episode started before previous completed
+2025-06-02 20:40:04 - podcast_transcriber.checkpoint_recovery - ERROR - Failed to load checkpoint: Expecting property name enclosed in double quotes: line 1 column 3 (char 2)
+2025-06-02 20:40:04 - podcast_transcriber.config - ERROR - Failed to load configuration: mapping values are not allowed here
+  in "/tmp/pytest-of-sergeblumenfeld/pytest-75/test_invalid_yaml_file0/invalid_config.yaml", line 1, column 14
+2025-06-02 20:40:04 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - API timeout must be positive
+2025-06-02 20:40:04 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - API max_attempts must be between 1 and 5
+2025-06-02 20:40:04 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Max episodes per day must be positive
+2025-06-02 20:40:04 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Console log level must be one of: ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL']
+2025-06-02 20:40:04 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - No API keys found in environment variables: ['GEMINI_API_KEY_1', 'GEMINI_API_KEY_2']
+2025-06-02 20:40:04 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Timestamp precision must be between 0 and 3
+2025-06-02 20:40:04 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Rotation strategy must be one of: ['round_robin', 'random']
+2025-06-02 20:40:05 - podcast_transcriber.feed_parser - ERROR - Feed parsing error: syntax error
+2025-06-02 20:40:05 - podcast_transcriber.feed_parser - ERROR - Feed parsing error: XML parsing error
+2025-06-02 20:40:05 - podcast_transcriber.feed_parser - ERROR - Failed to parse feed https://example.com/feed.xml: Network error
+2025-06-02 20:40:05 - podcast_transcriber.feed_parser - ERROR - Feed parsing error: Parsing error
+2025-06-02 20:40:05 - podcast_transcriber.feed_parser - ERROR - Failed to parse feed https://example.com/feed.xml: Network error
+2025-06-02 20:40:05 - podcast_transcriber.file_organizer - ERROR - Failed to write episode file /tmp/pytest-of-sergeblumenfeld/pytest-75/test_create_episode_file_error0/Test/2024-01-15_Test.vtt: Write error
+2025-06-02 20:40:05 - podcast_transcriber.file_organizer - ERROR - Failed to load manifest: [Errno 2] No such file or directory: '/test/manifest.json'
+2025-06-02 20:40:05 - podcast_transcriber.file_organizer - ERROR - Failed to load manifest: [Errno 2] No such file or directory: '/test/manifest.json'
+2025-06-02 20:40:05 - podcast_transcriber.gemini_client - ERROR - No API keys available due to rate limits
+2025-06-02 20:40:05 - podcast_transcriber.gemini_client - ERROR - No API keys available due to rate limits
+2025-06-02 20:40:05 - podcast_transcriber.gemini_client - ERROR - Cannot retry transcription: Quota exceeded
+2025-06-02 20:40:06 - podcast_transcriber.gemini_client - ERROR - Speaker identification failed: API error with quota
+2025-06-02 20:40:06 - podcast_transcriber.retry_wrapper - ERROR - Circuit breaker is open for transcribe_audio_key_0. Recovery at 2025-06-02 20:41:38.869403
+2025-06-02 20:40:06 - podcast_transcriber.gemini_client - ERROR - Cannot retry transcription: Circuit breaker is open for transcribe_audio_key_0. Recovery at 2025-06-02 20:41:38.869403
+2025-06-02 20:40:06 - podcast_transcriber.retry_wrapper - ERROR - Circuit breaker is open for transcribe_audio_key_0. Recovery at 2025-06-02 20:41:38.869403
+2025-06-02 20:40:06 - podcast_transcriber.key_rotation_manager - ERROR - No API keys found in environment
+2025-06-02 20:40:06 - podcast_transcriber.checkpoint_recovery - ERROR - Failed to save checkpoint: cannot pickle 'coroutine' object
+2025-06-02 20:40:06 - podcast_transcriber.checkpoint_recovery - ERROR - Failed to save checkpoint: cannot pickle 'coroutine' object
+2025-06-02 20:40:06 - podcast_transcriber.checkpoint_recovery - ERROR - Failed to save checkpoint: cannot pickle 'coroutine' object
+2025-06-02 20:40:06 - podcast_transcriber.checkpoint_recovery - ERROR - Failed to save checkpoint: cannot pickle 'coroutine' object
+2025-06-02 20:40:06 - podcast_transcriber.checkpoint_recovery - ERROR - Failed to save checkpoint: cannot pickle 'coroutine' object
+2025-06-02 20:40:06 - podcast_transcriber.checkpoint_recovery - ERROR - Failed to save checkpoint: cannot pickle 'coroutine' object
+2025-06-02 20:40:06 - podcast_transcriber.orchestrator - ERROR - VTT generation failed: Object of type coroutine is not JSON serializable
+2025-06-02 20:40:06 - podcast_transcriber.orchestrator - ERROR - Speaker identification failed: cannot pickle 'coroutine' object
+2025-06-02 20:40:06 - podcast_transcriber.checkpoint_recovery - ERROR - Failed to save checkpoint: cannot pickle 'coroutine' object
+2025-06-02 20:40:06 - podcast_transcriber.orchestrator - ERROR - VTT generation failed: Object of type coroutine is not JSON serializable
+2025-06-02 20:40:06 - podcast_transcriber.orchestrator - ERROR - Episode processing failed: cannot pickle 'coroutine' object
+2025-06-02 20:42:02 - podcast_transcriber.checkpoint_recovery - ERROR - Episode failed: Cleanup Test - Test error
+2025-06-02 20:42:03 - podcast_transcriber.checkpoint_recovery - ERROR - Episode failed: Concurrent Test 1 - New episode started before previous completed
+2025-06-02 20:42:03 - podcast_transcriber.checkpoint_recovery - ERROR - Failed to load checkpoint: Expecting property name enclosed in double quotes: line 1 column 3 (char 2)
+2025-06-02 20:45:59 - podcast_transcriber.checkpoint_recovery - ERROR - Episode failed: Cleanup Test - Test error
+2025-06-02 20:45:59 - podcast_transcriber.checkpoint_recovery - ERROR - Episode failed: Concurrent Test 1 - New episode started before previous completed
+2025-06-02 20:45:59 - podcast_transcriber.checkpoint_recovery - ERROR - Failed to load checkpoint: Expecting property name enclosed in double quotes: line 1 column 3 (char 2)
+2025-06-02 20:48:05 - podcast_transcriber.checkpoint_recovery - ERROR - Episode failed: Cleanup Test - Test error
+2025-06-02 20:48:05 - podcast_transcriber.checkpoint_recovery - ERROR - Episode failed: Concurrent Test 1 - New episode started before previous completed
+2025-06-02 20:48:05 - podcast_transcriber.checkpoint_recovery - ERROR - Failed to load checkpoint: Expecting property name enclosed in double quotes: line 1 column 3 (char 2)
+2025-06-02 20:49:59 - podcast_transcriber.checkpoint_recovery - ERROR - Episode failed: Cleanup Test - Test error
+2025-06-02 20:49:59 - podcast_transcriber.checkpoint_recovery - ERROR - Episode failed: Concurrent Test 1 - New episode started before previous completed
+2025-06-02 20:49:59 - podcast_transcriber.checkpoint_recovery - ERROR - Failed to load checkpoint: Expecting property name enclosed in double quotes: line 1 column 3 (char 2)
+2025-06-02 20:50:09 - podcast_transcriber.checkpoint_recovery - ERROR - Episode failed: Cleanup Test - Test error
+2025-06-02 20:50:09 - podcast_transcriber.checkpoint_recovery - ERROR - Episode failed: Concurrent Test 1 - New episode started before previous completed
+2025-06-02 20:50:09 - podcast_transcriber.checkpoint_recovery - ERROR - Failed to load checkpoint: Expecting property name enclosed in double quotes: line 1 column 3 (char 2)
+2025-06-02 20:50:10 - podcast_transcriber.config - ERROR - Failed to load configuration: mapping values are not allowed here
+  in "/tmp/pytest-of-sergeblumenfeld/pytest-81/test_invalid_yaml_file0/invalid_config.yaml", line 1, column 14
+2025-06-02 20:50:10 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - API timeout must be positive
+2025-06-02 20:50:10 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - API max_attempts must be between 1 and 5
+2025-06-02 20:50:10 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Max episodes per day must be positive
+2025-06-02 20:50:10 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Console log level must be one of: ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL']
+2025-06-02 20:50:10 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - No API keys found in environment variables: ['GEMINI_API_KEY_1', 'GEMINI_API_KEY_2']
+2025-06-02 20:50:10 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Timestamp precision must be between 0 and 3
+2025-06-02 20:50:10 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Rotation strategy must be one of: ['round_robin', 'random']
+2025-06-02 20:50:11 - podcast_transcriber.feed_parser - ERROR - Feed parsing error: syntax error
+2025-06-02 20:50:11 - podcast_transcriber.feed_parser - ERROR - Feed parsing error: XML parsing error
+2025-06-02 20:50:11 - podcast_transcriber.feed_parser - ERROR - Failed to parse feed https://example.com/feed.xml: Network error
+2025-06-02 20:50:11 - podcast_transcriber.feed_parser - ERROR - Feed parsing error: Parsing error
+2025-06-02 20:50:11 - podcast_transcriber.feed_parser - ERROR - Failed to parse feed https://example.com/feed.xml: Network error
+2025-06-02 20:50:11 - podcast_transcriber.file_organizer - ERROR - Failed to write episode file /tmp/pytest-of-sergeblumenfeld/pytest-81/test_create_episode_file_error0/Test/2024-01-15_Test.vtt: Write error
+2025-06-02 20:50:11 - podcast_transcriber.file_organizer - ERROR - Failed to load manifest: [Errno 2] No such file or directory: '/test/manifest.json'
+2025-06-02 20:50:11 - podcast_transcriber.file_organizer - ERROR - Failed to load manifest: [Errno 2] No such file or directory: '/test/manifest.json'
+2025-06-02 20:50:11 - podcast_transcriber.gemini_client - ERROR - No API keys available due to rate limits
+2025-06-02 20:50:11 - podcast_transcriber.gemini_client - ERROR - No API keys available due to rate limits
+2025-06-02 20:50:11 - podcast_transcriber.gemini_client - ERROR - Cannot retry transcription: Quota exceeded
+2025-06-02 20:50:11 - podcast_transcriber.gemini_client - ERROR - Speaker identification failed: API error with quota
+2025-06-02 20:50:12 - podcast_transcriber.gemini_client - ERROR - Failed to download audio file: HTTP Error 404: Not Found
+2025-06-02 20:50:17 - podcast_transcriber.gemini_client - ERROR - Failed to download audio file: HTTP Error 404: Not Found
+2025-06-02 20:50:17 - podcast_transcriber.retry_wrapper - ERROR - transcribe_audio failed after 2 attempts
+2025-06-02 20:50:17 - podcast_transcriber.gemini_client - ERROR - Transcription failed: RetryError[<Future at 0x7f47d6e234d0 state=finished raised HTTPError>]
+2025-06-02 20:50:18 - podcast_transcriber.gemini_client - ERROR - Failed to download audio file: HTTP Error 404: Not Found
+2025-06-02 20:50:23 - podcast_transcriber.gemini_client - ERROR - Failed to download audio file: HTTP Error 404: Not Found
+2025-06-02 20:50:23 - podcast_transcriber.retry_wrapper - ERROR - transcribe_audio failed after 2 attempts
+2025-06-02 20:50:24 - podcast_transcriber.gemini_client - ERROR - Failed to download audio file: HTTP Error 404: Not Found
+2025-06-02 20:50:29 - podcast_transcriber.gemini_client - ERROR - Failed to download audio file: HTTP Error 404: Not Found
+2025-06-02 20:50:29 - podcast_transcriber.retry_wrapper - ERROR - transcribe_audio failed after 2 attempts
+2025-06-02 20:50:29 - podcast_transcriber.key_rotation_manager - ERROR - No API keys found in environment
+2025-06-02 20:50:29 - podcast_transcriber.checkpoint_recovery - ERROR - Failed to save checkpoint: cannot pickle 'coroutine' object
+2025-06-02 20:50:29 - podcast_transcriber.checkpoint_recovery - ERROR - Failed to save checkpoint: cannot pickle 'coroutine' object
+2025-06-02 20:50:29 - podcast_transcriber.checkpoint_recovery - ERROR - Failed to save checkpoint: cannot pickle 'coroutine' object
+2025-06-02 20:50:29 - podcast_transcriber.checkpoint_recovery - ERROR - Failed to save checkpoint: cannot pickle 'coroutine' object
+2025-06-02 20:50:29 - podcast_transcriber.checkpoint_recovery - ERROR - Failed to save checkpoint: cannot pickle 'coroutine' object
+2025-06-02 20:50:29 - podcast_transcriber.checkpoint_recovery - ERROR - Failed to save checkpoint: cannot pickle 'coroutine' object
+2025-06-02 20:50:29 - podcast_transcriber.orchestrator - ERROR - VTT generation failed: Object of type coroutine is not JSON serializable
+2025-06-02 20:50:29 - podcast_transcriber.orchestrator - ERROR - Speaker identification failed: cannot pickle 'coroutine' object
+2025-06-02 20:50:29 - podcast_transcriber.checkpoint_recovery - ERROR - Failed to save checkpoint: cannot pickle 'coroutine' object
+2025-06-02 20:50:29 - podcast_transcriber.orchestrator - ERROR - VTT generation failed: Object of type coroutine is not JSON serializable
+2025-06-02 20:50:29 - podcast_transcriber.orchestrator - ERROR - Episode processing failed: cannot pickle 'coroutine' object
+2025-06-02 20:50:30 - podcast_transcriber.checkpoint_recovery - ERROR - Failed to save checkpoint: cannot pickle 'coroutine' object
+2025-06-02 20:50:30 - podcast_transcriber.checkpoint_recovery - ERROR - Failed to save checkpoint: cannot pickle 'coroutine' object
+2025-06-02 20:50:30 - podcast_transcriber.checkpoint_recovery - ERROR - Failed to save checkpoint: cannot pickle 'coroutine' object
+2025-06-02 20:50:30 - podcast_transcriber.checkpoint_recovery - ERROR - Failed to save checkpoint: cannot pickle 'coroutine' object
+2025-06-02 20:50:30 - podcast_transcriber.checkpoint_recovery - ERROR - Failed to save checkpoint: cannot pickle 'coroutine' object
+2025-06-02 20:50:30 - podcast_transcriber.checkpoint_recovery - ERROR - Failed to save checkpoint: cannot pickle 'coroutine' object
+2025-06-02 20:50:30 - podcast_transcriber.orchestrator - ERROR - VTT generation failed: Object of type coroutine is not JSON serializable
+2025-06-02 20:50:30 - podcast_transcriber.orchestrator - ERROR - Speaker identification failed: cannot pickle 'coroutine' object
+2025-06-02 20:50:30 - podcast_transcriber.checkpoint_recovery - ERROR - Failed to save checkpoint: cannot pickle 'coroutine' object
+2025-06-02 20:50:30 - podcast_transcriber.orchestrator - ERROR - VTT generation failed: Object of type coroutine is not JSON serializable
+2025-06-02 20:50:30 - podcast_transcriber.orchestrator - ERROR - Episode processing failed: cannot pickle 'coroutine' object
+2025-06-02 20:50:30 - podcast_transcriber.checkpoint_recovery - ERROR - Failed to save checkpoint: cannot pickle 'coroutine' object
+2025-06-02 20:50:30 - podcast_transcriber.checkpoint_recovery - ERROR - Failed to save checkpoint: cannot pickle 'coroutine' object
+2025-06-02 20:50:30 - podcast_transcriber.checkpoint_recovery - ERROR - Failed to save checkpoint: cannot pickle 'coroutine' object
+2025-06-02 20:50:30 - podcast_transcriber.checkpoint_recovery - ERROR - Failed to save checkpoint: cannot pickle 'coroutine' object
+2025-06-02 20:50:30 - podcast_transcriber.checkpoint_recovery - ERROR - Failed to save checkpoint: cannot pickle 'coroutine' object
+2025-06-02 20:50:30 - podcast_transcriber.checkpoint_recovery - ERROR - Failed to save checkpoint: cannot pickle 'coroutine' object
+2025-06-02 20:50:30 - podcast_transcriber.orchestrator - ERROR - VTT generation failed: Object of type coroutine is not JSON serializable
+2025-06-02 20:50:30 - podcast_transcriber.orchestrator - ERROR - Speaker identification failed: cannot pickle 'coroutine' object
+2025-06-02 20:50:30 - podcast_transcriber.checkpoint_recovery - ERROR - Failed to save checkpoint: cannot pickle 'coroutine' object
+2025-06-02 20:50:30 - podcast_transcriber.orchestrator - ERROR - VTT generation failed: Object of type coroutine is not JSON serializable
+2025-06-02 20:50:30 - podcast_transcriber.orchestrator - ERROR - Episode processing failed: cannot pickle 'coroutine' object
+2025-06-02 20:50:30 - podcast_transcriber.progress_tracker - ERROR - Failed to load progress file: Expecting value: line 1 column 1 (char 0)
+2025-06-02 20:50:30 - podcast_transcriber.progress_tracker - ERROR - Failed to save progress state: Write failed
+2025-06-02 20:50:30 - podcast_transcriber.progress_tracker - ERROR - Episode non-existent not found in progress tracker
+2025-06-02 20:50:30 - podcast_transcriber.retry_wrapper - ERROR - Circuit breaker is open for transcribe_audio_key_0. Recovery at 2025-06-02 21:20:29.040160
+2025-06-02 20:50:30 - podcast_transcriber.retry_wrapper - ERROR - Circuit breaker is open for transcribe_audio_key_0. Recovery at 2025-06-02 21:20:29.040160
+2025-06-02 20:50:30 - podcast_transcriber.gemini_client - ERROR - Cannot retry transcription: Circuit breaker is open for transcribe_audio_key_0. Recovery at 2025-06-02 21:20:29.040160
+2025-06-02 20:51:40 - podcast_transcriber.feed_parser - ERROR - Feed parsing error: syntax error
+2025-06-02 20:51:40 - podcast_transcriber.retry_wrapper - ERROR - Circuit breaker is open for transcribe_audio_key_0. Recovery at 2025-06-02 21:20:29.040160
+2025-06-02 20:51:40 - podcast_transcriber.gemini_client - ERROR - Cannot retry transcription: Circuit breaker is open for transcribe_audio_key_0. Recovery at 2025-06-02 21:20:29.040160
+2025-06-02 20:51:40 - podcast_transcriber.retry_wrapper - ERROR - Circuit breaker is open for transcribe_audio_key_0. Recovery at 2025-06-02 21:20:29.040160
+2025-06-02 20:51:41 - podcast_transcriber.key_rotation_manager - ERROR - No API keys found in environment
+2025-06-02 20:51:41 - podcast_transcriber.orchestrator - ERROR - Episode processing failed: API error
+2025-06-02 20:51:41 - podcast_transcriber.checkpoint_recovery - ERROR - Episode failed: Episode 2 - API error
+2025-06-02 20:51:41 - podcast_transcriber.checkpoint_recovery - ERROR - Episode failed: Episode 2 - New episode started before previous completed
+2025-06-02 20:51:42 - podcast_transcriber.retry_wrapper - ERROR - Circuit breaker is open for transcribe_audio_key_0. Recovery at 2025-06-02 21:20:29.040160
+2025-06-02 20:51:42 - podcast_transcriber.retry_wrapper - ERROR - Circuit breaker is open for transcribe_audio_key_0. Recovery at 2025-06-02 21:20:29.040160
+2025-06-02 20:51:42 - podcast_transcriber.gemini_client - ERROR - Cannot retry transcription: Circuit breaker is open for transcribe_audio_key_0. Recovery at 2025-06-02 21:20:29.040160
+2025-06-02 20:55:31 - podcast_transcriber.checkpoint_recovery - ERROR - Episode failed: Cleanup Test - Test error
+2025-06-02 20:55:31 - podcast_transcriber.checkpoint_recovery - ERROR - Episode failed: Concurrent Test 1 - New episode started before previous completed
+2025-06-02 20:55:31 - podcast_transcriber.checkpoint_recovery - ERROR - Failed to load checkpoint: Expecting property name enclosed in double quotes: line 1 column 3 (char 2)
+2025-06-02 20:55:31 - podcast_transcriber.config - ERROR - Failed to load configuration: mapping values are not allowed here
+  in "/tmp/pytest-of-sergeblumenfeld/pytest-88/test_invalid_yaml_file0/invalid_config.yaml", line 1, column 14
+2025-06-02 20:55:31 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - API timeout must be positive
+2025-06-02 20:55:31 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - API max_attempts must be between 1 and 5
+2025-06-02 20:55:31 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Max episodes per day must be positive
+2025-06-02 20:55:31 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Console log level must be one of: ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL']
+2025-06-02 20:55:31 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - No API keys found in environment variables: ['GEMINI_API_KEY_1', 'GEMINI_API_KEY_2']
+2025-06-02 20:55:31 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Timestamp precision must be between 0 and 3
+2025-06-02 20:55:31 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Rotation strategy must be one of: ['round_robin', 'random']
+2025-06-02 20:55:31 - podcast_transcriber.transcription_processor - ERROR - Transcription failed: list index out of range
+2025-06-02 20:55:31 - podcast_transcriber.orchestrator - ERROR - Episode processing failed: Transcription failed
+2025-06-02 20:55:31 - podcast_transcriber.checkpoint_recovery - ERROR - Episode failed: Test Episode 1 - Transcription failed
+2025-06-02 20:55:32 - podcast_transcriber.feed_parser - ERROR - Feed parsing error: syntax error
+2025-06-02 20:55:32 - podcast_transcriber.feed_parser - ERROR - Feed parsing error: XML parsing error
+2025-06-02 20:55:32 - podcast_transcriber.feed_parser - ERROR - Failed to parse feed https://example.com/feed.xml: Network error
+2025-06-02 20:55:32 - podcast_transcriber.feed_parser - ERROR - Feed parsing error: Parsing error
+2025-06-02 20:55:32 - podcast_transcriber.feed_parser - ERROR - Failed to parse feed https://example.com/feed.xml: Network error
+2025-06-02 20:55:32 - podcast_transcriber.file_organizer - ERROR - Failed to write episode file /tmp/pytest-of-sergeblumenfeld/pytest-88/test_create_episode_file_error0/Test/2024-01-15_Test.vtt: Write error
+2025-06-02 20:55:32 - podcast_transcriber.file_organizer - ERROR - Failed to load manifest: [Errno 2] No such file or directory: '/test/manifest.json'
+2025-06-02 20:55:32 - podcast_transcriber.file_organizer - ERROR - Failed to load manifest: [Errno 2] No such file or directory: '/test/manifest.json'
+2025-06-02 20:55:32 - podcast_transcriber.gemini_client - ERROR - No API keys available due to rate limits
+2025-06-02 20:55:32 - podcast_transcriber.gemini_client - ERROR - No API keys available due to rate limits
+2025-06-02 20:55:32 - podcast_transcriber.gemini_client - ERROR - Cannot retry transcription: Quota exceeded
+2025-06-02 20:55:32 - podcast_transcriber.gemini_client - ERROR - Speaker identification failed: API error with quota
+2025-06-02 20:55:33 - podcast_transcriber.retry_wrapper - ERROR - Circuit breaker is open for transcribe_audio_key_0. Recovery at 2025-06-02 21:20:29.040160
+2025-06-02 20:55:33 - podcast_transcriber.gemini_client - ERROR - Cannot retry transcription: Circuit breaker is open for transcribe_audio_key_0. Recovery at 2025-06-02 21:20:29.040160
+2025-06-02 20:55:33 - podcast_transcriber.retry_wrapper - ERROR - Circuit breaker is open for transcribe_audio_key_0. Recovery at 2025-06-02 21:20:29.040160
+2025-06-02 20:55:33 - podcast_transcriber.key_rotation_manager - ERROR - No API keys found in environment
+2025-06-02 20:55:33 - podcast_transcriber.orchestrator - ERROR - Episode processing failed: API error
+2025-06-02 20:55:34 - podcast_transcriber.progress_tracker - ERROR - Failed to load progress file: Expecting value: line 1 column 1 (char 0)
+2025-06-02 20:55:34 - podcast_transcriber.progress_tracker - ERROR - Failed to save progress state: Write failed
+2025-06-02 20:55:34 - podcast_transcriber.progress_tracker - ERROR - Episode non-existent not found in progress tracker
+2025-06-02 20:55:34 - podcast_transcriber.retry_wrapper - ERROR - Circuit breaker is open for transcribe_audio_key_0. Recovery at 2025-06-02 21:20:29.040160
+2025-06-02 20:55:34 - podcast_transcriber.retry_wrapper - ERROR - Circuit breaker is open for transcribe_audio_key_0. Recovery at 2025-06-02 21:20:29.040160
+2025-06-02 20:55:34 - podcast_transcriber.gemini_client - ERROR - Cannot retry transcription: Circuit breaker is open for transcribe_audio_key_0. Recovery at 2025-06-02 21:20:29.040160
+2025-06-02 20:55:34 - podcast_transcriber.retry_wrapper - ERROR - Circuit breaker is open for transcribe_audio_key_0. Recovery at 2025-06-02 21:20:29.040160
+2025-06-02 20:55:34 - podcast_transcriber.gemini_client - ERROR - Cannot retry transcription: Circuit breaker is open for transcribe_audio_key_0. Recovery at 2025-06-02 21:20:29.040160
+2025-06-02 20:55:34 - podcast_transcriber.retry_wrapper - ERROR - Circuit breaker is open for transcribe_audio_key_0. Recovery at 2025-06-02 21:20:29.040160
+2025-06-02 20:55:34 - podcast_transcriber.gemini_client - ERROR - Cannot retry transcription: Circuit breaker is open for transcribe_audio_key_0. Recovery at 2025-06-02 21:20:29.040160
+2025-06-02 20:55:34 - podcast_transcriber.gemini_client - ERROR - No API keys available due to rate limits
+2025-06-02 20:55:34 - podcast_transcriber.gemini_client - ERROR - No API keys available due to rate limits
+2025-06-02 20:55:34 - podcast_transcriber.gemini_client - ERROR - No API keys available due to rate limits
+2025-06-02 20:55:34 - podcast_transcriber.gemini_client - ERROR - No API keys available due to rate limits
+2025-06-02 20:56:02 - podcast_transcriber.orchestrator - ERROR - Episode processing failed: API error
+2025-06-02 20:56:19 - podcast_transcriber.checkpoint_recovery - ERROR - Episode failed: Cleanup Test - Test error
+2025-06-02 20:56:19 - podcast_transcriber.checkpoint_recovery - ERROR - Episode failed: Concurrent Test 1 - New episode started before previous completed
+2025-06-02 20:56:19 - podcast_transcriber.checkpoint_recovery - ERROR - Failed to load checkpoint: Expecting property name enclosed in double quotes: line 1 column 3 (char 2)
+2025-06-02 20:56:20 - podcast_transcriber.config - ERROR - Failed to load configuration: mapping values are not allowed here
+  in "/tmp/pytest-of-sergeblumenfeld/pytest-90/test_invalid_yaml_file0/invalid_config.yaml", line 1, column 14
+2025-06-02 20:56:20 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - API timeout must be positive
+2025-06-02 20:56:20 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - API max_attempts must be between 1 and 5
+2025-06-02 20:56:20 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Max episodes per day must be positive
+2025-06-02 20:56:20 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Console log level must be one of: ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL']
+2025-06-02 20:56:20 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - No API keys found in environment variables: ['GEMINI_API_KEY_1', 'GEMINI_API_KEY_2']
+2025-06-02 20:56:20 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Timestamp precision must be between 0 and 3
+2025-06-02 20:56:20 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Rotation strategy must be one of: ['round_robin', 'random']
+2025-06-02 20:58:14 - podcast_transcriber.checkpoint_recovery - ERROR - Episode failed: Cleanup Test - Test error
+2025-06-02 20:58:14 - podcast_transcriber.checkpoint_recovery - ERROR - Episode failed: Concurrent Test 1 - New episode started before previous completed
+2025-06-02 20:58:14 - podcast_transcriber.checkpoint_recovery - ERROR - Failed to load checkpoint: Expecting property name enclosed in double quotes: line 1 column 3 (char 2)
+2025-06-02 20:58:14 - podcast_transcriber.config - ERROR - Failed to load configuration: mapping values are not allowed here
+  in "/tmp/pytest-of-sergeblumenfeld/pytest-91/test_invalid_yaml_file0/invalid_config.yaml", line 1, column 14
+2025-06-02 20:58:14 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - API timeout must be positive
+2025-06-02 20:58:14 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - API max_attempts must be between 1 and 5
+2025-06-02 20:58:14 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Max episodes per day must be positive
+2025-06-02 20:58:14 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Console log level must be one of: ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL']
+2025-06-02 20:58:14 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - No API keys found in environment variables: ['GEMINI_API_KEY_1', 'GEMINI_API_KEY_2']
+2025-06-02 20:58:14 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Timestamp precision must be between 0 and 3
+2025-06-02 20:58:14 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Rotation strategy must be one of: ['round_robin', 'random']
+2025-06-02 21:00:16 - podcast_transcriber.checkpoint_recovery - ERROR - Episode failed: Cleanup Test - Test error
+2025-06-02 21:00:16 - podcast_transcriber.checkpoint_recovery - ERROR - Episode failed: Concurrent Test 1 - New episode started before previous completed
+2025-06-02 21:00:17 - podcast_transcriber.checkpoint_recovery - ERROR - Failed to load checkpoint: Expecting property name enclosed in double quotes: line 1 column 3 (char 2)
+2025-06-02 21:00:17 - podcast_transcriber.config - ERROR - Failed to load configuration: mapping values are not allowed here
+  in "/tmp/pytest-of-sergeblumenfeld/pytest-92/test_invalid_yaml_file0/invalid_config.yaml", line 1, column 14
+2025-06-02 21:00:17 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - API timeout must be positive
+2025-06-02 21:00:17 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - API max_attempts must be between 1 and 5
+2025-06-02 21:00:17 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Max episodes per day must be positive
+2025-06-02 21:00:17 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Console log level must be one of: ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL']
+2025-06-02 21:00:17 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - No API keys found in environment variables: ['GEMINI_API_KEY_1', 'GEMINI_API_KEY_2']
+2025-06-02 21:00:17 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Timestamp precision must be between 0 and 3
+2025-06-02 21:00:17 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Rotation strategy must be one of: ['round_robin', 'random']
+2025-06-02 21:01:48 - podcast_transcriber.gemini_client - ERROR - Failed to download audio file: [Errno 28] No space left on device
+2025-06-02 21:02:37 - podcast_transcriber.checkpoint_recovery - ERROR - Episode failed: Cleanup Test - Test error
+2025-06-02 21:02:37 - podcast_transcriber.checkpoint_recovery - ERROR - Episode failed: Concurrent Test 1 - New episode started before previous completed
+2025-06-02 21:02:37 - podcast_transcriber.checkpoint_recovery - ERROR - Failed to load checkpoint: Expecting property name enclosed in double quotes: line 1 column 3 (char 2)
+2025-06-02 21:02:37 - podcast_transcriber.config - ERROR - Failed to load configuration: mapping values are not allowed here
+  in "/tmp/pytest-of-sergeblumenfeld/pytest-93/test_invalid_yaml_file0/invalid_config.yaml", line 1, column 14
+2025-06-02 21:02:37 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - API timeout must be positive
+2025-06-02 21:02:37 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - API max_attempts must be between 1 and 5
+2025-06-02 21:02:37 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Max episodes per day must be positive
+2025-06-02 21:02:37 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Console log level must be one of: ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL']
+2025-06-02 21:02:38 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - No API keys found in environment variables: ['GEMINI_API_KEY_1', 'GEMINI_API_KEY_2']
+2025-06-02 21:02:38 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Timestamp precision must be between 0 and 3
+2025-06-02 21:02:38 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Rotation strategy must be one of: ['round_robin', 'random']
+2025-06-02 21:04:14 - podcast_transcriber.gemini_client - ERROR - Failed to download audio file: [Errno 28] No space left on device
+2025-06-02 21:16:30 - podcast_transcriber.checkpoint_recovery - ERROR - Episode failed: Cleanup Test - Test error
+2025-06-02 21:16:30 - podcast_transcriber.checkpoint_recovery - ERROR - Episode failed: Concurrent Test 1 - New episode started before previous completed
+2025-06-02 21:16:31 - podcast_transcriber.checkpoint_recovery - ERROR - Failed to load checkpoint: Expecting property name enclosed in double quotes: line 1 column 3 (char 2)
+2025-06-02 21:16:31 - podcast_transcriber.config - ERROR - Failed to load configuration: mapping values are not allowed here
+  in "/tmp/pytest-of-sergeblumenfeld/pytest-96/test_invalid_yaml_file0/invalid_config.yaml", line 1, column 14
+2025-06-02 21:16:31 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - API timeout must be positive
+2025-06-02 21:16:31 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - API max_attempts must be between 1 and 5
+2025-06-02 21:16:31 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Max episodes per day must be positive
+2025-06-02 21:16:31 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Console log level must be one of: ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL']
+2025-06-02 21:16:31 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - No API keys found in environment variables: ['GEMINI_API_KEY_1', 'GEMINI_API_KEY_2']
+2025-06-02 21:16:31 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Timestamp precision must be between 0 and 3
+2025-06-02 21:16:31 - podcast_transcriber.config - ERROR - Configuration validation failed:\n  - Rotation strategy must be one of: ['round_robin', 'random']

@@ -7,12 +7,12 @@ import os
 import tempfile
 
 import pytest
-from unittest.mock import patch
+from unittest.mock import patch, Mock
 
 # Import fixtures to make them available globally
 from tests.fixtures.neo4j_fixture import neo4j_container, neo4j_driver
 from tests.utils.neo4j_mocks import create_mock_neo4j_driver, patch_neo4j_for_tests
-from tests.utils.external_service_mocks import patch_external_services_for_tests, mock_external_requests
+from tests.utils.external_service_mocks import patch_external_services_for_tests
 @pytest.fixture(scope="session")
 def project_root():
     """Get the project root directory."""
@@ -73,7 +73,33 @@ def auto_mock_external_services(request, monkeypatch):
     patch_external_services_for_tests(monkeypatch)
     
     # Also mock HTTP requests
-    mock_external_requests(monkeypatch)
+    # Note: The mock_external_requests fixture code is duplicated here since we can't call fixtures directly
+    def mock_get(url, *args, **kwargs):
+        """Mock requests.get."""
+        response = Mock()
+        response.status_code = 200
+        
+        if "rss" in url or "feed" in url or ".xml" in url:
+            from tests.utils.external_service_mocks import mock_rss_feed_response
+            response.text = mock_rss_feed_response(url)
+            response.content = response.text.encode('utf-8')
+        else:
+            response.text = '{"status": "ok"}'
+            response.json.return_value = {"status": "ok"}
+        
+        return response
+    
+    def mock_post(url, *args, **kwargs):
+        """Mock requests.post."""
+        response = Mock()
+        response.status_code = 200
+        response.json.return_value = {"status": "ok", "result": "mocked"}
+        return response
+    
+    # Patch various request libraries
+    monkeypatch.setattr("requests.get", mock_get, raising=False)
+    monkeypatch.setattr("requests.post", mock_post, raising=False)
+    monkeypatch.setattr("urllib.request.urlopen", Mock(return_value=Mock(read=lambda: b'{"status": "ok"}')), raising=False)
 
 
 # Register custom markers

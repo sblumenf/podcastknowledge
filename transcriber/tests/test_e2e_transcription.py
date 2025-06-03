@@ -192,7 +192,8 @@ Date: 2025-06-01
                                         mock_config_cls.return_value = test_config
                                         
                                         orchestrator = TranscriptionOrchestrator(
-                                            output_dir=Path(test_config.output.default_dir)
+                                            output_dir=Path(test_config.output.default_dir),
+                                            data_dir=data_dir
                                         )
                                     
                                     # Process the feed
@@ -245,7 +246,7 @@ Date: 2025-06-01
                                     assert "Guest Speaker" in episode["speakers"]
                                     
                                     # Verify progress tracking
-                                    progress_file = data_dir / ".transcription_progress.json"
+                                    progress_file = data_dir / ".progress.json"
                                     assert progress_file.exists()
                                     
                                     with open(progress_file) as f:
@@ -315,14 +316,15 @@ Date: 2025-06-01
                             mock_config_cls.return_value = test_config
                             
                             orchestrator = TranscriptionOrchestrator(
-                                output_dir=Path(test_config.output.default_dir)
+                                output_dir=Path(test_config.output.default_dir),
+                                data_dir=data_dir
                             )
                         
                         # Process should handle the error gracefully
                         await orchestrator.process_feed("https://example.com/feed.xml")
                         
                         # Verify episode was marked as failed
-                        progress_file = data_dir / ".transcription_progress.json"
+                        progress_file = data_dir / ".progress.json"
                         assert progress_file.exists()
                         
                         with open(progress_file) as f:

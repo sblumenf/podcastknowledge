@@ -126,9 +126,11 @@ class CheckpointManager:
         Returns:
             New checkpoint instance
         """
-        # Complete any existing checkpoint
+        # Check for existing checkpoint
         if self.current_checkpoint:
-            self.mark_failed("New episode started before previous completed")
+            error_msg = "New episode started before previous completed"
+            self.mark_failed(error_msg)
+            raise RuntimeError(f"Cannot start new episode: {error_msg}")
         
         # Create new checkpoint
         self.current_checkpoint = EpisodeCheckpoint(
@@ -257,6 +259,7 @@ class CheckpointManager:
         self.current_checkpoint.last_update = datetime.now()
         
         # Save to completed directory
+        episode_title = self.current_checkpoint.title
         with open(completed_file, 'w') as f:
             data = self.current_checkpoint.to_dict()
             data['final_output'] = final_output_path
@@ -269,8 +272,8 @@ class CheckpointManager:
         if self.checkpoint_file.exists():
             os.unlink(self.checkpoint_file)
         
-        logger.info(f"Episode completed: {self.current_checkpoint.title}")
-        self.current_checkpoint = None
+        logger.info(f"Episode completed: {episode_title}")
+        # Note: current_checkpoint is already set to None by _cleanup_temp_files()
     
     def mark_failed(self, error: str):
         """Mark episode as failed.
@@ -292,15 +295,16 @@ class CheckpointManager:
             data['error'] = error
             json.dump(data, f, indent=2)
         
-        # Clean up temporary files
-        self._cleanup_temp_files()
+        # Don't clean up temporary files on failure - preserve for debugging
+        # They should be cleaned up manually or by mark_complete
         
         # Remove active checkpoint
         if self.checkpoint_file.exists():
             os.unlink(self.checkpoint_file)
         
         logger.error(f"Episode failed: {self.current_checkpoint.title} - {error}")
-        self.current_checkpoint = None
+        # Don't clear current_checkpoint yet - needed for manual cleanup
+        # self.current_checkpoint = None
     
     def _cleanup_temp_files(self):
         """Clean up temporary files for current checkpoint."""
@@ -314,6 +318,9 @@ class CheckpointManager:
                     logger.debug(f"Cleaned up temp file: {temp_file}")
                 except Exception as e:
                     logger.warning(f"Failed to clean up {temp_file}: {e}")
+        
+        # Clear current checkpoint after cleanup
+        self.current_checkpoint = None
     
     def can_resume(self) -> bool:
         """Check if there's a checkpoint to resume from.
@@ -342,7 +349,8 @@ class CheckpointManager:
             'completed_stages': self.current_checkpoint.stage_completed,
             'hours_since_update': round(hours_since, 1),
             'can_resume': hours_since < 24,  # Don't resume if too old
-            'temp_files_available': list(self.current_checkpoint.temporary_files.keys())
+            'temp_files_available': list(self.current_checkpoint.temporary_files.keys()),
+            'metadata': self.current_checkpoint.metadata
         }
     
     def resume_processing(self) -> Optional[Tuple[str, Dict[str, Any]]]:

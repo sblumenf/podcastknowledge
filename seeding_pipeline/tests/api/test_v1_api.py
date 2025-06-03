@@ -71,7 +71,7 @@ class TestAPIVersioning:
         def future_function():
             return "future"
         
-        with pytest.raises(RuntimeError, match="API version.*too old"):
+        with pytest.raises(RuntimeError, match="API version .* required"):
             future_function()
 
 

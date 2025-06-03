@@ -31,13 +31,15 @@ class TranscriptionOrchestrator:
     
     def __init__(self, output_dir: Path = Path("data/transcripts"), 
                  enable_checkpoint: bool = True,
-                 resume: bool = False):
+                 resume: bool = False,
+                 data_dir: Optional[Path] = None):
         """Initialize orchestrator.
         
         Args:
             output_dir: Directory for output VTT files
             enable_checkpoint: Enable checkpoint recovery
             resume: Resume from existing checkpoint if available
+            data_dir: Base data directory (defaults to 'data')
         """
         self.output_dir = output_dir
         self.output_dir.mkdir(parents=True, exist_ok=True)
@@ -47,14 +49,15 @@ class TranscriptionOrchestrator:
         
         # Initialize components
         # Use data directory for progress tracking
-        data_dir = Path("data")
+        if data_dir is None:
+            data_dir = Path("data")
         data_dir.mkdir(exist_ok=True)
         self.progress_tracker = ProgressTracker(data_dir / ".progress.json")
         self.key_manager = create_key_rotation_manager()
         self.gemini_client = create_gemini_client()
         
         # Initialize checkpoint manager if enabled
-        self.checkpoint_manager = CheckpointManager() if enable_checkpoint else None
+        self.checkpoint_manager = CheckpointManager(data_dir) if enable_checkpoint else None
         
         # Initialize processors with checkpoint support
         self.transcription_processor = TranscriptionProcessor(
@@ -253,7 +256,7 @@ class TranscriptionOrchestrator:
                     elif len(duration_parts) == 2:  # minutes:seconds
                         duration_seconds = int(duration_parts[0]) * 60 + int(duration_parts[1])
                 
-                youtube_url = self.youtube_searcher.search_youtube_url(
+                youtube_url = await self.youtube_searcher.search_youtube_url(
                     podcast_name=podcast_metadata.title,
                     episode_title=episode.title,
                     episode_description=episode.description,

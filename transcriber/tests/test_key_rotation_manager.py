@@ -177,9 +177,12 @@ class TestKeyRotationManager:
             mock_path.return_value = Path(tmp_path) / ".key_rotation_state.json"
             return KeyRotationManager(test_keys)
     
-    def test_init_with_keys(self, test_keys, mock_logger):
+    def test_init_with_keys(self, test_keys, tmp_path, mock_logger):
         """Test initializing with API keys."""
-        manager = KeyRotationManager(test_keys)
+        # Patch Path to use tmp directory (no existing state file)
+        with patch('src.key_rotation_manager.Path') as mock_path:
+            mock_path.return_value = tmp_path / "test_key_rotation_state.json"
+            manager = KeyRotationManager(test_keys)
         
         assert len(manager.api_keys) == 3
         assert len(manager.key_states) == 3

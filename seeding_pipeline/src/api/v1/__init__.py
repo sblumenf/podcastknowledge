@@ -15,10 +15,13 @@ def get_api_version() -> str:
 
 def check_api_compatibility(required_version: str) -> bool:
     """Check if the API is compatible with a required version."""
-    # Simple major version check
-    required_major = int(required_version.split('.')[0])
+    # Parse version parts
+    required_parts = required_version.split('.')
+    required_major = int(required_parts[0])
     current_major = API_VERSION_INFO[0]
-    return current_major >= required_major
+    
+    # Only compatible if same major version
+    return current_major == required_major
 
 def deprecated(version=None, replacement=None):
     """Decorator to mark functions as deprecated.

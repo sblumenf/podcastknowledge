@@ -217,7 +217,7 @@ Example response:
         Returns:
             Dictionary mapping speaker labels to sample texts
         """
-        samples = {label: [] for label in speaker_labels}
+        samples: Dict[str, List[str]] = {label: [] for label in speaker_labels}
         
         # Parse VTT to extract cues
         cue_pattern = re.compile(

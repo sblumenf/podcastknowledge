@@ -196,8 +196,9 @@ class TestOrchestratorIntegration:
                         
                         orchestrator = TranscriptionOrchestrator(
                             output_dir=Path(mock_config.output.default_dir),
-                            enable_checkpoint=True,
-                            resume=False
+                            enable_checkpoint=False,  # Disable checkpoint for this test
+                            resume=False,
+                            data_dir=tmp_path / "data"
                         )
                         
                         # Patch the transcription processor

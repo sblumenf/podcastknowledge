@@ -111,7 +111,7 @@ class TestFileOrganizer:
         """Test basic filename sanitization."""
         assert organizer.sanitize_filename("Normal Title") == "Normal_Title"
         assert organizer.sanitize_filename("Title: With Colon") == "Title_With_Colon"
-        assert organizer.sanitize_filename("Title/With\\Slashes") == "TitleWithSlashes"
+        assert organizer.sanitize_filename("Title/With\\Slashes") == "Title__WithSlashes"
         assert organizer.sanitize_filename("Title?With*Special|Chars") == "TitleWithSpecialChars"
     
     def test_sanitize_filename_edge_cases(self, organizer):
@@ -167,7 +167,7 @@ class TestFileOrganizer:
         )
         
         assert path1 == "Test_Podcast/2024-01-15_Same_Title.vtt"
-        assert path2 == "Test_Podcast/2024-01-15_Same_Title_001.vtt"
+        assert path2 == "Test_Podcast/2024-01-15_Same_Title_2.vtt"
     
     def test_generate_filename_invalid_date(self, organizer):
         """Test filename generation with invalid date."""

@@ -469,3 +469,14 @@
 2025-06-01 23:23:33 - podcast_transcriber.transcription_processor - ERROR - VTT must start with WEBVTT
 2025-06-01 23:23:33 - podcast_transcriber.transcription_processor - ERROR - VTT must contain at least one cue
 2025-06-01 23:23:33 - podcast_transcriber.transcription_processor - ERROR - Invalid timestamp order: 00:00:05.000 --> 00:00:01.000
+2025-06-01 23:49:18 - podcast_transcriber.feed_parser - ERROR - Feed parsing error: Parsing error
+2025-06-01 23:52:00 - podcast_transcriber.vtt_generator - ERROR - Failed to save VTT file: Permission denied
+2025-06-01 23:52:00 - podcast_transcriber.speaker_identifier - ERROR - Speaker identification failed: API Error
+2025-06-01 23:52:00 - podcast_transcriber.transcription_processor - ERROR - Transcription failed: Transcription returned empty result
+2025-06-01 23:52:00 - podcast_transcriber.transcription_processor - ERROR - Transcription failed: API Error
+2025-06-01 23:52:01 - podcast_transcriber.transcription_processor - ERROR - VTT must start with WEBVTT
+2025-06-01 23:52:01 - podcast_transcriber.transcription_processor - ERROR - VTT must contain at least one cue
+2025-06-01 23:52:01 - podcast_transcriber.transcription_processor - ERROR - Invalid timestamp order: 00:00:05.000 --> 00:00:01.000
+2025-06-01 23:52:01 - podcast_transcriber.feed_parser - ERROR - Feed parsing error: Parsing error
+2025-06-01 23:52:01 - podcast_transcriber.feed_parser - ERROR - Failed to parse feed https://example.com/feed.xml: Network error
+2025-06-01 23:52:01 - podcast_transcriber.file_organizer - ERROR - Failed to load manifest: 'list' object has no attribute 'get'

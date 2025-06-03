@@ -276,26 +276,28 @@ class TestFeedParserFormats:
                 'itunes_image': {'href': 'https://example.com/podcast-logo.jpg'},
                 'itunes_explicit': 'no'
             })
-            parsed.entries = [
-                feedparser.FeedParserDict({
-                    'title': 'iTunes Episode 1',
-                    'description': 'Episode with iTunes metadata',
-                    'id': 'unique-guid-001',
-                    'published': 'Mon, 01 Jun 2025 10:00:00 GMT',
-                    'published_parsed': (2025, 6, 1, 10, 0, 0, 0, 152, 0),
-                    'enclosures': [{
-                        'href': 'https://example.com/itunes-ep1.mp3',
-                        'length': '34567890',
-                        'type': 'audio/mpeg'
-                    }],
-                    'itunes_duration': '45:32',
-                    'itunes_episode': '1',
-                    'itunes_season': '1',
-                    'itunes_episodetype': 'full',
-                    'itunes_author': 'Guest Speaker',
-                    'itunes_summary': 'Detailed episode summary with more information'
-                })
-            ]
+            # Create episode entry using Mock like the working test
+            ep1 = Mock()
+            ep1.get = Mock(side_effect=lambda key, default=None: {
+                'title': 'iTunes Episode 1',
+                'description': 'Episode with iTunes metadata',
+                'id': 'unique-guid-001',
+                'published': 'Mon, 01 Jun 2025 10:00:00 GMT',
+                'published_parsed': (2025, 6, 1, 10, 0, 0, 0, 152, 0),
+                'enclosures': [{
+                    'href': 'https://example.com/itunes-ep1.mp3',
+                    'length': '34567890',
+                    'type': 'audio/mpeg'
+                }],
+                'itunes_duration': '45:32',
+                'itunes_episode': '1',
+                'itunes_season': '1',
+                'itunes_episodetype': 'full',
+                'itunes_author': 'Guest Speaker',
+                'itunes_summary': 'Detailed episode summary with more information'
+            }.get(key, default))
+            
+            parsed.entries = [ep1]
             
             mock_parse.return_value = parsed
             
@@ -323,18 +325,20 @@ class TestFeedParserFormats:
                 'link': 'https://example.com',
                 'description': 'Episodes without duration info'
             })
-            parsed.entries = [
-                feedparser.FeedParserDict({
-                    'title': 'No Duration Episode',
-                    'id': 'no-duration-001',
-                    'published': 'Mon, 01 Jun 2025 10:00:00 GMT',
-                    'published_parsed': (2025, 6, 1, 10, 0, 0, 0, 152, 0),
-                    'enclosures': [{
-                        'href': 'https://example.com/no-duration.mp3',
-                        'type': 'audio/mpeg'
-                    }]
-                })
-            ]
+            # Create episode using Mock
+            ep1 = Mock()
+            ep1.get = Mock(side_effect=lambda key, default=None: {
+                'title': 'No Duration Episode',
+                'id': 'no-duration-001',
+                'published': 'Mon, 01 Jun 2025 10:00:00 GMT',
+                'published_parsed': (2025, 6, 1, 10, 0, 0, 0, 152, 0),
+                'enclosures': [{
+                    'href': 'https://example.com/no-duration.mp3',
+                    'type': 'audio/mpeg'
+                }]
+            }.get(key, default))
+            
+            parsed.entries = [ep1]
             
             mock_parse.return_value = parsed
             
@@ -354,31 +358,35 @@ class TestFeedParserFormats:
                 'link': 'https://example.com',
                 'description': 'Podcast with YouTube video links'
             })
-            parsed.entries = [
-                feedparser.FeedParserDict({
-                    'title': 'Episode with YouTube',
-                    'id': 'youtube-001',
-                    'published': 'Mon, 01 Jun 2025 10:00:00 GMT',
-                    'published_parsed': (2025, 6, 1, 10, 0, 0, 0, 152, 0),
-                    'enclosures': [{
-                        'href': 'https://example.com/yt-ep1.mp3',
-                        'type': 'audio/mpeg'
-                    }],
-                    'description': 'Check out the video version on YouTube: https://www.youtube.com/watch?v=dQw4w9WgXcQ\n\nThis episode discusses various topics...',
-                    'itunes_duration': '30:00'
-                }),
-                feedparser.FeedParserDict({
-                    'title': 'Episode with short YouTube link',
-                    'id': 'youtube-002',
-                    'published': 'Wed, 03 Jun 2025 10:00:00 GMT',
-                    'published_parsed': (2025, 6, 3, 10, 0, 0, 2, 154, 0),
-                    'enclosures': [{
-                        'href': 'https://example.com/yt-ep2.mp3',
-                        'type': 'audio/mpeg'
-                    }],
-                    'description': 'Video: https://youtu.be/dQw4w9WgXcQ | Topics discussed...'
-                })
-            ]
+            # Create episodes using Mock
+            ep1 = Mock()
+            ep1.get = Mock(side_effect=lambda key, default=None: {
+                'title': 'Episode with YouTube',
+                'id': 'youtube-001',
+                'published': 'Mon, 01 Jun 2025 10:00:00 GMT',
+                'published_parsed': (2025, 6, 1, 10, 0, 0, 0, 152, 0),
+                'enclosures': [{
+                    'href': 'https://example.com/yt-ep1.mp3',
+                    'type': 'audio/mpeg'
+                }],
+                'description': 'Check out the video version on YouTube: https://www.youtube.com/watch?v=dQw4w9WgXcQ\n\nThis episode discusses various topics...',
+                'itunes_duration': '30:00'
+            }.get(key, default))
+            
+            ep2 = Mock()
+            ep2.get = Mock(side_effect=lambda key, default=None: {
+                'title': 'Episode with short YouTube link',
+                'id': 'youtube-002',
+                'published': 'Wed, 03 Jun 2025 10:00:00 GMT',
+                'published_parsed': (2025, 6, 3, 10, 0, 0, 2, 154, 0),
+                'enclosures': [{
+                    'href': 'https://example.com/yt-ep2.mp3',
+                    'type': 'audio/mpeg'
+                }],
+                'description': 'Video: https://youtu.be/dQw4w9WgXcQ | Topics discussed...'
+            }.get(key, default))
+            
+            parsed.entries = [ep1, ep2]
             
             mock_parse.return_value = parsed
             
@@ -403,32 +411,36 @@ class TestFeedParserFormats:
                 'itunes_author': 'Tech & Co.',
                 'image': {'url': 'https://example.com/logo.jpg'}
             })
-            parsed.entries = [
-                feedparser.FeedParserDict({
-                    'title': 'Episode: "Special Characters" & More!',
-                    'description': 'Testing special chars: <, >, &, \', "',
-                    'content': [{'value': '<p>Full HTML content with <b>formatting</b></p>\n<p>YouTube: https://youtube.com/watch?v=abc123</p>'}],
-                    'id': 'https://example.com/episodes/special-001',
-                    'published': 'Mon, 01 Jun 2025 10:00:00 +0000',
-                    'published_parsed': (2025, 6, 1, 10, 0, 0, 0, 152, 0),
-                    'enclosures': [{
-                        'href': 'https://cdn.example.com/episodes/2025/06/special.mp3',
-                        'length': '45678901',
-                        'type': 'audio/mpeg'
-                    }],
-                    'itunes_duration': '1:05:30',
-                    'itunes_episode': '10',
-                    'itunes_season': '2'
-                }),
-                feedparser.FeedParserDict({
-                    'title': 'Minimal Episode',
-                    'id': 'minimal-001',
-                    'enclosures': [{
-                        'href': 'https://example.com/minimal.mp3',
-                        'type': 'audio/mpeg'
-                    }]
-                })
-            ]
+            # Create episodes using Mock
+            ep1 = Mock()
+            ep1.get = Mock(side_effect=lambda key, default=None: {
+                'title': 'Episode: "Special Characters" & More!',
+                'description': 'Testing special chars: <, >, &, \', "',
+                'content': [{'value': '<p>Full HTML content with <b>formatting</b></p>\n<p>YouTube: https://youtube.com/watch?v=abc123</p>'}],
+                'id': 'https://example.com/episodes/special-001',
+                'published': 'Mon, 01 Jun 2025 10:00:00 +0000',
+                'published_parsed': (2025, 6, 1, 10, 0, 0, 0, 152, 0),
+                'enclosures': [{
+                    'href': 'https://cdn.example.com/episodes/2025/06/special.mp3',
+                    'length': '45678901',
+                    'type': 'audio/mpeg'
+                }],
+                'itunes_duration': '1:05:30',
+                'itunes_episode': '10',
+                'itunes_season': '2'
+            }.get(key, default))
+            
+            ep2 = Mock()
+            ep2.get = Mock(side_effect=lambda key, default=None: {
+                'title': 'Minimal Episode',
+                'id': 'minimal-001',
+                'enclosures': [{
+                    'href': 'https://example.com/minimal.mp3',
+                    'type': 'audio/mpeg'
+                }]
+            }.get(key, default))
+            
+            parsed.entries = [ep1, ep2]
             
             mock_parse.return_value = parsed
             
@@ -485,16 +497,18 @@ class TestFeedParserFormats:
                 if feed_info['has_itunes']:
                     parsed.feed['itunes_author'] = 'Test Author'
                 
-                parsed.entries = [
-                    feedparser.FeedParserDict({
-                        'title': f"Episode from {feed_info['title']}",
-                        'id': f"guid-{feed_info['title']}",
-                        'enclosures': [{
-                            'href': f"https://example.com/{feed_info['title']}/episode.mp3",
-                            'type': 'audio/mpeg'
-                        }]
-                    })
-                ]
+                # Create episode using Mock
+                ep1 = Mock()
+                ep1.get = Mock(side_effect=lambda key, default=None: {
+                    'title': f"Episode from {feed_info['title']}",
+                    'id': f"guid-{feed_info['title']}",
+                    'enclosures': [{
+                        'href': f"https://example.com/{feed_info['title']}/episode.mp3",
+                        'type': 'audio/mpeg'
+                    }]
+                }.get(key, default))
+                
+                parsed.entries = [ep1]
                 
                 mock_parse.return_value = parsed
                 

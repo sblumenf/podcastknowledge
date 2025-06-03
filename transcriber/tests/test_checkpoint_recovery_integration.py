@@ -304,7 +304,7 @@ Date: 2025-06-01
                 metadata={}
             )
         
-        assert "checkpoint already exists" in str(exc_info.value).lower()
+        assert "new episode started before previous completed" in str(exc_info.value).lower()
         
         # Verify first checkpoint is still active
         assert manager1.can_resume()
@@ -362,7 +362,8 @@ Date: 2025-06-01
                 orchestrator = TranscriptionOrchestrator(
                     output_dir=Path(test_config.output.default_dir),
                     enable_checkpoint=True,
-                    resume=True
+                    resume=True,
+                    data_dir=data_dir
                 )
                 
                 # Verify orchestrator recognizes the checkpoint

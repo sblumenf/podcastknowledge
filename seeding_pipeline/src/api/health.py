@@ -36,7 +36,7 @@ class HealthChecker:
     """Simple health checker for the application."""
     
     def __init__(self, config: PipelineConfig = None):
-        self.config = config or PipelineConfig.from_env()
+        self.config = config or PipelineConfig()
         self._start_time = time.time()
         
     def _check_neo4j(self) -> ComponentHealth:
@@ -44,7 +44,7 @@ class HealthChecker:
         try:
             driver = GraphDatabase.driver(
                 self.config.neo4j_uri,
-                auth=(self.config.neo4j_user, self.config.neo4j_password),
+                auth=(self.config.neo4j_username, self.config.neo4j_password),
                 max_connection_lifetime=30
             )
             
@@ -104,7 +104,7 @@ class HealthChecker:
         resource_health = self._check_system_resources()
         
         # Overall health is healthy only if all components are healthy
-        overall_healthy = neo4j_health["healthy"] and resource_health["healthy"]
+        overall_healthy = neo4j_health.status == HealthStatus.HEALTHY and resource_health["healthy"]
         
         return {
             "status": HealthStatus.HEALTHY.value if overall_healthy else HealthStatus.UNHEALTHY.value,
@@ -112,7 +112,13 @@ class HealthChecker:
             "timestamp": datetime.utcnow().isoformat(),
             "uptime_seconds": int(time.time() - self._start_time),
             "components": {
-                "neo4j": neo4j_health,
+                "neo4j": {
+                    "name": neo4j_health.name,
+                    "status": neo4j_health.status.value,
+                    "healthy": neo4j_health.status == HealthStatus.HEALTHY,
+                    "message": neo4j_health.message,
+                    "details": neo4j_health.details
+                },
                 "system_resources": resource_health
             }
         }
@@ -123,10 +129,10 @@ class HealthChecker:
         neo4j_health = self._check_neo4j()
         
         return {
-            "ready": neo4j_health["healthy"],
-            "status": "ready" if neo4j_health["healthy"] else "not_ready",
+            "ready": neo4j_health.status == HealthStatus.HEALTHY,
+            "status": "ready" if neo4j_health.status == HealthStatus.HEALTHY else "not_ready",
             "checks": {
-                "neo4j": neo4j_health["status"]
+                "neo4j": neo4j_health.status.value
             },
             "timestamp": datetime.utcnow().isoformat()
         }

@@ -1,11 +1,11 @@
 {
-  "last_updated": "2025-06-01T16:07:08.973546+00:00",
+  "last_updated": "2025-06-03T00:11:39.977035+00:00",
   "trackers": [
     {
       "key_index": 0,
       "requests_today": 1,
-      "tokens_today": 0,
-      "last_reset": "2025-06-01T16:07:04.924064+00:00"
+      "tokens_today": 1000,
+      "last_reset": "2025-06-03T00:11:39.976476+00:00"
     }
   ]
 }

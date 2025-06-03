@@ -41,7 +41,7 @@ class Episode:
     file_size: Optional[int] = None
     mime_type: Optional[str] = None
     
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         """Validate required fields after initialization."""
         if not self.title:
             raise ValueError("Episode title is required")
@@ -147,9 +147,17 @@ def _extract_podcast_metadata(feed: feedparser.FeedParserDict) -> PodcastMetadat
     # Extract image URL
     image_url = None
     if hasattr(feed_info, 'image') and feed_info.image:
-        image_url = feed_info.image.get('href') or feed_info.image.get('url')
+        if hasattr(feed_info.image, 'get'):
+            image_url = feed_info.image.get('href') or feed_info.image.get('url')
+        elif hasattr(feed_info.image, 'href'):
+            image_url = feed_info.image.href
     elif hasattr(feed_info, 'itunes_image'):
-        image_url = getattr(feed_info.itunes_image, 'href', None)
+        if isinstance(feed_info.itunes_image, dict):
+            image_url = feed_info.itunes_image.get('href')
+        elif hasattr(feed_info.itunes_image, 'href'):
+            image_url = feed_info.itunes_image.href
+        else:
+            image_url = getattr(feed_info.itunes_image, 'href', None)
     
     return PodcastMetadata(
         title=feed_info.get('title', 'Unknown Podcast'),
@@ -192,10 +200,21 @@ def _parse_episode(entry: feedparser.FeedParserDict, podcast_metadata: PodcastMe
     mime_type = None
     
     for enclosure in entry.get('enclosures', []):
-        if enclosure.get('type', '').startswith('audio/'):
-            audio_url = enclosure.get('href') or enclosure.get('url')
-            file_size = int(enclosure.get('length', 0)) or None
-            mime_type = enclosure.get('type')
+        # Handle both dict and object access patterns
+        if isinstance(enclosure, dict):
+            enc_type = enclosure.get('type', '')
+            enc_href = enclosure.get('href') or enclosure.get('url')
+            enc_length = enclosure.get('length', 0)
+        else:
+            # Handle feedparser objects
+            enc_type = getattr(enclosure, 'type', '')
+            enc_href = getattr(enclosure, 'href', None) or getattr(enclosure, 'url', None)
+            enc_length = getattr(enclosure, 'length', 0)
+            
+        if enc_type.startswith('audio/'):
+            audio_url = enc_href
+            file_size = int(enc_length) if enc_length else None
+            mime_type = enc_type
             break
     
     # Skip if no audio URL found
@@ -222,14 +241,16 @@ def _parse_episode(entry: feedparser.FeedParserDict, podcast_metadata: PodcastMe
     if itunes_episode:
         try:
             episode_number = int(itunes_episode)
-        except (ValueError, TypeError):
+        except (ValueError, TypeError) as e:
+            logger.debug(f"Failed to parse episode number '{itunes_episode}': {e}")
             pass
     
     itunes_season = entry.get('itunes_season')
     if itunes_season:
         try:
             season_number = int(itunes_season)
-        except (ValueError, TypeError):
+        except (ValueError, TypeError) as e:
+            logger.debug(f"Failed to parse season number '{itunes_season}': {e}")
             pass
     
     # Extract keywords
@@ -241,7 +262,7 @@ def _parse_episode(entry: feedparser.FeedParserDict, podcast_metadata: PodcastMe
         keywords = [tag.get('term', '') for tag in entry.get('tags', []) if tag.get('term')]
     
     # Use GUID or link as unique identifier
-    guid = entry.get('id') or entry.get('guid') or entry.get('link') or audio_url
+    guid = entry.get('guid') or entry.get('id') or entry.get('link') or audio_url
     
     return Episode(
         title=entry.get('title', 'Untitled Episode'),
@@ -253,7 +274,7 @@ def _parse_episode(entry: feedparser.FeedParserDict, podcast_metadata: PodcastMe
         episode_number=episode_number,
         season_number=season_number,
         link=entry.get('link'),
-        author=entry.get('author') or podcast_metadata.author,
+        author=entry.get('itunes_author') or entry.get('author') or podcast_metadata.author,
         keywords=keywords,
         file_size=file_size,
         mime_type=mime_type
@@ -279,5 +300,6 @@ def validate_feed_url(url: str) -> bool:
             return bool(parsed.path)
         # For http/https URLs, check scheme and netloc
         return bool(parsed.scheme and parsed.netloc)
-    except Exception:
+    except Exception as e:
+        logger.debug(f"URL validation failed for '{url}': {e}")
         return False

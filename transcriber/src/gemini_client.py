@@ -514,7 +514,8 @@ Example response format:
                 return minutes + seconds / 60
             else:
                 return float(duration_str)  # Assume minutes
-        except:
+        except Exception as e:
+            logger.warning(f"Failed to parse duration '{duration_str}': {e}. Using default 60 minutes.")
             return 60.0  # Default to 1 hour
     
     def _parse_duration_to_seconds(self, duration_str: str) -> int:
@@ -533,7 +534,8 @@ Example response format:
                 return minutes * 60 + seconds
             else:
                 return int(float(duration_str) * 60)  # Assume minutes, convert to seconds
-        except:
+        except Exception as e:
+            logger.warning(f"Failed to parse duration to seconds '{duration_str}': {e}. Using default 3600 seconds.")
             return 3600  # Default to 1 hour
     
     def validate_transcript_completeness(self, transcript: str, duration_seconds: int) -> Tuple[bool, float]:

@@ -23,7 +23,7 @@ from src.core.config import PipelineConfig
 from src.core.exceptions import PipelineError
 from src.vtt import VTTParser
 from src.seeding.transcript_ingestion import TranscriptIngestionManager
-from src.utils.logging import setup_logging as setup_structured_logging, get_logger
+from src.utils.logging import setup_logging, get_logger
 from src.seeding.checkpoint import ProgressCheckpoint
 
 
@@ -70,7 +70,7 @@ def seed_podcasts(args: argparse.Namespace) -> int:
         if args.config:
             config = PipelineConfig.from_file(Path(args.config))
         else:
-            config = PipelineConfig.from_env()
+            config = PipelineConfig()
         
         # Initialize pipeline
         pipeline = VTTKnowledgeExtractor(config)
@@ -144,7 +144,7 @@ def health_check(args: argparse.Namespace) -> int:
         if args.config:
             config = PipelineConfig.from_file(Path(args.config))
         else:
-            config = PipelineConfig.from_env()
+            config = PipelineConfig()
         
         # Initialize pipeline
         pipeline = VTTKnowledgeExtractor(config)
@@ -224,7 +224,7 @@ def schema_stats(args: argparse.Namespace) -> int:
         if args.config:
             config = PipelineConfig.from_file(Path(args.config))
         else:
-            config = PipelineConfig.from_env()
+            config = PipelineConfig()
         
         # Initialize pipeline
         pipeline = VTTKnowledgeExtractor(config)
@@ -266,7 +266,7 @@ def schema_stats(args: argparse.Namespace) -> int:
             pipeline.cleanup()
 
 
-def setup_logging(verbose: bool = False, log_file: Optional[str] = None) -> None:
+def setup_logging_cli(verbose: bool = False, log_file: Optional[str] = None) -> None:
     """Set up structured logging configuration."""
     level = "DEBUG" if verbose else os.environ.get("VTT_KG_LOG_LEVEL", "INFO")
     
@@ -275,12 +275,11 @@ def setup_logging(verbose: bool = False, log_file: Optional[str] = None) -> None
         log_dir = Path(log_file).parent
         log_dir.mkdir(exist_ok=True, parents=True)
     
-    setup_structured_logging(
+    setup_logging(
         level=level,
         log_file=log_file,
-        json_format=os.environ.get("VTT_KG_LOG_FORMAT", "json").lower() == "json",
-        add_context=True,
-        add_performance=verbose
+        structured=os.environ.get("VTT_KG_LOG_FORMAT", "json").lower() == "json",
+        correlation_id=None
     )
 
 
@@ -369,7 +368,7 @@ def process_vtt(args: argparse.Namespace) -> int:
         if args.config:
             config = PipelineConfig.from_file(args.config)
         else:
-            config = PipelineConfig.from_env()
+            config = PipelineConfig()
         
         # Initialize pipeline
         pipeline = VTTKnowledgeExtractor(config)
@@ -752,7 +751,7 @@ Examples:
     args = parser.parse_args()
     
     # Set up logging
-    setup_logging(args.verbose, args.log_file if hasattr(args, 'log_file') else None)
+    setup_logging_cli(args.verbose, args.log_file if hasattr(args, 'log_file') else None)
     
     # Execute command
     if args.command == 'process-vtt':

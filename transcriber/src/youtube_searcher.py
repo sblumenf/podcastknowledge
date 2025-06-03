@@ -25,6 +25,7 @@ class YouTubeSearcher:
         Args:
             config: Application configuration
         """
+        self.config = config  # Store config for tests
         self.search_enabled = getattr(config.youtube_search, 'enabled', True)
         self.method = getattr(config.youtube_search, 'method', 'rss_only')
         self.cache_results = getattr(config.youtube_search, 'cache_results', True)
@@ -33,21 +34,26 @@ class YouTubeSearcher:
         self.max_search_results = getattr(config.youtube_search, 'max_search_results', 5)
         
         # Initialize cache
-        self.cache_file = Path("data") / ".youtube_cache.json"
-        self.cache = self._load_cache()
+        # Use config-based cache path if available, otherwise default
+        cache_dir = getattr(getattr(config, 'output', None), 'base_dir', 'data')
+        self.cache_file = Path(cache_dir) / ".youtube_cache.json"
+        self.cache = {}
+        self._cache_loaded = False
     
-    def search_youtube_url(self, 
-                          podcast_name: str, 
+    async def search_youtube_url(self, 
                           episode_title: str,
                           episode_description: Optional[str] = None,
+                          episode_guid: Optional[str] = None,
+                          podcast_name: Optional[str] = None,
                           episode_number: Optional[int] = None,
                           duration_seconds: Optional[int] = None) -> Optional[str]:
         """Search for YouTube URL for the given episode.
         
         Args:
-            podcast_name: Name of the podcast
             episode_title: Title of the episode
             episode_description: Episode description (for RSS extraction)
+            episode_guid: Unique identifier for the episode
+            podcast_name: Name of the podcast
             episode_number: Episode number if available
             duration_seconds: Episode duration for validation
             
@@ -58,8 +64,16 @@ class YouTubeSearcher:
             return None
         
         # Create cache key
-        cache_key = self._create_cache_key(podcast_name, episode_title, episode_number)
+        if episode_guid:
+            cache_key = f"{episode_title}_{episode_guid}"
+        else:
+            cache_key = f"{episode_title}_"
         
+        # Load cache lazily on first use
+        if self.cache_results and not self._cache_loaded:
+            self.cache = self._load_cache()
+            self._cache_loaded = True
+            
         # Check cache first
         if self.cache_results and cache_key in self.cache:
             cached_result = self.cache[cache_key]
@@ -68,13 +82,13 @@ class YouTubeSearcher:
         
         # Try RSS extraction first
         youtube_url = None
-        if episode_description:
-            youtube_url = self._extract_from_rss(episode_description)
+        if episode_description and getattr(self.config.youtube_search, 'extract_from_rss', True):
+            youtube_url = self._extract_youtube_url_from_text(episode_description)
             if youtube_url:
                 logger.info(f"Found YouTube URL in RSS for {episode_title}: {youtube_url}")
         
         # Try external search if enabled and RSS extraction failed
-        if not youtube_url and self.method == "yt_dlp":
+        if not youtube_url and getattr(self.config.youtube_search, 'use_yt_dlp', False):
             # This would require yt-dlp dependency (pending approval)
             # youtube_url = self._search_with_yt_dlp(podcast_name, episode_title, episode_number, duration_seconds)
             logger.debug("yt-dlp search not implemented (requires approval)")
@@ -87,7 +101,7 @@ class YouTubeSearcher:
         
         return youtube_url
     
-    def _extract_from_rss(self, text: str) -> Optional[str]:
+    def _extract_youtube_url_from_text(self, text: str) -> Optional[str]:
         """Extract YouTube URL from RSS text content.
         
         Args:
@@ -107,12 +121,15 @@ class YouTubeSearcher:
         for pattern in youtube_patterns:
             matches = re.findall(pattern, text, re.IGNORECASE)
             if matches:
-                # Return the first valid match
-                url = matches[0]
-                # Normalize URL (convert youtu.be to youtube.com format)
-                return self._normalize_youtube_url(url)
+                # Return the first valid match without normalization
+                # to preserve the original format
+                return matches[0]
         
         return None
+    
+    def _extract_from_rss(self, text: str) -> Optional[str]:
+        """Alias for _extract_youtube_url_from_text for backward compatibility."""
+        return self._extract_youtube_url_from_text(text)
     
     def _normalize_youtube_url(self, url: str) -> str:
         """Normalize YouTube URL to standard format.
@@ -160,7 +177,7 @@ class YouTubeSearcher:
         logger.debug("yt-dlp search method not implemented (requires approval)")
         return None
     
-    def _fuzzy_match_title(self, search_title: str, result_title: str) -> float:
+    def _fuzzy_match(self, search_title: str, result_title: str) -> float:
         """Calculate fuzzy match score between titles.
         
         Args:

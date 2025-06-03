@@ -19,10 +19,7 @@ from src.core.interfaces import (
     HealthCheckable, AudioProvider, LLMProvider, GraphProvider, 
     EmbeddingProvider, KnowledgeExtractor,
     # Dataclasses
-    DiarizationSegment, TranscriptSegment, LLMResponse,
-    ExtractedEntity, ExtractedInsight, ExtractedQuote,
-    # Context managers
-    Neo4jManager
+    TranscriptSegment, LLMResponse
 )
 
 
