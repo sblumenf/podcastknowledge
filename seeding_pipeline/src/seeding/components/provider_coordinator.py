@@ -82,12 +82,11 @@ class ProviderCoordinator:
                 pool_size=getattr(self.config, 'pool_size', 50)
             )
             
-            # Initialize embeddings service
+            # Initialize embeddings service with Gemini API
             self.embedding_service = EmbeddingsService(
-                model_name=getattr(self.config, 'embedding_model', 'all-MiniLM-L6-v2'),
-                device=getattr(self.config, 'device', 'cpu'),
-                batch_size=getattr(self.config, 'embedding_batch_size', 32),
-                normalize_embeddings=getattr(self.config, 'normalize_embeddings', True)
+                api_key=api_key,  # Use the same API key as LLM service
+                model_name=getattr(self.config, 'embedding_model', 'models/text-embedding-004'),
+                batch_size=getattr(self.config, 'embedding_batch_size', 100)
             )
             
             # Initialize processing components

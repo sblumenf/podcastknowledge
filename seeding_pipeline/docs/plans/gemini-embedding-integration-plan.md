@@ -107,7 +107,7 @@ This plan outlines the complete replacement of the current sentence-transformers
 ## Phase 3: Integration and Migration
 
 ### Task 3.1: Update Embeddings Service Factory
-- [ ] Modify embeddings.py to use Gemini implementation
+- [x] Modify embeddings.py to use Gemini implementation
 - **Purpose**: Switch the entire codebase to new implementation
 - **Steps**:
   1. Use context7 MCP tool to review service switching patterns
