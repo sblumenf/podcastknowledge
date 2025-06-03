@@ -48,7 +48,7 @@ setup(
         "networkx>=3.1",
         "langchain>=0.1.0",
         "langchain-google-genai>=0.0.5",
-        "sentence-transformers>=2.2.2",
+        "google-generativeai>=0.3.2",
         "tqdm>=4.66.1",
         "pyyaml>=6.0.1",
     ],

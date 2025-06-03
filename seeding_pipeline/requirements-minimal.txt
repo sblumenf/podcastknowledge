@@ -26,4 +26,4 @@ uvicorn[standard]==0.24.0
 pydantic==2.5.0
 
 # Note: sentence-transformers excluded to avoid 4GB+ of GPU dependencies
-# For embeddings, use OpenAI API or lightweight alternatives
+# Embeddings are now handled via Gemini API (google-generativeai)

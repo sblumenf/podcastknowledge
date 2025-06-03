@@ -179,7 +179,7 @@ This plan outlines the complete replacement of the current sentence-transformers
 ## Phase 5: Cleanup and Documentation
 
 ### Task 5.1: Remove Sentence-Transformers Dependencies
-- [ ] Clean up unused dependencies
+- [x] Clean up unused dependencies
 - **Purpose**: Reduce package size and complexity
 - **Steps**:
   1. Use context7 MCP tool to review dependency management
