@@ -1,0 +1,75 @@
+# Phase 2 File Changes List
+
+## Deleted Files (50 total):
+
+### Temporary Files (42):
+transcriber/data/checkpoints/tmp0bzeg22d.tmp
+transcriber/data/checkpoints/tmp13ms1y2a.tmp
+transcriber/data/checkpoints/tmp2othf45s.tmp
+transcriber/data/checkpoints/tmp2pfbavvp.tmp
+transcriber/data/checkpoints/tmp4n1txy4f.tmp
+transcriber/data/checkpoints/tmp4ugfea5l.tmp
+transcriber/data/checkpoints/tmp67q093u_.tmp
+transcriber/data/checkpoints/tmp6i7ig0vl.tmp
+transcriber/data/checkpoints/tmp89hura2d.tmp
+transcriber/data/checkpoints/tmp8pfvxz7c.tmp
+transcriber/data/checkpoints/tmp8vf331et.tmp
+transcriber/data/checkpoints/tmp9g54l0tl.tmp
+transcriber/data/checkpoints/tmp9rm4nczu.tmp
+transcriber/data/checkpoints/tmpats7vhwl.tmp
+transcriber/data/checkpoints/tmpb6pavrkt.tmp
+transcriber/data/checkpoints/tmpckbot5lp.tmp
+transcriber/data/checkpoints/tmpi50ovkqc.tmp
+transcriber/data/checkpoints/tmpia264fsg.tmp
+transcriber/data/checkpoints/tmpkye1s2bl.tmp
+transcriber/data/checkpoints/tmpluz9_zy3.tmp
+transcriber/data/checkpoints/tmpms404kxw.tmp
+transcriber/data/checkpoints/tmpmxqhucs3.tmp
+transcriber/data/checkpoints/tmpn2iew8vv.tmp
+transcriber/data/checkpoints/tmpncjdq8t1.tmp
+transcriber/data/checkpoints/tmpnegfww48.tmp
+transcriber/data/checkpoints/tmpp2fxqgj6.tmp
+transcriber/data/checkpoints/tmppvbmkqmi.tmp
+transcriber/data/checkpoints/tmpqfz4v7r3.tmp
+transcriber/data/checkpoints/tmps2239civ.tmp
+transcriber/data/checkpoints/tmpscokwk6o.tmp
+transcriber/data/checkpoints/tmptibwq88m.tmp
+transcriber/data/checkpoints/tmptswgjt58.tmp
+transcriber/data/checkpoints/tmpuv25uipj.tmp
+transcriber/data/checkpoints/tmpw8pv3adk.tmp
+transcriber/data/checkpoints/tmpwevcsgy1.tmp
+transcriber/data/checkpoints/tmpwgh8g9j7.tmp
+transcriber/data/checkpoints/tmpx5_hep3l.tmp
+transcriber/data/checkpoints/tmpxeggklex.tmp
+transcriber/data/checkpoints/tmpy1xrqq4o.tmp
+transcriber/data/checkpoints/tmpyjnr6taf.tmp
+transcriber/data/checkpoints/tmpyplbmgvc.tmp
+transcriber/data/checkpoints/tmpzjc70bix.tmp
+
+### Error Logs (4):
+transcriber/logs/errors_20250531.log
+transcriber/logs/errors_20250601.log
+transcriber/logs/errors_20250602.log
+transcriber/logs/errors_20250603.log
+
+### Original Logs (4) - Replaced with .gz versions:
+transcriber/logs/podcast_transcriber_20250531.log
+transcriber/logs/podcast_transcriber_20250601.log
+transcriber/logs/podcast_transcriber_20250602.log
+transcriber/logs/podcast_transcriber_20250603.log
+
+## Added Files (4):
+transcriber/logs/podcast_transcriber_20250531.log.gz
+transcriber/logs/podcast_transcriber_20250601.log.gz
+transcriber/logs/podcast_transcriber_20250602.log.gz
+transcriber/logs/podcast_transcriber_20250603.log.gz
+
+## Modified Files (2):
+docs/plans/storage-optimization-cleanup-plan.md
+docs/plans/storage-optimization-phase2-progress.md
+
+## Storage Savings:
+- Temporary files: Minimal (were empty)
+- Error logs: ~346 KB
+- Log compression: ~6.4 MB saved (from 6.4 MB to 287 KB)
+- Total Phase 2 savings: ~6.75 MB
