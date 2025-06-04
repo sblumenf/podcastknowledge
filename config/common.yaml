@@ -1,0 +1,32 @@
+# Common Configuration for Podcast Knowledge System
+# Shared settings used by both transcriber and seeding pipeline
+
+# Retry Configuration
+retry:
+  max_attempts: 3
+  base_delay: 1.0
+  exponential_backoff: true
+  max_backoff: 30
+
+# Logging Configuration
+logging:
+  console_level: "INFO"
+  file_level: "DEBUG"
+  max_file_size_mb: 10
+  backup_count: 5
+
+# Performance Settings
+performance:
+  batch_size: 10
+  max_concurrent_jobs: 4
+  memory_cleanup_interval: 5
+
+# Development Settings
+development:
+  debug_mode: false
+  dry_run: false
+
+# Progress Display
+display:
+  show_progress_bar: true
+  verbose_logging: false

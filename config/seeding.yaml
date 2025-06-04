@@ -1,5 +1,5 @@
-# VTT Knowledge Extraction Configuration
-# All settings in one place for simplified VTT processing
+# Seeding Pipeline Configuration
+# Specific settings for VTT knowledge extraction
 
 # VTT Processing
 vtt:
@@ -41,31 +41,12 @@ paths:
   output_dir: "./output"
   checkpoint_dir: "./checkpoints"
   
-# Performance
-performance:
-  batch_size: 10
-  embedding_batch_size: 50
-  max_concurrent_jobs: 4
-  memory_cleanup_interval: 5
-  
 # Rate Limiting
 rate_limits:
   llm_requests_per_minute: 60
   llm_tokens_per_minute: 150000
   
-# Retry Settings  
-retry:
-  max_attempts: 3
-  base_delay: 1.0
-  exponential_backoff: true
-  
-# Progress Display
-display:
-  show_progress_bar: true
-  verbose_logging: false
-  
 # Feature Flags
 features:
   enable_checkpoints: true
   enable_entity_resolution: true
-  enable_debug_mode: false

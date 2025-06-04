@@ -16,4 +16,19 @@ A system for extracting and building knowledge graphs from podcast transcripts.
 
 ## Quick Start
 
-See [docs/README.md](docs/README.md) for setup and usage instructions.
+### Docker Setup (Recommended)
+
+```bash
+# Build and start all services
+docker-compose up -d
+
+# Run transcriber
+docker-compose run transcriber python cli.py transcribe --feed-url "podcast-rss-url"
+
+# Run seeding pipeline
+docker-compose run seeding python cli.py process-vtt --folder /app/data/transcripts
+```
+
+### Manual Setup
+
+See [docs/README.md](docs/README.md) for manual setup and usage instructions.
