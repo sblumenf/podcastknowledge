@@ -173,3 +173,31 @@ MATCH (n) CALL db.index.fulltext.queryNodes('node_text_index', n.name) YIELD nod
 2. **Neo4j**: Change default password, use SSL in production
 3. **Logs**: Automatic redaction of sensitive data
 4. **Network**: Use firewall rules to restrict access
+
+## Storage Report
+
+### Project Size Summary (Post-Optimization)
+- **Total Size**: 46MB (reduced from 1.057GB)
+- **Storage Reduction**: 96% (1.011GB saved)
+
+### Size by Component
+- **Transcriber**: 37MB
+  - Source code and tests
+  - No virtual environment
+- **Seeding Pipeline**: 4.3MB
+  - Source code and tests  
+  - No virtual environment
+- **Documentation**: 64KB
+  - Essential docs only
+- **Configuration**: 20KB
+  - Consolidated configs
+- **Git Repository**: 4.5MB
+  - Optimized with gc and repack
+
+### Storage Optimization Achieved
+1. Removed virtual environments (saved ~1GB)
+2. Cleaned logs and temp files (saved ~10MB)
+3. Consolidated test artifacts (saved ~2MB)
+4. Minimized documentation (saved ~3MB)
+5. Optimized configurations (saved ~100KB)
+6. Git optimization (saved ~12.5MB)
