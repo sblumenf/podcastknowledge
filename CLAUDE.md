@@ -21,3 +21,7 @@ Always follow plans explicitly.  Do not deviate from the plan without explicit a
 ## Estimation Guidelines
 
 Never provide cost or time estimates when generating an anlysis or a plan.  These are usually inventions
+
+## Cleanup
+
+Make sure to clean up all temporary files and directories when you are done with them.  Do not leave any temporary files or directories in the project.
