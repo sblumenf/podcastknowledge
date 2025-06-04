@@ -82,7 +82,7 @@ class TestEpisodeProgress:
             'podcast_name': 'Test Podcast',
             'title': 'Test Episode',
             'audio_url': 'https://example.com/episode.mp3',
-            'publication_date': '2024-01-15',
+            'published_date': '2024-01-15',
             'attempt_count': 2,
             'last_attempt': now.isoformat(),
             'error': 'Test error',
@@ -274,7 +274,7 @@ class TestProgressTracker:
             'podcast_name': 'Test Podcast',
             'title': 'Episode 1',
             'audio_url': 'https://example.com/ep1.mp3',
-            'publication_date': '2024-01-15'
+            'published_date': '2024-01-15'
         }
         
         tracker.mark_started(episode_data, api_key_index=0)
@@ -436,7 +436,7 @@ class TestProgressTracker:
             'podcast_name': 'Test Podcast',
             'title': 'New Episode',
             'audio_url': 'https://example.com/new.mp3',
-            'publication_date': '2024-01-20'
+            'published_date': '2024-01-20'
         }
         
         tracker.add_episode(episode_data)

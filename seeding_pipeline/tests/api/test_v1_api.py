@@ -157,7 +157,7 @@ class TestAPIPipeline:
 class TestAPIFunctions:
     """Test module-level API functions."""
     
-    @patch('src.api.v1.seeding.VTTKnowledgeExtractor')
+    @patch('src.api.v1.podcast_api.VTTKnowledgeExtractor')
     def test_seed_podcast_function(self, mock_pipeline_class):
         """Test module-level seed_podcast function."""
         # Setup mock
@@ -179,7 +179,7 @@ class TestAPIFunctions:
         mock_pipeline.seed_podcast.assert_called_once()
         mock_pipeline.cleanup.assert_called_once()
     
-    @patch('src.api.v1.seeding.VTTKnowledgeExtractor')
+    @patch('src.api.v1.podcast_api.VTTKnowledgeExtractor')
     def test_seed_podcasts_function(self, mock_pipeline_class):
         """Test module-level seed_podcasts function."""
         # Setup mock
@@ -202,7 +202,7 @@ class TestAPIFunctions:
         mock_pipeline.seed_podcasts.assert_called_once()
         mock_pipeline.cleanup.assert_called_once()
     
-    @patch('src.api.v1.seeding.VTTKnowledgeExtractor')
+    @patch('src.api.v1.podcast_api.VTTKnowledgeExtractor')
     def test_function_with_custom_config(self, mock_pipeline_class):
         """Test API function with custom config."""
         # Setup
@@ -217,7 +217,7 @@ class TestAPIFunctions:
         # Verify config was passed
         mock_pipeline_class.assert_called_once_with(custom_config)
     
-    @patch('src.api.v1.seeding.VTTKnowledgeExtractor')
+    @patch('src.api.v1.podcast_api.VTTKnowledgeExtractor')
     def test_function_cleanup_on_error(self, mock_pipeline_class):
         """Test cleanup is called even on error."""
         # Setup mock to raise error
@@ -234,7 +234,7 @@ class TestAPIFunctions:
     
     def test_forward_compatibility_kwargs(self):
         """Test that functions accept **kwargs for forward compatibility."""
-        with patch('src.api.v1.seeding.VTTKnowledgeExtractor') as mock_class:
+        with patch('src.api.v1.podcast_api.VTTKnowledgeExtractor') as mock_class:
             mock_pipeline = Mock()
             mock_pipeline.seed_podcast.return_value = {'api_version': '1.0'}
             mock_class.return_value = mock_pipeline

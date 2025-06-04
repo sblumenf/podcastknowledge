@@ -59,7 +59,7 @@ def minimal_episode_metadata():
         'podcast_name': 'Test Pod',
         'guid': 'test-guid-1',
         'audio_url': 'https://test.com/1.mp3',
-        'publication_date': '2024-01-01'
+        'published_date': '2024-01-01'
     }
 
 
@@ -279,7 +279,7 @@ def sample_episode_metadata():
     return EpisodeMetadata(
         title="Test Episode",
         podcast_name="Test Podcast", 
-        publication_date="2024-01-15",
+        published_date="2024-01-15",
         file_path="Test_Podcast/2024-01-15_Test_Episode.vtt",
         speakers=["Host"],
         duration=1800,

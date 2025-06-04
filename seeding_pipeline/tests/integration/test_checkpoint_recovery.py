@@ -73,11 +73,18 @@ class TestCheckpointRecovery:
         
         # Save checkpoint
         podcast_url = "https://example.com/feed.xml"
-        checkpoint.save_progress(
-            podcast_url=podcast_url,
-            podcast_name="Test Podcast",
+        episode_data = {
+            "podcast_url": podcast_url,
+            "podcast_name": "Test Podcast",
+            "episode_id": "episode-1",
+            "title": "Episode 1",
+            "url": "https://example.com/ep1.mp3",
+            "processed_episodes": ["episode-1"]
+        }
+        checkpoint.save_episode_progress(
             episode_id="episode-1",
-            episode_data={"title": "Episode 1", "url": "https://example.com/ep1.mp3"}
+            stage="completed",
+            progress_data=episode_data
         )
         
         # Create new checkpoint instance and load
@@ -87,14 +94,14 @@ class TestCheckpointRecovery:
         )
         
         # Check if episode was processed
-        assert new_checkpoint.is_episode_processed(podcast_url, "episode-1")
-        assert not new_checkpoint.is_episode_processed(podcast_url, "episode-2")
+        episode_progress = new_checkpoint.load_episode_progress("episode-1")
+        assert episode_progress is not None
+        assert episode_progress.get("episode_id") == "episode-1"
+        assert episode_progress.get("podcast_name") == "Test Podcast"
         
-        # Get progress
-        progress = new_checkpoint.get_progress(podcast_url)
-        assert progress is not None
-        assert progress["last_processed_episode"] == "episode-1"
-        assert "episode-1" in progress["processed_episodes"]
+        # Check completed episodes
+        completed = new_checkpoint.get_completed_episodes()
+        assert "episode-1" in completed
     
     @pytest.mark.integration
     def test_checkpoint_resume_interrupted_processing(

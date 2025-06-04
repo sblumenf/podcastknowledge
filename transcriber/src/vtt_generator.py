@@ -22,7 +22,7 @@ class VTTMetadata:
     """Metadata to be embedded in VTT file."""
     podcast_name: str
     episode_title: str
-    publication_date: str
+    publication_date: Union[str, datetime]
     duration: Optional[str] = None
     host: Optional[str] = None
     guests: Optional[List[str]] = None
@@ -36,7 +36,12 @@ class VTTMetadata:
         lines = ["NOTE"]
         lines.append(f"Podcast: {self.podcast_name}")
         lines.append(f"Episode: {self.episode_title}")
-        lines.append(f"Date: {self.publication_date}")
+        # Format date appropriately
+        if isinstance(self.publication_date, datetime):
+            date_str = self.publication_date.strftime('%Y-%m-%d')
+        else:
+            date_str = str(self.publication_date)
+        lines.append(f"Date: {date_str}")
         
         if self.duration:
             lines.append(f"Duration: {self.duration}")
@@ -64,7 +69,7 @@ class VTTMetadata:
         json_data = {
             "podcast": self.podcast_name,
             "episode": self.episode_title,
-            "date": self.publication_date,
+            "date": date_str,  # Use the formatted date string
             "duration": self.duration,
             "host": self.host,
             "guests": self.guests,
@@ -364,7 +369,7 @@ class VTTGenerator:
         return VTTMetadata(
             podcast_name=episode_data.get('podcast_name', 'Unknown Podcast'),
             episode_title=episode_data.get('title', 'Unknown Episode'),
-            publication_date=episode_data.get('publication_date', 'Unknown'),
+            publication_date=episode_data.get('published_date', 'Unknown'),
             duration=episode_data.get('duration'),
             host=host,
             guests=guests if guests else None,
@@ -427,7 +432,7 @@ class VTTGenerator:
         podcast_dir = output_dir / podcast_name
         
         # Generate filename
-        date_str = episode_data.get('publication_date', 'unknown')
+        date_str = episode_data.get('published_date', 'unknown')
         if date_str and date_str != 'unknown':
             try:
                 # Try to parse and format date

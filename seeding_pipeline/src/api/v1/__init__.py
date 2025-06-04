@@ -65,15 +65,15 @@ def api_version_check(required_version: str):
 
 # Lazy imports to avoid circular dependencies
 def __getattr__(name):
-    if name in ['seed_podcast', 'seed_podcasts', 'PodcastKnowledgePipeline', 'VTTKnowledgeExtractor']:
+    if name in ['seed_podcast', 'seed_podcasts', 'PodcastKnowledgePipeline']:
         from .podcast_api import seed_podcast, seed_podcasts, PodcastKnowledgePipeline
-        # VTTKnowledgeExtractor is an alias for PodcastKnowledgePipeline
-        if name == 'VTTKnowledgeExtractor':
-            VTTKnowledgeExtractor = PodcastKnowledgePipeline
-            globals()[name] = VTTKnowledgeExtractor
-            return VTTKnowledgeExtractor
         globals()[name] = locals()[name]
         return locals()[name]
+    elif name == 'VTTKnowledgeExtractor':
+        # Use the API v1 compatible version from seeding module
+        from .seeding import VTTKnowledgeExtractor
+        globals()[name] = VTTKnowledgeExtractor
+        return VTTKnowledgeExtractor
     raise AttributeError(f"module {__name__} has no attribute {name}")
 
 __all__ = [

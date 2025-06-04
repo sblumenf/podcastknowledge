@@ -82,20 +82,12 @@ class TranscriptionProcessor:
             VTT-formatted transcript or None if failed
         """
         try:
-            # Get next API key
-            api_key, key_index = self.key_manager.get_next_key()
-            
-            # Update Gemini client with selected key
-            self.gemini_client.api_keys = [api_key]
-            self.gemini_client.usage_trackers = [self.gemini_client.usage_trackers[key_index]]
-            
             logger.info(f"Starting transcription for: {episode_metadata.get('title', 'Unknown')}")
-            logger.info(f"Using API key index: {key_index + 1}")
             
             # Build enhanced prompt for VTT output
             prompt = self._build_transcription_prompt(episode_metadata)
             
-            # Perform transcription
+            # Perform transcription (gemini_client handles key selection internally)
             transcript = await self.gemini_client.transcribe_audio(
                 audio_url, episode_metadata, validation_config
             )
@@ -111,20 +103,21 @@ class TranscriptionProcessor:
                 self.checkpoint_manager.save_temp_data('transcription', cleaned_transcript)
                 self.checkpoint_manager.complete_stage('transcription')
             
-            # Mark key as successful
-            self.key_manager.mark_key_success(key_index)
-            
             logger.info("Transcription completed successfully")
             return cleaned_transcript
             
         except Exception as e:
+            # Re-raise QuotaExceededException and CircuitBreakerOpenException to allow proper handling at higher levels
+            from src.retry_wrapper import QuotaExceededException, CircuitBreakerOpenException
+            if isinstance(e, QuotaExceededException):
+                logger.warning(f"Quota exceeded during transcription: {e}")
+                raise
+            elif isinstance(e, CircuitBreakerOpenException):
+                logger.warning(f"Circuit breaker open during transcription: {e}")
+                raise
+            
             error_msg = str(e)
             logger.error(f"Transcription failed: {error_msg}")
-            
-            # Mark key as failed if we have a key index
-            if 'key_index' in locals():
-                self.key_manager.mark_key_failure(key_index, error_msg)
-            
             return None
     
     def _build_transcription_prompt(self, metadata: Dict[str, Any]) -> str:

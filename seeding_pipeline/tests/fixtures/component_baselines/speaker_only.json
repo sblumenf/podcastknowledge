@@ -1,0 +1,147 @@
+{
+  "test_name": "speaker_only",
+  "flags": {
+    "ENABLE_SCHEMALESS_EXTRACTION": true,
+    "ENABLE_TIMESTAMP_INJECTION": false,
+    "ENABLE_SPEAKER_INJECTION": true,
+    "ENABLE_QUOTE_POSTPROCESSING": false,
+    "ENABLE_METADATA_ENRICHMENT": false,
+    "ENABLE_ENTITY_RESOLUTION_POSTPROCESS": false
+  },
+  "extraction_result": {
+    "entities": [
+      {
+        "type": "PERSON",
+        "value": "Dr. Sarah Johnson",
+        "entity_type": "person",
+        "confidence": 0.8,
+        "start_time": 0.0,
+        "properties": {
+          "extraction_method": "pattern_matching",
+          "description": "Person entity"
+        }
+      },
+      {
+        "type": "PRODUCT",
+        "value": "artificial intelligence",
+        "entity_type": "product",
+        "confidence": 0.8,
+        "start_time": 0.0,
+        "properties": {
+          "extraction_method": "pattern_matching",
+          "description": "Product entity"
+        }
+      },
+      {
+        "type": "PRODUCT",
+        "value": "machine learning",
+        "entity_type": "product",
+        "confidence": 0.8,
+        "start_time": 0.0,
+        "properties": {
+          "extraction_method": "pattern_matching",
+          "description": "Product entity"
+        }
+      }
+    ],
+    "quotes": [
+      {
+        "type": "Quote",
+        "text": "I'm excited to discuss how machine learning is revolutionizing healthcare diagnostics.",
+        "value": "I'm excited to discuss how machine learning is revolutionizing healthcare diagnostics.",
+        "speaker": "Dr. Johnson",
+        "quote_type": "insightful",
+        "timestamp_start": 0.0,
+        "timestamp_end": 5.0,
+        "start_time": 0.0,
+        "end_time": 5.0,
+        "importance_score": 0.8,
+        "confidence": 0.7,
+        "properties": {
+          "generated_for_test": true
+        }
+      }
+    ],
+    "relationships": [
+      {
+        "type": "SAID",
+        "source": "Dr. Johnson",
+        "target": "I'm excited to discuss how machine learning is rev...",
+        "confidence": 0.7,
+        "properties": {
+          "quote_type": "insightful",
+          "timestamp": 0.0
+        }
+      },
+      {
+        "type": "MENTIONED_WITH",
+        "source": "Dr. Sarah Johnson",
+        "target": "artificial intelligence",
+        "confidence": 0.6,
+        "properties": {
+          "distance": 0,
+          "co_occurrence": true
+        }
+      },
+      {
+        "type": "MENTIONED_WITH",
+        "source": "Dr. Sarah Johnson",
+        "target": "machine learning",
+        "confidence": 0.6,
+        "properties": {
+          "distance": 0,
+          "co_occurrence": true
+        }
+      },
+      {
+        "type": "MENTIONED_WITH",
+        "source": "artificial intelligence",
+        "target": "machine learning",
+        "confidence": 0.6,
+        "properties": {
+          "distance": 0,
+          "co_occurrence": true
+        }
+      }
+    ],
+    "metadata": {
+      "extraction_timestamp": "2025-06-03T20:06:13.787589",
+      "segment_id": "test_episode_segment_0",
+      "extraction_mode": "schemaless",
+      "text_length": 947,
+      "entity_count": 3,
+      "quote_count": 1,
+      "relationship_count": 4,
+      "episode_metadata": {
+        "episode_id": "test_episode",
+        "podcast_name": "Test Podcast"
+      }
+    },
+    "segments_processed": 1,
+    "total_entities": 3,
+    "total_quotes": 1,
+    "total_relationships": 4
+  },
+  "impact_report": {
+    "generated_at": "2025-06-04T00:06:13.788145",
+    "components": {
+      "knowledge_extractor": {
+        "execution_count": 14,
+        "total_time": 0.13593149185180664,
+        "avg_time": 0.009709392275129045,
+        "total_items_added": 56,
+        "total_items_modified": 0,
+        "avg_items_per_execution": 4.0,
+        "properties_added": {},
+        "relationships_added": {},
+        "impact_score": 411.97
+      }
+    },
+    "summary": {
+      "total_components": 1,
+      "total_executions": 14,
+      "total_time": 0.13593149185180664
+    },
+    "recommendations": []
+  }
+}

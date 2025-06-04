@@ -317,3 +317,65 @@ class VTTKnowledgeExtractor:
             'resumed_episodes': 0,
             'message': 'Checkpoint recovery not fully implemented'
         }
+
+    def process_text(self, text: str, metadata: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        """Process raw text for baseline testing.
+        
+        Args:
+            text: Raw text to process
+            metadata: Optional metadata (episode_id, podcast_name, etc.)
+            
+        Returns:
+            Dictionary with extraction results
+        """
+        # Initialize components if not already done
+        if not self.llm_service:
+            if not self.initialize_components():
+                raise PipelineError("Failed to initialize pipeline components")
+        
+        # Get the knowledge extractor from provider coordinator
+        knowledge_extractor = self.provider_coordinator.knowledge_extractor
+        if not knowledge_extractor:
+            raise PipelineError("Knowledge extractor not available")
+        
+        # Create a simple segment from the text
+        from src.core.models import Segment
+        segment = Segment(
+            id=metadata.get('episode_id', 'test') + '_segment_0' if metadata else 'test_segment_0',
+            text=text,
+            start_time=0.0,
+            end_time=len(text.split()) * 0.5,  # Rough estimate: 0.5s per word
+            episode_id=metadata.get('episode_id', 'test') if metadata else 'test',
+            segment_index=0
+        )
+        
+        # Extract knowledge from the segment
+        try:
+            extraction_result = knowledge_extractor.extract_knowledge(segment, metadata)
+            
+            # Format results similar to what test expects
+            result = {
+                'entities': extraction_result.entities,
+                'quotes': extraction_result.quotes,
+                'relationships': extraction_result.relationships,
+                'metadata': extraction_result.metadata,
+                'segments_processed': 1,
+                'total_entities': len(extraction_result.entities),
+                'total_quotes': len(extraction_result.quotes),
+                'total_relationships': len(extraction_result.relationships)
+            }
+            
+            return result
+            
+        except Exception as e:
+            logger.error(f"Error processing text: {e}")
+            return {
+                'entities': [],
+                'quotes': [],
+                'relationships': [],
+                'metadata': {'error': str(e)},
+                'segments_processed': 0,
+                'total_entities': 0,
+                'total_quotes': 0,
+                'total_relationships': 0
+            }

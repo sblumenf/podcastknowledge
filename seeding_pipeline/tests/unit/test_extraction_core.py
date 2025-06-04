@@ -319,7 +319,7 @@ class TestKnowledgeExtractionCore:
         extractor.llm_provider = mock_llm_provider
         
         # Extract from empty segment
-        result = extractor.extract(empty_segment)
+        result = extractor.extract_knowledge(empty_segment)
         
         # Should handle gracefully
         assert isinstance(result, ExtractionResult)

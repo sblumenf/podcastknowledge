@@ -147,7 +147,7 @@ Finally, segment 5 wraps up with key takeaways and conclusions.
             # Extract knowledge
             total_entities = 0
             for segment in segments:
-                result = extractor.extract(segment)
+                result = extractor.extract_knowledge(segment)
                 total_entities += len(result.entities)
                 
                 # Store in Neo4j

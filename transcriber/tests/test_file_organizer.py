@@ -18,7 +18,7 @@ class TestEpisodeMetadata:
         metadata = EpisodeMetadata(
             title="Test Episode",
             podcast_name="Test Podcast",
-            publication_date="2024-01-15",
+            publication_date=datetime(2024, 1, 15),
             file_path="Test_Podcast/2024-01-15_Test_Episode.vtt",
             speakers=["Host", "Guest"],
             duration=3600,
@@ -28,7 +28,7 @@ class TestEpisodeMetadata:
         
         assert metadata.title == "Test Episode"
         assert metadata.podcast_name == "Test Podcast"
-        assert metadata.publication_date == "2024-01-15"
+        assert metadata.publication_date == datetime(2024, 1, 15)
         assert metadata.file_path == "Test_Podcast/2024-01-15_Test_Episode.vtt"
         assert len(metadata.speakers) == 2
         assert metadata.duration == 3600
@@ -39,7 +39,7 @@ class TestEpisodeMetadata:
         metadata = EpisodeMetadata(
             title="Test Episode",
             podcast_name="Test Podcast",
-            publication_date="2024-01-15",
+            publication_date=datetime(2024, 1, 15),
             file_path="test.vtt",
             speakers=[]
         )
@@ -54,7 +54,7 @@ class TestEpisodeMetadata:
         metadata = EpisodeMetadata(
             title="Test Episode",
             podcast_name="Test Podcast",
-            publication_date="2024-01-15",
+            publication_date=datetime(2024, 1, 15),
             file_path="test.vtt",
             speakers=[],
             processed_date=custom_date
@@ -171,9 +171,19 @@ class TestFileOrganizer:
     
     def test_generate_filename_invalid_date(self, organizer):
         """Test filename generation with invalid date."""
-        with patch('src.file_organizer.datetime') as mock_datetime:
-            mock_datetime.now.return_value.strftime.return_value = "2024-01-20"
+        from datetime import datetime as real_datetime
+        
+        # Save the original datetime module
+        import src.file_organizer
+        original_datetime = src.file_organizer.datetime
+        
+        with patch.object(src.file_organizer, 'datetime', wraps=real_datetime) as mock_datetime:
+            # Mock only the specific methods we need
+            mock_datetime.now.return_value = real_datetime(2024, 1, 20)
             mock_datetime.strptime.side_effect = ValueError("Invalid date")
+            
+            # Ensure isinstance still works with the real datetime class
+            mock_datetime.__class__ = type(real_datetime)
             
             relative_path, _ = organizer.generate_filename(
                 "Test Podcast",
@@ -193,7 +203,7 @@ class TestFileOrganizer:
         metadata = organizer.create_episode_file(
             podcast_name="Test Podcast",
             episode_title="Test Episode",
-            publication_date="2024-01-15",
+            publication_date=datetime(2024, 1, 15),
             speakers=["Host", "Guest"],
             content=vtt_content,
             duration=1800,
@@ -231,7 +241,7 @@ class TestFileOrganizer:
                 organizer.create_episode_file(
                     podcast_name="Test",
                     episode_title="Test",
-                    publication_date="2024-01-15",
+                    publication_date=datetime(2024, 1, 15),
                     speakers=[],
                     content="Content"
                 )
@@ -242,14 +252,14 @@ class TestFileOrganizer:
         metadata1 = EpisodeMetadata(
             title="Episode 1",
             podcast_name="Podcast A",
-            publication_date="2024-01-10",
+            publication_date=datetime(2024, 1, 10),
             file_path="Podcast_A/2024-01-10_Episode_1.vtt",
             speakers=["Host A"]
         )
         metadata2 = EpisodeMetadata(
             title="Episode 2",
             podcast_name="Podcast B",
-            publication_date="2024-01-15",
+            publication_date=datetime(2024, 1, 15),
             file_path="Podcast_B/2024-01-15_Episode_2.vtt",
             speakers=["Host B", "Guest"]
         )
@@ -270,15 +280,15 @@ class TestFileOrganizer:
         organizer.episodes = [
             EpisodeMetadata(
                 title="Ep1", podcast_name="Podcast A", 
-                publication_date="2024-01-01", file_path="a/1.vtt", speakers=[]
+                publication_date=datetime(2024, 1, 1), file_path="a/1.vtt", speakers=[]
             ),
             EpisodeMetadata(
                 title="Ep2", podcast_name="Podcast A", 
-                publication_date="2024-01-02", file_path="a/2.vtt", speakers=[]
+                publication_date=datetime(2024, 1, 2), file_path="a/2.vtt", speakers=[]
             ),
             EpisodeMetadata(
                 title="Ep3", podcast_name="Podcast B", 
-                publication_date="2024-01-03", file_path="b/3.vtt", speakers=[]
+                publication_date=datetime(2024, 1, 3), file_path="b/3.vtt", speakers=[]
             )
         ]
         
@@ -291,15 +301,15 @@ class TestFileOrganizer:
         organizer.episodes = [
             EpisodeMetadata(
                 title="Ep1", podcast_name="Test", 
-                publication_date="2024-01-10", file_path="1.vtt", speakers=[]
+                publication_date=datetime(2024, 1, 10), file_path="1.vtt", speakers=[]
             ),
             EpisodeMetadata(
                 title="Ep2", podcast_name="Test", 
-                publication_date="2024-01-15", file_path="2.vtt", speakers=[]
+                publication_date=datetime(2024, 1, 15), file_path="2.vtt", speakers=[]
             ),
             EpisodeMetadata(
                 title="Ep3", podcast_name="Test", 
-                publication_date="2024-01-20", file_path="3.vtt", speakers=[]
+                publication_date=datetime(2024, 1, 20), file_path="3.vtt", speakers=[]
             )
         ]
         
@@ -311,15 +321,15 @@ class TestFileOrganizer:
         """Test getting episodes by speaker."""
         organizer.episodes = [
             EpisodeMetadata(
-                title="Ep1", podcast_name="Test", publication_date="2024-01-01",
+                title="Ep1", podcast_name="Test", publication_date=datetime(2024, 1, 1),
                 file_path="1.vtt", speakers=["John Doe", "Jane Smith"]
             ),
             EpisodeMetadata(
-                title="Ep2", podcast_name="Test", publication_date="2024-01-02",
+                title="Ep2", podcast_name="Test", publication_date=datetime(2024, 1, 2),
                 file_path="2.vtt", speakers=["Bob Johnson"]
             ),
             EpisodeMetadata(
-                title="Ep3", podcast_name="Test", publication_date="2024-01-03",
+                title="Ep3", podcast_name="Test", publication_date=datetime(2024, 1, 3),
                 file_path="3.vtt", speakers=["Jane Smith", "Bob Johnson"]
             )
         ]
@@ -334,15 +344,15 @@ class TestFileOrganizer:
         """Test getting directory structure."""
         organizer.episodes = [
             EpisodeMetadata(
-                title="Ep1", podcast_name="Podcast A", publication_date="2024-01-01",
+                title="Ep1", podcast_name="Podcast A", publication_date=datetime(2024, 1, 1),
                 file_path="Podcast_A/2024-01-01_Ep1.vtt", speakers=[]
             ),
             EpisodeMetadata(
-                title="Ep2", podcast_name="Podcast A", publication_date="2024-01-02",
+                title="Ep2", podcast_name="Podcast A", publication_date=datetime(2024, 1, 2),
                 file_path="Podcast_A/2024-01-02_Ep2.vtt", speakers=[]
             ),
             EpisodeMetadata(
-                title="Ep3", podcast_name="Podcast B", publication_date="2024-01-03",
+                title="Ep3", podcast_name="Podcast B", publication_date=datetime(2024, 1, 3),
                 file_path="Podcast_B/2024-01-03_Ep3.vtt", speakers=[]
             )
         ]
@@ -374,11 +384,11 @@ class TestFileOrganizer:
         # Add episodes to manifest
         organizer.episodes = [
             EpisodeMetadata(
-                title="Exists", podcast_name="Test", publication_date="2024-01-01",
+                title="Exists", podcast_name="Test", publication_date=datetime(2024, 1, 1),
                 file_path="Test/exists.vtt", speakers=[]
             ),
             EpisodeMetadata(
-                title="Missing", podcast_name="Test", publication_date="2024-01-02",
+                title="Missing", podcast_name="Test", publication_date=datetime(2024, 1, 2),
                 file_path="Test/missing.vtt", speakers=[]
             )
         ]
@@ -407,15 +417,15 @@ class TestFileOrganizer:
         # Add episodes
         organizer.episodes = [
             EpisodeMetadata(
-                title="Ep1", podcast_name="Podcast A", publication_date="2024-01-10",
+                title="Ep1", podcast_name="Podcast A", publication_date=datetime(2024, 1, 10),
                 file_path="a/1.vtt", speakers=["Host", "Guest1"], duration=1800
             ),
             EpisodeMetadata(
-                title="Ep2", podcast_name="Podcast A", publication_date="2024-01-15",
+                title="Ep2", podcast_name="Podcast A", publication_date=datetime(2024, 1, 15),
                 file_path="a/2.vtt", speakers=["Host", "Guest2"], duration=2400
             ),
             EpisodeMetadata(
-                title="Ep3", podcast_name="Podcast B", publication_date="2024-01-20",
+                title="Ep3", podcast_name="Podcast B", publication_date=datetime(2024, 1, 20),
                 file_path="b/3.vtt", speakers=["Host2"], duration=3600
             )
         ]

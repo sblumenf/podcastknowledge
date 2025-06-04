@@ -303,15 +303,20 @@ class CheckpointManager:
             os.unlink(self.checkpoint_file)
         
         logger.error(f"Episode failed: {self.current_checkpoint.title} - {error}")
-        # Don't clear current_checkpoint yet - needed for manual cleanup
-        # self.current_checkpoint = None
+        # Clear current checkpoint to allow next episode to start
+        self.current_checkpoint = None
     
-    def _cleanup_temp_files(self):
-        """Clean up temporary files for current checkpoint."""
-        if not self.current_checkpoint:
+    def _cleanup_temp_files(self, checkpoint=None):
+        """Clean up temporary files for current checkpoint.
+        
+        Args:
+            checkpoint: Optional specific checkpoint to clean up (for testing)
+        """
+        checkpoint_to_clean = checkpoint or self.current_checkpoint
+        if not checkpoint_to_clean:
             return
         
-        for temp_file in self.current_checkpoint.temporary_files.values():
+        for temp_file in checkpoint_to_clean.temporary_files.values():
             if os.path.exists(temp_file):
                 try:
                     os.unlink(temp_file)
@@ -319,8 +324,9 @@ class CheckpointManager:
                 except Exception as e:
                     logger.warning(f"Failed to clean up {temp_file}: {e}")
         
-        # Clear current checkpoint after cleanup
-        self.current_checkpoint = None
+        # Clear current checkpoint after cleanup if we cleaned it
+        if not checkpoint and self.current_checkpoint:
+            self.current_checkpoint = None
     
     def can_resume(self) -> bool:
         """Check if there's a checkpoint to resume from.

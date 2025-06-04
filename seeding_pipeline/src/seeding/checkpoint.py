@@ -846,3 +846,42 @@ class ProgressCheckpoint(BaseProgressCheckpoint):
         except Exception as e:
             logger.error(f"Failed to clear VTT checkpoint: {e}")
             return False
+    
+    def mark_episode_complete(self, episode_id: str, metadata: Optional[Dict[str, Any]] = None) -> None:
+        """Mark an episode as complete.
+        
+        Args:
+            episode_id: Episode identifier
+            metadata: Optional metadata about the completion
+        """
+        completion_data = {
+            'episode_id': episode_id,
+            'completed_at': datetime.now().isoformat(),
+            'metadata': metadata or {}
+        }
+        
+        # Save completion checkpoint
+        self.save_episode_progress(episode_id, 'completed', completion_data)
+        logger.info(f"Marked episode {episode_id} as complete")
+    
+    def get_completed_episodes(self) -> List[str]:
+        """Get list of completed episode IDs.
+        
+        Returns:
+            List of episode IDs that have been marked complete
+        """
+        completed_episodes = []
+        
+        # Check episodes directory for completed checkpoints
+        if os.path.exists(self.episodes_dir):
+            for filename in os.listdir(self.episodes_dir):
+                if '_completed' in filename and (filename.endswith('.pkl') or filename.endswith('.pkl.gz') or filename.endswith('.ckpt.gz')):
+                    # Extract episode ID from filename
+                    # Handle different formats: episode_ID_completed.pkl, ID_completed.ckpt.gz, etc.
+                    if filename.startswith('episode_'):
+                        episode_id = filename.replace('episode_', '').split('_completed')[0]
+                    else:
+                        episode_id = filename.split('_completed')[0]
+                    completed_episodes.append(episode_id)
+        
+        return completed_episodes

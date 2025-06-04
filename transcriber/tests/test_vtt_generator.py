@@ -18,7 +18,7 @@ class TestVTTMetadata:
         metadata = VTTMetadata(
             podcast_name="Test Podcast",
             episode_title="Episode 1",
-            publication_date="2024-01-15",
+            publication_date=datetime(2024, 1, 15),
             duration="1:23:45",
             host="John Doe",
             guests=["Jane Smith", "Bob Johnson"],
@@ -37,7 +37,7 @@ class TestVTTMetadata:
         metadata = VTTMetadata(
             podcast_name="Test Podcast",
             episode_title="Episode 1",
-            publication_date="2024-01-15",
+            publication_date=datetime(2024, 1, 15),
             duration="1:23:45",
             host="John Doe",
             guests=["Jane Smith", "Bob Johnson"],
@@ -66,7 +66,7 @@ class TestVTTMetadata:
         metadata = VTTMetadata(
             podcast_name="Minimal Podcast",
             episode_title="Minimal Episode",
-            publication_date="2024-01-15"
+            publication_date=datetime(2024, 1, 15)
         )
         
         note_block = metadata.to_note_block()
@@ -105,7 +105,7 @@ class TestVTTGenerator:
         return VTTMetadata(
             podcast_name="Test Podcast",
             episode_title="Test Episode",
-            publication_date="2024-01-15",
+            publication_date=datetime(2024, 1, 15),
             speakers={"SPEAKER_1": "Host", "SPEAKER_2": "Guest"}
         )
     
@@ -275,7 +275,7 @@ This text has <special> & characters
         episode_data = {
             'podcast_name': 'Tech Talk',
             'title': 'AI Discussion',
-            'publication_date': '2024-01-15',
+            'published_date': '2024-01-15',
             'duration': '45:30',
             'author': 'Default Host',
             'description': 'Discussion about AI'
@@ -314,7 +314,7 @@ This text has <special> & characters
         episode_data = {
             'podcast_name': 'Test Podcast',
             'title': 'Episode 1: Introduction',
-            'publication_date': '2024-01-15T10:00:00Z'
+            'published_date': '2024-01-15T10:00:00Z'
         }
         
         output_path = generator.generate_output_path(episode_data, Path(tmp_path))
@@ -329,7 +329,7 @@ This text has <special> & characters
         episode_data = {
             'podcast_name': 'Test/Podcast<>',
             'title': 'Episode:1|Question?',
-            'publication_date': 'invalid-date'
+            'published_date': 'invalid-date'
         }
         
         output_path = generator.generate_output_path(episode_data, Path(tmp_path))

@@ -285,8 +285,11 @@ class TestComponentBaselines:
         impact_report = result.get("impact_report", {})
         components = impact_report.get("components", {})
         
-        # Should have tracked timestamp injection component
-        assert any("timestamp" in comp.lower() for comp in components)
+        # Should have tracked at least some components
+        assert len(components) > 0, f"Expected components to be tracked, got: {list(components.keys())}"
+        
+        # Should have tracked knowledge_extractor at minimum
+        assert any("knowledge_extractor" in comp.lower() for comp in components)
     
     def test_compare_baselines(self, baseline_runner):
         """Test baseline comparison functionality."""

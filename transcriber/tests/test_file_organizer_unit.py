@@ -18,14 +18,14 @@ class TestEpisodeMetadata:
         metadata = EpisodeMetadata(
             title="Test Episode",
             podcast_name="Test Podcast",
-            publication_date="2025-06-01",
+            publication_date=datetime(2025, 6, 1),
             file_path="/data/test.vtt",
             speakers=["Host", "Guest"]
         )
         
         assert metadata.title == "Test Episode"
         assert metadata.podcast_name == "Test Podcast"
-        assert metadata.publication_date == "2025-06-01"
+        assert metadata.publication_date == datetime(2025, 6, 1)
         assert metadata.file_path == "/data/test.vtt"
         assert metadata.speakers == ["Host", "Guest"]
         assert metadata.duration is None
@@ -39,7 +39,7 @@ class TestEpisodeMetadata:
         metadata = EpisodeMetadata(
             title="Test Episode",
             podcast_name="Test Podcast",
-            publication_date="2025-06-01",
+            publication_date=datetime(2025, 6, 1),
             file_path="/data/test.vtt",
             speakers=["Host", "Guest"],
             duration=2700,  # 45 minutes
@@ -61,7 +61,7 @@ class TestEpisodeMetadata:
         metadata = EpisodeMetadata(
             title="Test",
             podcast_name="Test",
-            publication_date="2025-06-01",
+            publication_date=datetime(2025, 6, 1),
             file_path="/test.vtt",
             speakers=[]
         )
@@ -264,7 +264,7 @@ class TestFileOrganizer:
         metadata = EpisodeMetadata(
             title="New Episode",
             podcast_name="Test",
-            publication_date="2025-06-01",
+            publication_date=datetime(2025, 6, 1),
             file_path="/test.vtt",
             speakers=["Host"]
         )
@@ -286,9 +286,9 @@ class TestFileOrganizer:
         """Test searching episodes by title."""
         # Add test episodes
         organizer.episodes = [
-            EpisodeMetadata("AI Discussion", "Tech", "2025-06-01", "/1.vtt", []),
-            EpisodeMetadata("Machine Learning", "Tech", "2025-06-02", "/2.vtt", []),
-            EpisodeMetadata("Deep Learning", "Tech", "2025-06-03", "/3.vtt", [])
+            EpisodeMetadata("AI Discussion", "Tech", datetime(2025, 6, 1), "/1.vtt", []),
+            EpisodeMetadata("Machine Learning", "Tech", datetime(2025, 6, 2), "/2.vtt", []),
+            EpisodeMetadata("Deep Learning", "Tech", datetime(2025, 6, 3), "/3.vtt", [])
         ]
         
         results = organizer.search_episodes(title_pattern="learning")
@@ -298,9 +298,9 @@ class TestFileOrganizer:
     def test_search_episodes_by_speaker(self, organizer):
         """Test searching episodes by speaker."""
         organizer.episodes = [
-            EpisodeMetadata("Ep1", "Pod", "2025-06-01", "/1.vtt", ["John", "Jane"]),
-            EpisodeMetadata("Ep2", "Pod", "2025-06-02", "/2.vtt", ["John", "Bob"]),
-            EpisodeMetadata("Ep3", "Pod", "2025-06-03", "/3.vtt", ["Alice", "Bob"])
+            EpisodeMetadata("Ep1", "Pod", datetime(2025, 6, 1), "/1.vtt", ["John", "Jane"]),
+            EpisodeMetadata("Ep2", "Pod", datetime(2025, 6, 2), "/2.vtt", ["John", "Bob"]),
+            EpisodeMetadata("Ep3", "Pod", datetime(2025, 6, 3), "/3.vtt", ["Alice", "Bob"])
         ]
         
         results = organizer.search_episodes(speaker="John")
@@ -312,9 +312,9 @@ class TestFileOrganizer:
     def test_search_episodes_by_date_range(self, organizer):
         """Test searching episodes by date range."""
         organizer.episodes = [
-            EpisodeMetadata("Ep1", "Pod", "2025-06-01", "/1.vtt", []),
-            EpisodeMetadata("Ep2", "Pod", "2025-06-15", "/2.vtt", []),
-            EpisodeMetadata("Ep3", "Pod", "2025-06-30", "/3.vtt", [])
+            EpisodeMetadata("Ep1", "Pod", datetime(2025, 6, 1), "/1.vtt", []),
+            EpisodeMetadata("Ep2", "Pod", datetime(2025, 6, 15), "/2.vtt", []),
+            EpisodeMetadata("Ep3", "Pod", datetime(2025, 6, 30), "/3.vtt", [])
         ]
         
         results = organizer.search_episodes(
@@ -327,9 +327,9 @@ class TestFileOrganizer:
     def test_get_statistics(self, organizer):
         """Test getting statistics."""
         organizer.episodes = [
-            EpisodeMetadata("Ep1", "Pod1", "2025-06-01", "/1.vtt", ["Host"], duration=1800),
-            EpisodeMetadata("Ep2", "Pod1", "2025-06-02", "/2.vtt", ["Host"], duration=2700),
-            EpisodeMetadata("Ep3", "Pod2", "2025-06-03", "/3.vtt", ["Host", "Guest"], duration=3600)
+            EpisodeMetadata("Ep1", "Pod1", datetime(2025, 6, 1), "/1.vtt", ["Host"], duration=1800),
+            EpisodeMetadata("Ep2", "Pod1", datetime(2025, 6, 2), "/2.vtt", ["Host"], duration=2700),
+            EpisodeMetadata("Ep3", "Pod2", datetime(2025, 6, 3), "/3.vtt", ["Host", "Guest"], duration=3600)
         ]
         
         stats = organizer.get_statistics()
@@ -354,7 +354,7 @@ class TestFileOrganizer:
         
         # Only track one file in manifest
         organizer.episodes = [
-            EpisodeMetadata("Ep1", "Test Podcast", "2025-06-01", str(file1), [])
+            EpisodeMetadata("Ep1", "Test Podcast", datetime(2025, 6, 1), str(file1), [])
         ]
         
         # Run cleanup

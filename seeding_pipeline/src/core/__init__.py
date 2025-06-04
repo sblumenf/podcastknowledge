@@ -2,6 +2,7 @@
 
 from .interfaces import (
     HealthCheckable,
+    AudioProvider,
     LLMProvider,
     GraphProvider,
     EmbeddingProvider,
@@ -19,6 +20,7 @@ from .exceptions import (
     ErrorSeverity,
     PodcastProcessingError,
     DatabaseConnectionError,
+    AudioProcessingError,
     LLMProcessingError,
     ConfigurationError,
     ValidationError,
@@ -73,6 +75,7 @@ from . import constants
 __all__ = [
     # Protocols
     "HealthCheckable",
+    "AudioProvider",
     "LLMProvider", 
     "GraphProvider",
     "EmbeddingProvider",
@@ -88,6 +91,7 @@ __all__ = [
     "ErrorSeverity",
     "PodcastProcessingError",
     "DatabaseConnectionError",
+    "AudioProcessingError",
     "LLMProcessingError",
     "ConfigurationError",
     "ValidationError",

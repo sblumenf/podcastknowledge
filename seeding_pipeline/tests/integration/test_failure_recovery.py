@@ -34,8 +34,8 @@ class TestFailureRecovery:
     @pytest.fixture
     def mock_extractor(self):
         """Create mock knowledge extractor."""
-        extractor = Mock(spec=KnowledgeExtractor)
-        extractor.extract.return_value = Mock(
+        extractor = Mock()
+        extractor.extract_knowledge.return_value = Mock(
             entities=[{"name": "Test", "type": "CONCEPT"}],
             relationships=[],
             quotes=[],
@@ -59,10 +59,10 @@ class TestFailureRecovery:
             nonlocal call_count
             call_count += 1
             if call_count in [2, 4]:  # Fail on 2nd and 4th calls
-                raise ProviderError("LLM API rate limit exceeded")
+                raise ProviderError("test_provider", "LLM API rate limit exceeded")
             return Mock(entities=[], relationships=[], quotes=[], metadata={})
         
-        mock_extractor.extract.side_effect = llm_with_failures
+        mock_extractor.extract_knowledge.side_effect = llm_with_failures
         
         # Create batch items
         items = [
@@ -72,7 +72,7 @@ class TestFailureRecovery:
         
         # Process function that uses extractor
         def process_with_llm(item):
-            result = mock_extractor.extract(item.data)
+            result = mock_extractor.extract_knowledge(item.data)
             return {"extracted": len(result.entities)}
         
         # Process batch

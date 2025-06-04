@@ -45,7 +45,8 @@ class BatchProcessor:
                  use_processes: bool = False,
                  memory_limit_mb: Optional[int] = None,
                  progress_callback: Optional[Callable[[int, int], None]] = None,
-                 config: Optional[Dict[str, Any]] = None):
+                 config: Optional[Dict[str, Any]] = None,
+                 is_schemaless: bool = False):
         """Initialize batch processor.
         
         Args:
@@ -55,6 +56,7 @@ class BatchProcessor:
             memory_limit_mb: Memory limit in MB
             progress_callback: Callback for progress updates (current, total)
             config: Optional configuration dictionary
+            is_schemaless: Enable schemaless mode for schema discovery
         """
         self.max_workers = max_workers or mp.cpu_count()
         self.batch_size = batch_size
@@ -71,13 +73,15 @@ class BatchProcessor:
         self._items_processed = 0
         self._total_items = 0
         self._start_time = None
+        self._success_count = 0
+        self._failure_count = 0
         self._lock = threading.Lock()
         
         # Schema evolution tracking for schemaless mode
         self._discovered_types = set()
         self._type_frequencies = {}
         self._relationship_types = set()
-        self.is_schemaless = self.config.get('use_schemaless_extraction', False)
+        self.is_schemaless = is_schemaless or self.config.get('use_schemaless_extraction', False)
         
         mode = "SCHEMALESS" if self.is_schemaless else "FIXED SCHEMA"
         logger.info(f"Initialized BatchProcessor in {mode} mode with {self.max_workers} workers, "
@@ -102,6 +106,8 @@ class BatchProcessor:
         
         self._start_time = time.time()
         self._items_processed = 0
+        self._success_count = 0
+        self._failure_count = 0
         self._total_items = len(items)
         
         # Sort by priority
@@ -191,6 +197,12 @@ class BatchProcessor:
                     ))
                 
                 # Update progress
+                with self._lock:
+                    self._items_processed += 1
+                    if result.success:
+                        self._success_count += 1
+                    else:
+                        self._failure_count += 1
                 self._update_progress()
                 
                 # Track schema discovery for schemaless mode
@@ -278,6 +290,9 @@ class BatchProcessor:
             # Update progress
             with self._lock:
                 self._items_processed += len(batch)
+                success_in_batch = sum(1 for r in results[-(len(batch)):] if r.success)
+                self._success_count += success_in_batch
+                self._failure_count += len(batch) - success_in_batch
             self._update_progress()
             
             # Clean up memory after each batch
@@ -367,11 +382,16 @@ class BatchProcessor:
         
         stats = {
             'items_processed': self._items_processed,
+            'total_processed': self._items_processed,  # Alias for compatibility
             'total_items': self._total_items,
             'elapsed_time': elapsed,
             'average_rate': self._items_processed / elapsed if elapsed > 0 else 0,
             'optimal_batch_size': self._optimal_batch_size,
-            'worker_count': self.max_workers
+            'worker_count': self.max_workers,
+            'success_count': self._success_count,
+            'failure_count': self._failure_count,
+            'average_processing_time': elapsed / self._items_processed if self._items_processed > 0 else 0,
+            'performance_metrics': {}  # TODO: Add actual metrics
         }
         
         # Add schemaless-specific statistics

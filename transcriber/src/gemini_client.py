@@ -96,18 +96,21 @@ class APIKeyUsage:
 class RateLimitedGeminiClient:
     """Gemini API client with rate limiting and multi-key support."""
     
-    def __init__(self, api_keys: List[str], model_name: str = DEFAULT_MODEL):
+    def __init__(self, api_keys: List[str], model_name: str = DEFAULT_MODEL, 
+                 key_rotation_manager = None):
         """Initialize client with multiple API keys.
         
         Args:
             api_keys: List of Gemini API keys
             model_name: Model to use for generation
+            key_rotation_manager: Optional KeyRotationManager for advanced quota handling
         """
         if not api_keys:
             raise ValueError("At least one API key must be provided")
         
         self.api_keys = api_keys
         self.model_name = model_name
+        self.key_rotation_manager = key_rotation_manager
         self.models: List[GenerativeModel] = []
         self.usage_trackers: List[APIKeyUsage] = []
         
@@ -180,6 +183,18 @@ class RateLimitedGeminiClient:
         Returns:
             Tuple of (model, key_index) or (None, None) if no keys available
         """
+        # If we have a key rotation manager, use it for smart key selection
+        if self.key_rotation_manager:
+            try:
+                api_key, key_index = self.key_rotation_manager.get_next_key()
+                # Configure the API key for this request
+                genai.configure(api_key=api_key)
+                return self.models[key_index], key_index
+            except Exception as e:
+                logger.error(f"Key rotation manager failed: {e}")
+                # Fall through to legacy logic
+        
+        # Legacy logic for backward compatibility
         # Check for daily reset needs
         now = datetime.now(timezone.utc)
         for tracker in self.usage_trackers:
@@ -257,11 +272,17 @@ class RateLimitedGeminiClient:
         except (QuotaExceededException, CircuitBreakerOpenException) as e:
             logger.error(f"Cannot retry transcription: {e}")
             tracker.is_available = False
+            # Report error to key rotation manager if available
+            if self.key_rotation_manager and 'key_index' in locals():
+                self.key_rotation_manager.mark_key_failure(key_index, str(e))
             return None
         except Exception as e:
             logger.error(f"Transcription failed: {str(e)}")
             if "quota" in str(e).lower():
                 tracker.is_available = False
+            # Report error to key rotation manager if available
+            if self.key_rotation_manager and 'key_index' in locals():
+                self.key_rotation_manager.mark_key_failure(key_index, str(e))
             return None
     
     @with_retry_and_circuit_breaker('transcribe_audio', max_attempts=2)
@@ -344,6 +365,11 @@ class RateLimitedGeminiClient:
         tracker.update_usage(estimated_tokens)
         log_api_request(key_index + 1, 'transcribe_audio', estimated_tokens)
         
+        # Report usage to key rotation manager if available
+        if self.key_rotation_manager:
+            self.key_rotation_manager.update_key_usage(key_index, estimated_tokens)
+            self.key_rotation_manager.mark_key_success(key_index)
+        
         self._save_usage_state()
         
         logger.info(f"Transcription completed in {elapsed_time:.1f}s")
@@ -381,11 +407,17 @@ class RateLimitedGeminiClient:
         except (QuotaExceededException, CircuitBreakerOpenException) as e:
             logger.error(f"Cannot retry speaker identification: {e}")
             tracker.is_available = False
+            # Report error to key rotation manager if available
+            if self.key_rotation_manager and 'key_index' in locals():
+                self.key_rotation_manager.mark_key_failure(key_index, str(e))
             return {}
         except Exception as e:
             logger.error(f"Speaker identification failed: {str(e)}")
             if "quota" in str(e).lower():
                 tracker.is_available = False
+            # Report error to key rotation manager if available
+            if self.key_rotation_manager and 'key_index' in locals():
+                self.key_rotation_manager.mark_key_failure(key_index, str(e))
             return {}
     
     @with_retry_and_circuit_breaker('identify_speakers', max_attempts=2)
@@ -437,6 +469,11 @@ class RateLimitedGeminiClient:
         # Update usage tracking
         tracker.update_usage(estimated_tokens)
         log_api_request(key_index + 1, 'identify_speakers', estimated_tokens)
+        
+        # Report usage to key rotation manager if available
+        if self.key_rotation_manager:
+            self.key_rotation_manager.update_key_usage(key_index, estimated_tokens)
+            self.key_rotation_manager.mark_key_success(key_index)
         
         self._save_usage_state()
         
@@ -1116,8 +1153,12 @@ Continue the transcript:"""
             raise
 
 
-def create_gemini_client() -> RateLimitedGeminiClient:
-    """Create a Gemini client with API keys from environment."""
+def create_gemini_client(key_rotation_manager=None) -> RateLimitedGeminiClient:
+    """Create a Gemini client with API keys from environment.
+    
+    Args:
+        key_rotation_manager: Optional KeyRotationManager for quota handling
+    """
     api_keys = []
     
     # Try to load multiple API keys
@@ -1137,4 +1178,4 @@ def create_gemini_client() -> RateLimitedGeminiClient:
     
     logger.info(f"Found {len(api_keys)} API key(s) in environment")
     
-    return RateLimitedGeminiClient(api_keys)
+    return RateLimitedGeminiClient(api_keys, key_rotation_manager=key_rotation_manager)

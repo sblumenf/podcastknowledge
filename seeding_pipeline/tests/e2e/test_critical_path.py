@@ -19,9 +19,10 @@ class TestCriticalPath:
         return Episode(
             id="test-ep-001",
             title="Test Episode: AI Discussion",
-            podcast_name="Tech Talks Test",
-            url="https://example.com/test-ep-001.mp3",
-            metadata={"duration": 1800}
+            description="A test episode about AI and machine learning",
+            published_date="2024-01-01",
+            audio_url="https://example.com/test-ep-001.mp3",
+            duration=1800
         )
     
     @pytest.fixture
@@ -77,40 +78,12 @@ class TestCriticalPath:
     @pytest.fixture
     def mock_neo4j_driver(self):
         """Mock Neo4j driver for testing."""
-        driver = Mock()
-        session = Mock()
-        tx = Mock()
+        from tests.utils.neo4j_mocks import create_mock_neo4j_driver
         
-        # Setup mock chain
-        driver.session.return_value.__enter__.return_value = session
-        session.begin_transaction.return_value.__enter__.return_value = tx
+        # Use the proper mock driver
+        driver = create_mock_neo4j_driver("bolt://localhost:7688")
         
-        # Track created nodes and relationships
-        created_nodes = []
-        created_relationships = []
-        
-        def mock_run(cypher, **params):
-            result = Mock()
-            if "CREATE" in cypher and "Episode" in cypher:
-                result.single.return_value = {"id": "test-ep-001"}
-            elif "CREATE" in cypher and "-[" in cypher:
-                # Creating relationship
-                created_relationships.append(params)
-                result.single.return_value = {"id": f"rel-{len(created_relationships)}"}
-            else:
-                # Creating node
-                created_nodes.append(params)
-                result.single.return_value = {"id": f"node-{len(created_nodes)}"}
-            return result
-        
-        tx.run.side_effect = mock_run
-        session.run.side_effect = mock_run
-        
-        # Store tracking lists on driver for verification
-        driver._created_nodes = created_nodes
-        driver._created_relationships = created_relationships
-        
-        return driver
+        yield driver
     
     def test_vtt_to_knowledge_graph_flow(self, test_episode, minimal_vtt_content, 
                                         mock_llm_response, mock_neo4j_driver):
@@ -143,7 +116,7 @@ class TestCriticalPath:
                 all_quotes = []
                 
                 for segment in segments:
-                    result = extractor.extract(segment)
+                    result = extractor.extract_knowledge(segment)
                     all_entities.extend(result.entities)
                     all_relationships.extend(result.relationships)
                     all_quotes.extend(result.quotes)
@@ -270,7 +243,7 @@ class TestCriticalPath:
             
             # Should handle failure gracefully
             for segment in segments:
-                result = extractor.extract(segment)
+                result = extractor.extract_knowledge(segment)
                 assert isinstance(result.entities, list)
                 assert len(result.entities) == 0  # Empty on failure
                 assert result.metadata.get("error") is not None

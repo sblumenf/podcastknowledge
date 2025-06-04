@@ -17,7 +17,7 @@ import pytest
 
 from src.core.models import (
     # Enums
-    ComplexityLevel, InsightType, QuoteType, EntityType, SpeakerRole,
+    ComplexityLevel, InsightType, QuoteType, EntityType, SpeakerRole, ProcessingStatus,
     # Main models
     Podcast, Episode, Segment, Speaker, 
     # Knowledge models
@@ -67,7 +67,7 @@ class TestEnums:
         assert EntityType.ORGANIZATION.value == "organization"
         assert EntityType.PRODUCT.value == "product"
         assert EntityType.CONCEPT.value == "concept"
-        assert EntityType.CONCEPT.value == "technology"
+        assert EntityType.TECHNOLOGY.value == "technology"
         assert EntityType.LOCATION.value == "location"
         assert EntityType.EVENT.value == "event"
         assert EntityType.OTHER.value == "other"
@@ -466,7 +466,7 @@ class TestEntity:
         entity = Entity(
             id="entity4",
             name="Python",
-            entity_type=EntityType.CONCEPT,
+            entity_type=EntityType.TECHNOLOGY,
             description="Programming language",
             importance_score=0.8,
             importance_factors={"centrality": 0.7}
@@ -622,15 +622,13 @@ class TestTopic:
             id="topic1",
             name="Machine Learning",
             description="Discussion about ML concepts",
-            keywords=["AI", "neural networks", "deep learning"],
-            confidence=0.85
+            keywords=["AI", "neural networks", "deep learning"]
         )
         
         assert topic.id == "topic1"
         assert topic.name == "Machine Learning"
         assert topic.description == "Discussion about ML concepts"
         assert topic.keywords == ["AI", "neural networks", "deep learning"]
-        assert topic.confidence == 0.85
     
     def test_topic_minimal(self):
         """Test topic with minimal fields."""
@@ -643,7 +641,6 @@ class TestTopic:
         assert topic.name == "Technology"
         assert topic.description is None
         assert topic.keywords == []
-        assert topic.confidence is None
     
     def test_topic_to_dict(self):
         """Test topic serialization."""
@@ -651,8 +648,7 @@ class TestTopic:
             id="topic3",
             name="Future Tech",
             description="Future technology trends",
-            keywords=["quantum", "biotech"],
-            confidence=0.75
+            keywords=["quantum", "biotech"]
         )
         
         result = topic.to_dict()
@@ -661,7 +657,6 @@ class TestTopic:
         assert result["name"] == "Future Tech"
         assert result["description"] == "Future technology trends"
         assert result["keywords"] == ["quantum", "biotech"]
-        assert result["confidence"] == 0.75
 
 
 class TestPotentialConnection:
@@ -670,32 +665,35 @@ class TestPotentialConnection:
     def test_potential_connection_creation(self):
         """Test creating potential connection."""
         connection = PotentialConnection(
+            id="conn1",
             source_id="entity1",
             target_id="entity2",
-            connection_type="related_to",
-            confidence=0.78,
-            evidence=["Both mentioned in same context", "Similar topics"]
+            description="related_to",
+            strength=0.78,
+            entities=["entity1", "entity2"]
         )
         
         assert connection.source_id == "entity1"
         assert connection.target_id == "entity2"
-        assert connection.connection_type == "related_to"
-        assert connection.confidence == 0.78
-        assert connection.evidence == ["Both mentioned in same context", "Similar topics"]
+        assert connection.description == "related_to"
+        assert connection.strength == 0.78
+        assert connection.entities == ["entity1", "entity2"]
     
     def test_potential_connection_minimal(self):
         """Test potential connection with minimal fields."""
         connection = PotentialConnection(
+            id="conn2",
             source_id="e1",
             target_id="e2",
-            connection_type="mentions"
+            description="mentions",
+            strength=0.5
         )
         
         assert connection.source_id == "e1"
         assert connection.target_id == "e2"
-        assert connection.connection_type == "mentions"
-        assert connection.confidence is None
-        assert connection.evidence == []
+        assert connection.description == "mentions"
+        assert connection.strength == 0.5
+        assert connection.entities == []
 
 
 class TestProcessingResult:
@@ -776,11 +774,9 @@ class TestEdgeCases:
         
         # Modify one episode's lists
         ep1.guests.append("Guest A")
-        ep1.topics.append("Topic X")
         
         # Other episode's lists should be unaffected
         assert ep2.guests == []
-        assert ep2.topics == []
     
     def test_enum_string_comparison(self):
         """Test that enum values can be compared with strings."""
@@ -835,8 +831,7 @@ class TestEdgeCases:
         entity = Entity(
             id="ent1",
             name="Entity",
-            entity_type=EntityType.ORGANIZATION,
-            metadata={"key": "value"}
+            entity_type=EntityType.ORGANIZATION
         )
         
         # Should not raise exception
@@ -848,39 +843,39 @@ class TestEdgeCases:
         """Test that optional fields handle None properly."""
         segment = Segment(
             id="seg1",
-            episode_id="ep1",
-            segment_number=1,
+            text="Text",
             start_time=0.0,
             end_time=60.0,
-            text="Text",
-            speaker_id=None,
-            confidence=None
+            speaker=None,
+            episode_id="ep1",
+            segment_number=1
         )
         
         result = segment.to_dict()
         
-        # None values should be included
-        assert result["speaker_id"] is None
-        assert result["confidence"] is None
+        # None values should be included in the dict
+        assert result["speaker"] is None
+        assert result["content_hash"] is None
         
-        # But some fields are excluded when None
-        assert "summary" not in result
-        assert "embedding" not in result
+        # Some fields are included even when None
+        assert "embedding" in result
+        assert result["embedding"] is None
     
     def test_float_timestamp_handling(self):
         """Test that float timestamps work correctly."""
         quote = Quote(
             id="q1",
             text="Quote",
+            speaker="Speaker Name",
             speaker_id="s1",
             episode_id="e1",
             segment_id="seg1",
-            timestamp=123.456,  # Float with decimals
-            type=QuoteType.OTHER
+            estimated_timestamp=123.456,  # Float with decimals
+            quote_type=QuoteType.GENERAL
         )
         
-        assert quote.timestamp == 123.456
-        assert quote.to_dict()["timestamp"] == 123.456
+        assert quote.estimated_timestamp == 123.456
+        assert quote.to_dict()["estimated_timestamp"] == 123.456
     
     def test_large_embedding_vectors(self):
         """Test handling of large embedding vectors."""
@@ -901,6 +896,7 @@ class TestEdgeCases:
         assert segment.embedding[0] == 0.1
         assert segment.embedding[-1] == 0.1
         
-        # to_dict should not include embedding
+        # to_dict should include embedding
         result = segment.to_dict()
-        assert "embedding" not in result
+        assert "embedding" in result
+        assert len(result["embedding"]) == 1536

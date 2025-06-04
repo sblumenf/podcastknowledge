@@ -16,6 +16,7 @@ from src.progress_tracker import ProgressTracker
 
 
 @pytest.mark.integration
+@pytest.mark.timeout(120)  # 2 minute timeout for orchestrator integration tests
 class TestOrchestratorIntegration:
     """Test the transcription orchestrator with all components."""
     

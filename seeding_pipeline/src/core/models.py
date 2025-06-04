@@ -345,6 +345,7 @@ class Topic:
             "name": self.name,
             "description": self.description,
             "trend": self.trend,
+            "keywords": self.keywords,
             "hierarchy_level": self.hierarchy_level,
             "parent_topics": self.parent_topics,
             "child_topics": self.child_topics

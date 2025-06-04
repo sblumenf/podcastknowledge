@@ -17,6 +17,7 @@ from src.config import Config
 
 
 @pytest.mark.integration
+@pytest.mark.timeout(90)  # 1.5 minute timeout for checkpoint recovery tests
 class TestCheckpointRecoveryIntegration:
     """Test checkpoint recovery in real-world scenarios."""
     
@@ -230,8 +231,6 @@ Date: 2025-06-01
     async def test_checkpoint_with_temp_file_cleanup(self, tmp_path):
         """Test that temporary files are properly cleaned up."""
         data_dir = tmp_path / "data"
-        temp_dir = data_dir / ".temp"
-        temp_dir.mkdir(parents=True)
         
         checkpoint_manager = CheckpointManager(data_dir)
         
@@ -242,6 +241,9 @@ Date: 2025-06-01
             title="Cleanup Test",
             metadata={}
         )
+        
+        # Use the checkpoint manager's temp directory
+        temp_dir = checkpoint_manager.temp_dir
         
         # Create temporary files
         temp_files = {
@@ -260,6 +262,9 @@ Date: 2025-06-01
         for path in temp_files.values():
             assert path.exists()
         
+        # Save checkpoint reference before marking as failed
+        checkpoint_ref = checkpoint_manager.current_checkpoint
+        
         # Mark as failed (should preserve temp files)
         checkpoint_manager.mark_failed("Test error")
         
@@ -267,12 +272,10 @@ Date: 2025-06-01
         for path in temp_files.values():
             assert path.exists()
         
-        # Clean up checkpoint and temp files
-        checkpoint_manager._cleanup_temp_files()
-        if checkpoint_manager.checkpoint_file.exists():
-            checkpoint_manager.checkpoint_file.unlink()
+        # Clean up temp files using the saved checkpoint reference
+        checkpoint_manager._cleanup_temp_files(checkpoint_ref)
         
-        # Verify checkpoint file is removed
+        # Verify checkpoint file is removed (already done by mark_failed)
         checkpoint_file = data_dir / "checkpoints" / "active_checkpoint.json"
         assert not checkpoint_file.exists()
         

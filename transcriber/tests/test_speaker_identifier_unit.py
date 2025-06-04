@@ -93,7 +93,7 @@ class TestSpeakerIdentifier:
             'title': 'AI Innovations with Dr. Jane Smith',
             'author': 'John Doe',
             'description': 'An interview with AI researcher Dr. Jane Smith',
-            'publication_date': '2025-06-01'
+            'published_date': '2025-06-01'
         }
     
     def test_init(self, mock_gemini_client, mock_key_manager):

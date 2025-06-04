@@ -17,12 +17,12 @@ class TestVTTMetadata:
         metadata = VTTMetadata(
             podcast_name="Test Podcast",
             episode_title="Episode 1",
-            publication_date="2025-06-01"
+            publication_date=datetime(2025, 6, 1)
         )
         
         assert metadata.podcast_name == "Test Podcast"
         assert metadata.episode_title == "Episode 1"
-        assert metadata.publication_date == "2025-06-01"
+        assert metadata.publication_date == datetime(2025, 6, 1)
         assert metadata.duration is None
         assert metadata.host is None
         assert metadata.guests is None
@@ -32,7 +32,7 @@ class TestVTTMetadata:
         metadata = VTTMetadata(
             podcast_name="Test Podcast",
             episode_title="Episode 1",
-            publication_date="2025-06-01",
+            publication_date=datetime(2025, 6, 1),
             duration="45:00",
             host="John Doe",
             guests=["Jane Smith", "Bob Wilson"],
@@ -55,7 +55,7 @@ class TestVTTMetadata:
         metadata = VTTMetadata(
             podcast_name="Test Podcast",
             episode_title="Episode 1",
-            publication_date="2025-06-01"
+            publication_date=datetime(2025, 6, 1)
         )
         
         note_block = metadata.to_note_block()
@@ -78,7 +78,7 @@ class TestVTTMetadata:
         metadata = VTTMetadata(
             podcast_name="Test Podcast",
             episode_title="Episode 1",
-            publication_date="2025-06-01",
+            publication_date=datetime(2025, 6, 1),
             duration="45:00",
             host="John Doe",
             guests=["Jane Smith", "Bob Wilson"],
@@ -104,7 +104,7 @@ class TestVTTMetadata:
         metadata = VTTMetadata(
             podcast_name="Test",
             episode_title="Episode",
-            publication_date="2025-06-01",
+            publication_date=datetime(2025, 6, 1),
             description=long_desc
         )
         
@@ -137,7 +137,7 @@ class TestVTTMetadata:
         metadata = VTTMetadata(
             podcast_name="Test",
             episode_title="Episode",
-            publication_date="2025-06-01",
+            publication_date=datetime(2025, 6, 1),
             duration=None,
             host=None
         )
@@ -170,7 +170,7 @@ class TestVTTGenerator:
         return VTTMetadata(
             podcast_name="Test Podcast",
             episode_title="Episode 1",
-            publication_date="2025-06-01",
+            publication_date=datetime(2025, 6, 1),
             duration="45:00",
             host="John Doe",
             speakers={"SPEAKER_1": "John Doe", "SPEAKER_2": "Jane Smith"}
@@ -400,7 +400,7 @@ Hello & welcome < everyone >"""
         episode_data = {
             'podcast_name': 'Test Podcast',
             'title': 'Episode 1',
-            'publication_date': '2025-06-01',
+            'published_date': '2025-06-01',
             'duration': '45:00',
             'author': 'John Doe',
             'description': 'Test episode'
@@ -420,7 +420,7 @@ Hello & welcome < everyone >"""
         episode_data = {
             'podcast_name': 'Test Podcast',
             'title': 'Episode 1',
-            'publication_date': '2025-06-01'
+            'published_date': '2025-06-01'
         }
         
         speaker_mapping = {
@@ -475,7 +475,7 @@ Hello & welcome < everyone >"""
         episode_data = {
             'podcast_name': 'Test Podcast',
             'title': 'Episode 1',
-            'publication_date': '2025-06-01T10:00:00Z'
+            'published_date': '2025-06-01T10:00:00Z'
         }
         
         output_dir = Path("/output")
@@ -488,7 +488,7 @@ Hello & welcome < everyone >"""
         episode_data = {
             'podcast_name': 'Test: Podcast!',
             'title': 'Episode "Special"',
-            'publication_date': '2025-06-01'
+            'published_date': '2025-06-01'
         }
         
         output_dir = Path("/output")
@@ -501,7 +501,7 @@ Hello & welcome < everyone >"""
         episode_data = {
             'podcast_name': 'Test Podcast',
             'title': 'Episode 1',
-            'publication_date': 'invalid-date'
+            'published_date': 'invalid-date'
         }
         
         output_dir = Path("/output")

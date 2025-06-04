@@ -100,7 +100,7 @@ class TestTranscriptionProcessor:
             'podcast_name': 'Tech Talk',
             'title': 'AI Innovations',
             'author': 'John Doe',
-            'publication_date': '2025-06-01',
+            'published_date': '2025-06-01',
             'duration': '45:00'
         }
     

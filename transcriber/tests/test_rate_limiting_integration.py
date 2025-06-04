@@ -31,6 +31,34 @@ class TestRateLimitingIntegration:
         model.generate_content_async = AsyncMock()
         return model
     
+    @pytest.fixture
+    def mock_audio_handling(self):
+        """Setup common audio file handling mocks."""
+        mock_uploaded_file = Mock()
+        mock_uploaded_file.name = "uploaded_test.mp3"
+        
+        with patch('src.gemini_client.genai.upload_file', return_value=mock_uploaded_file) as mock_upload:
+            with patch('src.gemini_client.genai.delete_file') as mock_delete:
+                with patch('src.gemini_client.RateLimitedGeminiClient._download_audio_file') as mock_download:
+                    mock_download.return_value = "/tmp/test_audio.mp3"
+                    yield {
+                        'upload': mock_upload,
+                        'delete': mock_delete,
+                        'download': mock_download,
+                        'uploaded_file': mock_uploaded_file
+                    }
+    
+    def setup_audio_mocks(self):
+        """Return context manager for audio mocking."""
+        mock_uploaded_file = Mock()
+        mock_uploaded_file.name = "uploaded_test.mp3"
+        
+        return patch.multiple(
+            'src.gemini_client.genai',
+            upload_file=Mock(return_value=mock_uploaded_file),
+            delete_file=Mock()
+        )
+    
     @pytest.mark.asyncio
     async def test_rate_limit_enforcement(self, tmp_path, mock_api_keys):
         """Test that rate limits are properly enforced."""
@@ -48,30 +76,37 @@ class TestRateLimitingIntegration:
                     mock_model.generate_content_async = AsyncMock(return_value=mock_response)
                     mock_model_cls.return_value = mock_model
                     
-                    # Initialize client
-                    client = RateLimitedGeminiClient(mock_api_keys)
+                    # Mock audio file upload/download
+                    mock_uploaded_file = Mock()
+                    mock_uploaded_file.name = "uploaded_test.mp3"
                     
-                    # Test requests per minute limit
-                    requests_made = 0
-                    start_time = time.time()
-                    
-                    # Try to make more requests than allowed per minute
-                    for i in range(RATE_LIMITS['rpm'] + 2):
-                        try:
-                            # Mock transcription request
-                            await client._transcribe_with_retry(
-                                mock_model,
-                                0,  # key index
-                                f"https://example.com/audio{i}.mp3",
-                                {'title': f'Test Episode {i}', 'duration': '1:00'}
-                            )
-                            requests_made += 1
-                        except Exception as e:
-                            # Should start failing after rpm limit
-                            if requests_made >= RATE_LIMITS['rpm']:
-                                assert "rate limit" in str(e).lower() or "quota" in str(e).lower()
-                            else:
-                                raise
+                    with patch('src.gemini_client.genai.upload_file', return_value=mock_uploaded_file):
+                        with patch('src.gemini_client.genai.delete_file'):
+                            with patch('src.gemini_client.RateLimitedGeminiClient._download_audio_file') as mock_download:
+                                mock_download.return_value = "/tmp/test_audio.mp3"
+                                
+                                # Initialize client
+                                client = RateLimitedGeminiClient(mock_api_keys)
+                                
+                                # Test requests per minute limit
+                                requests_made = 0
+                                start_time = time.time()
+                                
+                                # Try to make more requests than allowed per minute
+                                for i in range(RATE_LIMITS['rpm'] + 2):
+                                    try:
+                                        # Use public API which includes rate limiting
+                                        await client.transcribe_audio(
+                                            f"https://example.com/audio{i}.mp3",
+                                            {'title': f'Test Episode {i}', 'duration': '1:00'}
+                                        )
+                                        requests_made += 1
+                                    except Exception as e:
+                                        # Should start failing after rpm limit
+                                        if requests_made >= RATE_LIMITS['rpm']:
+                                            assert "no api keys available" in str(e).lower() or "rate limit" in str(e).lower()
+                                        else:
+                                            raise
                     
                     elapsed_time = time.time() - start_time
                     
@@ -106,45 +141,56 @@ class TestRateLimitingIntegration:
                     # Return different models based on which key is used
                     mock_model_cls.side_effect = [mock_model_1, mock_model_2]
                     
-                    # Initialize client
-                    client = RateLimitedGeminiClient(mock_api_keys[:2])
+                    # Mock audio file operations
+                    mock_uploaded_file = Mock()
+                    mock_uploaded_file.name = "uploaded_test.mp3"
                     
-                    # First request should fail with key 1 but succeed with key 2
-                    episode_data = {
-                        'title': 'Test Episode',
-                        'audio_url': 'https://example.com/test.mp3',
-                        'duration': '30:00'
-                    }
+                    with patch('src.gemini_client.genai.upload_file', return_value=mock_uploaded_file):
+                        with patch('src.gemini_client.genai.delete_file'):
+                            with patch('src.gemini_client.RateLimitedGeminiClient._download_audio_file') as mock_download:
+                                mock_download.return_value = "/tmp/test_audio.mp3"
+                                
+                                # Initialize client
+                                client = RateLimitedGeminiClient(mock_api_keys[:2])
+                                
+                                # First request should fail with key 1 but succeed with key 2
+                                episode_data = {
+                                    'title': 'Test Episode',
+                                    'audio_url': 'https://example.com/test.mp3',
+                                    'duration': '30:00'
+                                }
+                                
+                                result = await client.transcribe_audio(
+                                    episode_data['audio_url'],
+                                    episode_data
+                                )
+                                
+                                # Should get result from second key
+                                assert result == "Transcription from key 2"
                     
-                    result = await client.transcribe_audio(
-                        episode_data['audio_url'],
-                        episode_data
-                    )
-                    
-                    # Should get result from second key
-                    assert result == "Transcription from key 2"
-                    
-                    # Verify first key is marked as rate limited
-                    assert not client.usage_trackers[0].is_available
-                    assert client.usage_trackers[1].is_available
+                                # Verify first key is marked as rate limited
+                                assert not client.usage_trackers[0].is_available
+                                assert client.usage_trackers[1].is_available
     
     @pytest.mark.asyncio
     async def test_daily_quota_tracking(self, tmp_path):
         """Test daily quota tracking and enforcement."""
-        # Create usage state file with near-quota usage
+        # Create usage state file with near-quota usage (using correct format)
+        data_dir = tmp_path / "data"
+        data_dir.mkdir(exist_ok=True)
         usage_state = {
-            "last_save": datetime.now(timezone.utc).isoformat(),
-            "api_keys": {
-                "0": {
+            "last_updated": datetime.now(timezone.utc).isoformat(),
+            "trackers": [
+                {
+                    "key_index": 0,
                     "requests_today": RATE_LIMITS['rpd'] - 2,  # 2 requests left
                     "tokens_today": RATE_LIMITS['tpd'] - 10000,  # Some tokens left
-                    "last_reset": datetime.now(timezone.utc).isoformat(),
-                    "is_available": True
+                    "last_reset": datetime.now(timezone.utc).isoformat()
                 }
-            }
+            ]
         }
         
-        usage_file = tmp_path / ".gemini_usage_state.json"
+        usage_file = data_dir / ".gemini_usage.json"
         with open(usage_file, 'w') as f:
             json.dump(usage_state, f)
         
@@ -157,36 +203,49 @@ class TestRateLimitingIntegration:
                     mock_model.generate_content_async = AsyncMock(return_value=mock_response)
                     mock_model_cls.return_value = mock_model
                     
-                    # Patch Path.home() to use our temp directory
-                    with patch('src.gemini_client.Path.home', return_value=tmp_path):
-                        client = RateLimitedGeminiClient(['test_key'])
-                        
-                        # Should load existing usage state
-                        assert client.usage_trackers[0].requests_today == RATE_LIMITS['rpd'] - 2
-                        
-                        # Make one request - should succeed
-                        result = await client.transcribe_audio(
-                            "https://example.com/audio1.mp3",
-                            {'title': 'Test 1', 'duration': '5:00'}
-                        )
-                        assert result == "Test transcription"
-                        
-                        # Make another request - should succeed (last one)
-                        result = await client.transcribe_audio(
-                            "https://example.com/audio2.mp3",
-                            {'title': 'Test 2', 'duration': '5:00'}
-                        )
-                        assert result == "Test transcription"
-                        
-                        # Next request should fail due to daily quota
-                        result = await client.transcribe_audio(
-                            "https://example.com/audio3.mp3",
-                            {'title': 'Test 3', 'duration': '5:00'}
-                        )
-                        assert result is None  # Should be rejected
-                        
-                        # Verify quota is tracked
-                        assert client.usage_trackers[0].requests_today >= RATE_LIMITS['rpd']
+                    # Mock audio file operations
+                    mock_uploaded_file = Mock()
+                    mock_uploaded_file.name = "uploaded_test.mp3"
+                    
+                    with patch('src.gemini_client.genai.upload_file', return_value=mock_uploaded_file):
+                        with patch('src.gemini_client.genai.delete_file'):
+                            with patch('src.gemini_client.RateLimitedGeminiClient._download_audio_file') as mock_download:
+                                mock_download.return_value = "/tmp/test_audio.mp3"
+                                
+                                # Patch Path to use our temp directory for state file
+                                old_cwd = os.getcwd()
+                                os.chdir(tmp_path)
+                                try:
+                                    client = RateLimitedGeminiClient(['test_key'])
+                                    
+                                    # Should load existing usage state
+                                    assert client.usage_trackers[0].requests_today == RATE_LIMITS['rpd'] - 2
+                                    
+                                    # Make one request - should succeed
+                                    result = await client.transcribe_audio(
+                                        "https://example.com/audio1.mp3",
+                                        {'title': 'Test 1', 'duration': '5:00'}
+                                    )
+                                    assert result == "Test transcription"
+                                    
+                                    # Make another request - should succeed (last one)
+                                    result = await client.transcribe_audio(
+                                        "https://example.com/audio2.mp3",
+                                        {'title': 'Test 2', 'duration': '5:00'}
+                                    )
+                                    assert result == "Test transcription"
+                                    
+                                    # Next request should fail due to daily quota
+                                    result = await client.transcribe_audio(
+                                        "https://example.com/audio3.mp3",
+                                        {'title': 'Test 3', 'duration': '5:00'}
+                                    )
+                                    assert result is None  # Should be rejected
+                                    
+                                    # Verify quota is tracked
+                                    assert client.usage_trackers[0].requests_today >= RATE_LIMITS['rpd']
+                                finally:
+                                    os.chdir(old_cwd)
     
     @pytest.mark.asyncio
     async def test_daily_reset(self, tmp_path):

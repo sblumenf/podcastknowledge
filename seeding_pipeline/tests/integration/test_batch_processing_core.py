@@ -85,8 +85,8 @@ class TestBatchProcessingCore:
         """Test recovery from checkpoint after simulated failure."""
         # Create checkpoint
         checkpoint = ProgressCheckpoint(checkpoint_dir)
-        checkpoint.mark_episode_complete("test_episode_1", {})
-        checkpoint.mark_episode_complete("test_episode_2", {})
+        checkpoint.mark_episode_complete("0", {})  # First item ID
+        checkpoint.mark_episode_complete("1", {})  # Second item ID
         
         # Process with checkpoint - should skip completed
         items = create_batch_items(sample_vtt_files)
@@ -112,7 +112,7 @@ class TestBatchProcessingCore:
         # Should only process 3 files (3, 4, 5)
         assert len(results) == 3
         assert processed_count == 3
-        assert all(r.item_id.endswith(("3", "4", "5")) for r in results)
+        assert all(r.item_id in ("2", "3", "4") for r in results)
     
     def test_duplicate_file_handling(self, batch_processor, process_function):
         """Test processing same file twice."""
@@ -318,11 +318,24 @@ class TestBatchProcessingCore:
         assert stats["failure_count"] == 0
         assert stats["average_processing_time"] > 0
     
-    def test_schema_discovery_tracking(self, batch_processor):
+    def test_schema_discovery_tracking(self):
         """Test tracking of discovered entity types during batch processing."""
+        # Create a batch processor in schemaless mode
+        batch_processor = BatchProcessor(
+            max_workers=2,
+            batch_size=5,
+            use_processes=False,
+            memory_limit_mb=1024,
+            is_schemaless=True
+        )
         def discovery_process_func(item):
             # Simulate discovering new entity types
+            # Return results in the format expected by BatchProcessor
             if item.id == "episode_1":
+                # Set metadata on the item to be tracked
+                item.metadata = {
+                    'discovered_types': ["PERSON", "ORGANIZATION"]
+                }
                 return {
                     "entities": [
                         {"type": "PERSON", "name": "John"},
@@ -330,6 +343,9 @@ class TestBatchProcessingCore:
                     ]
                 }
             elif item.id == "episode_2":
+                item.metadata = {
+                    'discovered_types': ["PERSON", "TECHNOLOGY"]
+                }
                 return {
                     "entities": [
                         {"type": "PERSON", "name": "Jane"},
@@ -351,19 +367,17 @@ class TestBatchProcessingCore:
         )
         
         # Track discovered types
-        for result in results:
-            if result.success and result.result.get("entities"):
-                batch_processor.track_schema_discovery(result)
+        # Note: track_schema_discovery is called automatically in process_items when is_schemaless=True
         
         # Get schema report
         schema_report = batch_processor.get_schema_evolution_report()
         
         # Verify schema tracking
-        assert "discovered_types" in schema_report
+        assert "entity_types" in schema_report
         assert "type_distribution" in schema_report
-        assert "discovery_timeline" in schema_report
+        assert "most_common_types" in schema_report
         
-        discovered = set(schema_report["discovered_types"])
+        discovered = set(schema_report["entity_types"])
         assert "PERSON" in discovered
         assert "ORGANIZATION" in discovered
         assert "TECHNOLOGY" in discovered

@@ -16,6 +16,14 @@ from src.utils.logging import get_logger
 
 logger = get_logger('key_rotation_manager')
 
+# Gemini 2.5 Pro rate limits for free tier
+RATE_LIMITS = {
+    'rpm': 5,           # 5 requests per minute
+    'tpm': 250_000,     # 250K tokens per minute  
+    'rpd': 25,          # 25 requests per day
+    'tpd': 1_000_000,   # 1M tokens per day
+}
+
 
 class KeyStatus(Enum):
     """Status of an API key."""
@@ -34,10 +42,39 @@ class APIKeyState:
     last_used: Optional[datetime] = None
     consecutive_failures: int = 0
     error_message: Optional[str] = None
+    # Quota tracking fields
+    requests_today: int = 0
+    tokens_today: int = 0
+    requests_this_minute: int = 0
+    last_minute_reset: Optional[datetime] = None
+    last_daily_reset: Optional[datetime] = None
     
-    def is_usable(self) -> bool:
-        """Check if this key can be used."""
-        return self.status == KeyStatus.AVAILABLE
+    def is_usable(self, rate_limits: Optional[Dict[str, int]] = None) -> bool:
+        """Check if this key can be used.
+        
+        Args:
+            rate_limits: Optional rate limits to check against
+            
+        Returns:
+            True if key is usable
+        """
+        if self.status != KeyStatus.AVAILABLE:
+            return False
+            
+        if rate_limits:
+            # Check daily limits
+            if self.requests_today >= rate_limits.get('rpd', float('inf')):
+                return False
+            if self.tokens_today >= rate_limits.get('tpd', float('inf')):
+                return False
+            
+            # Check minute limits
+            now = datetime.now(timezone.utc)
+            if self.last_minute_reset and (now - self.last_minute_reset).total_seconds() < 60:
+                if self.requests_this_minute >= rate_limits.get('rpm', float('inf')):
+                    return False
+        
+        return True
     
     def mark_success(self):
         """Mark a successful use of this key."""
@@ -62,6 +99,31 @@ class APIKeyState:
             if self.consecutive_failures >= 3:
                 self.status = KeyStatus.ERROR
     
+    def update_quota_usage(self, requests: int = 1, tokens: int = 0):
+        """Update quota usage after successful API call.
+        
+        Args:
+            requests: Number of requests made (default 1)
+            tokens: Number of tokens used
+        """
+        now = datetime.now(timezone.utc)
+        
+        # Reset daily counters if needed
+        if self.last_daily_reset is None or (now - self.last_daily_reset).days >= 1:
+            self.requests_today = 0
+            self.tokens_today = 0
+            self.last_daily_reset = now.replace(hour=0, minute=0, second=0, microsecond=0)
+        
+        # Reset minute counters if needed
+        if self.last_minute_reset is None or (now - self.last_minute_reset).total_seconds() >= 60:
+            self.requests_this_minute = 0
+            self.last_minute_reset = now
+        
+        # Update counters
+        self.requests_today += requests
+        self.tokens_today += tokens
+        self.requests_this_minute += requests
+    
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for serialization."""
         return {
@@ -70,7 +132,13 @@ class APIKeyState:
             'status': self.status.value,
             'last_used': self.last_used.isoformat() if self.last_used else None,
             'consecutive_failures': self.consecutive_failures,
-            'error_message': self.error_message
+            'error_message': self.error_message,
+            # Quota fields
+            'requests_today': self.requests_today,
+            'tokens_today': self.tokens_today,
+            'requests_this_minute': self.requests_this_minute,
+            'last_minute_reset': self.last_minute_reset.isoformat() if self.last_minute_reset else None,
+            'last_daily_reset': self.last_daily_reset.isoformat() if self.last_daily_reset else None
         }
     
     @classmethod
@@ -80,13 +148,27 @@ class APIKeyState:
         if data.get('last_used'):
             last_used = datetime.fromisoformat(data['last_used'])
         
+        last_minute_reset = None
+        if data.get('last_minute_reset'):
+            last_minute_reset = datetime.fromisoformat(data['last_minute_reset'])
+        
+        last_daily_reset = None
+        if data.get('last_daily_reset'):
+            last_daily_reset = datetime.fromisoformat(data['last_daily_reset'])
+        
         return cls(
             index=data['index'],
             key_name=data['key_name'],
             status=KeyStatus(data.get('status', 'available')),
             last_used=last_used,
             consecutive_failures=data.get('consecutive_failures', 0),
-            error_message=data.get('error_message')
+            error_message=data.get('error_message'),
+            # Quota fields
+            requests_today=data.get('requests_today', 0),
+            tokens_today=data.get('tokens_today', 0),
+            requests_this_minute=data.get('requests_this_minute', 0),
+            last_minute_reset=last_minute_reset,
+            last_daily_reset=last_daily_reset
         )
 
 
@@ -177,6 +259,12 @@ class KeyRotationManager:
         """Reset key states for a new day."""
         logger.info("Performing daily reset of key states")
         for state in self.key_states:
+            # Reset quota counters
+            state.requests_today = 0
+            state.tokens_today = 0
+            state.last_daily_reset = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
+            
+            # Reset status if it was limited/exceeded
             if state.status in (KeyStatus.RATE_LIMITED, KeyStatus.QUOTA_EXCEEDED):
                 state.status = KeyStatus.AVAILABLE
                 state.consecutive_failures = 0
@@ -301,6 +389,76 @@ class KeyRotationManager:
             state.error_message = None
             self._save_state()
             logger.info(f"Force reset {state.key_name} to available")
+    
+    def get_available_key_for_quota(self, tokens_needed: int = 0) -> Optional[Tuple[str, int]]:
+        """Get an available key that has quota for the request.
+        
+        Args:
+            tokens_needed: Estimated tokens needed for the request
+            
+        Returns:
+            Tuple of (api_key, key_index) or None if no key has quota
+        """
+        # Check all keys for quota availability
+        for i, state in enumerate(self.key_states):
+            if state.is_usable(RATE_LIMITS):
+                # Additional check for tokens if provided
+                if tokens_needed > 0 and state.tokens_today + tokens_needed > RATE_LIMITS['tpd']:
+                    continue
+                    
+                logger.info(f"Found {state.key_name} with available quota")
+                return self.api_keys[i], i
+        
+        # No keys have quota available
+        logger.warning("No API keys have quota available")
+        self._log_quota_status()
+        return None
+    
+    def update_key_usage(self, key_index: int, tokens_used: int):
+        """Update usage statistics for a key after successful API call.
+        
+        Args:
+            key_index: Index of the key that was used
+            tokens_used: Number of tokens consumed
+        """
+        if 0 <= key_index < len(self.key_states):
+            state = self.key_states[key_index]
+            state.update_quota_usage(tokens=tokens_used)
+            self._save_state()
+            logger.debug(
+                f"{state.key_name} usage updated: "
+                f"{state.requests_today}/{RATE_LIMITS['rpd']} requests, "
+                f"{state.tokens_today}/{RATE_LIMITS['tpd']} tokens today"
+            )
+    
+    def get_quota_summary(self) -> List[Dict[str, Any]]:
+        """Get quota usage summary for all keys.
+        
+        Returns:
+            List of quota information per key
+        """
+        summary = []
+        for state in self.key_states:
+            summary.append({
+                'key_name': state.key_name,
+                'status': state.status.value,
+                'requests_today': state.requests_today,
+                'requests_remaining': RATE_LIMITS['rpd'] - state.requests_today,
+                'tokens_today': state.tokens_today,
+                'tokens_remaining': RATE_LIMITS['tpd'] - state.tokens_today,
+                'is_available': state.is_usable(RATE_LIMITS)
+            })
+        return summary
+    
+    def _log_quota_status(self):
+        """Log current quota status for all keys."""
+        logger.info("Current quota status:")
+        for state in self.key_states:
+            logger.info(
+                f"  {state.key_name}: {state.status.value} - "
+                f"Requests: {state.requests_today}/{RATE_LIMITS['rpd']}, "
+                f"Tokens: {state.tokens_today}/{RATE_LIMITS['tpd']}"
+            )
 
 
 def create_key_rotation_manager(state_dir: Optional[Path] = None) -> Optional[KeyRotationManager]:

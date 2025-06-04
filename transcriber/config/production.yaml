@@ -1,0 +1,174 @@
+# Production Configuration for Podcast Transcription Pipeline
+# Optimized settings for real podcast processing at scale
+
+# API Configuration - Optimized for production throughput
+api:
+  # Extended timeout for large audio files
+  timeout: 600  # 10 minutes for complex episodes
+  
+  # Conservative retry configuration to preserve quota
+  retry:
+    max_attempts: 3  # Allow one extra retry for production reliability
+    backoff_multiplier: 3  # More conservative backoff
+    max_backoff: 120  # 2 minute max backoff
+  
+  # Production quota settings - optimized for real API limits
+  quota:
+    max_episodes_per_day: 100  # Higher limit for production batches
+    max_requests_per_key: 25  # Standard Gemini API limit
+    max_tokens_per_key: 1000000  # Standard Gemini API limit
+
+# Processing Configuration - Production optimized
+processing:
+  # Keep sequential processing due to rate limits
+  parallel_workers: 1
+  
+  # Enable all production features
+  enable_progress_bar: true
+  checkpoint_enabled: true
+  
+  # Handle longer episodes in production
+  max_episode_length: 180  # 3 hours max
+  
+  # Quota management for production
+  quota_wait_enabled: true  # Essential for production
+  max_quota_wait_hours: 25  # Wait until quota resets
+  quota_check_interval_minutes: 15  # Check every 15 minutes
+
+# Output Configuration - Production file management
+output:
+  # Production output directory
+  default_dir: "/var/podcast-transcripts"
+  
+  # Robust file naming for production
+  naming:
+    pattern: "{podcast_name}/{date}_{episode_title}.vtt"
+    sanitize_filenames: true
+    max_filename_length: 180  # Shorter for filesystem compatibility
+  
+  # Full VTT format for production
+  vtt:
+    include_metadata: true
+    speaker_voice_tags: true
+    timestamp_precision: 3
+
+# Logging Configuration - Production logging
+logging:
+  # Production log levels
+  console_level: "INFO"  # Show important events
+  file_level: "DEBUG"    # Full debugging in files
+  
+  # Larger log files for production
+  max_file_size_mb: 50
+  backup_count: 10
+  
+  # Centralized logging directory
+  log_dir: "/var/log/podcast-transcriber"
+
+# Security Configuration - Production security
+security:
+  # Multiple API keys for production throughput
+  api_key_vars:
+    - "GEMINI_API_KEY_1"
+    - "GEMINI_API_KEY_2"
+    - "GEMINI_API_KEY_3"
+    - "GEMINI_API_KEY_4"
+    - "GEMINI_API_KEY_5"
+  
+  # Robust key rotation for production
+  rotation:
+    strategy: "round_robin"  # Predictable rotation
+    fail_over_enabled: true  # Essential for production
+
+# YouTube Search Configuration - Production optimized
+youtube_search:
+  # Enable for maximum episode discovery
+  enabled: true
+  
+  # Use RSS-only method for production stability
+  method: "rss_only"
+  
+  # Cache for performance
+  cache_results: true
+  
+  # Strict matching for production quality
+  fuzzy_match_threshold: 0.90  # Higher threshold for accuracy
+  duration_tolerance: 0.05     # Tighter tolerance for production
+  max_search_results: 10       # More results for better matching
+
+# Transcript Validation Configuration - Production quality
+validation:
+  # High quality validation for production
+  enabled: true
+  min_coverage_ratio: 0.90  # Higher quality threshold
+  max_continuation_attempts: 15  # More attempts for production completeness
+
+# Development Configuration - Production settings
+development:
+  # Production mode
+  dry_run: false
+  debug_mode: false
+  save_raw_responses: false
+  test_mode: false
+  mock_api_calls: false
+
+# Production-specific State Management
+state:
+  # Centralized state directory
+  state_dir: "/var/lib/podcast-transcriber"
+  
+  # State backup configuration
+  backup_enabled: true
+  backup_retention_days: 30
+  backup_compression: true
+
+# Production Health Monitoring
+monitoring:
+  # Health check configuration
+  health_check_enabled: true
+  health_check_port: 8080
+  
+  # Metrics collection
+  metrics_enabled: true
+  metrics_export_interval: 300  # 5 minutes
+  
+  # Performance thresholds
+  max_memory_mb: 2048
+  max_processing_time_minutes: 60
+  
+# Production Rate Limiting
+rate_limiting:
+  # Requests per minute across all keys
+  global_rpm: 120
+  
+  # Cool-down periods
+  quota_exceeded_cooldown: 3600  # 1 hour
+  error_rate_threshold: 0.1      # 10% error rate triggers slowdown
+  
+# Production Batch Processing
+batch:
+  # Batch size limits
+  max_batch_size: 200
+  
+  # Progress reporting
+  progress_report_interval: 10  # Every 10 episodes
+  
+  # Checkpoint frequency
+  checkpoint_interval: 5  # Every 5 episodes
+  
+  # Recovery settings
+  auto_resume_on_start: true
+  failed_episode_retry_delay: 1800  # 30 minutes
+
+# Production Data Management
+data:
+  # Temporary file cleanup
+  cleanup_temp_files: true
+  temp_file_retention_hours: 24
+  
+  # Archive settings
+  archive_completed_episodes: false  # Keep all transcripts
+  
+  # Disk space management
+  min_free_space_gb: 10
+  max_transcript_size_mb: 100

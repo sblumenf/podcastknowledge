@@ -21,6 +21,7 @@ from src.youtube_searcher import YouTubeSearcher
 from src.checkpoint_recovery import CheckpointManager
 from src.retry_wrapper import QuotaExceededException, CircuitBreakerOpenException
 from src.utils.logging import get_logger, log_progress
+from src.utils.batch_progress import BatchProgressTracker
 from src.config import Config
 
 logger = get_logger('orchestrator')
@@ -54,7 +55,7 @@ class TranscriptionOrchestrator:
         data_dir.mkdir(exist_ok=True)
         self.progress_tracker = ProgressTracker(data_dir / ".progress.json")
         self.key_manager = create_key_rotation_manager()
-        self.gemini_client = create_gemini_client()
+        self.gemini_client = create_gemini_client(self.key_manager)
         
         # Initialize checkpoint manager if enabled
         self.checkpoint_manager = CheckpointManager(data_dir) if enable_checkpoint else None
@@ -115,6 +116,10 @@ class TranscriptionOrchestrator:
                 'message': 'All episodes already processed'
             }
         
+        # Initialize batch progress tracker
+        batch_tracker = BatchProgressTracker(self.progress_tracker, len(pending_episodes))
+        batch_tracker.start_batch()
+        
         # Process episodes sequentially
         results = {
             'status': 'completed',
@@ -125,7 +130,8 @@ class TranscriptionOrchestrator:
         }
         
         for i, episode in enumerate(pending_episodes):
-            log_progress(i + 1, len(pending_episodes), f"Processing: {episode.title}", "starting")
+            # Update current episode in progress tracker
+            batch_tracker.update_current_episode(episode.title)
             
             # Check daily quota
             usage = self.gemini_client.get_usage_summary()
@@ -137,6 +143,10 @@ class TranscriptionOrchestrator:
                 results['skipped'] = len(pending_episodes) - i
                 break
             
+            # Prepare episode data for error handling
+            episode_data = episode.to_dict()
+            episode_data['podcast_name'] = podcast_metadata.title
+            
             # Process episode
             try:
                 episode_result = await self._process_episode(episode, podcast_metadata)
@@ -144,15 +154,50 @@ class TranscriptionOrchestrator:
                 
                 if episode_result['status'] == 'completed':
                     results['processed'] += 1
+                    # Calculate processing time for progress tracker
+                    processing_time = episode_result.get('duration', 300.0)  # Default 5 minutes
+                    batch_tracker.episode_completed(processing_time)
                 elif episode_result['status'] == 'failed':
                     results['failed'] += 1
+                    error_msg = episode_result.get('error', 'Unknown error')
+                    batch_tracker.episode_failed(error_msg)
                 elif episode_result['status'] == 'skipped':
                     results['skipped'] += 1
+                    reason = episode_result.get('reason', 'Unknown reason')
+                    batch_tracker.episode_skipped(reason)
                     
             except QuotaExceededException as e:
                 logger.warning(f"Quota exceeded during processing: {e}")
                 
-                # Check if we should wait for quota reset
+                # First, try to find another key with available quota
+                if self.key_manager:
+                    # Estimate tokens needed (rough estimate: 2000 tokens per minute of audio)
+                    duration_seconds = 3600  # Default to 1 hour if unknown
+                    if hasattr(episode, 'duration') and episode.duration:
+                        # Parse duration string
+                        try:
+                            if ':' in str(episode.duration):
+                                parts = str(episode.duration).split(':')
+                                if len(parts) == 3:
+                                    duration_seconds = int(parts[0]) * 3600 + int(parts[1]) * 60 + int(parts[2])
+                                elif len(parts) == 2:
+                                    duration_seconds = int(parts[0]) * 60 + int(parts[1])
+                        except:
+                            pass
+                    
+                    estimated_tokens = (duration_seconds / 60) * 2000
+                    
+                    # Try to get a key with available quota
+                    alt_key = self.key_manager.get_available_key_for_quota(int(estimated_tokens))
+                    
+                    if alt_key:
+                        logger.info(f"Switching to alternative API key with available quota")
+                        # The gemini client will pick up the new key on next request
+                        # Retry the current episode
+                        i -= 1
+                        continue
+                
+                # No keys have quota, check if we should wait
                 if self.config.processing.quota_wait_enabled:
                     # Update results to show we're waiting
                     results['status'] = 'quota_wait'
@@ -162,6 +207,9 @@ class TranscriptionOrchestrator:
                     wait_success = await self._wait_for_quota_reset()
                     
                     if wait_success:
+                        # Reset quota tracking for all keys
+                        if self.key_manager:
+                            self.key_manager._daily_reset()
                         # Reset API client usage tracking
                         self.gemini_client._load_usage_state()
                         
@@ -174,10 +222,21 @@ class TranscriptionOrchestrator:
                         results['status'] = 'quota_wait_failed'
                         break
                 else:
-                    # Quota wait disabled, skip remaining episodes
+                    # Quota wait disabled, skip remaining episodes including current one
                     results['status'] = 'quota_reached'
-                    results['skipped'] = len(pending_episodes) - i
+                    results['skipped'] = len(pending_episodes) - i  # Skip current and remaining episodes
                     break
+        
+        # Finish batch progress tracking
+        status_message = results.get('status', 'completed')
+        if status_message == 'completed':
+            batch_tracker.finish_batch("All episodes processed successfully")
+        elif status_message == 'quota_reached':
+            batch_tracker.finish_batch("Processing stopped - quota limit reached")
+        elif status_message == 'quota_wait_failed':
+            batch_tracker.finish_batch("Processing stopped - quota wait failed")
+        else:
+            batch_tracker.finish_batch(f"Processing finished with status: {status_message}")
         
         # Generate summary report
         self._generate_summary_report(results, podcast_metadata)
@@ -356,26 +415,9 @@ class TranscriptionOrchestrator:
         except QuotaExceededException as e:
             logger.warning(f"Quota exceeded for episode: {e}")
             
-            # Check if quota wait is enabled
-            if self.config.processing.quota_wait_enabled:
-                # Raise the exception to be handled at the process_feed level
-                raise
-            else:
-                # Original behavior: mark as failed
-                self.progress_tracker.update_episode_state(
-                    episode.guid, EpisodeStatus.FAILED, episode_data,
-                    error=str(e)
-                )
-                if self.checkpoint_manager:
-                    self.checkpoint_manager.mark_failed(str(e))
-                
-                return {
-                    'episode_id': episode.guid,
-                    'title': episode.title,
-                    'status': 'skipped',
-                    'reason': 'quota_exceeded',
-                    'error': str(e)
-                }
+            # Always raise the exception to be handled at the process_feed level
+            # This allows the batch processing to stop properly when quota is exceeded
+            raise
         
         except CircuitBreakerOpenException as e:
             logger.error(f"Circuit breaker open for episode: {e}")

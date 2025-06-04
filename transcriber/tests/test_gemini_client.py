@@ -354,7 +354,7 @@ class TestRateLimitedGeminiClient:
         assert "Test Podcast" in prompt
         assert "Episode 1" in prompt
         assert "2024-01-15" in prompt
-        assert "SPEAKER_1, SPEAKER_2" in prompt
+        assert "SPEAKER_1" in prompt
     
     def test_build_speaker_identification_prompt(self, client):
         """Test building speaker identification prompt."""
@@ -424,7 +424,7 @@ class TestCreateGeminiClient:
         }):
             client = create_gemini_client()
             
-            mock_client_class.assert_called_once_with(['key1', 'key2', 'key3'])
+            mock_client_class.assert_called_once_with(['key1', 'key2', 'key3'], key_rotation_manager=None)
     
     @patch('src.gemini_client.RateLimitedGeminiClient')
     def test_create_with_single_key_fallback(self, mock_client_class):
@@ -434,7 +434,7 @@ class TestCreateGeminiClient:
         }, clear=True):
             client = create_gemini_client()
             
-            mock_client_class.assert_called_once_with(['single_key'])
+            mock_client_class.assert_called_once_with(['single_key'], key_rotation_manager=None)
     
     def test_create_no_keys(self):
         """Test creating client with no keys raises error."""

@@ -1,5 +1,4 @@
 """End-to-end test scenarios for the podcast knowledge graph pipeline.
-from tests.utils.neo4j_mocks import create_mock_neo4j_driver
 
 These tests validate complete user workflows from start to finish.
 """
@@ -16,6 +15,7 @@ import pytest
 from src.api.v1.podcast_api import seed_podcast, seed_podcasts, VTTKnowledgeExtractor
 from src.core.config import Config
 from src.core.exceptions import PodcastKGError
+from tests.utils.neo4j_mocks import create_mock_neo4j_driver
 class TestE2EScenarios:
     """End-to-end test scenarios."""
     

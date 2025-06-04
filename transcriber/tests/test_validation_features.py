@@ -11,6 +11,7 @@ import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 from pathlib import Path
 import json
+from datetime import datetime
 
 from src.feed_parser import Episode, PodcastMetadata
 from src.gemini_client import RateLimitedGeminiClient
@@ -28,7 +29,7 @@ class TestRSSDescriptionPreservation:
         metadata = VTTMetadata(
             podcast_name="Test Podcast",
             episode_title="Test Episode", 
-            publication_date="2024-01-01",
+            published_date=datetime(2024, 1, 1),
             description="This is a test episode description."
         )
         
@@ -49,7 +50,7 @@ class TestRSSDescriptionPreservation:
         metadata = VTTMetadata(
             podcast_name="Test Podcast",
             episode_title="Test Episode",
-            publication_date="2024-01-01", 
+            published_date=datetime(2024, 1, 1), 
             description=long_description
         )
         
@@ -67,7 +68,7 @@ class TestRSSDescriptionPreservation:
         episode_data = {
             'podcast_name': 'Test Podcast',
             'title': 'Test Episode',
-            'publication_date': '2024-01-01',
+            'published_date': '2024-01-01',
             'description': 'Episode description from RSS'
         }
         
@@ -120,7 +121,7 @@ class TestYouTubeURLExtraction:
         metadata = VTTMetadata(
             podcast_name="Test Podcast",
             episode_title="Test Episode",
-            publication_date="2024-01-01",
+            published_date=datetime(2024, 1, 1),
             youtube_url="https://youtube.com/watch?v=test123"
         )
         

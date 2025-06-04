@@ -65,15 +65,7 @@ class SpeakerIdentifier:
             Dictionary mapping generic labels to identified names/roles
         """
         try:
-            # Get next API key
-            api_key, key_index = self.key_manager.get_next_key()
-            
-            # Update Gemini client with selected key
-            self.gemini_client.api_keys = [api_key]
-            self.gemini_client.usage_trackers = [self.gemini_client.usage_trackers[key_index]]
-            
             logger.info("Starting speaker identification")
-            logger.info(f"Using API key index: {key_index + 1}")
             
             # Extract speaker labels from transcript
             speaker_labels = self._extract_speaker_labels(vtt_transcript)
@@ -86,7 +78,7 @@ class SpeakerIdentifier:
                 speaker_labels
             )
             
-            # Call Gemini for speaker identification
+            # Call Gemini for speaker identification (gemini_client handles key selection internally)
             mapping = await self.gemini_client.identify_speakers(vtt_transcript, episode_metadata)
             
             if not mapping:
@@ -101,19 +93,12 @@ class SpeakerIdentifier:
                 self.checkpoint_manager.save_temp_data('speaker_mapping', json.dumps(validated_mapping))
                 self.checkpoint_manager.complete_stage('speaker_identification')
             
-            # Mark key as successful
-            self.key_manager.mark_key_success(key_index)
-            
             logger.info(f"Speaker identification completed: {validated_mapping}")
             return validated_mapping
             
         except Exception as e:
             error_msg = str(e)
             logger.error(f"Speaker identification failed: {error_msg}")
-            
-            # Mark key as failed if we have a key index
-            if 'key_index' in locals():
-                self.key_manager.mark_key_failure(key_index, error_msg)
             
             # Return fallback mapping
             if 'speaker_labels' in locals():

@@ -146,10 +146,16 @@ class FileOrganizer:
         clean_podcast = self.sanitize_filename(podcast_name)
         clean_title = self.sanitize_filename(episode_title)
         
-        # Validate date format
+        # Validate and normalize date format
         try:
-            datetime.strptime(publication_date, "%Y-%m-%d")
-        except ValueError:
+            # Try to format as datetime object first
+            if hasattr(publication_date, 'strftime'):
+                # If it's already a datetime object, format it as string
+                publication_date = publication_date.strftime("%Y-%m-%d")
+            else:
+                # If it's a string, validate the format
+                datetime.strptime(publication_date, "%Y-%m-%d")
+        except (ValueError, TypeError):
             logger.warning(f"Invalid date format: {publication_date}, using current date")
             publication_date = datetime.now().strftime("%Y-%m-%d")
         
@@ -274,19 +280,27 @@ class FileOrganizer:
             logger.error(f"Failed to load manifest: {e}")
             return []
     
+    def _episode_to_dict(self, episode: EpisodeMetadata) -> Dict[str, Any]:
+        """Convert episode to dictionary, handling datetime objects."""
+        ep_dict = asdict(episode)
+        # Convert datetime objects to strings for JSON serialization
+        if isinstance(ep_dict.get('publication_date'), datetime):
+            ep_dict['publication_date'] = ep_dict['publication_date'].strftime("%Y-%m-%d")
+        return ep_dict
+    
     def _save_manifest(self):
         """Save episode manifest to disk."""
         try:
             # For tests, save as simple list (detected by base_dir path)
             if 'pytest' in str(self.base_dir) or 'test' in str(self.base_dir):
-                data = [asdict(episode) for episode in self.episodes]
+                data = [self._episode_to_dict(episode) for episode in self.episodes]
             else:
                 # Production format with metadata
                 data = {
                     'version': '1.0',
                     'generated_at': datetime.now().isoformat(),
                     'total_episodes': len(self.episodes),
-                    'episodes': [asdict(episode) for episode in self.episodes]
+                    'episodes': [self._episode_to_dict(episode) for episode in self.episodes]
                 }
             
             with open(self.manifest_file, 'w', encoding='utf-8') as f:
@@ -410,9 +424,28 @@ class FileOrganizer:
         
         # Filter by date range
         if start_date:
-            results = [ep for ep in results if ep.publication_date >= start_date]
+            start_dt = datetime.strptime(start_date, "%Y-%m-%d")
+            filtered_results = []
+            for ep in results:
+                if isinstance(ep.publication_date, str):
+                    ep_date = datetime.strptime(ep.publication_date, "%Y-%m-%d")
+                else:
+                    ep_date = ep.publication_date
+                if ep_date >= start_dt:
+                    filtered_results.append(ep)
+            results = filtered_results
+                    
         if end_date:
-            results = [ep for ep in results if ep.publication_date <= end_date]
+            end_dt = datetime.strptime(end_date, "%Y-%m-%d")
+            filtered_results = []
+            for ep in results:
+                if isinstance(ep.publication_date, str):
+                    ep_date = datetime.strptime(ep.publication_date, "%Y-%m-%d")
+                else:
+                    ep_date = ep.publication_date
+                if ep_date <= end_dt:
+                    filtered_results.append(ep)
+            results = filtered_results
         
         return results
     
@@ -439,8 +472,22 @@ class FileOrganizer:
         Returns:
             List of episodes in the date range
         """
-        return [ep for ep in self.episodes 
-                if start_date <= ep.publication_date <= end_date]
+        # Convert string dates to datetime for comparison
+        start_dt = datetime.strptime(start_date, "%Y-%m-%d")
+        end_dt = datetime.strptime(end_date, "%Y-%m-%d")
+        
+        episodes = []
+        for ep in self.episodes:
+            # Handle both string and datetime publication_date
+            if isinstance(ep.publication_date, str):
+                ep_date = datetime.strptime(ep.publication_date, "%Y-%m-%d")
+            else:
+                ep_date = ep.publication_date
+            
+            if start_dt <= ep_date <= end_dt:
+                episodes.append(ep)
+        
+        return episodes
     
     def get_episodes_by_speaker(self, speaker_name: str) -> List[EpisodeMetadata]:
         """Get episodes featuring a specific speaker.
@@ -525,8 +572,14 @@ class FileOrganizer:
         for ep in self.episodes:
             speakers.update(ep.speakers)
         
-        # Date range
-        dates = [ep.publication_date for ep in self.episodes if ep.publication_date]
+        # Date range - ensure we return strings
+        dates = []
+        for ep in self.episodes:
+            if ep.publication_date:
+                if isinstance(ep.publication_date, datetime):
+                    dates.append(ep.publication_date.strftime("%Y-%m-%d"))
+                else:
+                    dates.append(ep.publication_date)
         date_range = (min(dates), max(dates)) if dates else (None, None)
         
         # Total duration
