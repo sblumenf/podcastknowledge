@@ -19,3 +19,9 @@ coverage_baseline.txt
 
 # Duplicate directories
 podcastknowledge/
+
+# Additional patterns from storage optimization
+*.log
+*.tmp
+*.pyc
+*.pyo
