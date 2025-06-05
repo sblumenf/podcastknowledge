@@ -262,8 +262,7 @@ def handle_provider_errors(
                 # Wrap in provider error with context
                 raise ProviderError(
                     provider_type,
-                    f"Failed during {operation}: {e}",
-                    original_error=e
+                    f"Failed during {operation}: {e}"
                 )
         
         return wrapper

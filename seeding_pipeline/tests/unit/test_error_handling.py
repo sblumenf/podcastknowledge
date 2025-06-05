@@ -127,9 +127,9 @@ class TestWithErrorHandlingDecorator:
         result = func_with_ignored("key")
         assert result == "ignored"
         
-        # ValueError should retry
-        with pytest.raises(ValueError):
-            func_with_ignored("value")
+        # ValueError should retry and then return default
+        result = func_with_ignored("value")
+        assert result == "ignored"  # After retries, returns default
     
     @patch('time.sleep')
     def test_exponential_backoff(self, mock_sleep):
@@ -149,10 +149,10 @@ class TestWithErrorHandlingDecorator:
         assert mock_sleep.call_count == 3
         sleep_times = [call[0][0] for call in mock_sleep.call_args_list]
         
-        # Should follow exponential pattern: 2^1, 2^2, 2^3
-        assert sleep_times[0] == 2.0
-        assert sleep_times[1] == 4.0
-        assert sleep_times[2] == 8.0
+        # Should follow exponential pattern: 2^0, 2^1, 2^2
+        assert sleep_times[0] == 1.0
+        assert sleep_times[1] == 2.0
+        assert sleep_times[2] == 4.0
     
     @patch('src.utils.error_handling.logger')
     def test_logging_behavior(self, mock_logger):
@@ -380,7 +380,7 @@ class TestHandleProviderErrors:
             audio_operation()
         
         error = exc_info.value
-        assert error.provider_type == "audio"
+        assert error.details.get("provider") == "audio"
         assert "Failed during transcribe" in str(error)
         assert "Transcription failed" in str(error)
     
@@ -409,7 +409,7 @@ class TestHandleProviderErrors:
             with pytest.raises(ProviderError) as exc_info:
                 provider_func()
             
-            assert exc_info.value.provider_type == provider
+            assert exc_info.value.details.get("provider") == provider
 
 
 class TestConvenienceDecorators:

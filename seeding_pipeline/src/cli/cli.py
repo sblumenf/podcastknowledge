@@ -15,6 +15,7 @@ import os
 import sys
 
 import fnmatch
+from unittest.mock import Mock
 # Add src to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
@@ -601,6 +602,176 @@ def checkpoint_clean(args: argparse.Namespace) -> int:
             import traceback
             traceback.print_exc()
         return 1
+
+
+def process_vtt_directory(args: argparse.Namespace) -> int:
+    """Process VTT directory command.
+    
+    Returns:
+        Exit code (0 for success, 1 for failure)
+    """
+    logger = get_logger(__name__)
+    
+    try:
+        vtt_dir = Path(args.vtt_dir)
+        if not vtt_dir.exists():
+            print(f"Error: VTT directory does not exist: {vtt_dir}", file=sys.stderr)
+            return 1
+        
+        # Load configuration
+        config = None
+        if args.config:
+            config = PipelineConfig.from_file(Path(args.config))
+        else:
+            config = PipelineConfig()
+        
+        # Create mock pipeline for TranscriptIngestionManager
+        mock_pipeline = Mock()
+        mock_pipeline.config = config
+        
+        # Initialize ingestion manager
+        manager = TranscriptIngestionManager(mock_pipeline)
+        
+        # Process directory
+        result = manager.ingestion.process_directory(
+            vtt_dir,
+            pattern="*.vtt",
+            recursive=args.recursive,
+            max_files=args.max_files
+        )
+        
+        # Display results
+        print(f"\nProcessing Summary:")
+        print(f"  Total files: {result['total_files']}")
+        print(f"  Processed: {result['processed']}")
+        print(f"  Skipped: {result['skipped']}")
+        print(f"  Errors: {result['errors']}")
+        print(f"  Total segments: {result['total_segments']}")
+        
+        return 0
+        
+    except Exception as e:
+        logger.error(f"VTT directory processing failed: {e}", exc_info=True)
+        print(f"Error: {e}", file=sys.stderr)
+        return 1
+
+
+def check_status(args: argparse.Namespace) -> int:
+    """Check processing status.
+    
+    Returns:
+        Exit code (0 for success, 1 for failure)
+    """
+    logger = get_logger(__name__)
+    
+    try:
+        # Load configuration
+        config = None
+        if args.config:
+            config = PipelineConfig.from_file(Path(args.config))
+        else:
+            config = PipelineConfig()
+        
+        # Initialize checkpoint
+        checkpoint = ProgressCheckpoint(
+            checkpoint_dir=config.checkpoint_dir,
+            extraction_mode='vtt'
+        )
+        
+        # Get status
+        status = checkpoint.get_status()
+        
+        print(f"\nProcessing Status:")
+        print(f"  Total episodes: {status['total_episodes']}")
+        print(f"  Processed episodes: {status['processed_episodes']}")
+        print(f"  Failed episodes: {status['failed_episodes']}")
+        print(f"  Pending episodes: {status['pending_episodes']}")
+        print(f"  Processing rate: {status['processing_rate']:.1%}")
+        
+        return 0
+        
+    except Exception as e:
+        logger.error(f"Status check failed: {e}", exc_info=True)
+        print(f"Error: {e}", file=sys.stderr)
+        return 1
+
+
+def export_data(args: argparse.Namespace) -> int:
+    """Export knowledge graph data.
+    
+    Returns:
+        Exit code (0 for success, 1 for failure)
+    """
+    logger = get_logger(__name__)
+    
+    try:
+        # Load configuration
+        config = None
+        if args.config:
+            config = PipelineConfig.from_file(Path(args.config))
+        else:
+            config = PipelineConfig()
+        
+        # Initialize pipeline
+        pipeline = VTTKnowledgeExtractor(config)
+        
+        # Export data
+        data = pipeline.export_knowledge_graph(
+            include_segments=args.include_segments,
+            format=args.format
+        )
+        
+        # Write to file
+        output_file = Path(args.output_file)
+        
+        if args.format.lower() == 'json':
+            with open(output_file, 'w') as f:
+                json.dump(data, f, indent=2, default=str)
+        else:
+            # Handle other formats if needed
+            with open(output_file, 'w') as f:
+                json.dump(data, f, indent=2, default=str)
+        
+        print(f"Data exported to: {output_file}")
+        print(f"Format: {args.format}")
+        print(f"Records: {len(data.get('episodes', []))}")
+        
+        return 0
+        
+    except Exception as e:
+        logger.error(f"Data export failed: {e}", exc_info=True)
+        print(f"Error: {e}", file=sys.stderr)
+        return 1
+    finally:
+        if 'pipeline' in locals():
+            pipeline.cleanup()
+
+
+def format_duration(seconds: int) -> str:
+    """Format duration in seconds to human readable format."""
+    if seconds < 60:
+        return f"{seconds}s"
+    elif seconds < 3600:
+        minutes = seconds // 60
+        remaining_seconds = seconds % 60
+        return f"{minutes}m {remaining_seconds}s"
+    else:
+        hours = seconds // 3600
+        remaining_minutes = (seconds % 3600) // 60
+        remaining_seconds = seconds % 60
+        return f"{hours}h {remaining_minutes}m {remaining_seconds}s"
+
+
+def format_file_size(bytes: int) -> str:
+    """Format file size in bytes to human readable format."""
+    if bytes < 1024:
+        return f"{bytes} B"
+    elif bytes < 1024 * 1024:
+        return f"{bytes / 1024:.1f} KB"
+    elif bytes < 1024 * 1024 * 1024:
+        return f"{bytes / (1024 * 1024):.1f} MB"
+    else:
+        return f"{bytes / (1024 * 1024 * 1024):.1f} GB"
 
 
 def main() -> int:
