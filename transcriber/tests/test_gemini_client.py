@@ -433,3 +433,130 @@ class TestCreateGeminiClient:
         with patch.dict(os.environ, {}, clear=True):
             with pytest.raises(ValueError, match="No Gemini API keys found"):
                 create_gemini_client()
+
+
+@pytest.mark.unit 
+class TestGeminiClientCoverageEnhancement:
+    """Tests to improve Gemini client coverage to 85%."""
+    
+    @pytest.fixture
+    def client(self):
+        """Create a mocked client for coverage testing."""
+        with patch('google.generativeai.configure'), \
+             patch('google.generativeai.GenerativeModel') as mock_model:
+            mock_model.return_value = MagicMock()
+            return RateLimitedGeminiClient(['test_key'])
+    
+    def test_api_key_usage_edge_cases(self):
+        """Test APIKeyUsage edge cases to improve coverage."""
+        # Test with None for duration parsing edge case
+        usage = APIKeyUsage(key_index=0)
+        
+        # Test rate limiting edge case - exact boundary
+        now = datetime.now(timezone.utc)
+        usage.last_request_time = now - timedelta(seconds=12)  # Exactly at rate limit boundary
+        
+        # Should be able to make request since 12 seconds have passed
+        assert usage.can_make_request() is True
+    
+    def test_parse_duration_additional_formats(self, client):
+        """Test additional duration parsing formats for coverage."""
+        # Test edge cases not covered by existing tests
+        assert client._parse_duration("0:30") == 0.5  # 30 seconds = 0.5 minutes
+        assert client._parse_duration("10") == 0  # Invalid format
+        assert client._parse_duration("1:2:3:4") == 0  # Too many parts
+        
+    def test_parse_duration_to_seconds(self, client):
+        """Test _parse_duration_to_seconds method."""
+        assert client._parse_duration_to_seconds("30:00") == 1800
+        assert client._parse_duration_to_seconds("1:30:00") == 5400  
+        assert client._parse_duration_to_seconds("invalid") == 0
+    
+    def test_get_available_client_rate_limiting(self, client):
+        """Test _get_available_client rate limiting logic."""
+        # Test when rate limiting causes a wait
+        with patch('time.sleep') as mock_sleep:
+            # Set last request time to 5 seconds ago (needs 7 more seconds)
+            now = datetime.now(timezone.utc)
+            client.usage_trackers[0].last_request_time = now - timedelta(seconds=5)
+            
+            model, key_index = client._get_available_client()
+            
+            # Should have waited for rate limiting
+            mock_sleep.assert_called_once()
+            assert mock_sleep.call_args[0][0] > 0  # Should wait some positive time
+    
+    def test_usage_state_file_operations(self, client, tmp_path):
+        """Test usage state file save/load operations."""
+        # Test saving state
+        state_file = tmp_path / ".gemini_usage.json"
+        
+        with patch('src.gemini_client.Path') as mock_path:
+            mock_path.return_value = state_file
+            
+            # Update usage
+            client.usage_trackers[0].update_usage(1000)
+            
+            # Save state
+            client._save_usage_state()
+            
+            # Verify file contents
+            assert state_file.exists()
+            with open(state_file, 'r') as f:
+                data = json.load(f)
+            assert len(data['trackers']) == 1
+            assert data['trackers'][0]['tokens_today'] == 1000
+    
+    def test_load_usage_state_file_not_exists(self):
+        """Test loading usage state when file doesn't exist."""
+        with patch('google.generativeai.configure'), \
+             patch('google.generativeai.GenerativeModel'), \
+             patch('src.gemini_client.Path.exists', return_value=False):
+            
+            # Should not raise exception when file doesn't exist
+            client = RateLimitedGeminiClient(['test_key'])
+            assert len(client.usage_trackers) == 1
+    
+    def test_validate_transcript_completeness(self, client):
+        """Test transcript completeness validation."""
+        # Test with a transcript that has timestamps
+        transcript = """WEBVTT
+
+00:00:00.000 --> 00:00:05.000
+Hello world
+
+00:00:05.000 --> 00:00:10.000
+How are you today?"""
+        
+        # Test completeness check
+        is_complete, coverage = client.validate_transcript_completeness(transcript, 600)  # 10 minutes
+        
+        assert isinstance(is_complete, bool)
+        assert isinstance(coverage, float)
+        assert coverage >= 0.0 and coverage <= 1.0
+    
+    def test_parse_timestamp_to_seconds(self, client):
+        """Test _parse_timestamp_to_seconds method."""
+        assert client._parse_timestamp_to_seconds("00:01:30.000") == 90.0
+        assert client._parse_timestamp_to_seconds("00:00:05.500") == 5.5
+        assert client._parse_timestamp_to_seconds("invalid") == 0.0
+    
+    @pytest.mark.asyncio
+    async def test_download_audio_file_basic(self, client):
+        """Test audio file download basic functionality."""
+        with patch('urllib.request.urlretrieve') as mock_retrieve, \
+             patch('tempfile.NamedTemporaryFile') as mock_temp:
+            
+            # Mock successful download
+            mock_temp.return_value.__enter__.return_value.name = "/tmp/audio.mp3"
+            mock_retrieve.return_value = ("/tmp/audio.mp3", None)
+            
+            result = await client._download_audio_file("https://example.com/audio.mp3")
+            assert result == "/tmp/audio.mp3"
+    
+    def test_seconds_to_vtt_timestamp(self, client):
+        """Test _seconds_to_vtt_timestamp method."""
+        assert client._seconds_to_vtt_timestamp(0) == "00:00:00.000"
+        assert client._seconds_to_vtt_timestamp(90.5) == "00:01:30.500"
+        assert client._seconds_to_vtt_timestamp(3661) == "01:01:01.000"
+    
