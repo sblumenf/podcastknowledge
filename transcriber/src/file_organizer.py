@@ -13,6 +13,7 @@ from datetime import datetime
 from dataclasses import dataclass, asdict
 
 from src.utils.logging import get_logger
+from src.config import Config
 
 logger = get_logger('file_organizer')
 
@@ -38,15 +39,29 @@ class EpisodeMetadata:
 class FileOrganizer:
     """Organizes podcast transcript files with consistent naming and structure."""
     
-    def __init__(self, base_dir: str = "data/transcripts"):
+    def __init__(self, base_dir: Optional[str] = None, config: Optional[Config] = None):
         """Initialize file organizer.
         
         Args:
-            base_dir: Base directory for storing transcripts
+            base_dir: Base directory for storing transcripts. If None, uses config or default.
+            config: Optional configuration object. If provided, settings from config are used.
         """
-        self.base_dir = Path(base_dir)
+        # Store config for later use
+        self.config = config
+        
+        # Determine base directory
+        if base_dir is not None:
+            # Explicit base_dir takes precedence
+            self.base_dir = Path(base_dir)
+        elif config is not None:
+            # Use config if available
+            self.base_dir = Path(config.output.default_dir)
+        else:
+            # Fall back to default
+            self.base_dir = Path("data/transcripts")
+        
         # Only create directory if it's not a test path
-        if not str(base_dir).startswith('/test'):
+        if not str(self.base_dir).startswith('/test'):
             self.base_dir.mkdir(parents=True, exist_ok=True)
         
         # Track used filenames to handle duplicates
@@ -72,6 +87,12 @@ class FileOrganizer:
         if not name:
             return "unknown"
         
+        # Check if sanitization is disabled in config
+        if self.config and hasattr(self.config.output, 'sanitize_filenames'):
+            if not self.config.output.sanitize_filenames:
+                # If sanitization is disabled, only do minimal cleanup
+                return name.strip()
+        
         # Replace common problematic characters
         sanitized = name.strip()
         
@@ -91,9 +112,13 @@ class FileOrganizer:
         # Remove leading/trailing underscores and dots
         sanitized = sanitized.strip('_.')
         
-        # Truncate if too long (keep under 200 chars as per config)
-        if len(sanitized) > 200:
-            sanitized = sanitized[:200].rstrip('_.')
+        # Truncate if too long (use config value if available)
+        max_length = 200
+        if self.config:
+            max_length = self.config.output.max_filename_length
+        
+        if len(sanitized) > max_length:
+            sanitized = sanitized[:max_length].rstrip('_.')
         
         # Ensure not empty after sanitization
         if not sanitized:
@@ -159,13 +184,35 @@ class FileOrganizer:
             logger.warning(f"Invalid date format: {publication_date}, using current date")
             publication_date = datetime.now().strftime("%Y-%m-%d")
         
-        # Create base filename: {date}_{episode_title}.vtt
-        base_filename = f"{publication_date}_{clean_title}.vtt"
+        # Create filename based on config pattern or default
+        if self.config and hasattr(self.config.output, 'naming_pattern'):
+            # Use config pattern
+            pattern = self.config.output.naming_pattern
+            filename = pattern.format(
+                podcast_name=clean_podcast,
+                date=publication_date,
+                episode_title=clean_title
+            )
+            # Extract directory and filename parts
+            if '/' in filename:
+                parts = filename.rsplit('/', 1)
+                podcast_dir = parts[0]
+                base_filename = parts[1]
+            else:
+                podcast_dir = clean_podcast
+                base_filename = filename
+        else:
+            # Use default pattern: {podcast_name}/{date}_{episode_title}.vtt
+            base_filename = f"{publication_date}_{clean_title}.vtt"
+            podcast_dir = clean_podcast
+        
+        # Ensure .vtt extension
+        if not base_filename.endswith('.vtt'):
+            base_filename = base_filename + '.vtt'
         
         # Handle duplicate filenames
         counter = 1
         filename = base_filename
-        podcast_dir = clean_podcast
         
         while True:
             relative_path = f"{podcast_dir}/{filename}"

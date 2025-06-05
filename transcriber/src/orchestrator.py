@@ -33,7 +33,8 @@ class TranscriptionOrchestrator:
     def __init__(self, output_dir: Path = Path("data/transcripts"), 
                  enable_checkpoint: bool = True,
                  resume: bool = False,
-                 data_dir: Optional[Path] = None):
+                 data_dir: Optional[Path] = None,
+                 config: Optional[Config] = None):
         """Initialize orchestrator.
         
         Args:
@@ -41,12 +42,13 @@ class TranscriptionOrchestrator:
             enable_checkpoint: Enable checkpoint recovery
             resume: Resume from existing checkpoint if available
             data_dir: Base data directory (defaults to 'data')
+            config: Optional configuration object. If not provided, creates default Config()
         """
         self.output_dir = output_dir
         self.output_dir.mkdir(parents=True, exist_ok=True)
         
         # Initialize configuration
-        self.config = Config()
+        self.config = config if config is not None else Config()
         
         # Initialize components
         # Use data directory for progress tracking

@@ -61,7 +61,7 @@ This plan will modify the TranscriptionOrchestrator to accept an optional config
 ## Phase 3: Implement Core Changes
 
 ### Task 3.1: Modify TranscriptionOrchestrator
-- [ ] Update __init__ to accept optional config
+- [x] Update __init__ to accept optional config
   - Purpose: Allow dependency injection for testing
   - Steps:
     1. Use context7 MCP tool to check for any relevant patterns
@@ -73,7 +73,7 @@ This plan will modify the TranscriptionOrchestrator to accept an optional config
   - Validation: Orchestrator can be instantiated with or without config
 
 ### Task 3.2: Create Test Configuration Builder
-- [ ] Implement test helper for configurations
+- [x] Implement test helper for configurations
   - Purpose: Simplify test configuration setup
   - Steps:
     1. Create tests/fixtures/config_builder.py if not exists

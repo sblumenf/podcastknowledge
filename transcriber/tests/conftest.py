@@ -18,6 +18,83 @@ from tests.fixtures.mocks import (
     mock_tenacity, mock_datetime, mock_progress_bar, mock_usage_state,
     mock_checkpoint_state, mock_all_external_deps
 )
+from src.config import Config
+
+
+# === Configuration Fixtures ===
+
+@pytest.fixture
+def mock_config():
+    """Create a mock configuration for unit tests."""
+    config = Mock(spec=Config)
+    
+    # Set up common config attributes
+    config.api = Mock(
+        timeout=10,
+        max_attempts=1,
+        backoff_multiplier=2,
+        max_backoff=10,
+        max_episodes_per_day=12,
+        max_requests_per_key=25,
+        max_tokens_per_key=1000000
+    )
+    config.processing = Mock(
+        parallel_workers=1,
+        enable_progress_bar=False,
+        checkpoint_enabled=True,
+        max_episode_length=60,
+        quota_wait_enabled=False,
+        max_quota_wait_hours=0,
+        quota_check_interval_minutes=1
+    )
+    config.validation = Mock(
+        enabled=True,
+        min_coverage_ratio=0.85,
+        max_continuation_attempts=3
+    )
+    config.output = Mock(
+        default_dir='test_output',
+        naming_pattern='{podcast_name}/{date}_{episode_title}.vtt',
+        sanitize_filenames=True,
+        max_filename_length=200,
+        include_metadata=True,
+        speaker_voice_tags=True,
+        timestamp_precision=3
+    )
+    config.logging = Mock(
+        console_level='WARNING',
+        file_level='DEBUG',
+        max_file_size_mb=10,
+        backup_count=5,
+        log_dir='test_logs'
+    )
+    config.security = Mock(
+        api_key_vars=['TEST_API_KEY_1', 'TEST_API_KEY_2'],
+        rotation_strategy='round_robin',
+        fail_over_enabled=True
+    )
+    config.youtube_search = Mock(
+        enabled=True,
+        method='rss_only',
+        cache_results=True,
+        fuzzy_match_threshold=0.85,
+        duration_tolerance=0.1,
+        max_search_results=5
+    )
+    config.development = Mock(
+        dry_run=False,
+        debug_mode=True,
+        save_raw_responses=False,
+        test_mode=True,
+        mock_api_calls=True
+    )
+    
+    # Add methods that might be called
+    config.get_api_keys = Mock(return_value=['test_key_1', 'test_key_2'])
+    config.to_dict = Mock(return_value={})
+    config.validate = Mock()
+    
+    return config
 
 
 # === Efficient Test Data Fixtures ===
