@@ -1,6 +1,6 @@
 {
   "meta": {
-    "last_updated": "2025-06-05T17:59:35.625754+00:00",
+    "last_updated": "2025-06-05T18:03:25.920285+00:00",
     "total_processed": 3,
     "daily_quota_used": 6,
     "quota_reset_time": null,
@@ -90,8 +90,8 @@
       "title": "Episode 1",
       "audio_url": "https://example.com/ep1.mp3",
       "publication_date": null,
-      "attempt_count": 3,
-      "last_attempt": "2025-06-05T17:59:35.577473+00:00",
+      "attempt_count": 4,
+      "last_attempt": "2025-06-05T18:03:25.901190+00:00",
       "completed_at": null,
       "processing_time_seconds": null,
       "output_file": null,
