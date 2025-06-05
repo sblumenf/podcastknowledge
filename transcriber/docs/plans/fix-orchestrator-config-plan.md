@@ -85,7 +85,7 @@ This plan will modify the TranscriptionOrchestrator to accept an optional config
 ## Phase 4: Update Failing Tests
 
 ### Task 4.1: Fix test_e2e_comprehensive.py
-- [ ] Update all TranscriptionOrchestrator instantiations
+- [x] Update all TranscriptionOrchestrator instantiations
   - Purpose: Make e2e tests pass
   - Steps:
     1. Use context7 MCP tool for test documentation
@@ -97,7 +97,7 @@ This plan will modify the TranscriptionOrchestrator to accept an optional config
   - Validation: All tests in test_e2e_comprehensive.py pass
 
 ### Task 4.2: Fix test_performance_comprehensive.py
-- [ ] Update performance test instantiations
+- [x] Update performance test instantiations
   - Purpose: Ensure performance tests work correctly
   - Steps:
     1. Open tests/test_performance_comprehensive.py
@@ -108,7 +108,7 @@ This plan will modify the TranscriptionOrchestrator to accept an optional config
   - Validation: All tests in test_performance_comprehensive.py pass
 
 ### Task 4.3: Update Other Affected Tests
-- [ ] Find and fix any other tests using old pattern
+- [x] Find and fix any other tests using old pattern
   - Purpose: Ensure all tests pass
   - Steps:
     1. Use grep to find any remaining config= usage

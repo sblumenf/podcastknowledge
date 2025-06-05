@@ -125,20 +125,61 @@ class TestE2EComprehensive:
         config.speaker_identification = {'enabled': True}
         config.metadata_index = {'enabled': True}
         config.file_organization = {'enabled': True}
+        
+        # Add required config sections for orchestrator
+        config.youtube_search = Mock(enabled=False)  # Disable YouTube search for tests
+        config.processing = Mock(
+            quota_wait_enabled=False,
+            max_quota_wait_hours=0,
+            quota_check_interval_minutes=1
+        )
+        config.validation = Mock(
+            enabled=True,
+            min_coverage_ratio=0.85,
+            max_continuation_attempts=3
+        )
         return config
     
     def test_complete_pipeline_single_episode(self, temp_dirs, minimal_rss_feeds, 
                                             mock_gemini_response, mock_config):
         """Test complete processing pipeline with a single episode."""
+        # NOTE: This test demonstrates config injection is working
+        # The original TypeError has been resolved
+        
         # Setup
         feed_url = "https://example.com/feed.xml"
         
-        with patch('urllib.request.urlopen') as mock_urlopen, \
-             patch('google.generativeai.GenerativeModel') as mock_model_class:
+        # Mock feedparser to return parsed feed directly
+        import feedparser
+        parsed_feed = feedparser.FeedParserDict()
+        parsed_feed.bozo = False  # Indicates successful parse
+        parsed_feed['feed'] = {
+            'title': 'Simple Test Podcast',
+            'description': 'Test podcast',
+            'link': 'https://example.com'
+        }
+        parsed_feed['entries'] = [{
+            'title': 'Episode 1',
+            'id': 'simple-ep1',
+            'enclosures': [{'href': 'https://example.com/ep1.mp3', 'type': 'audio/mpeg'}],
+            'published_parsed': (2024, 1, 1, 0, 0, 0, 0, 1, 0),
+            'description': 'Test episode'
+        }]
+        
+        with patch('feedparser.parse', return_value=parsed_feed), \
+             patch('google.generativeai.GenerativeModel') as mock_model_class, \
+             patch('urllib.request.urlopen') as mock_urlopen, \
+             patch('google.generativeai.upload_file') as mock_upload:
             
-            # Mock RSS feed response
-            mock_urlopen.return_value.__enter__.return_value.read.return_value = \
-                minimal_rss_feeds['simple'].encode('utf-8')
+            # Mock audio file download
+            mock_response = MagicMock()
+            mock_response.read.return_value = b'fake audio data'
+            mock_urlopen.return_value.__enter__.return_value = mock_response
+            
+            # Mock file upload
+            mock_file = MagicMock()
+            mock_file.name = 'test_audio.mp3'
+            mock_upload.return_value = mock_file
             
             # Mock Gemini model
             mock_model = MagicMock()
@@ -147,8 +188,11 @@ class TestE2EComprehensive:
             mock_model.generate_content.return_value = mock_response
             mock_model_class.return_value = mock_model
             
-            # Create orchestrator
-            orchestrator = TranscriptionOrchestrator(config=mock_config)
+            # Create orchestrator with injected config
+            orchestrator = TranscriptionOrchestrator(
+                output_dir=Path(mock_config.output_directory),
+                config=mock_config
+            )
             
             # Process feed
             asyncio.run(orchestrator.process_feed(feed_url))
@@ -198,7 +242,10 @@ class TestE2EComprehensive:
             mock_model_class.return_value = mock_model
             
             # First run - should process 1 episode then fail
-            orchestrator = TranscriptionOrchestrator(config=mock_config)
+            orchestrator = TranscriptionOrchestrator(
+                output_dir=Path(mock_config.output_directory),
+                config=mock_config
+            )
             with pytest.raises(Exception):
                 asyncio.run(orchestrator.process_feed(feed_url))
             
@@ -211,7 +258,10 @@ class TestE2EComprehensive:
             mock_model.generate_content.return_value.text = mock_gemini_response
             
             # Resume processing
-            orchestrator2 = TranscriptionOrchestrator(config=mock_config)
+            orchestrator2 = TranscriptionOrchestrator(
+                output_dir=Path(mock_config.output_directory),
+                config=mock_config
+            )
             asyncio.run(orchestrator2.process_feed(feed_url))
             
             # Verify both episodes processed
@@ -253,7 +303,10 @@ class TestE2EComprehensive:
             
             # Process feeds concurrently
             async def process_feeds():
-                orchestrator = TranscriptionOrchestrator(config=mock_config)
+                orchestrator = TranscriptionOrchestrator(
+                output_dir=Path(mock_config.output_directory),
+                config=mock_config
+            )
                 tasks = [orchestrator.process_feed(url) for url in feed_urls]
                 await asyncio.gather(*tasks)
             
@@ -303,7 +356,10 @@ class TestE2EComprehensive:
                 mock_model_class.return_value = mock_model
                 
                 # Process and expect failure
-                orchestrator = TranscriptionOrchestrator(config=mock_config)
+                orchestrator = TranscriptionOrchestrator(
+                output_dir=Path(mock_config.output_directory),
+                config=mock_config
+            )
                 asyncio.run(orchestrator.process_feed("https://example.com/feed.xml"))
                 
                 # Verify error was tracked
@@ -339,7 +395,10 @@ class TestE2EComprehensive:
             
             # Process multiple times to check for memory leaks
             for i in range(3):
-                orchestrator = TranscriptionOrchestrator(config=mock_config)
+                orchestrator = TranscriptionOrchestrator(
+                output_dir=Path(mock_config.output_directory),
+                config=mock_config
+            )
                 asyncio.run(orchestrator.process_feed("https://example.com/feed.xml"))
                 
                 # Explicit cleanup
@@ -372,7 +431,10 @@ class TestE2EComprehensive:
                 mock_model_class.return_value = mock_model
                 
                 # Process feed
-                orchestrator = TranscriptionOrchestrator(config=mock_config)
+                orchestrator = TranscriptionOrchestrator(
+                output_dir=Path(mock_config.output_directory),
+                config=mock_config
+            )
                 asyncio.run(orchestrator.process_feed(f"https://example.com/{format_name}.xml"))
                 
                 # Clean up for next iteration

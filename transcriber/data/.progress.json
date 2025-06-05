@@ -1,6 +1,6 @@
 {
   "meta": {
-    "last_updated": "2025-06-02T00:15:44.602677+00:00",
+    "last_updated": "2025-06-05T17:59:35.625754+00:00",
     "total_processed": 3,
     "daily_quota_used": 6,
     "quota_reset_time": null,
@@ -78,6 +78,25 @@
       "output_file": null,
       "error": null,
       "error_type": null,
+      "api_key_used": "key_1",
+      "continuation_attempts": 0,
+      "final_coverage_ratio": null,
+      "segment_count": 1
+    },
+    "simple-ep1": {
+      "guid": "simple-ep1",
+      "status": "failed",
+      "podcast_name": "Simple Test Podcast",
+      "title": "Episode 1",
+      "audio_url": "https://example.com/ep1.mp3",
+      "publication_date": null,
+      "attempt_count": 3,
+      "last_attempt": "2025-06-05T17:59:35.577473+00:00",
+      "completed_at": null,
+      "processing_time_seconds": null,
+      "output_file": null,
+      "error": "Transcription failed",
+      "error_type": "unknown",
       "api_key_used": "key_1",
       "continuation_attempts": 0,
       "final_coverage_ratio": null,

@@ -119,7 +119,10 @@ class TestPerformanceComprehensive:
             start_time = time.time()
             start_memory = psutil.Process().memory_info().rss / 1024 / 1024  # MB
             
-            orchestrator = TranscriptionOrchestrator(config=performance_config)
+            orchestrator = TranscriptionOrchestrator(
+                output_dir=Path(performance_config.output.default_dir),
+                config=performance_config
+            )
             asyncio.run(orchestrator.process_feed("https://example.com/feed.xml"))
             
             end_time = time.time()
@@ -183,7 +186,10 @@ class TestPerformanceComprehensive:
                     mock_model.generate_content.return_value.text = "WEBVTT\n\n00:00:00.000 --> 00:00:05.000\nTest"
                     mock_model_class.return_value = mock_model
                     
-                    orchestrator = TranscriptionOrchestrator(config=performance_config)
+                    orchestrator = TranscriptionOrchestrator(
+                output_dir=Path(performance_config.output.default_dir),
+                config=performance_config
+            )
                     asyncio.run(orchestrator.process_feed(f"https://example.com/feed{i}.xml"))
                     
                     # Force cleanup between iterations
@@ -264,7 +270,10 @@ class TestPerformanceComprehensive:
             
             start_time = time.time()
             
-            orchestrator = TranscriptionOrchestrator(config=performance_config)
+            orchestrator = TranscriptionOrchestrator(
+                output_dir=Path(performance_config.output.default_dir),
+                config=performance_config
+            )
             asyncio.run(orchestrator.process_feed("https://example.com/feed.xml"))
             
             end_time = time.time()
@@ -344,7 +353,10 @@ class TestPerformanceComprehensive:
             
             # Process feeds concurrently
             async def process_all_feeds():
-                orchestrator = TranscriptionOrchestrator(config=performance_config)
+                orchestrator = TranscriptionOrchestrator(
+                output_dir=Path(performance_config.output.default_dir),
+                config=performance_config
+            )
                 tasks = [
                     orchestrator.process_feed(f"https://example.com/feed{i}.xml")
                     for i in range(4)
@@ -410,7 +422,10 @@ class TestPerformanceComprehensive:
             start_time = time.time()
             start_memory = psutil.Process().memory_info().rss / 1024 / 1024
             
-            orchestrator = TranscriptionOrchestrator(config=performance_config)
+            orchestrator = TranscriptionOrchestrator(
+                output_dir=Path(performance_config.output.default_dir),
+                config=performance_config
+            )
             asyncio.run(orchestrator.process_feed("https://example.com/benchmark.xml"))
             
             end_time = time.time()
