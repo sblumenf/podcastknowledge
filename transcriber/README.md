@@ -1,5 +1,11 @@
 # Podcast Transcription Pipeline
 
+[![Tests](https://github.com/yourusername/podcast-transcriber/actions/workflows/tests.yml/badge.svg)](https://github.com/yourusername/podcast-transcriber/actions/workflows/tests.yml)
+[![Test Coverage](https://github.com/yourusername/podcast-transcriber/actions/workflows/test-coverage.yml/badge.svg)](https://github.com/yourusername/podcast-transcriber/actions/workflows/test-coverage.yml)
+[![codecov](https://codecov.io/gh/yourusername/podcast-transcriber/branch/main/graph/badge.svg?token=YOUR_TOKEN)](https://codecov.io/gh/yourusername/podcast-transcriber)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
+
 A robust command-line tool for transcribing podcast episodes from RSS feeds using Google's Gemini 2.5 Pro API. The tool generates WebVTT (VTT) format transcripts with speaker diarization and contextual speaker identification.
 
 ## Features
