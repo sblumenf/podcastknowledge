@@ -1,0 +1,30 @@
+GitHub Actions Workflow Audit Results
+=====================================
+
+Workflows that install Python dependencies:
+-------------------------------------------
+
+1. tests.yml
+   - test job: Uses requirements.txt + manually installs pytest packages (should use requirements-dev.txt)
+   - lint job: Manually installs linting tools (already in requirements-dev.txt)
+   - performance job: Uses requirements.txt + manually installs pytest packages (needs psutil!)
+   - integration job: Uses requirements.txt + manually installs pytest packages
+
+2. code-quality.yml
+   - test-quality job: Uses requirements.txt + manually installs pytest packages
+
+3. test-coverage.yml - Needs checking
+4. release.yml - Needs checking
+
+Issues Found:
+-------------
+1. All workflows use requirements.txt instead of requirements-dev.txt for testing
+2. Testing dependencies are manually installed despite being in requirements-dev.txt
+3. Performance tests will fail due to missing psutil (not installed in workflows)
+4. Duplication of dependency installation logic across workflows
+
+Recommendations:
+----------------
+1. Update all test-related jobs to use requirements-dev.txt
+2. Remove manual installation of packages already in requirements-dev.txt
+3. Ensure psutil is available for performance tests

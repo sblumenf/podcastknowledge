@@ -50,14 +50,33 @@ export GEMINI_API_KEY_2="your-second-api-key"  # Optional for rotation
 
 ### Development Install
 
+For development work, testing, or contributing to the project:
+
 ```bash
-# Install in editable mode with dev dependencies
-pip install -e .
+# Clone the repository
+git clone https://github.com/yourusername/podcast-transcriber.git
+cd podcast-transcriber
+
+# Create virtual environment
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# Install ALL dependencies (production + development)
+pip install -r requirements.txt
 pip install -r requirements-dev.txt
 
-# Install pre-commit hooks
-pre-commit install
+# Verify installation (especially important for performance tests)
+python -c "import psutil; print('psutil installed successfully')"
+
+# Install pre-commit hooks (if available)
+pre-commit install 2>/dev/null || echo "pre-commit not configured"
 ```
+
+**Important**: Always use `requirements-dev.txt` for development to ensure all testing and development tools are available. This includes:
+- Testing frameworks (pytest, pytest-cov, pytest-mock)
+- Performance testing tools (psutil)
+- Code quality tools (black, flake8, mypy)
+- Documentation tools (sphinx)
 
 ## Configuration
 
@@ -384,6 +403,45 @@ isort src/ tests/
 - No personal data is stored without consent
 - Secure handling of audio file downloads
 - Configurable data retention policies
+
+## Troubleshooting
+
+### Import Errors
+
+If you encounter import errors when running tests or the application:
+
+1. **Missing psutil error in tests**:
+   ```
+   ModuleNotFoundError: No module named 'psutil'
+   ```
+   **Solution**: Install development dependencies:
+   ```bash
+   pip install -r requirements-dev.txt
+   ```
+
+2. **General import errors**:
+   - Verify you're in the correct virtual environment
+   - Check all dependencies are installed:
+     ```bash
+     pip install -r requirements.txt
+     pip install -r requirements-dev.txt  # For development/testing
+     ```
+
+3. **Import audit**:
+   Run the import audit script to identify missing dependencies:
+   ```bash
+   python scripts/audit_imports.py
+   ```
+
+### Common Issues
+
+- **Tests failing with import errors**: Make sure you've installed `requirements-dev.txt`
+- **CI/CD import failures**: Check that workflows use `requirements-dev.txt` for test jobs
+- **Package name vs import name**: Some packages have different names:
+  - Install: `pip install PyYAML` → Import: `import yaml`
+  - Install: `pip install google-generativeai` → Import: `import google.generativeai`
+
+For more help, see our [Dependency Management Guide](docs/dependency-management.md).
 
 ## Contributing
 

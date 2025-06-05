@@ -1,0 +1,38 @@
+Import Audit Results - 2025-06-05
+=====================================
+
+Total unique imports: 40
+Standard library imports: 26
+Third-party imports: 14
+
+Detected Third-Party Dependencies:
+----------------------------------
+argparse - STDLIB (false positive)
+difflib - STDLIB (false positive)
+feedparser - THIRD-PARTY
+google - THIRD-PARTY (google-generativeai)
+mimetypes - STDLIB (false positive)
+psutil - THIRD-PARTY
+pytest - THIRD-PARTY
+resource - STDLIB (false positive)
+src - INTERNAL (false positive)
+tarfile - STDLIB (false positive)
+tenacity - THIRD-PARTY
+tests - INTERNAL (false positive)
+traceback - STDLIB (false positive)
+yaml - THIRD-PARTY (PyYAML)
+
+Actual Third-Party Dependencies:
+---------------------------------
+1. feedparser - RSS/Atom feed parsing
+2. google (google-generativeai) - Google Gemini API client
+3. psutil - System and process utilities
+4. pytest - Testing framework
+5. tenacity - Retry library
+6. yaml (PyYAML) - YAML parsing
+
+Notes:
+------
+- The audit script needs improvement to better distinguish stdlib modules
+- Internal project imports (src, tests) should be filtered out
+- Some stdlib modules were misclassified as third-party
