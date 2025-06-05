@@ -180,15 +180,16 @@ class KnowledgeExtractor:
         if self.config.dry_run:
             return self._preview_extraction(segment)
 
-        # Handle both Segment types (models.Segment and extraction_interface.Segment)
-        if hasattr(segment, "start") and not hasattr(segment, "start_time"):
-            # Convert extraction_interface.Segment to models.Segment format
-            from src.core.extraction_interface import Segment as ModelsSegment
+        # Handle both Segment types (models.Segment and interfaces.TranscriptSegment)
+        if hasattr(segment, "confidence") and not hasattr(segment, "episode_id"):
+            # Convert interfaces.TranscriptSegment to models.Segment format
+            from src.core.models import Segment as ModelsSegment
 
             segment = ModelsSegment(
+                id=segment.id,
                 text=segment.text,
-                start=segment.start,
-                end=segment.end,
+                start_time=segment.start_time,
+                end_time=segment.end_time,
                 speaker=getattr(segment, "speaker", None),
             )
 
@@ -296,10 +297,10 @@ class KnowledgeExtractor:
                         "value": "I'm excited to discuss how machine learning is revolutionizing healthcare diagnostics.",
                         "speaker": "Dr. Johnson",
                         "quote_type": "insightful",
-                        "timestamp_start": segment.start,
-                        "timestamp_end": segment.start + 5.0,
-                        "start_time": segment.start,
-                        "end_time": segment.start + 5.0,
+                        "timestamp_start": segment.start_time,
+                        "timestamp_end": segment.start_time + 5.0,
+                        "start_time": segment.start_time,
+                        "end_time": segment.start_time + 5.0,
                         "importance_score": 0.8,
                         "confidence": 0.7,
                         "properties": {"generated_for_test": True},
@@ -313,10 +314,10 @@ class KnowledgeExtractor:
                         "value": "We developed a neural network that analyzes medical imaging data. It can detect early-stage tumors that human radiologists might miss.",
                         "speaker": "Dr. Johnson",
                         "quote_type": "technical",
-                        "timestamp_start": segment.start + 10.0,
-                        "timestamp_end": segment.start + 15.0,
-                        "start_time": segment.start + 10.0,
-                        "end_time": segment.start + 15.0,
+                        "timestamp_start": segment.start_time + 10.0,
+                        "timestamp_end": segment.start_time + 15.0,
+                        "start_time": segment.start_time + 10.0,
+                        "end_time": segment.start_time + 15.0,
                         "importance_score": 0.9,
                         "confidence": 0.8,
                         "properties": {"generated_for_test": True},
@@ -359,7 +360,7 @@ class KnowledgeExtractor:
                         "value": entity_name,
                         "entity_type": entity_type,  # For compatibility
                         "confidence": 0.8,
-                        "start_time": segment.start,
+                        "start_time": segment.start_time,
                         "properties": {
                             "extraction_method": "pattern_matching",
                             "description": f"{entity_type.capitalize()} entity",
@@ -388,7 +389,7 @@ class KnowledgeExtractor:
                         "value": entity_value,
                         "entity_type": entity_type,
                         "confidence": 0.7,
-                        "start_time": segment.start,
+                        "start_time": segment.start_time,
                         "properties": {"extraction_method": "pattern_matching"},
                     }
                 )
@@ -466,8 +467,8 @@ class KnowledgeExtractor:
 
             segment = ModelsSegment(
                 text=segment.text,
-                start=segment.start,
-                end=segment.end,
+                start=segment.start_time,
+                end=segment.end_time,
                 speaker=getattr(segment, "speaker", None),
             )
 
@@ -479,7 +480,7 @@ class KnowledgeExtractor:
             "quotes": quotes,
             "metadata": {
                 "quotes_found": len(quotes),
-                "segment_duration": segment.end - segment.start,
+                "segment_duration": segment.end_time - segment.start_time,
                 "extraction_method": "pattern_matching",
             },
         }
@@ -578,18 +579,18 @@ class KnowledgeExtractor:
 
     def _calculate_quote_timestamp(self, position: int, text: str, segment: Segment) -> float:
         """Calculate timestamp for quote based on position in text."""
-        if not segment.start:
+        if not segment.start_time:
             return 0.0
 
         # Estimate based on position in text
         total_chars = len(text)
-        duration = (segment.end - segment.start) if segment.end else 0
+        duration = (segment.end_time - segment.start_time) if segment.end_time else 0
 
         if total_chars > 0 and duration > 0:
             time_per_char = duration / total_chars
-            return segment.start + (position * time_per_char)
+            return segment.start_time + (position * time_per_char)
 
-        return segment.start
+        return segment.start_time
 
     def _calculate_entity_timestamp(self, position: int, text: str, segment: Segment) -> float:
         """Calculate timestamp for entity based on position in text."""

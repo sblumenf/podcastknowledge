@@ -1,6 +1,6 @@
 {
   "extraction_mode": "migration",
-  "created_at": "2025-06-04T21:37:33.972255",
+  "created_at": "2025-06-05T01:34:08.751001",
   "segments_count": 5,
   "results": [
     {
@@ -134,11 +134,11 @@
         "schemaless_entity_count": 6,
         "new_entity_types": [
           "Medical Institution",
-          "Performance Metric",
           "Podcast Host",
+          "Performance Metric",
+          "AI Expert",
           "AI Technology",
-          "AI Company",
-          "AI Expert"
+          "AI Company"
         ]
       }
     },
@@ -273,11 +273,11 @@
         "schemaless_entity_count": 6,
         "new_entity_types": [
           "Medical Institution",
-          "Performance Metric",
           "Podcast Host",
+          "Performance Metric",
+          "AI Expert",
           "AI Technology",
-          "AI Company",
-          "AI Expert"
+          "AI Company"
         ]
       }
     },
@@ -412,11 +412,11 @@
         "schemaless_entity_count": 6,
         "new_entity_types": [
           "Medical Institution",
-          "Performance Metric",
           "Podcast Host",
+          "Performance Metric",
+          "AI Expert",
           "AI Technology",
-          "AI Company",
-          "AI Expert"
+          "AI Company"
         ]
       }
     },
@@ -551,11 +551,11 @@
         "schemaless_entity_count": 6,
         "new_entity_types": [
           "Medical Institution",
-          "Performance Metric",
           "Podcast Host",
+          "Performance Metric",
+          "AI Expert",
           "AI Technology",
-          "AI Company",
-          "AI Expert"
+          "AI Company"
         ]
       }
     },
@@ -690,11 +690,11 @@
         "schemaless_entity_count": 6,
         "new_entity_types": [
           "Medical Institution",
-          "Performance Metric",
           "Podcast Host",
+          "Performance Metric",
+          "AI Expert",
           "AI Technology",
-          "AI Company",
-          "AI Expert"
+          "AI Company"
         ]
       }
     }

@@ -240,7 +240,7 @@ class TranscriptIngestion:
         """
         # Calculate duration from segments
         if segments:
-            duration = segments[-1].end
+            duration = segments[-1].end_time
         else:
             duration = 0.0
         

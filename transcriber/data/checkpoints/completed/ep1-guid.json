@@ -10,8 +10,8 @@
   "temporary_files": {
     "speaker_mapping": "data/checkpoints/temp/ep1-guid_speaker_mapping.tmp"
   },
-  "start_time": "2025-06-04T23:26:52.511918",
-  "last_update": "2025-06-04T23:26:52.572661",
+  "start_time": "2025-06-05T00:12:28.470482",
+  "last_update": "2025-06-05T00:12:28.507693",
   "metadata": {
     "title": "Episode 1",
     "audio_url": "https://example.com/episode1.mp3",
@@ -29,5 +29,5 @@
     "mime_type": null,
     "podcast_name": "Test Podcast"
   },
-  "final_output": "/tmp/pytest-of-sergeblumenfeld/pytest-16/test_orchestrator_full_workflo0/transcripts/Test_Podcast/2024-01-11_Episode_1.vtt"
+  "final_output": "/tmp/pytest-of-sergeblumenfeld/pytest-35/test_orchestrator_full_workflo0/transcripts/Test_Podcast/2024-01-11_Episode_1.vtt"
 }

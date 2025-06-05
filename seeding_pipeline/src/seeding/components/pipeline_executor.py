@@ -11,6 +11,30 @@ from src.core.models import Podcast, Episode, Segment
 from src.utils.logging import get_logger
 from src.utils.memory import cleanup_memory
 
+
+def add_span_attributes(attributes: Dict[str, Any]) -> None:
+    """Mock implementation for tracing/observability attributes."""
+    # This is a placeholder for actual tracing implementation
+    pass
+
+
+def create_span(name: str, **kwargs) -> 'MockSpan':
+    """Mock implementation for tracing/observability spans."""
+    return MockSpan(name)
+
+
+class MockSpan:
+    """Mock implementation for tracing spans."""
+    
+    def __init__(self, name: str):
+        self.name = name
+    
+    def __enter__(self):
+        return self
+    
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        pass
+
 logger = get_logger(__name__)
 
 
@@ -107,7 +131,9 @@ class PipelineExecutor:
                 start_time=segment.start_time,
                 end_time=segment.end_time,
                 speaker=segment.speaker,
-                confidence=segment.confidence
+                episode_id=episode_id,
+                segment_index=i,
+                segment_number=i + 1
             )
             segment_objects.append(segment_obj)
         return segment_objects
