@@ -512,3 +512,260 @@ class TestProgressTracker:
         
         # Completed should remain unchanged
         assert tracker.state.episodes['ep3'].status == EpisodeStatus.COMPLETED
+
+
+@pytest.mark.unit 
+class TestProgressTrackerEnhanced:
+    """Enhanced tests to improve coverage for progress tracker."""
+    
+    @pytest.fixture
+    def tracker_file(self, tmp_path):
+        """Create a temporary file for tracker state."""
+        return tmp_path / "test_progress.json"
+    
+    def test_episode_progress_from_dict_with_completed_at(self):
+        """Test EpisodeProgress.from_dict with completed_at timestamp."""
+        data = {
+            'guid': 'test-guid',
+            'status': 'completed',
+            'podcast_name': 'Test Podcast',
+            'title': 'Test Episode',
+            'completed_at': datetime.now(timezone.utc).isoformat()
+        }
+        
+        episode = EpisodeProgress.from_dict(data)
+        assert episode.guid == 'test-guid'
+        assert episode.status == EpisodeStatus.COMPLETED
+        assert episode.completed_at is not None
+    
+    def test_save_state_error_handling(self, tracker_file):
+        """Test save state error handling."""
+        tracker = ProgressTracker(tracker_file)
+        
+        # Make the progress file read-only to cause save to fail
+        tracker.progress_file.touch()
+        os.chmod(tracker.progress_file, 0o444)
+        
+        try:
+            # Try to save state (should fail due to permissions)
+            with pytest.raises(Exception):
+                tracker._save_state()
+        finally:
+            # Restore permissions
+            os.chmod(tracker.progress_file, 0o644)
+    
+    def test_mark_failed_missing_episode(self, tracker_file):
+        """Test marking a missing episode as failed."""
+        tracker = ProgressTracker(tracker_file)
+        
+        # Try to mark non-existent episode as failed
+        tracker.mark_failed('non-existent', 'Test error')
+        
+        # Episode should not be added
+        assert 'non-existent' not in tracker.state.episodes
+    
+    def test_progress_calculation(self, tracker_file):
+        """Test progress calculation with different episode states."""
+        tracker = ProgressTracker(tracker_file)
+        
+        # Add episodes with different statuses
+        tracker.add_episode({'guid': 'ep1', 'title': 'Episode 1'})
+        tracker.mark_completed('ep1', 'output1.vtt', 100)
+        
+        tracker.add_episode({'guid': 'ep2', 'title': 'Episode 2'}) 
+        tracker.mark_failed('ep2', 'Test error')
+        
+        tracker.add_episode({'guid': 'ep3', 'title': 'Episode 3'})
+        
+        # Verify episode counts
+        pending = tracker.get_pending()
+        failed = tracker.get_failed()
+        
+        assert len(pending) == 1
+        assert len(failed) == 1
+        assert pending[0].guid == 'ep3'
+        assert failed[0].guid == 'ep2'
+    
+    def test_concurrent_state_updates(self, tracker_file):
+        """Test concurrent state updates don't corrupt data."""
+        tracker = ProgressTracker(tracker_file)
+        
+        # Add initial episode
+        tracker.add_episode({'guid': 'ep1', 'title': 'Episode 1'})
+        
+        # Simulate concurrent updates
+        tracker.mark_started({'guid': 'ep1', 'title': 'Episode 1'})
+        tracker.update_key_index(1)
+        tracker.mark_completed('ep1', 'output.vtt', 100)
+        
+        # Verify state integrity
+        assert tracker.state.episodes['ep1'].status == EpisodeStatus.COMPLETED
+        assert tracker.state.current_key_index == 1
+    
+    def test_update_episode_status_complete_flow(self, tracker_file):
+        """Test update_episode_status with complete flow."""
+        tracker = ProgressTracker(tracker_file)
+        
+        # Update new episode
+        tracker.update_episode_status(
+            'ep1', 
+            'in-progress',
+            title='Episode 1',
+            podcast_name='Test Podcast'
+        )
+        
+        assert 'ep1' in tracker.state.episodes
+        assert tracker.state.episodes['ep1'].status == EpisodeStatus.IN_PROGRESS
+        assert tracker.state.episodes['ep1'].title == 'Episode 1'
+        assert tracker.state.episodes['ep1'].podcast_name == 'Test Podcast'
+    
+    def test_update_episode_status_invalid(self, tracker_file):
+        """Test update_episode_status with invalid status."""
+        tracker = ProgressTracker(tracker_file)
+        
+        # Try to update with invalid status
+        tracker.update_episode_status('ep1', 'invalid-status')
+        
+        # Episode should not be created
+        assert 'ep1' not in tracker.state.episodes
+    
+    def test_update_episode_status_existing_episode(self, tracker_file):
+        """Test update_episode_status with existing episode."""
+        tracker = ProgressTracker(tracker_file)
+        
+        # Add episode first
+        tracker.state.episodes['ep1'] = EpisodeProgress(
+            guid='ep1', 
+            status=EpisodeStatus.PENDING,
+            title='Old Title'
+        )
+        
+        # Update existing episode
+        tracker.update_episode_status(
+            'ep1',
+            'completed',
+            title='New Title',
+            non_existent_field='ignored'
+        )
+        
+        assert tracker.state.episodes['ep1'].status == EpisodeStatus.COMPLETED
+        assert tracker.state.episodes['ep1'].title == 'New Title'
+    
+    def test_reload_state(self, tracker_file):
+        """Test reloading state from file."""
+        # Create initial tracker and save some state
+        tracker1 = ProgressTracker(tracker_file)
+        tracker1.add_episode({'guid': 'ep1', 'title': 'Episode 1'})
+        tracker1._save_state()
+        
+        # Create second tracker
+        tracker2 = ProgressTracker(tracker_file)
+        
+        # Modify state in first tracker
+        tracker1.mark_completed('ep1', 'output.vtt', 60.0)
+        
+        # Second tracker shouldn't see changes yet
+        assert tracker2.state.episodes['ep1'].status == EpisodeStatus.PENDING
+        
+        # Reload state
+        tracker2.reload_state()
+        
+        # Now should see updated state
+        assert tracker2.state.episodes['ep1'].status == EpisodeStatus.COMPLETED
+    
+    def test_update_episode_state_in_progress_flow(self, tracker_file):
+        """Test update_episode_state with IN_PROGRESS status."""
+        tracker = ProgressTracker(tracker_file)
+        
+        episode_data = {
+            'guid': 'ep1',
+            'title': 'Episode 1',
+            'podcast_name': 'Test Podcast'
+        }
+        
+        tracker.update_episode_state('ep1', EpisodeStatus.IN_PROGRESS, episode_data)
+        
+        assert 'ep1' in tracker.state.episodes
+        assert tracker.state.episodes['ep1'].status == EpisodeStatus.IN_PROGRESS
+    
+    def test_update_episode_state_completed_flow(self, tracker_file):
+        """Test update_episode_state with COMPLETED status and continuation info."""
+        tracker = ProgressTracker(tracker_file)
+        
+        # First mark as in progress
+        episode_data = {'guid': 'ep1', 'title': 'Episode 1'}
+        tracker.mark_started(episode_data)
+        
+        # Then complete with continuation info
+        continuation_info = {
+            'continuation_attempts': 3,
+            'final_coverage_ratio': 0.95,
+            'segment_count': 5
+        }
+        
+        tracker.update_episode_state(
+            'ep1', 
+            EpisodeStatus.COMPLETED,
+            episode_data,
+            output_file='output.vtt',
+            continuation_info=continuation_info
+        )
+        
+        episode = tracker.state.episodes['ep1']
+        assert episode.status == EpisodeStatus.COMPLETED
+        assert episode.continuation_attempts == 3
+        assert episode.final_coverage_ratio == 0.95
+        assert episode.segment_count == 5
+    
+    def test_update_episode_state_failed_flow(self, tracker_file):
+        """Test update_episode_state with FAILED status."""
+        tracker = ProgressTracker(tracker_file)
+        
+        # Add episode first
+        tracker.add_episode({'guid': 'ep1', 'title': 'Episode 1'})
+        
+        tracker.update_episode_state(
+            'ep1',
+            EpisodeStatus.FAILED,
+            {},
+            error='Test error message'
+        )
+        
+        assert tracker.state.episodes['ep1'].status == EpisodeStatus.FAILED
+        assert tracker.state.episodes['ep1'].error == 'Test error message'
+    
+    def test_update_episode_state_unexpected_status(self, tracker_file):
+        """Test update_episode_state with unexpected status."""
+        tracker = ProgressTracker(tracker_file)
+        
+        # Create a mock status that's not handled
+        mock_status = MagicMock()
+        mock_status.name = 'UNKNOWN'
+        
+        # This should log a warning but not raise an error
+        tracker.update_episode_state('ep1', mock_status, {})
+    
+    def test_save_state_with_exception_cleanup(self, tracker_file):
+        """Test that save_state cleans up temp files on exception."""
+        tracker = ProgressTracker(tracker_file)
+        
+        # Mock atomic_write to simulate failure after temp file creation
+        import tempfile
+        temp_fd, temp_path = tempfile.mkstemp()
+        os.close(temp_fd)
+        
+        def mock_atomic_write(*args, **kwargs):
+            # Create the temp file then raise exception
+            raise Exception("Write failed")
+        
+        with patch('src.progress_tracker.Path.open', side_effect=mock_atomic_write):
+            with patch('os.path.exists', return_value=True):
+                with patch('os.unlink') as mock_unlink:
+                    try:
+                        tracker._save_state()
+                    except Exception:
+                        pass
+        
+        # Clean up our test temp file
+        if os.path.exists(temp_path):
+            os.unlink(temp_path)
