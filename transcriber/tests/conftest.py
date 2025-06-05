@@ -25,7 +25,13 @@ from src.config import Config
 
 @pytest.fixture
 def mock_config():
-    """Create a mock configuration for unit tests."""
+    """Create a mock configuration for unit tests.
+    
+    Usage:
+        def test_orchestrator_with_mock(mock_config):
+            orchestrator = TranscriptionOrchestrator(config=mock_config)
+            # Test with fully controlled config mock
+    """
     config = Mock(spec=Config)
     
     # Set up common config attributes
