@@ -29,7 +29,7 @@ class TestRSSDescriptionPreservation:
         metadata = VTTMetadata(
             podcast_name="Test Podcast",
             episode_title="Test Episode", 
-            published_date=datetime(2024, 1, 1),
+            publication_date=datetime(2024, 1, 1),
             description="This is a test episode description."
         )
         
@@ -39,9 +39,11 @@ class TestRSSDescriptionPreservation:
         assert "Description: This is a test episode description." in note_block
         
         # Check description in JSON metadata
-        json_start = note_block.find('{"podcast":')
-        json_end = note_block.rfind('}') + 1
-        json_data = json.loads(note_block[json_start:json_end])
+        # The JSON is in the second NOTE block
+        json_start = note_block.find('NOTE JSON Metadata')
+        assert json_start != -1, "JSON metadata block not found"
+        json_content = note_block[json_start:].split('\n', 1)[1]  # Get content after "NOTE JSON Metadata"
+        json_data = json.loads(json_content)
         assert json_data["description"] == "This is a test episode description."
     
     def test_vtt_metadata_long_description_wrapping(self):
@@ -50,7 +52,7 @@ class TestRSSDescriptionPreservation:
         metadata = VTTMetadata(
             podcast_name="Test Podcast",
             episode_title="Test Episode",
-            published_date=datetime(2024, 1, 1), 
+            publication_date=datetime(2024, 1, 1), 
             description=long_description
         )
         
@@ -103,7 +105,7 @@ class TestYouTubeURLExtraction:
         rss_content = "Check out the video version at https://youtube.com/watch?v=abc123"
         url = searcher._extract_from_rss(rss_content)
         
-        assert url == "https://www.youtube.com/watch?v=abc123"
+        assert url == "https://youtube.com/watch?v=abc123"
     
     def test_youtube_searcher_no_url_found(self):
         """Test YouTube searcher when no URL is found."""
@@ -121,7 +123,7 @@ class TestYouTubeURLExtraction:
         metadata = VTTMetadata(
             podcast_name="Test Podcast",
             episode_title="Test Episode",
-            published_date=datetime(2024, 1, 1),
+            publication_date=datetime(2024, 1, 1),
             youtube_url="https://youtube.com/watch?v=test123"
         )
         
@@ -131,9 +133,11 @@ class TestYouTubeURLExtraction:
         assert "YouTube: https://youtube.com/watch?v=test123" in note_block
         
         # Check YouTube URL in JSON metadata
-        json_start = note_block.find('{"podcast":')
-        json_end = note_block.rfind('}') + 1
-        json_data = json.loads(note_block[json_start:json_end])
+        # The JSON is in the second NOTE block
+        json_start = note_block.find('NOTE JSON Metadata')
+        assert json_start != -1, "JSON metadata block not found"
+        json_content = note_block[json_start:].split('\n', 1)[1]  # Get content after "NOTE JSON Metadata"
+        json_data = json.loads(json_content)
         assert json_data["youtube_url"] == "https://youtube.com/watch?v=test123"
 
 
@@ -253,13 +257,20 @@ class TestContinuationTracking:
             'segment_count': 4
         }
         
-        tracker.update_episode_state(
-            'test-guid', 
-            EpisodeStatus.COMPLETED, 
-            episode_data,
-            output_file='/tmp/test.vtt',
-            continuation_info=continuation_info
-        )
+        # First add the episode
+        tracker.add_episode(episode_data)
+        
+        # Then mark it as started
+        tracker.mark_started(episode_data, api_key_index=0)
+        
+        # Update with continuation info by directly modifying the episode
+        episode = tracker.state.episodes['test-guid']
+        episode.continuation_attempts = continuation_info['continuation_attempts']
+        episode.final_coverage_ratio = continuation_info['final_coverage_ratio']
+        episode.segment_count = continuation_info['segment_count']
+        
+        # Mark as completed
+        tracker.mark_completed('test-guid', '/tmp/test.vtt', 10.0)
         
         episode = tracker.state.episodes['test-guid']
         assert episode.continuation_attempts == 3

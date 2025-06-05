@@ -129,6 +129,12 @@ def mock_llm_client(mocker):
     return mock_client
 
 
+@pytest.fixture
+def mock_llm_provider(mocker):
+    """Mock LLM provider for unit tests - alias for mock_llm_client."""
+    return mock_llm_client(mocker)
+
+
 # Pytest configuration
 def pytest_configure(config):
     """Configure pytest with custom markers."""

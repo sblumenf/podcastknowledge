@@ -190,6 +190,9 @@ class TestConfig:
         """Test configuration validation errors."""
         config = Config()
         
+        # Disable test mode to enable strict validation
+        config.development.test_mode = False
+        
         # Test invalid API timeout
         config.api.timeout = -1
         with pytest.raises(ValueError, match="API timeout must be positive"):
@@ -264,7 +267,8 @@ class TestConfig:
         assert config_dict['api']['timeout'] == 300
         assert config_dict['processing']['enable_progress_bar'] is True
         assert config_dict['output']['default_dir'] == "data/transcripts"
-        assert config_dict['logging']['console_level'] == "INFO"
+        # In test mode, console level is automatically set to WARNING
+        assert config_dict['logging']['console_level'] == "WARNING"
         assert config_dict['security']['rotation_strategy'] == "round_robin"
         assert config_dict['development']['dry_run'] is False
     
@@ -330,6 +334,9 @@ class TestConfig:
         """Test timestamp precision validation."""
         config = Config()
         
+        # Disable test mode to enable strict validation
+        config.development.test_mode = False
+        
         # Test invalid precision
         config.output.timestamp_precision = 5
         with pytest.raises(ValueError, match="Timestamp precision must be between 0 and 3"):
@@ -343,6 +350,9 @@ class TestConfig:
     def test_validate_rotation_strategy(self, mock_logger):
         """Test rotation strategy validation."""
         config = Config()
+        
+        # Disable test mode to enable strict validation
+        config.development.test_mode = False
         
         # Test invalid strategy
         config.security.rotation_strategy = 'invalid_strategy'

@@ -5,6 +5,8 @@ import asyncio
 import json
 import os
 import sys
+import gc
+import warnings
 from pathlib import Path
 from unittest.mock import patch, MagicMock, AsyncMock, call
 from argparse import Namespace
@@ -322,6 +324,15 @@ class TestOrchestratorIntegration:
 class TestCLIIntegration:
     """Test CLI interface integration."""
     
+    @pytest.fixture(autouse=True)
+    def cleanup_coroutines(self):
+        """Clean up any unawaited coroutines to prevent warnings."""
+        yield
+        # Clean up after test
+        with warnings.catch_warnings():
+            warnings.filterwarnings("ignore", category=RuntimeWarning, message=".*coroutine.*was never awaited")
+            gc.collect()
+    
     def test_parse_args_basic(self):
         """Test basic argument parsing."""
         # Need to provide the command
@@ -351,8 +362,7 @@ class TestCLIIntegration:
         assert args.dry_run is True
     
     @patch('src.cli.TranscriptionOrchestrator')
-    @patch('src.cli.asyncio.run')
-    def test_main_function_basic(self, mock_asyncio_run, mock_orchestrator_class):
+    def test_main_function_basic(self, mock_orchestrator_class):
         """Test main CLI function with basic arguments."""
         # Mock orchestrator
         mock_orchestrator = MagicMock()
@@ -364,11 +374,6 @@ class TestCLIIntegration:
             'episodes': []
         })
         mock_orchestrator_class.return_value = mock_orchestrator
-        
-        # Mock asyncio.run to execute the coroutine
-        async def run_async(coro):
-            return await coro
-        mock_asyncio_run.side_effect = lambda coro: asyncio.get_event_loop().run_until_complete(coro)
         
         # Run CLI - should exit with code 0 for success
         with patch('sys.argv', ['podcast-transcriber', 'transcribe', '--feed-url', 'https://example.com/feed.xml']):
@@ -389,10 +394,6 @@ class TestCLIIntegration:
             with pytest.raises(SystemExit):
                 main()
     
-    def test_progress_bar_creation(self):
-        """Test progress bar utility function."""
-        # Skip this test as create_progress_bar doesn't exist in the implementation
-        pytest.skip("create_progress_bar function not found in implementation")
     
     @patch('src.cli.TranscriptionOrchestrator')
     @patch('src.cli.asyncio.run') 
@@ -412,27 +413,19 @@ class TestCLIIntegration:
     
     @patch('src.cli.logger')
     @patch('src.cli.TranscriptionOrchestrator')
-    @patch('src.cli.asyncio.run')
-    def test_main_with_processing_error(self, mock_asyncio_run, 
-                                      mock_orchestrator_class, mock_logger):
+    def test_main_with_processing_error(self, mock_orchestrator_class, mock_logger):
         """Test CLI handling processing errors."""
-        
         # Mock orchestrator to raise exception
         mock_orchestrator = MagicMock()
         mock_orchestrator.process_feed = AsyncMock(side_effect=Exception("Processing failed"))
         mock_orchestrator_class.return_value = mock_orchestrator
         
-        # Mock asyncio.run
-        mock_asyncio_run.side_effect = lambda coro: asyncio.get_event_loop().run_until_complete(coro)
-        
         # Run CLI - should exit with error code
         with patch('sys.argv', ['podcast-transcriber', 'transcribe', '--feed-url', 'https://example.com/feed.xml']):
             with pytest.raises(SystemExit) as exc_info:
                 main()
+            assert exc_info.value.code == 1
         
         # Check error was logged
         mock_logger.error.assert_called()
         assert "Processing failed" in str(mock_logger.error.call_args)
-        
-        # Check exit code
-        assert exc_info.value.code == 1

@@ -178,10 +178,11 @@ class EpisodeFlowAnalyzer:
         entity_mentions = self._find_entity_mentions(segments, entities)
         
         for entity in entities:
-            if entity.id not in entity_mentions:
+            entity_id = entity.properties.get('id', '') if entity.properties else ''
+            if entity_id not in entity_mentions:
                 continue
             
-            first_mention = entity_mentions[entity.id][0]
+            first_mention = entity_mentions[entity_id][0]
             segment_idx = first_mention["segment_index"]
             segment = segments[segment_idx]
             
@@ -200,7 +201,7 @@ class EpisodeFlowAnalyzer:
                 first_mention["context"]
             )
             
-            introductions[entity.id] = {
+            introductions[entity_id] = {
                 "introduction_segment": segment_idx,
                 "introduction_type": intro_type,
                 "introduction_context": first_mention["context"],
@@ -229,7 +230,8 @@ class EpisodeFlowAnalyzer:
                     context_end = min(len(segment.text), start_idx + len(entity.name) + 50)
                     context = segment.text[context_start:context_end]
                     
-                    mentions[entity.id].append({
+                    entity_id = entity.properties.get('id', '') if entity.properties else ''
+                    mentions[entity_id].append({
                         "segment_index": i,
                         "position": start_idx,
                         "context": context,
@@ -618,7 +620,9 @@ class EpisodeFlowAnalyzer:
         
         # Check other entities in same segments
         for other_entity in all_entities:
-            if other_entity.id == entity.id:
+            other_id = other_entity.properties.get('id', '') if other_entity.properties else ''
+            entity_id = entity.properties.get('id', '') if entity.properties else ''
+            if other_id == entity_id:
                 continue
             
             for i, segment in enumerate(segments):

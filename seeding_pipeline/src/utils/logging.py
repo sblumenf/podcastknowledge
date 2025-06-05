@@ -20,10 +20,15 @@ import uuid
 import contextvars
 # Try to use python-json-logger if available
 try:
-    from pythonjsonlogger import jsonlogger
+    from pythonjsonlogger.json import JsonFormatter as jsonlogger
     HAS_JSON_LOGGER = True
 except ImportError:
-    HAS_JSON_LOGGER = False
+    try:
+        # Fallback to old import for older versions
+        from pythonjsonlogger import jsonlogger
+        HAS_JSON_LOGGER = True
+    except ImportError:
+        HAS_JSON_LOGGER = False
 
 # Context variable for correlation ID
 correlation_id_var: contextvars.ContextVar[Optional[str]] = contextvars.ContextVar(
@@ -146,10 +151,18 @@ def setup_logging(
     
     # Create formatter
     if structured and HAS_JSON_LOGGER:
-        formatter = jsonlogger.JsonFormatter(
-            '%(timestamp)s %(level)s %(name)s %(message)s',
-            timestamp=True,
-        )
+        if hasattr(jsonlogger, 'JsonFormatter'):
+            # Old style import
+            formatter = jsonlogger.JsonFormatter(
+                '%(timestamp)s %(level)s %(name)s %(message)s',
+                timestamp=True,
+            )
+        else:
+            # New style import (already a formatter class)
+            formatter = jsonlogger(
+                '%(timestamp)s %(level)s %(name)s %(message)s',
+                timestamp=True,
+            )
     elif structured:
         formatter = StructuredFormatter()
     else:

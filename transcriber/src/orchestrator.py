@@ -129,7 +129,10 @@ class TranscriptionOrchestrator:
             'episodes': []
         }
         
-        for i, episode in enumerate(pending_episodes):
+        i = 0
+        while i < len(pending_episodes):
+            episode = pending_episodes[i]
+            
             # Update current episode in progress tracker
             batch_tracker.update_current_episode(episode.title)
             
@@ -165,6 +168,9 @@ class TranscriptionOrchestrator:
                     results['skipped'] += 1
                     reason = episode_result.get('reason', 'Unknown reason')
                     batch_tracker.episode_skipped(reason)
+                
+                # Move to next episode
+                i += 1
                     
             except QuotaExceededException as e:
                 logger.warning(f"Quota exceeded during processing: {e}")
@@ -193,8 +199,7 @@ class TranscriptionOrchestrator:
                     if alt_key:
                         logger.info(f"Switching to alternative API key with available quota")
                         # The gemini client will pick up the new key on next request
-                        # Retry the current episode
-                        i -= 1
+                        # Retry the current episode (don't increment i)
                         continue
                 
                 # No keys have quota, check if we should wait
@@ -215,7 +220,7 @@ class TranscriptionOrchestrator:
                         
                         # Continue processing remaining episodes
                         logger.info("Resuming processing after quota reset")
-                        i -= 1  # Retry the current episode
+                        # Retry the current episode (don't increment i)
                         continue
                     else:
                         # Wait was interrupted or exceeded max time
@@ -264,11 +269,20 @@ class TranscriptionOrchestrator:
         
         try:
             # Reconstruct episode data
+            # Parse published_date from string if present
+            published_date_str = checkpoint.metadata.get('published_date')
+            published_date = None
+            if published_date_str:
+                try:
+                    published_date = datetime.fromisoformat(published_date_str.replace('Z', '+00:00'))
+                except (ValueError, AttributeError):
+                    logger.warning(f"Failed to parse published_date: {published_date_str}")
+            
             episode = Episode(
                 guid=checkpoint.episode_id,
                 title=checkpoint.title,
                 audio_url=checkpoint.audio_url,
-                publication_date=checkpoint.metadata.get('publication_date', ''),
+                published_date=published_date,
                 description=checkpoint.metadata.get('description', ''),
                 duration=checkpoint.metadata.get('duration', ''),
                 author=checkpoint.metadata.get('author', '')

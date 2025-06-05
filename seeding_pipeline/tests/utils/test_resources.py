@@ -316,8 +316,13 @@ class TestResourcePool:
         pool = ResourcePool(lambda: object())
         
         # Create and release resources
+        resources = []
         for _ in range(3):
             r = pool.acquire()
+            resources.append(r)
+        
+        # Release all resources
+        for r in resources:
             pool.release(r)
         
         assert len(pool._available) == 3

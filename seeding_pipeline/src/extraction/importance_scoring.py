@@ -272,7 +272,7 @@ class ImportanceScorer:
             }
             
         # Get total duration from segments
-        total_duration = segments[-1].end_time if segments else 0
+        total_duration = segments[-1].end if segments else 0
         
         # Extract mention times
         mention_times = []
@@ -282,7 +282,7 @@ class ImportanceScorer:
             elif "segment_index" in mention and mention["segment_index"] < len(segments):
                 # Use segment start time as approximation
                 segment = segments[mention["segment_index"]]
-                mention_times.append(segment.start_time)
+                mention_times.append(segment.start)
                 
         if not mention_times:
             return {
@@ -360,16 +360,20 @@ class ImportanceScorer:
         weighted_references = 0.0
         
         # Find entity name for text matching
-        target_entity = next((e for e in all_entities if e.id == entity_id), None)
+        target_entity = next((e for e in all_entities if e.properties and e.properties.get('id') == entity_id), None)
         if not target_entity:
             return 0.0
             
         target_name = target_entity.name.lower()
-        target_aliases = [alias.lower() for alias in target_entity.aliases] if target_entity.aliases else []
+        target_aliases = []
+        if hasattr(target_entity, 'aliases') and target_entity.aliases:
+            target_aliases = [alias.lower() for alias in target_entity.aliases]
+        elif target_entity.properties and 'aliases' in target_entity.properties:
+            target_aliases = [alias.lower() for alias in target_entity.properties['aliases']]
         
         # Check references in other entities
         for entity in all_entities:
-            if entity.id == entity_id:
+            if entity.properties and entity.properties.get('id') == entity_id:
                 continue
                 
             # Check description for references
@@ -378,19 +382,30 @@ class ImportanceScorer:
                 if target_name in description_lower or any(alias in description_lower for alias in target_aliases):
                     reference_count += 1
                     # Weight by referencing entity's importance (use mention count as proxy)
-                    weight = min(1.0, entity.mention_count / 10) if hasattr(entity, 'mention_count') else 0.5
+                    # Try to get mention count from properties first, then attributes
+                    mention_count = 0
+                    if entity.properties and 'mention_count' in entity.properties:
+                        mention_count = entity.properties['mention_count']
+                    elif hasattr(entity, 'mention_count'):
+                        mention_count = entity.mention_count
+                    weight = min(1.0, mention_count / 10) if mention_count > 0 else 0.5
                     weighted_references += weight
                     
         # Check references in insights
         for insight in insights:
-            # Check both title and description
-            text_to_check = f"{insight.title} {insight.description}".lower()
-            if target_name in text_to_check or any(alias in text_to_check for alias in target_aliases):
+            # Check content (or title and description if available)
+            text_to_check = ""
+            if hasattr(insight, 'content') and insight.content:
+                text_to_check = insight.content.lower()
+            elif hasattr(insight, 'title') and hasattr(insight, 'description'):
+                text_to_check = f"{insight.title} {insight.description}".lower()
+                
+            if text_to_check and (target_name in text_to_check or any(alias in text_to_check for alias in target_aliases)):
                 reference_count += 1
                 # Insights have higher weight
                 weighted_references += 1.5
                 
-            # Check if entity is in supporting entities
+            # Check if entity is in supporting entities (if the insight has them)
             if hasattr(insight, 'supporting_entities') and entity_id in insight.supporting_entities:
                 reference_count += 1
                 weighted_references += 2.0  # Direct support is highly weighted
@@ -517,7 +532,7 @@ class ImportanceScorer:
         # Collect entity data
         for entity in entities:
             entity_data = {
-                "id": entity.id,
+                "id": entity.properties.get('id') if entity.properties else None,
                 "name": entity.name,
                 "type": entity.entity_type.value if hasattr(entity, 'entity_type') else "unknown"
             }

@@ -107,25 +107,30 @@ class TestYouTubeSearcher:
         url = searcher._extract_youtube_url_from_text(text)
         assert url == "https://youtube.com/watch?v=abc123"
     
+    @pytest.mark.asyncio
     async def test_search_youtube_url_disabled(self, searcher):
         """Test search when YouTube search is disabled."""
         searcher.search_enabled = False
         result = await searcher.search_youtube_url("Test Episode", "Test description")
         assert result is None
     
+    @pytest.mark.asyncio
     async def test_search_youtube_url_cached(self, searcher):
         """Test search returns cached result."""
         episode_id = "Test Episode_test-guid"
         searcher.cache = {episode_id: "https://youtube.com/watch?v=cached"}
+        searcher._cache_loaded = True  # Mark cache as loaded
         
         result = await searcher.search_youtube_url(
             "Test Episode", "Test description", episode_guid="test-guid"
         )
         assert result == "https://youtube.com/watch?v=cached"
     
+    @pytest.mark.asyncio
     async def test_search_youtube_url_from_rss(self, searcher):
         """Test search extracts URL from RSS description."""
         description = "Episode description with https://www.youtube.com/watch?v=rss123"
+        searcher._cache_loaded = True  # Mark cache as loaded
         
         result = await searcher.search_youtube_url("Test Episode", description)
         assert result == "https://www.youtube.com/watch?v=rss123"
@@ -134,16 +139,20 @@ class TestYouTubeSearcher:
         assert "Test Episode_" in searcher.cache
         assert searcher.cache[list(searcher.cache.keys())[0]] == "https://www.youtube.com/watch?v=rss123"
     
+    @pytest.mark.asyncio
     async def test_search_youtube_url_no_result(self, searcher):
         """Test search with no YouTube URL found."""
+        searcher._cache_loaded = True  # Mark cache as loaded
         result = await searcher.search_youtube_url(
             "Test Episode", "No YouTube link in this description"
         )
         assert result is None
     
+    @pytest.mark.asyncio
     async def test_search_with_yt_dlp_disabled(self, searcher):
         """Test search doesn't use yt-dlp when disabled."""
         searcher.config.youtube_search.use_yt_dlp = False
+        searcher._cache_loaded = True  # Mark cache as loaded
         
         with patch('subprocess.run') as mock_run:
             result = await searcher.search_youtube_url(

@@ -220,6 +220,11 @@ class KeyRotationManager:
                 # Restore current index
                 self.current_index = data.get('current_index', 0)
                 
+                # Validate current index is within bounds
+                if self.current_index >= len(self.api_keys):
+                    logger.warning(f"Current index {self.current_index} out of bounds, resetting to 0")
+                    self.current_index = 0
+                
                 # Restore key states
                 for state_data in data.get('key_states', []):
                     idx = state_data['index']

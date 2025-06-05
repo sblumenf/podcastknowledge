@@ -239,9 +239,15 @@ class ComplexityAnalyzer:
         # Count technical entities
         technical_entity_count = 0
         if entities:
-            technical_types = {EntityType.TECHNOLOGY, EntityType.SCIENTIFIC_THEORY, 
-                             EntityType.MEDICAL_TERM, EntityType.RESEARCH_METHOD}
-            technical_entity_count = sum(1 for e in entities if e.type in technical_types)
+            # Use available entity types that could be considered technical
+            technical_types = {EntityType.TECHNOLOGY, EntityType.CONCEPT, EntityType.PRODUCT}
+            # Also include string representations for compatibility
+            technical_type_strings = {'technology', 'concept', 'product'}
+            technical_entity_count = sum(
+                1 for e in entities 
+                if (hasattr(e.type, 'value') and e.type in technical_types) or 
+                   (isinstance(e.type, str) and e.type.lower() in technical_type_strings)
+            )
         
         # Calculate readability score (simplified Flesch Reading Ease)
         # Score = 206.835 - 1.015 * (total words / total sentences) - 84.6 * (total syllables / total words)
@@ -264,13 +270,13 @@ class ComplexityAnalyzer:
         
         # Classify complexity level
         if complexity_score < 30:
-            complexity_level = ComplexityLevel.SIMPLE
+            complexity_level = ComplexityLevel.LAYPERSON
         elif complexity_score < 50:
-            complexity_level = ComplexityLevel.MODERATE
+            complexity_level = ComplexityLevel.INTERMEDIATE
         elif complexity_score < 70:
-            complexity_level = ComplexityLevel.COMPLEX
+            complexity_level = ComplexityLevel.EXPERT
         else:
-            complexity_level = ComplexityLevel.VERY_COMPLEX
+            complexity_level = ComplexityLevel.EXPERT  # Very complex is still expert level
         
         return SegmentComplexity(
             segment_id="",  # To be set by caller
@@ -332,7 +338,7 @@ class ComplexityAnalyzer:
         if not segment_complexities:
             return EpisodeComplexity(
                 average_complexity=0.0,
-                dominant_level=ComplexityLevel.SIMPLE,
+                dominant_level=ComplexityLevel.LAYPERSON,
                 complexity_distribution={},
                 technical_density=0.0,
                 complexity_variance=0.0,
@@ -421,8 +427,16 @@ class ComplexityAnalyzer:
         fact_count = 0
         if insights:
             from src.core.models import InsightType
-            fact_types = {InsightType.FACT, InsightType.STATISTIC, InsightType.RESEARCH_FINDING}
-            fact_count = sum(1 for i in insights if i.type in fact_types)
+            # Use available insight types and handle both 'type' and 'category' fields
+            fact_types = {InsightType.FACTUAL, InsightType.TECHNICAL}
+            fact_type_strings = {'fact', 'factual', 'technical', 'statistic', 'research_finding'}
+            for i in insights:
+                # Check if insight has type field (enum)
+                if hasattr(i, 'type') and hasattr(i.type, 'value') and i.type in fact_types:
+                    fact_count += 1
+                # Check if insight has category field (string)
+                elif hasattr(i, 'category') and isinstance(i.category, str) and i.category.lower() in fact_type_strings:
+                    fact_count += 1
         
         fact_density = fact_count / words_in_thousands if words_in_thousands > 0 else 0
         
@@ -606,9 +620,19 @@ class ComplexityAnalyzer:
         if insights:
             # Check for explanatory insights
             from src.core.models import InsightType
-            explanatory_types = {InsightType.EXPLANATION, InsightType.CLARIFICATION, 
-                               InsightType.EXAMPLE, InsightType.SUMMARY}
-            explanatory_count = sum(1 for i in insights if i.type in explanatory_types)
+            # Use available insight types
+            explanatory_types = {InsightType.CONCEPTUAL, InsightType.METHODOLOGICAL}
+            explanatory_type_strings = {'explanation', 'clarification', 'example', 'summary', 'conceptual', 'methodological'}
+            
+            explanatory_count = 0
+            for i in insights:
+                # Check if insight has type field (enum)
+                if hasattr(i, 'type') and hasattr(i.type, 'value') and i.type in explanatory_types:
+                    explanatory_count += 1
+                # Check if insight has category field (string)
+                elif hasattr(i, 'category') and isinstance(i.category, str) and i.category.lower() in explanatory_type_strings:
+                    explanatory_count += 1
+            
             if len(insights) > 0:
                 explanation_factor = min(1.0, 0.5 + (explanatory_count / len(insights)) * 0.5)
         

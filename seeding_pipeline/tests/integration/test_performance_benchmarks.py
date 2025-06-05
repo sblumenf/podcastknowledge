@@ -140,8 +140,7 @@ class TestPerformanceBenchmarks:
              patch('src.factories.provider_factory.ProviderFactory.create_embedding_provider',
                   return_value=mock_embeddings):
             
-            extractor = KnowledgeExtractor(
-                llm_provider=mock_llm,
+            extractor = KnowledgeExtractor(llm_service=mock_llm,
                 embedding_provider=mock_embeddings
             )
             

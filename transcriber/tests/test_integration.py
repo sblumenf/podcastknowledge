@@ -152,19 +152,16 @@ Date: 2024-01-15
             mock_speaker_response = MagicMock()
             mock_speaker_response.text = json.dumps(mock_speaker_identification)
             
-            # Set up the mock to return different responses based on call count
-            call_count = 0
+            # Set up the mock to return different responses based on the prompt content
             async def mock_generate_content(*args, **kwargs):
-                nonlocal call_count
-                call_count += 1
-                
-                # For transcription, we'll be called multiple times (initial + continuations)
-                # Return transcript response for first 10 calls (transcription + continuations)
-                if call_count <= 10:
-                    return mock_transcript_response
-                else:
+                # Check if this is a speaker identification call by looking for speaker-related keywords
+                prompt = args[0] if args else kwargs.get('prompt', '')
+                if isinstance(prompt, str) and ('speaker' in prompt.lower() or 'identify' in prompt.lower()):
                     # This is the speaker identification call
                     return mock_speaker_response
+                else:
+                    # This is a transcription call
+                    return mock_transcript_response
             
             mock_genai_client.generate_content_async = AsyncMock(side_effect=mock_generate_content)
             

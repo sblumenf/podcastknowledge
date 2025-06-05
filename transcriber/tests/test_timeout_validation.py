@@ -32,16 +32,16 @@ class TestTimeoutConfiguration:
             await asyncio.sleep(0.1)
             return "test_result"
         
-        # Mock an async function
-        with patch('src.gemini_client.RateLimitedGeminiClient.transcribe_audio') as mock_transcribe:
-            mock_transcribe.return_value = mock_async_function()
+        # Mock an async function properly
+        with patch('src.gemini_client.RateLimitedGeminiClient.transcribe_audio', new_callable=AsyncMock) as mock_transcribe:
+            mock_transcribe.return_value = "test_result"
             
             # Use the mock
             result = await mock_transcribe()
             assert result == "test_result"
         
-        # Mock should be cleaned up automatically
-        assert not mock_transcribe.called
+        # Mock should have been called
+        assert mock_transcribe.called
     
     @pytest.mark.asyncio
     async def test_concurrent_async_operations(self):
@@ -74,8 +74,8 @@ class TestTimeoutConfiguration:
             
             assert content == "test content"
         
-        # Mock should be cleaned up
-        assert not hasattr(mock_open, 'call_count')
+        # Mock should have been used
+        assert mock_open.called
 
 
 @pytest.mark.slow

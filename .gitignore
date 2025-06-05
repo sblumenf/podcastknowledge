@@ -1,27 +1,103 @@
+# Python
 __pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+*/venv/
+*/test_env/
+test_env/
+
+# Environment variables
 .env
 .env.local
 .env.test
-venv/
-*.egg-info/
+.env.*
+
+# Testing
 .coverage
+.coverage.*
 coverage.xml
 htmlcov/
 .pytest_cache/
-
-# Test output files
+.tox/
+.nox/
+*.cover
+.hypothesis/
+test_results/
 test_collection.txt
 test_results_initial.txt
 test_timings.txt
 failed_tests.txt
 test_inventory.txt
 coverage_baseline.txt
+pytest_output.txt
+pytest_full_output.txt
+test_collection_errors.txt
+test_baseline.txt
+test_failures.json
+tests.log
 
-# Duplicate directories
-podcastknowledge/
-
-# Additional patterns from storage optimization
+# Logs
 *.log
+*.log.*
+logs/
+
+# Temporary files
 *.tmp
-*.pyc
-*.pyo
+*.temp
+*.swp
+*.swo
+*~
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
+*.sublime-*
+
+# Project specific
+podcastknowledge/
+import_errors.txt
+import_errors_analysis.json
+import_audit.txt
+dependency_analysis.json
+
+# Notebooks
+.ipynb_checkpoints/
+
+# Cache and state files
+.cache/
+*.cache
+.state
+.retry_state.json
+.gemini_usage.json
+.key_rotation_state.json
+.youtube_cache.json
+
+# Benchmarks and performance data
+benchmarks/neo4j_benchmark_*.json
+performance_*.json

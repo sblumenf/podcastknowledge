@@ -5,7 +5,8 @@ from unittest.mock import Mock, MagicMock
 import numpy as np
 import pytest
 
-from src.core.extraction_interface import Entity, Segment
+from src.core.extraction_interface import Entity
+from src.core.models import Segment
 from src.processing.episode_flow import EpisodeFlowAnalyzer
 class TestEpisodeFlowAnalyzer:
     """Test suite for EpisodeFlowAnalyzer class."""
@@ -74,24 +75,24 @@ class TestEpisodeFlowAnalyzer:
         """Create sample entities for testing."""
         return [
             Entity(
-                id="ent_1",
                 name="artificial intelligence",
-                type="TECHNOLOGY"
+                type="TECHNOLOGY",
+                properties={"id": "ent_1"}
             ),
             Entity(
-                id="ent_2",
                 name="healthcare",
-                type="DOMAIN"
+                type="DOMAIN",
+                properties={"id": "ent_2"}
             ),
             Entity(
-                id="ent_3",
                 name="ethics",
-                type="CONCEPT"
+                type="CONCEPT",
+                properties={"id": "ent_3"}
             ),
             Entity(
-                id="ent_4",
                 name="machine learning",
-                type="TECHNOLOGY"
+                type="TECHNOLOGY",
+                properties={"id": "ent_4"}
             )
         ]
     

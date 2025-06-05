@@ -184,8 +184,7 @@ class TestGoldenOutputs:
         with patch('src.providers.llm.base.BaseLLMProvider.generate',
                   return_value=mock_llm_fixed_response):
             
-            extractor = KnowledgeExtractor(
-                llm_provider=Mock(),
+            extractor = KnowledgeExtractor(llm_service=Mock(),
                 embedding_provider=Mock()
             )
             
@@ -288,8 +287,7 @@ class TestGoldenOutputs:
         with patch('src.providers.llm.base.BaseLLMProvider.generate',
                   return_value=mock_llm_fixed_response):
             
-            extractor = KnowledgeExtractor(
-                llm_provider=Mock(),
+            extractor = KnowledgeExtractor(llm_service=Mock(),
                 embedding_provider=Mock()
             )
             

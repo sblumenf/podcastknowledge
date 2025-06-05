@@ -141,7 +141,7 @@ class TranscriptionProcessor:
 3. **Episode Information:**
    - Podcast: {metadata.get('podcast_name', 'Unknown')}
    - Title: {metadata.get('title', 'Unknown')}
-   - Date: {metadata.get('publication_date', 'Unknown')}
+   - Date: {metadata.get('published_date', metadata.get('publication_date', 'Unknown'))}
    - Host/Author: {metadata.get('author', 'Unknown')}
 
 4. **Output Format Example:**
@@ -151,7 +151,7 @@ WEBVTT
 NOTE
 Podcast: {metadata.get('podcast_name', 'Unknown')}
 Episode: {metadata.get('title', 'Unknown')}
-Date: {metadata.get('publication_date', 'Unknown')}
+Date: {metadata.get('published_date', metadata.get('publication_date', 'Unknown'))}
 Duration: {metadata.get('duration', 'Unknown')}
 
 00:00:00.000 --> 00:00:05.500

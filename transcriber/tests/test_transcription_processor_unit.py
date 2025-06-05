@@ -154,9 +154,8 @@ Date: 2025-06-01
             None
         )
         
-        # Verify key manager interactions
-        processor.key_manager.get_next_key.assert_called_once()
-        processor.key_manager.mark_key_success.assert_called_once_with(0)
+        # Key manager is not called directly by transcription processor anymore
+        # (it's handled internally by the gemini_client)
         
         # Verify result
         assert result is not None
@@ -193,7 +192,7 @@ Date: 2025-06-01
         )
         
         assert result is None
-        processor.key_manager.mark_key_failure.assert_called_once()
+        # Key failures are handled internally by gemini_client
     
     @pytest.mark.asyncio
     async def test_transcribe_episode_api_failure(self, processor, sample_metadata):
@@ -206,7 +205,7 @@ Date: 2025-06-01
         )
         
         assert result is None
-        processor.key_manager.mark_key_failure.assert_called_once()
+        # Key failures are handled internally by gemini_client
     
     @pytest.mark.asyncio
     async def test_transcribe_episode_with_checkpoint(self, mock_gemini_client, mock_key_manager, 

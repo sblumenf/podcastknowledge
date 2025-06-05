@@ -12,7 +12,7 @@ import re
 
 import difflib
 
-from src.core.models import Entity, EntityType
+from src.core.extraction_interface import Entity, EntityType
 from src.utils.component_tracker import track_component_impact, ComponentContribution, get_tracker
 logger = logging.getLogger(__name__)
 
@@ -92,9 +92,9 @@ class EntityResolver:
         
         # Alias extraction patterns
         self.alias_patterns = [
-            r'also known as ([^,\.]+)',
-            r'formerly ([^,\.]+)',
-            r'aka ([^,\.]+)',
+            r'also known as ([^,]+)',
+            r'formerly ([^,.]+(?:,\s*[^.]+)?\.?)',
+            r'aka ([^,]+)',
             r'\(([^)]+)\)',  # Names in parentheses
             r'or "([^"]+)"',  # Names in quotes
             r"or '([^']+)'",  # Names in single quotes
@@ -183,11 +183,13 @@ class EntityResolver:
         
         # Clean up aliases
         cleaned_aliases = []
+        seen = set()
         for alias in aliases:
             alias = alias.strip()
             # Don't include the main name as an alias
-            if alias.lower() != entity_name.lower() and alias:
+            if alias.lower() != entity_name.lower() and alias and alias.lower() not in seen:
                 cleaned_aliases.append(alias)
+                seen.add(alias.lower())
         
         return cleaned_aliases
     
@@ -196,17 +198,27 @@ class EntityResolver:
         # Extract names from different entity formats
         if isinstance(entity1, Entity):
             name1 = entity1.name
-            id1 = entity1.id
-        else:
+            id1 = entity1.properties.get('id', '') if entity1.properties else ''
+        elif isinstance(entity1, dict):
             name1 = entity1.get('value', entity1.get('name', ''))
             id1 = entity1.get('id', '')
+        else:
+            # Handle case where entity1 is actually an Entity but being checked incorrectly
+            name1 = getattr(entity1, 'name', '')
+            props = getattr(entity1, 'properties', {})
+            id1 = props.get('id', '') if props else ''
         
         if isinstance(entity2, Entity):
             name2 = entity2.name
-            id2 = entity2.id
-        else:
+            id2 = entity2.properties.get('id', '') if entity2.properties else ''
+        elif isinstance(entity2, dict):
             name2 = entity2.get('value', entity2.get('name', ''))
             id2 = entity2.get('id', '')
+        else:
+            # Handle case where entity2 is actually an Entity but being checked incorrectly
+            name2 = getattr(entity2, 'name', '')
+            props = getattr(entity2, 'properties', {})
+            id2 = props.get('id', '') if props else ''
         
         if not name1 or not name2:
             return None
@@ -329,7 +341,14 @@ class EntityResolver:
         for existing in existing_entities:
             # Skip if different entity types (for Entity objects)
             if isinstance(new_entity, Entity) and isinstance(existing, Entity):
-                if existing.type != new_entity.type:
+                # Compare types - handle both string and enum types
+                new_type = new_entity.type.value if hasattr(new_entity.type, 'value') else new_entity.type
+                existing_type = existing.type.value if hasattr(existing.type, 'value') else existing.type
+                if new_type != existing_type:
+                    continue
+            elif isinstance(new_entity, dict) and isinstance(existing, dict):
+                # Also skip for dict entities with different types
+                if new_entity.get('type') != existing.get('type'):
                     continue
             
             match = self._compare_entities(new_entity, existing)
@@ -360,7 +379,7 @@ class EntityResolver:
                 primary.description = duplicate.description
         
         # Merge aliases
-        primary_aliases = getattr(primary, 'aliases', [])
+        primary_aliases = getattr(primary, 'aliases', [])[:]  # Make a copy
         duplicate_aliases = getattr(duplicate, 'aliases', [])
         
         # Add duplicate's name as an alias if different
@@ -473,8 +492,11 @@ class EntityResolver:
         processed_ids = set()
         
         for entity in entities:
+            # Get id from properties
+            entity_id = entity.properties.get('id', '') if entity.properties else ''
+            
             # Skip if already processed as a duplicate
-            if entity.id in processed_ids:
+            if entity_id in processed_ids:
                 continue
             
             # Find potential matches in already resolved entities
@@ -484,15 +506,16 @@ class EntityResolver:
                 # Merge with the best match
                 best_match = matches[0]
                 for i, resolved_entity in enumerate(resolved):
-                    if resolved_entity.id == best_match.id:
+                    resolved_id = resolved_entity.properties.get('id', '') if resolved_entity.properties else ''
+                    if resolved_id == best_match.id:
                         resolved[i] = self.merge_entities(resolved_entity, entity)
-                        processed_ids.add(entity.id)
+                        processed_ids.add(entity_id)
                         self.resolution_metrics["merges_performed"] += 1
                         break
             else:
                 # No match found, add as new entity
                 resolved.append(entity)
-                processed_ids.add(entity.id)
+                processed_ids.add(entity_id)
         
         self.resolution_metrics["entities_after"] = len(resolved)
         return resolved
@@ -746,9 +769,11 @@ class EntityResolver:
                     )
                     
                     if confidence > 0.5:  # Minimum confidence threshold
+                        source_id = entity1.properties.get('id', '') if entity1.properties else ''
+                        target_id = entity2.properties.get('id', '') if entity2.properties else ''
                         relationships.append(EntityRelationship(
-                            source_id=entity1.id,
-                            target_id=entity2.id,
+                            source_id=source_id,
+                            target_id=target_id,
                             relationship_type=rel_type,
                             confidence=confidence,
                             context=self._extract_relationship_context(text, entity1.name, entity2.name)

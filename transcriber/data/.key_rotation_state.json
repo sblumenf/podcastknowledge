@@ -1,46 +1,20 @@
 {
-  "current_index": 2,
-  "last_reset": "2025-06-04",
+  "current_index": 0,
+  "last_reset": "2025-06-05",
   "key_states": [
     {
       "index": 0,
       "key_name": "key_1 (test_key...)",
-      "status": "error",
-      "last_used": "2025-06-04T00:52:34.719103+00:00",
-      "consecutive_failures": 6,
-      "error_message": "Circuit breaker is open for transcribe_audio_key_0. Recovery at 2025-06-03 22:46:48.604080",
-      "requests_today": 16,
-      "tokens_today": 542380,
+      "status": "available",
+      "last_used": "2025-06-05T01:57:18.001392+00:00",
+      "consecutive_failures": 1,
+      "error_message": "RetryError[<Future at 0x7fa4f822ed50 state=finished raised HTTPError>]",
+      "requests_today": 14,
+      "tokens_today": 422380,
       "requests_this_minute": 2,
-      "last_minute_reset": "2025-06-04T00:45:23.763748+00:00",
-      "last_daily_reset": "2025-06-04T00:00:00+00:00"
-    },
-    {
-      "index": 1,
-      "key_name": "key_2 (key2...)",
-      "status": "available",
-      "last_used": null,
-      "consecutive_failures": 0,
-      "error_message": null,
-      "requests_today": 0,
-      "tokens_today": 0,
-      "requests_this_minute": 0,
-      "last_minute_reset": null,
-      "last_daily_reset": null
-    },
-    {
-      "index": 2,
-      "key_name": "key_3 (key3...)",
-      "status": "available",
-      "last_used": null,
-      "consecutive_failures": 0,
-      "error_message": null,
-      "requests_today": 0,
-      "tokens_today": 0,
-      "requests_this_minute": 0,
-      "last_minute_reset": null,
-      "last_daily_reset": null
+      "last_minute_reset": "2025-06-05T01:57:13.653397+00:00",
+      "last_daily_reset": "2025-06-05T00:00:00+00:00"
     }
   ],
-  "last_updated": "2025-06-04T00:53:32.186762+00:00"
+  "last_updated": "2025-06-05T01:57:18.001502+00:00"
 }

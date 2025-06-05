@@ -70,7 +70,7 @@ class DependencyMapper:
                 {
                     "file": "src/seeding/orchestrator.py",
                     "method": "_initialize_extraction",
-                    "pattern": "self.extractor = KnowledgeExtractor(llm_provider=self.llm_provider, embedding_provider=self.embedding_provider)",
+                    "pattern": "self.extractor = KnowledgeExtractor(llm_service=self.llm_provider, embedding_provider=self.embedding_provider)",
                     "dependencies": ["llm_provider", "embedding_provider"]
                 }
             ],

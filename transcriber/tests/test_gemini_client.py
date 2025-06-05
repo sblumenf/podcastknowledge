@@ -254,14 +254,6 @@ class TestRateLimitedGeminiClient:
         assert result_client is not None
         assert key_index == 0
     
-    def test_get_available_client_rate_limit_wait(self, client):
-        """Test getting client with rate limit wait."""
-        # This test appears to have a logic issue - the implementation checks rate limits twice:
-        # 1. In can_make_request() - returns False if < 12 seconds
-        # 2. In _get_available_client() - sleeps if needed
-        # These two checks are redundant. Skipping this test as it tests redundant logic.
-        pytest.skip("Test relies on redundant rate limit logic in implementation")
-    
     def test_get_available_client_no_keys_available(self, client):
         """Test getting client when no keys available."""
         # Mark all keys as unavailable

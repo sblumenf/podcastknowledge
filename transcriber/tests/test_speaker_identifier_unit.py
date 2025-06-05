@@ -127,9 +127,8 @@ class TestSpeakerIdentifier:
             sample_vtt_transcript, sample_metadata
         )
         
-        # Verify key manager interactions
-        identifier.key_manager.get_next_key.assert_called_once()
-        identifier.key_manager.mark_key_success.assert_called_once_with(0)
+        # Key manager is not called directly by speaker identifier anymore
+        # (it's handled internally by the gemini_client)
         
         # Verify result
         assert result == {
@@ -151,8 +150,7 @@ class TestSpeakerIdentifier:
             'SPEAKER_2': 'Guest'
         }
         
-        # Verify key marked as failed
-        identifier.key_manager.mark_key_failure.assert_called_once()
+        # Key failures are handled internally by gemini_client
     
     @pytest.mark.asyncio
     async def test_identify_speakers_empty_response(self, identifier, sample_vtt_transcript, sample_metadata):

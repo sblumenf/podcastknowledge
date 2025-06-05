@@ -9,139 +9,50 @@
     "ENABLE_ENTITY_RESOLUTION_POSTPROCESS": false
   },
   "extraction_result": {
-    "entities": [
-      {
-        "type": "PERSON",
-        "value": "Dr. Sarah Johnson",
-        "entity_type": "person",
-        "confidence": 0.8,
-        "start_time": 0.0,
-        "properties": {
-          "extraction_method": "pattern_matching",
-          "description": "Person entity"
-        }
-      },
-      {
-        "type": "PRODUCT",
-        "value": "artificial intelligence",
-        "entity_type": "product",
-        "confidence": 0.8,
-        "start_time": 0.0,
-        "properties": {
-          "extraction_method": "pattern_matching",
-          "description": "Product entity"
-        }
-      },
-      {
-        "type": "PRODUCT",
-        "value": "machine learning",
-        "entity_type": "product",
-        "confidence": 0.8,
-        "start_time": 0.0,
-        "properties": {
-          "extraction_method": "pattern_matching",
-          "description": "Product entity"
-        }
-      }
-    ],
-    "quotes": [
-      {
-        "type": "Quote",
-        "text": "I'm excited to discuss how machine learning is revolutionizing healthcare diagnostics.",
-        "value": "I'm excited to discuss how machine learning is revolutionizing healthcare diagnostics.",
-        "speaker": "Dr. Johnson",
-        "quote_type": "insightful",
-        "timestamp_start": 0.0,
-        "timestamp_end": 5.0,
-        "start_time": 0.0,
-        "end_time": 5.0,
-        "importance_score": 0.8,
-        "confidence": 0.7,
-        "properties": {
-          "generated_for_test": true
-        }
-      }
-    ],
-    "relationships": [
-      {
-        "type": "SAID",
-        "source": "Dr. Johnson",
-        "target": "I'm excited to discuss how machine learning is rev...",
-        "confidence": 0.7,
-        "properties": {
-          "quote_type": "insightful",
-          "timestamp": 0.0
-        }
-      },
-      {
-        "type": "MENTIONED_WITH",
-        "source": "Dr. Sarah Johnson",
-        "target": "artificial intelligence",
-        "confidence": 0.6,
-        "properties": {
-          "distance": 0,
-          "co_occurrence": true
-        }
-      },
-      {
-        "type": "MENTIONED_WITH",
-        "source": "Dr. Sarah Johnson",
-        "target": "machine learning",
-        "confidence": 0.6,
-        "properties": {
-          "distance": 0,
-          "co_occurrence": true
-        }
-      },
-      {
-        "type": "MENTIONED_WITH",
-        "source": "artificial intelligence",
-        "target": "machine learning",
-        "confidence": 0.6,
-        "properties": {
-          "distance": 0,
-          "co_occurrence": true
-        }
-      }
-    ],
+    "entities": [],
+    "quotes": [],
+    "relationships": [],
     "metadata": {
-      "extraction_timestamp": "2025-06-03T20:06:13.744487",
-      "segment_id": "test_episode_segment_0",
-      "extraction_mode": "schemaless",
-      "text_length": 947,
-      "entity_count": 3,
-      "quote_count": 1,
-      "relationship_count": 4,
-      "episode_metadata": {
-        "episode_id": "test_episode",
-        "podcast_name": "Test Podcast"
-      }
+      "error": "'Segment' object has no attribute 'start'"
     },
-    "segments_processed": 1,
-    "total_entities": 3,
-    "total_quotes": 1,
-    "total_relationships": 4
+    "segments_processed": 0,
+    "total_entities": 0,
+    "total_quotes": 0,
+    "total_relationships": 0
   },
   "impact_report": {
-    "generated_at": "2025-06-04T00:06:13.745064",
+    "generated_at": "2025-06-05T01:40:19.263439",
     "components": {
       "knowledge_extractor": {
-        "execution_count": 10,
-        "total_time": 0.10718703269958496,
-        "avg_time": 0.010718703269958496,
-        "total_items_added": 40,
+        "execution_count": 5,
+        "total_time": 0.0653543472290039,
+        "avg_time": 0.01307086944580078,
+        "total_items_added": 0,
         "total_items_modified": 0,
-        "avg_items_per_execution": 4.0,
+        "avg_items_per_execution": 0.0,
         "properties_added": {},
         "relationships_added": {},
-        "impact_score": 373.18
+        "impact_score": 0.0
       }
     },
     "summary": {
       "total_components": 1,
-      "total_executions": 10,
-      "total_time": 0.10718703269958496
+      "total_executions": 5,
+      "total_time": 0.0653543472290039
     },
-    "recommendations": []
+    "recommendations": [
+      {
+        "component": "knowledge_extractor",
+        "type": "low_impact",
+        "message": "Component has low impact score (0.0)",
+        "suggestion": "Consider removing or optimizing this component"
+      },
+      {
+        "component": "knowledge_extractor",
+        "type": "no_additions",
+        "message": "Component adds no new items",
+        "suggestion": "Verify component is functioning correctly or remove if redundant"
+      }
+    ]
   }
 }
