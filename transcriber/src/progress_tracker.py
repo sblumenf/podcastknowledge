@@ -193,17 +193,26 @@ class ProgressTracker:
         logger.info(f"Progress tracker initialized with {len(self.state.episodes)} episodes")
     
     def _load_state(self) -> ProgressState:
-        """Load progress state from file, creating if doesn't exist."""
+        """Load progress state from file, creating if doesn't exist.
+        
+        Note: This method also updates self.state when called directly to support
+        state reloading patterns used in tests.
+        """
         if self.progress_file.exists():
             try:
                 with open(self.progress_file, 'r') as f:
                     data = json.load(f)
-                return ProgressState.from_dict(data)
+                new_state = ProgressState.from_dict(data)
+                # Update instance state to support direct calls for state reloading
+                self.state = new_state
+                return new_state
             except Exception as e:
                 logger.error(f"Failed to load progress file: {e}")
                 logger.warning("Starting with empty progress state")
         
-        return ProgressState()
+        new_state = ProgressState()
+        self.state = new_state
+        return new_state
     
     def _save_state(self):
         """Save progress state to file atomically."""
@@ -365,6 +374,71 @@ class ProgressTracker:
             ep for ep in self.state.episodes.values()
             if ep.status == EpisodeStatus.IN_PROGRESS
         ]
+    
+    def get_episode_status(self, guid: str) -> Optional[str]:
+        """Get the status of a specific episode by GUID.
+        
+        Args:
+            guid: Episode GUID to look up
+            
+        Returns:
+            Status string ('pending', 'in-progress', 'completed', 'failed') or None if not found
+        """
+        if guid in self.state.episodes:
+            status = self.state.episodes[guid].status.value
+            # Convert underscores to hyphens for backward compatibility with tests
+            if status == 'in_progress':
+                return 'in-progress'
+            return status
+        return None
+    
+    def update_episode_status(self, guid: str, status: str, **kwargs):
+        """Update the status of a specific episode.
+        
+        Args:
+            guid: Episode GUID to update
+            status: New status ('pending', 'in_progress'/'in-progress', 'completed', 'failed')
+            **kwargs: Additional episode data to update (e.g., title, etc.)
+        """
+        # Normalize status string (convert hyphens to underscores for compatibility)
+        normalized_status = status.replace('-', '_')
+        
+        # Convert string status to enum
+        try:
+            status_enum = EpisodeStatus(normalized_status)
+        except ValueError:
+            logger.error(f"Invalid status '{status}' for episode {guid}")
+            return
+        
+        # Get or create episode
+        if guid in self.state.episodes:
+            episode = self.state.episodes[guid]
+        else:
+            episode = EpisodeProgress(guid=guid, status=EpisodeStatus.PENDING)
+            self.state.episodes[guid] = episode
+        
+        # Update status
+        episode.status = status_enum
+        
+        # Update any additional fields
+        for key, value in kwargs.items():
+            if hasattr(episode, key):
+                setattr(episode, key, value)
+        
+        # Update metadata
+        self.state.last_updated = datetime.now(timezone.utc)
+        
+        # Save state
+        self._save_state()
+        logger.debug(f"Episode {guid} status updated to {status}")
+    
+    def reload_state(self):
+        """Reload progress state from file.
+        
+        This is useful when multiple instances need to see updates made by other instances.
+        """
+        self.state = self._load_state()
+        logger.debug(f"Progress state reloaded with {len(self.state.episodes)} episodes")
     
     def add_episode(self, episode_data: Dict[str, Any]):
         """Add a new episode to track.
