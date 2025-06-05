@@ -39,7 +39,7 @@ This plan will modify the TranscriptionOrchestrator to accept an optional config
 ## Phase 2: Design Solution
 
 ### Task 2.1: Design Config Injection Pattern
-- [ ] Create design for optional config parameter
+- [x] Create design for optional config parameter
   - Purpose: Enable dependency injection while maintaining backward compatibility
   - Steps:
     1. Design __init__ signature with optional config: Optional[Config] = None
@@ -49,7 +49,7 @@ This plan will modify the TranscriptionOrchestrator to accept an optional config
   - Validation: Clear design documented with example usage
 
 ### Task 2.2: Design Test Helper Pattern
-- [ ] Create pattern for test configuration
+- [x] Create pattern for test configuration
   - Purpose: Simplify test setup and reduce boilerplate
   - Steps:
     1. Design a test fixture or helper for creating test configs
