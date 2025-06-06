@@ -63,10 +63,15 @@ class TestCLI:
             with pytest.raises(ValueError, match="Missing 'rss_url'"):
                 load_podcast_configs(Path(f.name))
     
+    @patch('src.cli.cli.PipelineConfig')
     @patch('src.cli.cli.VTTKnowledgeExtractor')
     @patch('src.cli.cli.TranscriptIngestionManager')
-    def test_process_vtt_single_file(self, mock_ingestion_class, mock_pipeline_class):
+    def test_process_vtt_single_file(self, mock_ingestion_class, mock_pipeline_class, mock_config_class):
         """Test processing single VTT file."""
+        # Create mock config
+        mock_config = Mock()
+        mock_config_class.return_value = mock_config
+        
         # Create mock pipeline instance
         mock_pipeline = Mock()
         mock_pipeline_class.return_value = mock_pipeline
@@ -105,9 +110,14 @@ class TestCLI:
         mock_ingestion_class.assert_called_once()
         mock_pipeline.cleanup.assert_called_once()
     
+    @patch('src.cli.cli.PipelineConfig')
     @patch('src.cli.cli.VTTKnowledgeExtractor')
-    def test_process_vtt_dry_run(self, mock_pipeline_class):
+    def test_process_vtt_dry_run(self, mock_pipeline_class, mock_config_class):
         """Test dry run mode for VTT processing."""
+        # Create mock config
+        mock_config = Mock()
+        mock_config_class.return_value = mock_config
+        
         # Create mock pipeline instance
         mock_pipeline = Mock()
         mock_pipeline_class.return_value = mock_pipeline
