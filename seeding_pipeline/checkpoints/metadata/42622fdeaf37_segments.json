@@ -1,12 +1,12 @@
 {
   "version": "3.0",
-  "created_at": "2025-06-05T01:33:25.545630",
-  "updated_at": "2025-06-05T01:33:25.545637",
+  "created_at": "2025-06-06T10:20:45.221282",
+  "updated_at": "2025-06-06T10:20:45.221292",
   "episode_id": "42622fdeaf37",
   "stage": "segments",
   "compressed": true,
-  "size_bytes": 548,
-  "checksum": "45d29b5c6b44e8fae8443db3a2fe78413d69643deec4bec1427659e00b48cb26",
+  "size_bytes": 546,
+  "checksum": "4b1be747396c5b682de449704eaa22a7f556e3dd60e0045134c1a57c9aabbd4b",
   "extraction_mode": "fixed",
   "schema_info": null
 }

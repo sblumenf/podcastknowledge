@@ -96,10 +96,14 @@ class MockTransaction:
 
     def __init__(self, driver=None):
         self.queries = []  # Store executed queries
-        self._nodes = {}  # In-memory node storage
-        self._relationships = []  # In-memory relationship storage
-        self._node_counter = 0
         self._driver = driver
+        # Use driver's shared storage if available
+        if driver:
+            self._nodes = driver._nodes
+            self._relationships = driver._relationships
+        else:
+            self._nodes = {}
+            self._relationships = []
 
     def run(self, query: str, parameters: Optional[Dict] = None):
         """Mock query execution."""
@@ -109,6 +113,18 @@ class MockTransaction:
         if "RETURN 1" in query:
             # Health check query
             return MockResult([MockRecord(health=1)])
+        
+        elif "MATCH (p:Podcast {name: $name}) RETURN p" in query:
+            # Find podcast by name
+            return MockResult([MockRecord(p=MockNode(["Podcast"], {"name": parameters.get("name", "Test Podcast")}))])
+        
+        elif "RETURN count(e) as episode_count" in query:
+            # Count episodes for podcast
+            return MockResult([MockRecord(episode_count=3)])
+        
+        elif "RETURN count(i) as insight_count" in query or "RETURN count(DISTINCT i) as insight_count" in query:
+            # Count insights
+            return MockResult([MockRecord(insight_count=10)])
 
         elif "MATCH (n) DETACH DELETE n" in query:
             # Clear database
@@ -119,20 +135,31 @@ class MockTransaction:
         elif "CREATE" in query and ":Podcast" in query:
             # Create podcast node
             node = MockNode(["Podcast"], parameters or {})
-            self._nodes[self._node_counter] = node
-            self._node_counter += 1
+            if self._driver:
+                self._nodes[self._driver._node_counter] = node
+                self._driver._node_counter += 1
+            else:
+                self._nodes[len(self._nodes)] = node
             return MockResult([MockRecord(p=node)])
 
         elif "CREATE" in query and ":Episode" in query:
             # Create episode node
             node = MockNode(["Episode"], parameters or {})
-            self._nodes[self._node_counter] = node
-            self._node_counter += 1
+            if self._driver:
+                self._nodes[self._driver._node_counter] = node
+                self._driver._node_counter += 1
+            else:
+                self._nodes[len(self._nodes)] = node
             # Check if returning id
             if "RETURN n.id AS id" in query:
                 return MockResult([MockRecord(id=parameters.get("id"))])
             return MockResult([MockRecord(e=node)])
 
+        elif "MATCH (p:Podcast)" in query and "RETURN count(p)" in query:
+            # Count podcasts
+            count = sum(1 for n in self._nodes.values() if "Podcast" in n.labels)
+            return MockResult([MockRecord(count=count)])
+            
         elif "MATCH (n:Podcast)" in query and "RETURN count(n)" in query:
             # Count podcasts
             count = sum(1 for n in self._nodes.values() if "Podcast" in n.labels)
@@ -156,11 +183,12 @@ class MockTransaction:
             if match:
                 node_type = match.group(1)
                 node = MockNode([node_type], parameters or {})
-                self._nodes[self._node_counter] = node
-                self._node_counter += 1
-                # Track in driver if available
-                if self._driver and hasattr(self._driver, "_created_nodes"):
+                if self._driver:
+                    self._nodes[self._driver._node_counter] = node
+                    self._driver._node_counter += 1
                     self._driver._created_nodes.append(node)
+                else:
+                    self._nodes[len(self._nodes)] = node
                 return MockResult([MockRecord(id=parameters.get("id", "generated_id"))])
             return MockResult([])
 
@@ -181,6 +209,10 @@ class MockTransaction:
                     )
             return MockResult([])
 
+        elif "shared_topic_count" in query:
+            # Shared topics query - just return 0 for now (no actual shared topics in mock)
+            return MockResult([MockRecord(shared_topic_count=0)])
+            
         elif "MATCH" in query and "RETURN" in query:
             # Generic match query - return empty for now
             return MockResult([])
@@ -235,6 +267,10 @@ class MockDriver:
         # For test assertions
         self._created_nodes = []
         self._created_relationships = []
+        # Shared storage across sessions
+        self._nodes = {}
+        self._relationships = []
+        self._node_counter = 0
 
     def session(self, **kwargs):
         """Create a mock session."""

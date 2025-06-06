@@ -1,6 +1,6 @@
 {
   "extraction_mode": "migration",
-  "created_at": "2025-06-05T01:34:08.751001",
+  "created_at": "2025-06-06T10:30:14.323183",
   "segments_count": 5,
   "results": [
     {
@@ -136,9 +136,9 @@
           "Medical Institution",
           "Podcast Host",
           "Performance Metric",
-          "AI Expert",
+          "AI Company",
           "AI Technology",
-          "AI Company"
+          "AI Expert"
         ]
       }
     },
@@ -275,9 +275,9 @@
           "Medical Institution",
           "Podcast Host",
           "Performance Metric",
-          "AI Expert",
+          "AI Company",
           "AI Technology",
-          "AI Company"
+          "AI Expert"
         ]
       }
     },
@@ -414,9 +414,9 @@
           "Medical Institution",
           "Podcast Host",
           "Performance Metric",
-          "AI Expert",
+          "AI Company",
           "AI Technology",
-          "AI Company"
+          "AI Expert"
         ]
       }
     },
@@ -553,9 +553,9 @@
           "Medical Institution",
           "Podcast Host",
           "Performance Metric",
-          "AI Expert",
+          "AI Company",
           "AI Technology",
-          "AI Company"
+          "AI Expert"
         ]
       }
     },
@@ -692,9 +692,9 @@
           "Medical Institution",
           "Podcast Host",
           "Performance Metric",
-          "AI Expert",
+          "AI Company",
           "AI Technology",
-          "AI Company"
+          "AI Expert"
         ]
       }
     }

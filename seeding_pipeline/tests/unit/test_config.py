@@ -55,9 +55,9 @@ class TestPipelineConfig:
         assert config.neo4j_database == os.environ.get("NEO4J_DATABASE", "neo4j")
         
         # Embedding settings
-        assert config.embedding_dimensions == 1536
+        assert config.embedding_dimensions == 768  # Gemini text-embedding-004 dimensions
         assert config.embedding_similarity == "cosine"
-        assert config.embedding_model == "text-embedding-ada-002"
+        assert config.embedding_model == "models/text-embedding-004"
         
         # Processing settings
         assert config.max_episodes == 1

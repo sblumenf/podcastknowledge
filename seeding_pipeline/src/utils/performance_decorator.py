@@ -6,7 +6,7 @@ This module provides decorators to track performance metrics for individual comp
 
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Any, Callable, Dict, Optional
+from typing import Any, Callable, Dict, List, Optional
 import functools
 import time
 

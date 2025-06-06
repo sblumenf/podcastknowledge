@@ -1,0 +1,27 @@
+{
+  "name": "error_section",
+  "duration": 5.412101745605469e-05,
+  "cpu_time": 5.385800000112795e-05,
+  "memory_used": 1711,
+  "memory_peak": 1937,
+  "call_count": 4,
+  "bottlenecks": [
+    [
+      "~:0:<method 'throw' of 'generator' objects>",
+      1.4232e-05
+    ],
+    [
+      "/usr/lib/python3.11/contextlib.py:141:__exit__",
+      2.3452000000000002e-05
+    ],
+    [
+      "/home/sergeblumenfeld/podcastknowledge/seeding_pipeline/src/utils/performance_profiling.py:53:profile_section",
+      1.0896e-05
+    ],
+    [
+      "~:0:<method 'disable' of '_lsprof.Profiler' objects>",
+      2.55e-07
+    ]
+  ],
+  "timestamp": "2025-06-06T03:56:47.054850"
+}

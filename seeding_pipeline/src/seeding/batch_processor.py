@@ -302,9 +302,14 @@ class BatchProcessor:
     
     def _update_progress(self):
         """Update progress and call callback if provided."""
+        # Increment processed count
+        if not hasattr(self, '_processed_count'):
+            self._processed_count = 0
+        self._processed_count += 1
+        
         with self._lock:
-            current = self._items_processed
-            total = self._total_items
+            current = getattr(self, '_items_processed', self._processed_count)
+            total = getattr(self, '_total_items', 0)
         
         if self.progress_callback:
             try:
@@ -314,6 +319,8 @@ class BatchProcessor:
         
         # Log progress periodically
         if current % 10 == 0 or current == total:
+            if self._start_time is None:
+                self._start_time = time.time()
             elapsed = time.time() - self._start_time
             rate = current / elapsed if elapsed > 0 else 0
             eta = (total - current) / rate if rate > 0 else 0

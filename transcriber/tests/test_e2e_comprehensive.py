@@ -125,6 +125,7 @@ class TestE2EComprehensive:
         config.speaker_identification = {'enabled': True}
         config.metadata_index = {'enabled': True}
         config.file_organization = {'enabled': True}
+        config.enable_progress_bar = False  # Disable progress bar in tests
         
         # Add required config sections for orchestrator
         config.youtube_search = Mock(enabled=False)  # Disable YouTube search for tests
@@ -146,6 +147,11 @@ class TestE2EComprehensive:
         # NOTE: This test demonstrates config injection is working
         # The original TypeError has been resolved
         
+        # Clean up any existing progress state
+        progress_file = Path(temp_dirs['state']) / 'podcast_progress.json'
+        if progress_file.exists():
+            progress_file.unlink()
+        
         # Setup
         feed_url = "https://example.com/feed.xml"
         
@@ -166,32 +172,59 @@ class TestE2EComprehensive:
             'description': 'Test episode'
         }]
         
+        # Ensure orchestrator uses test state directory
+        # Clear any existing retry state to avoid circuit breaker issues
+        retry_state_file = Path("data/.retry_state.json")
+        if retry_state_file.exists():
+            retry_state_file.unlink()
+            
+        # Patch retry manager to avoid loading state with circuit breaker issues
         with patch('feedparser.parse', return_value=parsed_feed), \
+             patch('google.generativeai.configure') as mock_configure, \
              patch('google.generativeai.GenerativeModel') as mock_model_class, \
              patch('urllib.request.urlopen') as mock_urlopen, \
-             patch('google.generativeai.upload_file') as mock_upload:
+             patch('google.generativeai.upload_file') as mock_upload, \
+             patch('src.retry_wrapper.RetryManager._load_state'), \
+             patch('src.retry_wrapper.RetryManager._save_state'), \
+             patch('src.gemini_client.RateLimitedGeminiClient._load_usage_state'), \
+             patch('src.gemini_client.RateLimitedGeminiClient._save_usage_state'), \
+             patch('src.utils.batch_progress.BatchProgressTracker._display_progress'), \
+             patch('tempfile.NamedTemporaryFile') as mock_tempfile:  # Mock temp file creation
             
-            # Mock audio file download
+            # Mock temporary file
+            mock_temp = MagicMock()
+            mock_temp.name = '/tmp/test_audio.mp3'
+            mock_temp.write = MagicMock()
+            mock_temp.__enter__ = MagicMock(return_value=mock_temp)
+            mock_temp.__exit__ = MagicMock(return_value=None)
+            mock_tempfile.return_value = mock_temp
+            
+            # Mock audio file download with proper context manager
             mock_response = MagicMock()
             mock_response.read.return_value = b'fake audio data'
-            mock_urlopen.return_value.__enter__.return_value = mock_response
+            mock_response.headers = {'content-length': '1024'}
+            mock_response.__enter__ = MagicMock(return_value=mock_response)
+            mock_response.__exit__ = MagicMock(return_value=None)
+            mock_urlopen.return_value = mock_response
             
             # Mock file upload
             mock_file = MagicMock()
             mock_file.name = 'test_audio.mp3'
+            mock_file.state = MagicMock(name='ACTIVE')  # Add state attribute
             mock_upload.return_value = mock_file
             
             # Mock Gemini model
             mock_model = MagicMock()
-            mock_response = MagicMock()
-            mock_response.text = mock_gemini_response
-            mock_model.generate_content.return_value = mock_response
+            mock_response_obj = MagicMock()
+            mock_response_obj.text = mock_gemini_response
+            mock_model.generate_content.return_value = mock_response_obj
             mock_model_class.return_value = mock_model
             
-            # Create orchestrator with injected config
+            # Create orchestrator with injected config and test data directory
             orchestrator = TranscriptionOrchestrator(
                 output_dir=Path(mock_config.output_directory),
-                config=mock_config
+                config=mock_config,
+                data_dir=Path(temp_dirs['state'])
             )
             
             # Process feed

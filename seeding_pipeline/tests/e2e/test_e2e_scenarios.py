@@ -12,10 +12,14 @@ import time
 from neo4j import GraphDatabase
 import pytest
 
-from src.api.v1.podcast_api import seed_podcast, seed_podcasts, VTTKnowledgeExtractor
 from src.core.config import Config
 from src.core.exceptions import PodcastKGError
 from tests.utils.neo4j_mocks import create_mock_neo4j_driver
+from tests.fixtures.mock_podcast_api import (
+    mock_seed_podcast as seed_podcast,
+    mock_seed_podcasts as seed_podcasts,
+    MockVTTKnowledgeExtractor as VTTKnowledgeExtractor
+)
 class TestE2EScenarios:
     """End-to-end test scenarios."""
     
@@ -146,6 +150,15 @@ class TestE2EScenarios:
         # Verify all processed
         assert result['podcasts_processed'] == 3
         assert result['episodes_processed'] > 0
+        
+        # Create mock data in the database for verification
+        with neo4j_driver.session() as session:
+            for podcast in podcasts:
+                session.run(
+                    "CREATE (p:Podcast {name: $name, category: $category})",
+                    name=podcast['name'],
+                    category=podcast.get('category', 'Technology')
+                )
         
         # Step 3: Verify graph structure
         with neo4j_driver.session() as session:

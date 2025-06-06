@@ -105,7 +105,7 @@
       }
     ],
     "metadata": {
-      "extraction_timestamp": "2025-06-05T01:33:24.047070",
+      "extraction_timestamp": "2025-06-06T10:29:36.736285",
       "segment_id": "test_episode_segment_0",
       "extraction_mode": "schemaless",
       "text_length": 947,
@@ -123,24 +123,24 @@
     "total_relationships": 4
   },
   "impact_report": {
-    "generated_at": "2025-06-05T05:33:24.047477",
+    "generated_at": "2025-06-06T14:29:36.736722",
     "components": {
       "knowledge_extractor": {
         "execution_count": 20,
-        "total_time": 0.0950930118560791,
-        "avg_time": 0.004754650592803955,
+        "total_time": 0.09233403205871582,
+        "avg_time": 0.004616701602935791,
         "total_items_added": 80,
         "total_items_modified": 0,
         "avg_items_per_execution": 4.0,
         "properties_added": {},
         "relationships_added": {},
-        "impact_score": 841.28
+        "impact_score": 866.42
       }
     },
     "summary": {
       "total_components": 1,
       "total_executions": 20,
-      "total_time": 0.0950930118560791
+      "total_time": 0.09233403205871582
     },
     "recommendations": []
   }

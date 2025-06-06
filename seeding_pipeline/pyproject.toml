@@ -65,7 +65,10 @@ markers = [
     "e2e: marks tests as end-to-end tests",
     "performance: marks tests as performance tests",
     "benchmark: marks tests as benchmark tests",
+    "external: marks tests that require external services",
+    "memory_intensive: marks tests that use significant memory",
 ]
+timeout = 30
 
 [tool.coverage.run]
 branch = true

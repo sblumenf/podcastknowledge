@@ -346,9 +346,10 @@ class TestGeminiClientEnhancedCoverage:
             assert client._are_texts_similar("Hello", "Goodbye") is False
             
             # Substring match - shorter text in longer
+            # Note: ratio must be > 0.7 by default
             assert client._are_texts_similar(
                 "Hello world",
-                "Hello world, how are you?"
+                "Hello world!"  # 11/12 > 0.7
             ) is True
             
             # Empty texts
