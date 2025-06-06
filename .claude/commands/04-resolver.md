@@ -2,6 +2,9 @@
 
 I fix validation issues by thinking through problems first, then implementing targeted solutions.
 
+This is a hobby app that may evolve in to a more serious application. It is developed and, for the moment, will be run in compute environments with very limited resources. Make sure to minimize resource requirements.
+This app is built entirely by AI agents. It will be maintained entirely by AI agents. Generate the minimum number of files, documents and other artifacts required to build out the specified functionality.
+
 ## Process:
 1. **Analyze issues from $ARGUMENTS** (from our conversation)
 2. **Think through each problem**: What's expected vs actual? Root cause? Minimal fix needed?
