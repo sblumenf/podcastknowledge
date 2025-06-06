@@ -40,7 +40,7 @@ Transform the current mixed RSS/VTT pipeline into a minimal, focused VTT-only pr
 ## Phase 2: Update Core Pipeline
 
 ### Task 2.1: Simplify VTTKnowledgeExtractor Interface
-- [ ] Remove RSS methods and simplify to VTT-only
+- [x] Remove RSS methods and simplify to VTT-only
   - Purpose: Clear, minimal API surface
   - Steps:
     1. Use context7 MCP tool to review `src/seeding/orchestrator.py`
