@@ -38,10 +38,6 @@ class PipelineConfig:
     min_speakers: int = 1
     max_speakers: int = 10
     
-    # Whisper Settings
-    whisper_model_size: str = "large-v3"
-    use_faster_whisper: bool = True
-    
     # Neo4j Database Settings (from environment)
     neo4j_uri: str = field(default_factory=lambda: os.environ.get("NEO4J_URI", "bolt://localhost:7687"))
     neo4j_username: str = field(default_factory=lambda: os.environ.get("NEO4J_USERNAME", "neo4j"))
@@ -61,12 +57,10 @@ class PipelineConfig:
     
     # File Paths
     base_dir: Path = field(default_factory=lambda: Path("."))
-    audio_dir: Path = field(default_factory=lambda: Path("./audio"))
     output_dir: Path = field(default_factory=lambda: Path("./processed_podcasts"))
     checkpoint_dir: Path = field(default_factory=lambda: Path("./checkpoints"))
     
     # Processing Settings
-    max_episodes: int = 1
     use_large_context: bool = True
     enable_graph_enhancements: bool = True
     
@@ -94,13 +88,10 @@ class PipelineConfig:
         """Convert string paths to Path objects and validate configuration."""
         # Convert paths
         self.base_dir = Path(self.base_dir)
-        self.audio_dir = Path(self.audio_dir)
         self.output_dir = Path(self.output_dir)
         self.checkpoint_dir = Path(self.checkpoint_dir)
         
         # Make paths absolute if they're relative
-        if not self.audio_dir.is_absolute():
-            self.audio_dir = self.base_dir / self.audio_dir
         if not self.output_dir.is_absolute():
             self.output_dir = self.base_dir / self.output_dir
         if not self.checkpoint_dir.is_absolute():
@@ -137,7 +128,6 @@ class PipelineConfig:
             
         # Validate paths exist or can be created
         for path_name, path_value in [
-            ("audio_dir", self.audio_dir),
             ("output_dir", self.output_dir),
             ("checkpoint_dir", self.checkpoint_dir)
         ]:
@@ -216,7 +206,6 @@ class SeedingConfig(PipelineConfig):
     exponential_backoff: bool = True
     
     # Resource limits
-    max_concurrent_audio_jobs: int = 2
     max_concurrent_llm_jobs: int = 4
     max_memory_gb: float = 4.0
     

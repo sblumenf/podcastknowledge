@@ -18,7 +18,7 @@ Transform the current mixed RSS/VTT pipeline into a minimal, focused VTT-only pr
   - Validation: No RSS/audio processing files remain in src/
 
 ### Task 1.2: Clean Up Imports
-- [ ] Remove RSS/audio imports from remaining files
+- [x] Remove RSS/audio imports from remaining files
   - Purpose: Prevent import errors after file deletion
   - Steps:
     1. Use context7 MCP tool to check import dependencies
