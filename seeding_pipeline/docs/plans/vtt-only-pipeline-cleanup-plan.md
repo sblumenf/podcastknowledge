@@ -51,7 +51,7 @@ Transform the current mixed RSS/VTT pipeline into a minimal, focused VTT-only pr
   - Validation: VTTKnowledgeExtractor only has VTT processing methods
 
 ### Task 2.2: Remove API v1 Compatibility Layer
-- [ ] Delete API v1 seeding compatibility
+- [x] Delete API v1 seeding compatibility
   - Purpose: Remove unnecessary abstraction layer
   - Steps:
     1. Use context7 MCP tool to check usage of `src/api/v1/seeding.py`

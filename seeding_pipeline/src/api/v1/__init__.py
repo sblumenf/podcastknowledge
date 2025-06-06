@@ -66,8 +66,8 @@ def api_version_check(required_version: str):
 # Lazy imports to avoid circular dependencies
 def __getattr__(name):
     if name == 'VTTKnowledgeExtractor':
-        # Use the API v1 compatible version from seeding module
-        from .seeding import VTTKnowledgeExtractor
+        # Import directly from core orchestrator
+        from ...seeding.orchestrator import VTTKnowledgeExtractor
         globals()[name] = VTTKnowledgeExtractor
         return VTTKnowledgeExtractor
     raise AttributeError(f"module {__name__} has no attribute {name}")
