@@ -2,6 +2,9 @@
 
 Implement Phase $ARGUMENTS from the provided implementation plan:
 
+This is a hobby app that may evolve in to a more serious application. It is developed and, for the moment, will be run in compute environments with very limited resources. Make sure to minimize resource requirements.
+This app is built entirely by AI agents. It will be maintained entirely by AI agents. Generate the minimum number of files, documents and other artifacts required to build out the specified functionality.
+
 1. **For each todo item in Phase $ARGUMENTS**:
    - Consult context7 MCP tool for relevant documentation before implementing
    - Implement the feature/change described
