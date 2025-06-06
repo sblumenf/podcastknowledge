@@ -120,7 +120,7 @@ Transform the current mixed RSS/VTT pipeline into a minimal, focused VTT-only pr
 ## Phase 4: Create VTT Test Fixtures
 
 ### Task 4.1: Create Reusable VTT Test Data
-- [ ] Build VTT file fixtures for testing
+- [x] Build VTT file fixtures for testing
   - Purpose: Consistent test data
   - Steps:
     1. Create `tests/fixtures/vtt_samples.py`
@@ -135,7 +135,7 @@ Transform the current mixed RSS/VTT pipeline into a minimal, focused VTT-only pr
   - Validation: Test fixtures can generate various VTT scenarios
 
 ### Task 4.2: Update Mock Neo4j for VTT
-- [ ] Ensure mock Neo4j handles VTT-specific queries
+- [x] Ensure mock Neo4j handles VTT-specific queries
   - Purpose: Support VTT pipeline testing
   - Steps:
     1. Use context7 MCP tool to review `tests/utils/neo4j_mocks.py`

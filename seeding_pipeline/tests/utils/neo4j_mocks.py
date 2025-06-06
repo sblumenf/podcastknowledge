@@ -237,6 +237,19 @@ class MockTransaction:
                 self._nodes[len(self._nodes)] = node
             return MockResult([MockRecord(v=node)])
 
+        elif "MATCH (v:VTTFile)-[:HAS_SEGMENT]->(s:Segment)" in query:
+            # Query all segments for a VTT file
+            segments = []
+            for i in range(5):
+                segment = MockNode(["Segment"], {
+                    "id": f"segment_{i}",
+                    "text": f"Segment text {i}",
+                    "start_time": i * 10.0,
+                    "end_time": (i + 1) * 10.0
+                })
+                segments.append(MockRecord(s=segment))
+            return MockResult(segments)
+        
         elif "shared_topic_count" in query:
             # Shared topics query - just return 0 for now (no actual shared topics in mock)
             return MockResult([MockRecord(shared_topic_count=0)])
