@@ -115,12 +115,12 @@ class VTTTranscriptSegmenter:
             # Create segment dictionary
             segment_dict = {
                 "text": segment.text,
-                "start_time": segment.start,
-                "end_time": segment.end,
+                "start_time": segment.start_time,
+                "end_time": segment.end_time,
                 "speaker": segment.speaker,
                 "segment_index": i,
                 "word_count": len(segment.text.split()),
-                "duration_seconds": segment.end - segment.start
+                "duration_seconds": segment.end_time - segment.start_time
             }
             
             # Detect advertisements
