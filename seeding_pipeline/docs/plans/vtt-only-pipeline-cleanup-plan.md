@@ -76,7 +76,7 @@ Transform the current mixed RSS/VTT pipeline into a minimal, focused VTT-only pr
   - Validation: No RSS/audio test files exist
 
 ### Task 3.2: Transform E2E Tests
-- [ ] Rewrite E2E tests for VTT processing
+- [x] Rewrite E2E tests for VTT processing
   - Purpose: Test actual VTT functionality
   - Steps:
     1. Use context7 MCP tool to review `tests/e2e/test_e2e_scenarios.py`
