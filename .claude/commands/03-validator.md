@@ -2,6 +2,9 @@
 
 Verify Phase $ARGUMENTS implementation by checking the actual code, not just the plan checkmarks:
 
+This is a hobby app that may evolve in to a more serious application. It is developed and, for the moment, will be run in compute environments with very limited resources. Make sure to minimize resource requirements.
+This app is built entirely by AI agents. It will be maintained entirely by AI agents. Generate the minimum number of files, documents and other artifacts required to build out the specified functionality.
+
 1. **Verify each todo item**:
    - Find and examine the actual code changes for each task
    - Test the functionality to confirm it works as specified
