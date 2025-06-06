@@ -114,13 +114,27 @@ class MockTransaction:
             # Health check query
             return MockResult([MockRecord(health=1)])
         
-        elif "MATCH (p:Podcast {name: $name}) RETURN p" in query:
-            # Find podcast by name
-            return MockResult([MockRecord(p=MockNode(["Podcast"], {"name": parameters.get("name", "Test Podcast")}))])
+        elif "CREATE (s:Segment" in query:
+            # Create segment node
+            node = MockNode(["Segment"], parameters or {})
+            if self._driver:
+                self._nodes[self._driver._node_counter] = node
+                self._driver._node_counter += 1
+            else:
+                self._nodes[len(self._nodes)] = node
+            if "RETURN s.id AS id" in query:
+                return MockResult([MockRecord(id=parameters.get("id"))])
+            return MockResult([MockRecord(s=node)])
         
-        elif "RETURN count(e) as episode_count" in query:
-            # Count episodes for podcast
-            return MockResult([MockRecord(episode_count=3)])
+        elif "CREATE (sp:Speaker" in query:
+            # Create speaker node
+            node = MockNode(["Speaker"], parameters or {})
+            if self._driver:
+                self._nodes[self._driver._node_counter] = node
+                self._driver._node_counter += 1
+            else:
+                self._nodes[len(self._nodes)] = node
+            return MockResult([MockRecord(sp=node)])
         
         elif "RETURN count(i) as insight_count" in query or "RETURN count(DISTINCT i) as insight_count" in query:
             # Count insights
@@ -132,42 +146,46 @@ class MockTransaction:
             self._relationships.clear()
             return MockResult([])
 
-        elif "CREATE" in query and ":Podcast" in query:
-            # Create podcast node
-            node = MockNode(["Podcast"], parameters or {})
-            if self._driver:
-                self._nodes[self._driver._node_counter] = node
-                self._driver._node_counter += 1
-            else:
-                self._nodes[len(self._nodes)] = node
-            return MockResult([MockRecord(p=node)])
+        elif "MATCH (v:VTTFile {id: $vtt_id})" in query:
+            # Find VTT file by ID
+            return MockResult([MockRecord(v=MockNode(["VTTFile"], {"id": parameters.get("vtt_id", "test_vtt_id")}))])
+        
+        elif "MATCH (s:Segment)-[:SPOKEN_BY]->(sp:Speaker)" in query:
+            # Query segments with speakers
+            segments = []
+            for i in range(3):
+                segment = MockNode(["Segment"], {"text": f"Segment {i}", "start_time": i * 10, "end_time": (i + 1) * 10})
+                speaker = MockNode(["Speaker"], {"name": f"Speaker {i % 2}"})
+                segments.append(MockRecord(s=segment, sp=speaker))
+            return MockResult(segments)
+        
+        elif "MATCH (s:Segment) WHERE s.start_time >= $start AND s.end_time <= $end" in query:
+            # Timeline query for segments within time range
+            start = parameters.get("start", 0)
+            end = parameters.get("end", 100)
+            segments = []
+            for i in range(2):
+                segment = MockNode(["Segment"], {
+                    "text": f"Segment in range",
+                    "start_time": start + i * 10,
+                    "end_time": start + (i + 1) * 10
+                })
+                segments.append(MockRecord(s=segment))
+            return MockResult(segments)
 
-        elif "CREATE" in query and ":Episode" in query:
-            # Create episode node
-            node = MockNode(["Episode"], parameters or {})
-            if self._driver:
-                self._nodes[self._driver._node_counter] = node
-                self._driver._node_counter += 1
-            else:
-                self._nodes[len(self._nodes)] = node
-            # Check if returning id
-            if "RETURN n.id AS id" in query:
-                return MockResult([MockRecord(id=parameters.get("id"))])
-            return MockResult([MockRecord(e=node)])
-
-        elif "MATCH (p:Podcast)" in query and "RETURN count(p)" in query:
-            # Count podcasts
-            count = sum(1 for n in self._nodes.values() if "Podcast" in n.labels)
+        elif "MATCH (n:Segment)" in query and "RETURN count(n)" in query:
+            # Count segments
+            count = sum(1 for n in self._nodes.values() if "Segment" in n.labels)
             return MockResult([MockRecord(count=count)])
             
-        elif "MATCH (n:Podcast)" in query and "RETURN count(n)" in query:
-            # Count podcasts
-            count = sum(1 for n in self._nodes.values() if "Podcast" in n.labels)
+        elif "MATCH (n:Speaker)" in query and "RETURN count(n)" in query:
+            # Count speakers
+            count = sum(1 for n in self._nodes.values() if "Speaker" in n.labels)
             return MockResult([MockRecord(count=count)])
 
-        elif "MATCH (n:Episode)" in query and "RETURN count(n)" in query:
-            # Count episodes
-            count = sum(1 for n in self._nodes.values() if "Episode" in n.labels)
+        elif "MATCH (n:VTTFile)" in query and "RETURN count(n)" in query:
+            # Count VTT files
+            count = sum(1 for n in self._nodes.values() if "VTTFile" in n.labels)
             return MockResult([MockRecord(count=count)])
 
         elif "MATCH (n)" in query and "RETURN count(n)" in query:
@@ -208,10 +226,36 @@ class MockTransaction:
                         {"source": rel_start, "target": rel_end, "type": rel_type}
                     )
             return MockResult([])
+        
+        elif "CREATE (v:VTTFile" in query:
+            # Create VTT file node
+            node = MockNode(["VTTFile"], parameters or {})
+            if self._driver:
+                self._nodes[self._driver._node_counter] = node
+                self._driver._node_counter += 1
+            else:
+                self._nodes[len(self._nodes)] = node
+            return MockResult([MockRecord(v=node)])
 
         elif "shared_topic_count" in query:
             # Shared topics query - just return 0 for now (no actual shared topics in mock)
             return MockResult([MockRecord(shared_topic_count=0)])
+            
+        elif "RETURN count(r) as relationship_count" in query:
+            # Count relationships
+            return MockResult([MockRecord(relationship_count=len(self._relationships))])
+        
+        elif "MATCH (s:Segment) RETURN s ORDER BY s.start_time" in query:
+            # Get segments ordered by time
+            segments = []
+            for i in range(3):
+                segment = MockNode(["Segment"], {
+                    "text": f"Ordered segment {i}",
+                    "start_time": i * 10.0,
+                    "end_time": (i + 1) * 10.0
+                })
+                segments.append(MockRecord(s=segment))
+            return MockResult(segments)
             
         elif "MATCH" in query and "RETURN" in query:
             # Generic match query - return empty for now
