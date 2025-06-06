@@ -89,7 +89,7 @@ Transform the current mixed RSS/VTT pipeline into a minimal, focused VTT-only pr
   - Validation: All E2E tests use VTT files as input
 
 ### Task 3.3: Fix Integration Tests
-- [ ] Update integration tests for VTT-only pipeline
+- [x] Update integration tests for VTT-only pipeline
   - Purpose: Test component integration without RSS/audio
   - Steps:
     1. Use context7 MCP tool to review `tests/integration/test_orchestrator.py`
@@ -105,7 +105,7 @@ Transform the current mixed RSS/VTT pipeline into a minimal, focused VTT-only pr
   - Validation: Integration tests pass without RSS/audio mocks
 
 ### Task 3.4: Fix Unit Test Issues
-- [ ] Quick fixes for failing unit tests
+- [x] Quick fixes for failing unit tests
   - Purpose: Clean unit test suite
   - Steps:
     1. Use context7 MCP tool to review failing tests
