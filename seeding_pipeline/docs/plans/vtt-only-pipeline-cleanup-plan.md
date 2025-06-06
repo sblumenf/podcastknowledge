@@ -28,7 +28,7 @@ Transform the current mixed RSS/VTT pipeline into a minimal, focused VTT-only pr
   - Validation: No import errors when running `python -m src`
 
 ### Task 1.3: Simplify Configuration
-- [ ] Remove RSS/audio configuration options
+- [x] Remove RSS/audio configuration options
   - Purpose: Simplify config to VTT-only parameters
   - Steps:
     1. Use context7 MCP tool to review `src/core/config.py`
