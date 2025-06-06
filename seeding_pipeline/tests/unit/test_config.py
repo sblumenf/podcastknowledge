@@ -42,8 +42,6 @@ class TestPipelineConfig:
         # Audio processing defaults
         assert config.min_segment_tokens == 150
         assert config.max_segment_tokens == 800
-        assert config.whisper_model_size == "large-v3"
-        assert config.use_faster_whisper is True
         
         # Speaker diarization defaults
         assert config.min_speakers == 1
@@ -60,7 +58,6 @@ class TestPipelineConfig:
         assert config.embedding_model == "models/text-embedding-004"
         
         # Processing settings
-        assert config.max_episodes == 1
         assert config.use_large_context is True
         assert config.enable_graph_enhancements is True
         
@@ -126,13 +123,11 @@ class TestPipelineConfig:
             # Test with relative paths
             config = PipelineConfig(
                 base_dir=".",
-                audio_dir="audio",
                 output_dir="output",
                 checkpoint_dir="checkpoints"
             )
         
             assert config.base_dir == Path(".")
-            assert config.audio_dir == Path(".") / "audio"
             assert config.output_dir == Path(".") / "output"
             assert config.checkpoint_dir == Path(".") / "checkpoints"
             
@@ -140,12 +135,10 @@ class TestPipelineConfig:
             with tempfile.TemporaryDirectory() as tmpdir:
                 config = PipelineConfig(
                     base_dir=tmpdir,
-                    audio_dir=Path(tmpdir) / "audio",
                     output_dir=Path(tmpdir) / "output",
                     checkpoint_dir=Path(tmpdir) / "checkpoints"
                 )
                 
-                assert config.audio_dir == Path(tmpdir) / "audio"
                 assert config.output_dir == Path(tmpdir) / "output"
                 assert config.checkpoint_dir == Path(tmpdir) / "checkpoints"
     
@@ -249,12 +242,12 @@ class TestPipelineConfig:
             "GOOGLE_API_KEY": "test"
         }):
             # Use a path that cannot be created
-            config = self._create_config_without_validation(audio_dir="/root/cannot_create/audio")
+            config = self._create_config_without_validation(output_dir="/root/cannot_create/output")
             
             with mock.patch.object(Path, 'mkdir', side_effect=PermissionError("Cannot create")):
                 with pytest.raises(ConfigurationError) as exc_info:
                     config.validate()
-                assert "Cannot create audio_dir" in str(exc_info.value)
+                assert "Cannot create output_dir" in str(exc_info.value)
                 assert "Cannot create" in str(exc_info.value)
     
     def test_validation_multiple_errors(self):
@@ -296,7 +289,6 @@ class TestPipelineConfig:
             
             # Check paths are converted to strings
             assert isinstance(config_dict["base_dir"], str)
-            assert isinstance(config_dict["audio_dir"], str)
             assert isinstance(config_dict["output_dir"], str)
             assert isinstance(config_dict["checkpoint_dir"], str)
             
@@ -325,10 +317,8 @@ class TestPipelineConfig:
             yaml_content = """
 min_segment_tokens: 200
 max_segment_tokens: 1000
-whisper_model_size: medium
 use_gpu: false
 gpu_memory_fraction: 0.5
-max_episodes: 5
 """
             f.write(yaml_content)
             f.flush()
@@ -337,10 +327,8 @@ max_episodes: 5
                 config = PipelineConfig.from_file(Path(f.name))
                 assert config.min_segment_tokens == 200
                 assert config.max_segment_tokens == 1000
-                assert config.whisper_model_size == "medium"
                 assert config.use_gpu is False
                 assert config.gpu_memory_fraction == 0.5
-                assert config.max_episodes == 5
             finally:
                 os.unlink(f.name)
     
@@ -350,7 +338,6 @@ max_episodes: 5
             json_content = {
                 "min_segment_tokens": 250,
                 "max_segment_tokens": 1200,
-                "whisper_model_size": "small",
                 "use_gpu": True,
                 "embedding_dimensions": 768
             }
@@ -361,7 +348,6 @@ max_episodes: 5
                 config = PipelineConfig.from_file(Path(f.name))
                 assert config.min_segment_tokens == 250
                 assert config.max_segment_tokens == 1200
-                assert config.whisper_model_size == "small"
                 assert config.use_gpu is True
                 assert config.embedding_dimensions == 768
             finally:
@@ -417,14 +403,12 @@ max_episodes: 5
         # Create config with string paths
         config = PipelineConfig(
             base_dir="./base",
-            audio_dir="audio",
             output_dir="output",
             checkpoint_dir="checkpoints"
         )
         
         # Verify paths were converted to Path objects
         assert isinstance(config.base_dir, Path)
-        assert isinstance(config.audio_dir, Path)
         assert isinstance(config.output_dir, Path)
         assert isinstance(config.checkpoint_dir, Path)
     
@@ -483,8 +467,8 @@ max_episodes: 5
         config = PipelineConfig()
         
         # Should be able to modify values
-        config.max_episodes = 10
-        assert config.max_episodes == 10
+        config.min_segment_tokens = 200
+        assert config.min_segment_tokens == 200
         
         config.use_gpu = False
         assert config.use_gpu is False
@@ -503,7 +487,7 @@ class TestSeedingConfig:
         
         # Check seeding-specific fields
         assert config.batch_size == 10
-        assert config.embedding_batch_size == 50
+        assert config.embedding_batch_size == 100
         assert config.save_checkpoints is True
         assert config.checkpoint_every_n == 5
         assert config.enable_progress_bar is True
@@ -545,8 +529,7 @@ class TestSeedingConfig:
             json_content = {
                 "batch_size": 20,
                 "embedding_batch_size": 100,
-                "save_checkpoints": False,
-                "max_episodes": 50
+                "save_checkpoints": False
             }
             json.dump(json_content, f)
             f.flush()
@@ -556,7 +539,6 @@ class TestSeedingConfig:
                 assert config.batch_size == 20
                 assert config.embedding_batch_size == 100
                 assert config.save_checkpoints is False
-                assert config.max_episodes == 50
                 
                 # Check defaults are still applied
                 assert config.checkpoint_every_n == 5
@@ -628,13 +610,13 @@ class TestEdgeCases:
     def test_special_characters_in_paths(self):
         """Test handling of special characters in path names."""
         with tempfile.TemporaryDirectory() as tmpdir:
-            special_dir = Path(tmpdir) / "audio with spaces & special!"
+            special_dir = Path(tmpdir) / "output with spaces & special!"
             config = PipelineConfig(
                 base_dir=tmpdir,
-                audio_dir=special_dir
+                output_dir=special_dir
             )
             
-            assert config.audio_dir == special_dir
+            assert config.output_dir == special_dir
             # Validation should still work
             with mock.patch.dict(os.environ, {
                 "NEO4J_PASSWORD": "test",
@@ -646,16 +628,16 @@ class TestEdgeCases:
     def test_unicode_in_configuration(self):
         """Test handling of unicode characters."""
         config = PipelineConfig(
-            whisper_model_size="大型-v3",  # Unicode characters
-            neo4j_database="知识图谱"
+            neo4j_database="知识图谱",  # Unicode characters
+            log_level="调试"
         )
         
-        assert config.whisper_model_size == "大型-v3"
         assert config.neo4j_database == "知识图谱"
+        assert config.log_level == "调试"
         
         # Should serialize properly
         config_dict = config.to_dict()
-        assert config_dict["whisper_model_size"] == "大型-v3"
+        assert config_dict["log_level"] == "调试"
     
     def test_extremely_large_values(self):
         """Test handling of extremely large configuration values."""
@@ -674,7 +656,7 @@ class TestEdgeCases:
         with tempfile.TemporaryDirectory() as tmpdir:
             test_dir = Path(tmpdir) / "test_dir"
             
-            config = PipelineConfig(audio_dir=test_dir)
+            config = PipelineConfig(output_dir=test_dir)
             
             # Simulate directory being created by another process
             original_mkdir = Path.mkdir
@@ -699,18 +681,18 @@ class TestEdgeCases:
     
     def test_config_copy_and_modification(self):
         """Test creating modified copies of configuration."""
-        original = PipelineConfig(max_episodes=5, use_gpu=True)
+        original = PipelineConfig(min_segment_tokens=150, use_gpu=True)
         
         # Create a modified copy
         modified = PipelineConfig(
             **{k: v for k, v in original.__dict__.items()},
-            max_episodes=10,
+            min_segment_tokens=200,
             use_gpu=False
         )
         
-        assert original.max_episodes == 5
+        assert original.min_segment_tokens == 150
         assert original.use_gpu is True
-        assert modified.max_episodes == 10
+        assert modified.min_segment_tokens == 200
         assert modified.use_gpu is False
     
     def test_yaml_with_invalid_values(self):
@@ -720,7 +702,7 @@ class TestEdgeCases:
         
         with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml', delete=False) as f:
             yaml_content = """
-max_episodes: "not_a_number"
+min_segment_tokens: "not_a_number"
 """
             f.write(yaml_content)
             f.flush()
@@ -729,6 +711,6 @@ max_episodes: "not_a_number"
                 # This should fail during validation or usage
                 config = PipelineConfig.from_file(Path(f.name))
                 # The string gets assigned, but might fail later
-                assert config.max_episodes == "not_a_number"
+                assert config.min_segment_tokens == "not_a_number"
             finally:
                 os.unlink(f.name)
