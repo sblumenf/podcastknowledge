@@ -63,7 +63,7 @@ Transform the current mixed RSS/VTT pipeline into a minimal, focused VTT-only pr
 ## Phase 3: Transform Test Suite
 
 ### Task 3.1: Delete RSS/Audio Test Files
-- [ ] Remove test files for deleted functionality
+- [x] Remove test files for deleted functionality
   - Purpose: Clean test suite
   - Steps:
     1. Use context7 MCP tool to identify RSS/audio tests

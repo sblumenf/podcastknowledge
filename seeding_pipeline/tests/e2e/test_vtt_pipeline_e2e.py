@@ -7,10 +7,7 @@ from typing import Dict, Any
 import tempfile
 import os
 
-from tests.fixtures.mock_podcast_api import (
-    mock_seed_podcast as seed_podcast,
-    MockVTTKnowledgeExtractor as VTTKnowledgeExtractor
-)
+from src.seeding.orchestrator import VTTKnowledgeExtractor
 from src.core.config import SeedingConfig
 from neo4j import GraphDatabase
 
@@ -89,13 +86,17 @@ Thank you for listening to our show.
     def test_vtt_file_processing(self, sample_vtt_file, neo4j_test_db, test_config, podcast_data):
         """Test: VTT file → parsed → extracted → stored in Neo4j."""
         # Act: Process the VTT file through the pipeline
-        result = seed_podcast(podcast_data, config=test_config)
-        
-        # Assert: Processing completed successfully
-        assert result['podcasts_processed'] == 1
-        assert result['episodes_processed'] == 1
-        assert result['episodes_failed'] == 0
-        assert len(result['errors']) == 0
+        pipeline = VTTKnowledgeExtractor(test_config)
+        try:
+            pipeline.initialize_components()
+            result = pipeline.process_vtt_files([sample_vtt_file])
+            
+            # Assert: Processing completed successfully
+            assert result['files_processed'] == 1
+            assert result['files_failed'] == 0
+            
+        finally:
+            pipeline.cleanup()
         
         # For mock testing, we just verify the processing completed
         # In a real test with actual Neo4j, we would verify nodes were created
@@ -103,10 +104,15 @@ Thank you for listening to our show.
     def test_knowledge_extraction(self, sample_vtt_file, neo4j_test_db, test_config, podcast_data):
         """Test: Entities and relationships created correctly."""
         # Act: Process the VTT file
-        result = seed_podcast(podcast_data, config=test_config)
-        
-        # Assert: Basic processing succeeded
-        assert result['episodes_processed'] == 1
+        pipeline = VTTKnowledgeExtractor(test_config)
+        try:
+            pipeline.initialize_components()
+            result = pipeline.process_vtt_files([sample_vtt_file])
+            
+            # Assert: Basic processing succeeded
+            assert result['files_processed'] == 1
+        finally:
+            pipeline.cleanup()
         
         # Verify specific knowledge was extracted and stored
         with neo4j_test_db.session() as session:
@@ -161,13 +167,17 @@ Thank you for listening to episode {i+1}.
         }
         
         # Act: Process multiple episodes
-        result = seed_podcast(podcast_data_multi, config=test_config)
-        
-        # Assert: All episodes processed successfully
-        assert result['podcasts_processed'] == 1
-        assert result['episodes_processed'] == 2
-        assert result['episodes_failed'] == 0
-        assert len(result['errors']) == 0
+        pipeline = VTTKnowledgeExtractor(test_config)
+        try:
+            pipeline.initialize_components()
+            vtt_paths = [Path(vf['path']) for vf in vtt_files]
+            result = pipeline.process_vtt_files(vtt_paths)
+            
+            # Assert: All episodes processed successfully
+            assert result['files_processed'] == 2
+            assert result['files_failed'] == 0
+        finally:
+            pipeline.cleanup()
         
         # Verify multiple episodes in Neo4j
         with neo4j_test_db.session() as session:
