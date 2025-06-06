@@ -20,6 +20,18 @@ import tempfile
 
 import pytest
 
+# Set up test environment variables for all tests in this module
+def setup_module():
+    """Set up test environment variables."""
+    os.environ.setdefault("NEO4J_URI", "bolt://localhost:7688")
+    os.environ.setdefault("NEO4J_USERNAME", "neo4j")
+    os.environ.setdefault("NEO4J_PASSWORD", "testpassword")
+    os.environ.setdefault("NEO4J_DATABASE", "test")
+    os.environ.setdefault("GOOGLE_API_KEY", "test_google_key")
+    os.environ.setdefault("OPENAI_API_KEY", "test_openai_key")
+    os.environ.setdefault("HF_TOKEN", "test_hf_token")
+    os.environ.setdefault("LOG_LEVEL", "ERROR")
+
 from src.core.config import PipelineConfig, SeedingConfig, YAML_AVAILABLE
 from src.core.exceptions import ConfigurationError
 class TestPipelineConfig:
