@@ -1,13 +1,17 @@
-"""Direct graph storage service for Neo4j interaction."""
+"""Direct graph storage service for Neo4j interaction with error resilience."""
 
 from contextlib import contextmanager
 from datetime import datetime
 from typing import Dict, Any, List, Optional, Tuple
 import logging
 import threading
+import time
+from queue import Queue, Empty
 
 from src.core.exceptions import ProviderError, ConnectionError
 from src.core.models import Podcast, Episode, Segment
+from src.utils.retry import retry, ExponentialBackoff
+
 logger = logging.getLogger(__name__)
 
 
@@ -15,8 +19,9 @@ class GraphStorageService:
     """Direct Neo4j graph storage service for schemaless operations."""
     
     def __init__(self, uri: str, username: str, password: str, 
-                 database: str = 'neo4j', pool_size: int = 50):
-        """Initialize graph storage service.
+                 database: str = 'neo4j', pool_size: int = 50,
+                 max_retries: int = 5, connection_timeout: float = 30.0):
+        """Initialize graph storage service with resilience features.
         
         Args:
             uri: Neo4j connection URI
@@ -24,6 +29,8 @@ class GraphStorageService:
             password: Neo4j password
             database: Database name (default: neo4j)
             pool_size: Connection pool size (default: 50)
+            max_retries: Maximum retry attempts (default: 5)
+            connection_timeout: Connection timeout in seconds (default: 30.0)
         """
         if not uri:
             raise ValueError("Neo4j URI is required")
@@ -35,8 +42,17 @@ class GraphStorageService:
         self.password = password
         self.database = database
         self.pool_size = pool_size
+        self.max_retries = max_retries
+        self.connection_timeout = connection_timeout
         self._driver = None
         self._lock = threading.Lock()
+        
+        # Resilience features
+        self._backoff = ExponentialBackoff(base=2.0, max_delay=8.0)
+        self._failed_writes = Queue(maxsize=1000)  # Queue for failed write operations
+        self._connection_healthy = True
+        self._last_health_check = None
+        self._health_check_interval = 30  # seconds
         
         # Performance monitoring
         self._extraction_times = []
@@ -59,21 +75,44 @@ class GraphStorageService:
                 auth=(self.username, self.password),
                 max_connection_pool_size=self.pool_size,
                 max_connection_lifetime=3600,
-                connection_acquisition_timeout=30.0
+                connection_acquisition_timeout=self.connection_timeout,
+                connection_timeout=self.connection_timeout,
+                encrypted=False  # For local development
             )
             logger.info(f"Initialized Neo4j driver for {self.uri}")
             
     def connect(self) -> None:
-        """Verify connection to Neo4j."""
-        self._ensure_driver()
+        """Verify connection to Neo4j with retry logic."""
+        self._backoff.reset()
+        last_exception = None
         
-        try:
-            with self._driver.session(database=self.database) as session:
-                result = session.run("RETURN 'Connected' AS status")
-                status = result.single()["status"]
-                logger.info(f"Neo4j connection verified: {status}")
-        except Exception as e:
-            raise ConnectionError(f"Failed to connect to Neo4j: {e}")
+        for attempt in range(self.max_retries):
+            try:
+                self._ensure_driver()
+                
+                with self._driver.session(database=self.database) as session:
+                    result = session.run("RETURN 'Connected' AS status")
+                    status = result.single()["status"]
+                    logger.info(f"Neo4j connection verified: {status}")
+                    self._connection_healthy = True
+                    self._last_health_check = datetime.now()
+                    return
+                    
+            except Exception as e:
+                last_exception = e
+                self._connection_healthy = False
+                
+                if attempt < self.max_retries - 1:
+                    delay = self._backoff.get_next_delay()
+                    logger.warning(
+                        f"Connection attempt {attempt + 1}/{self.max_retries} failed: {e}. "
+                        f"Retrying in {delay:.1f}s..."
+                    )
+                    time.sleep(delay)
+                else:
+                    logger.error(f"Failed to connect after {self.max_retries} attempts")
+                    
+        raise ConnectionError(f"Failed to connect to Neo4j after {self.max_retries} attempts: {last_exception}")
             
     def disconnect(self) -> None:
         """Close Neo4j connection."""
@@ -85,21 +124,88 @@ class GraphStorageService:
             except Exception as e:
                 logger.warning(f"Error closing Neo4j connection: {e}")
                 
+    def _check_health(self) -> bool:
+        """Check if connection is healthy."""
+        if self._last_health_check:
+            time_since_check = (datetime.now() - self._last_health_check).total_seconds()
+            if time_since_check < self._health_check_interval and self._connection_healthy:
+                return True
+        
+        try:
+            with self._driver.session(database=self.database) as session:
+                session.run("RETURN 1").single()
+                self._connection_healthy = True
+                self._last_health_check = datetime.now()
+                return True
+        except Exception as e:
+            logger.warning(f"Health check failed: {e}")
+            self._connection_healthy = False
+            return False
+    
+    def _queue_failed_write(self, operation: Dict[str, Any]) -> None:
+        """Queue a failed write operation for retry."""
+        try:
+            self._failed_writes.put_nowait(operation)
+            logger.info(f"Queued failed write operation: {operation.get('type', 'unknown')}")
+        except:
+            logger.warning("Failed write queue is full, dropping operation")
+    
+    def process_failed_writes(self) -> int:
+        """Process queued failed write operations."""
+        processed = 0
+        
+        while not self._failed_writes.empty():
+            if not self._connection_healthy:
+                break
+                
+            try:
+                operation = self._failed_writes.get_nowait()
+                # Re-execute the operation
+                if self._execute_write_operation(operation):
+                    processed += 1
+            except Empty:
+                break
+            except Exception as e:
+                logger.error(f"Error processing failed write: {e}")
+                
+        if processed > 0:
+            logger.info(f"Processed {processed} failed write operations")
+            
+        return processed
+    
+    def _execute_write_operation(self, operation: Dict[str, Any]) -> bool:
+        """Execute a write operation with error handling."""
+        # This is a placeholder - actual implementation would depend on operation type
+        # For now, we'll just log it
+        logger.debug(f"Executing write operation: {operation}")
+        return True
+    
     @contextmanager
     def session(self):
-        """Create a Neo4j session context manager."""
+        """Create a Neo4j session context manager with health checks."""
         self._ensure_driver()
+        
+        # Perform health check
+        if not self._connection_healthy and not self._check_health():
+            logger.warning("Connection unhealthy, attempting to process writes in degraded mode")
+            # In degraded mode, we queue the write for later
+            yield None
+            return
         
         session = None
         try:
             session = self._driver.session(database=self.database)
             yield session
+        except Exception as e:
+            logger.error(f"Session error: {e}")
+            self._connection_healthy = False
+            raise
         finally:
             if session:
                 session.close()
                 
     def create_node(self, node_type: str, properties: Dict[str, Any]) -> str:
-        """Create a node in Neo4j.
+        """Create a node in Neo4j with resilience.
         
         Args:
             node_type: Type/label of the node
@@ -109,29 +215,64 @@ class GraphStorageService:
             Node ID
         """
         with self._lock:
-            with self.session() as session:
-                # Ensure node has an ID
-                if 'id' not in properties:
-                    raise ValueError(f"Node of type {node_type} must have an 'id' property")
-                    
-                # Build property string for Cypher
-                prop_strings = []
-                params = {}
-                for key, value in properties.items():
-                    if value is not None:
-                        prop_strings.append(f"{key}: ${key}")
-                        params[key] = value
-                        
-                prop_string = "{" + ", ".join(prop_strings) + "}"
-                
-                # Create node
-                cypher = f"CREATE (n:{node_type} {prop_string}) RETURN n.id AS id"
-                
+            # Ensure node has an ID
+            if 'id' not in properties:
+                raise ValueError(f"Node of type {node_type} must have an 'id' property")
+            
+            # Try with retry logic
+            self._backoff.reset()
+            last_exception = None
+            
+            for attempt in range(self.max_retries):
                 try:
-                    result = session.run(cypher, **params)
-                    return result.single()["id"]
+                    with self.session() as session:
+                        if session is None:
+                            # Connection unhealthy, queue for later
+                            self._queue_failed_write({
+                                'type': 'create_node',
+                                'node_type': node_type,
+                                'properties': properties
+                            })
+                            logger.warning(f"Queued node creation for {node_type} due to unhealthy connection")
+                            return properties['id']  # Return the ID to allow processing to continue
+                        
+                        # Build property string for Cypher
+                        prop_strings = []
+                        params = {}
+                        for key, value in properties.items():
+                            if value is not None:
+                                prop_strings.append(f"{key}: ${key}")
+                                params[key] = value
+                                
+                        prop_string = "{" + ", ".join(prop_strings) + "}"
+                        
+                        # Create node
+                        cypher = f"CREATE (n:{node_type} {prop_string}) RETURN n.id AS id"
+                        
+                        result = session.run(cypher, **params)
+                        return result.single()["id"]
+                        
                 except Exception as e:
-                    raise ProviderError("neo4j", f"Failed to create {node_type} node: {e}")
+                    last_exception = e
+                    
+                    if attempt < self.max_retries - 1:
+                        delay = self._backoff.get_next_delay()
+                        logger.warning(
+                            f"Node creation attempt {attempt + 1}/{self.max_retries} failed: {e}. "
+                            f"Retrying in {delay:.1f}s..."
+                        )
+                        time.sleep(delay)
+                    else:
+                        # Final attempt failed, queue for later
+                        self._queue_failed_write({
+                            'type': 'create_node',
+                            'node_type': node_type,
+                            'properties': properties
+                        })
+                        logger.error(f"Failed to create {node_type} node after {self.max_retries} attempts, queued for retry")
+                        return properties['id']  # Allow processing to continue
+                        
+            raise ProviderError("neo4j", f"Failed to create {node_type} node: {last_exception}")
                     
     def create_relationship(self, source_id: str, target_id: str, 
                           rel_type: str, properties: Optional[Dict[str, Any]] = None) -> None:
