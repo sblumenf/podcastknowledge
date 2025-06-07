@@ -1,14 +1,12 @@
 """Tests for Gemini embeddings service implementation."""
 
-from unittest.mock import Mock, patch, MagicMock, call
 from typing import List, Dict, Any
+from unittest.mock import Mock, patch, MagicMock, call
 
 import numpy as np
 import pytest
 
 from src.core.exceptions import ProviderError, RateLimitError
-
-
 class TestGeminiEmbeddingsService:
     """Test suite for future GeminiEmbeddingsService."""
     

@@ -1,11 +1,12 @@
 """Comprehensive unit tests for CLI module."""
 
-import pytest
-from unittest.mock import Mock, patch, mock_open, call
 from pathlib import Path
+from unittest.mock import Mock, patch, mock_open, call
 import argparse
 import json
 import sys
+
+import pytest
 
 from src.cli.cli import (
     load_podcast_configs, seed_podcasts, health_check, validate_config,

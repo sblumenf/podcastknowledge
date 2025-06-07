@@ -1,10 +1,11 @@
 """Comprehensive unit tests for debugging utilities."""
 
+from datetime import datetime
+from unittest.mock import Mock, patch, MagicMock
 import json
 import logging
+
 import pytest
-from unittest.mock import Mock, patch, MagicMock
-from datetime import datetime
 
 from src.utils.debugging import (
     ErrorSeverity,

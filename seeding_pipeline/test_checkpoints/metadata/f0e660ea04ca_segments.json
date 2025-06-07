@@ -1,0 +1,12 @@
+{
+  "version": "3.0",
+  "created_at": "2025-06-06T21:20:40.285302",
+  "updated_at": "2025-06-06T21:20:40.285312",
+  "episode_id": "f0e660ea04ca",
+  "stage": "segments",
+  "compressed": true,
+  "size_bytes": 612,
+  "checksum": "0fe0027b7d2f8bf5644f977b3f8381653e5e2d746feffef2947a56defaabfde0",
+  "extraction_mode": "fixed",
+  "schema_info": null
+}

@@ -10,13 +10,13 @@ This test suite:
 - Initially non-blocking to allow performance tuning
 """
 
+from pathlib import Path
+from typing import Dict, Any, Optional
 import json
 import sys
 import time
-import tracemalloc
-from pathlib import Path
-from typing import Dict, Any, Optional
 
+import tracemalloc
 try:
     import pytest
     PYTEST_AVAILABLE = True

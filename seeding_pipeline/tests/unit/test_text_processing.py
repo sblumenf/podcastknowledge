@@ -2,9 +2,9 @@
 
 from unittest.mock import patch
 import re
-import unicodedata
 
 import pytest
+import unicodedata
 
 from src.utils.text_processing import (
     extract_urls,

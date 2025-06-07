@@ -1,11 +1,11 @@
 """Core tests for VTT parser functionality."""
 
-import pytest
 from pathlib import Path
-from src.vtt.vtt_parser import VTTParser
+
+import pytest
+
 from src.core.exceptions import ValidationError
-
-
+from src.vtt.vtt_parser import VTTParser
 class TestVTTParserCore:
     """Core tests for VTT parsing functionality."""
     

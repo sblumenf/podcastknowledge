@@ -3,8 +3,6 @@
 from pathlib import Path
 from typing import Optional, List, Dict, Any
 import random
-
-
 # VTT content constants
 SIMPLE_VTT = """WEBVTT
 

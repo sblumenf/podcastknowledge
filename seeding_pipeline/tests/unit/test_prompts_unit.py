@@ -1,8 +1,9 @@
 """Unit tests for prompt management utilities."""
 
-import pytest
-from unittest.mock import Mock, patch
 from datetime import datetime
+from unittest.mock import Mock, patch
+
+import pytest
 
 from src.extraction.prompts import (
     PromptVersion,

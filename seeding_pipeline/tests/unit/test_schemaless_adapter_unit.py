@@ -1,12 +1,13 @@
 """Comprehensive unit tests for schemaless adapter module."""
 
-import pytest
+from typing import List, Dict, Any
 from unittest.mock import Mock, patch
 import json
-from typing import List, Dict, Any
 
-from src.processing.adapters.schemaless_adapter import SchemalessAdapter
+import pytest
+
 from src.core.extraction_interface import (
+from src.processing.adapters.schemaless_adapter import SchemalessAdapter
     Segment, Entity, Relationship, Quote, Insight
 )
 

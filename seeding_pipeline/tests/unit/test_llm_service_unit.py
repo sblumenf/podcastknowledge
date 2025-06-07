@@ -1,14 +1,13 @@
 """Comprehensive unit tests for LLM service module."""
 
-import pytest
-from unittest.mock import Mock, patch, MagicMock
 from typing import Dict, Any
+from unittest.mock import Mock, patch, MagicMock
 
-from src.services.llm import LLMService
+import pytest
+
 from src.core.exceptions import ProviderError, RateLimitError
+from src.services.llm import LLMService
 from src.utils.rate_limiting import WindowedRateLimiter
-
-
 class TestLLMService:
     """Test LLMService functionality."""
     

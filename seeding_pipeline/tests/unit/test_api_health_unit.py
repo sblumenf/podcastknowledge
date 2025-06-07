@@ -1,12 +1,13 @@
 """Comprehensive unit tests for API health module."""
 
-import pytest
-from unittest.mock import Mock, patch, MagicMock
 from datetime import datetime
+from unittest.mock import Mock, patch, MagicMock
 import time
 
+import pytest
+
 from src.api.health import (
-    HealthStatus, ComponentHealth, HealthChecker,
+    HealthStatus, HealthStatus, HealthChecker,
     get_health_checker, health_check, readiness_check, liveness_check,
     create_health_endpoints
 )
@@ -22,12 +23,12 @@ class TestHealthStatus:
         assert HealthStatus.UNHEALTHY.value == "unhealthy"
 
 
-class TestComponentHealth:
-    """Test ComponentHealth dataclass."""
+class TestHealthStatus:
+    """Test HealthStatus dataclass."""
     
     def test_component_health_creation(self):
         """Test creating component health."""
-        health = ComponentHealth(
+        health = HealthStatus(
             name="test_component",
             status=HealthStatus.HEALTHY,
             message="All good",
@@ -41,7 +42,7 @@ class TestComponentHealth:
     
     def test_component_health_defaults(self):
         """Test component health with defaults."""
-        health = ComponentHealth(
+        health = HealthStatus(
             name="test",
             status=HealthStatus.UNHEALTHY,
             message="Error"
@@ -191,7 +192,7 @@ class TestHealthChecker:
     @patch.object(HealthChecker, '_check_system_resources')
     def test_check_health_all_healthy(self, mock_resources, mock_neo4j, health_checker):
         """Test overall health check when all components healthy."""
-        mock_neo4j.return_value = ComponentHealth(
+        mock_neo4j.return_value = HealthStatus(
             name="neo4j",
             status=HealthStatus.HEALTHY,
             message="OK"
@@ -216,7 +217,7 @@ class TestHealthChecker:
     @patch.object(HealthChecker, '_check_system_resources')
     def test_check_health_neo4j_unhealthy(self, mock_resources, mock_neo4j, health_checker):
         """Test overall health check when Neo4j unhealthy."""
-        mock_neo4j.return_value = ComponentHealth(
+        mock_neo4j.return_value = HealthStatus(
             name="neo4j",
             status=HealthStatus.UNHEALTHY,
             message="Error"
@@ -237,7 +238,7 @@ class TestHealthChecker:
     @patch.object(HealthChecker, '_check_neo4j')
     def test_check_readiness_ready(self, mock_neo4j, health_checker):
         """Test readiness check when ready."""
-        mock_neo4j.return_value = ComponentHealth(
+        mock_neo4j.return_value = HealthStatus(
             name="neo4j",
             status=HealthStatus.HEALTHY,
             message="OK"
@@ -253,7 +254,7 @@ class TestHealthChecker:
     @patch.object(HealthChecker, '_check_neo4j')
     def test_check_readiness_not_ready(self, mock_neo4j, health_checker):
         """Test readiness check when not ready."""
-        mock_neo4j.return_value = ComponentHealth(
+        mock_neo4j.return_value = HealthStatus(
             name="neo4j",
             status=HealthStatus.UNHEALTHY,
             message="Error"

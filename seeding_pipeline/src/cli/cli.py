@@ -8,6 +8,7 @@ into structured knowledge graphs using AI-powered analysis.
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
+from unittest.mock import Mock
 import argparse
 import hashlib
 import json
@@ -15,7 +16,6 @@ import os
 import sys
 
 import fnmatch
-from unittest.mock import Mock
 # Add src to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
 

@@ -1,12 +1,12 @@
 """Memory-efficient pytest configuration and fixtures."""
 
+from unittest.mock import Mock, MagicMock
 import gc
 import os
-import pytest
-import psutil
 import warnings
-from unittest.mock import Mock, MagicMock
 
+import psutil
+import pytest
 # Configure memory limits
 def pytest_configure(config):
     """Configure pytest for memory-efficient testing."""

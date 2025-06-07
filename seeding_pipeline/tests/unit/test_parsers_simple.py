@@ -1,8 +1,9 @@
 """Unit tests for response parsing utilities - testing actual implementation."""
 
-import json
-import pytest
 from unittest.mock import Mock, patch
+import json
+
+import pytest
 
 from src.extraction.parsers import (
     ParseResult,

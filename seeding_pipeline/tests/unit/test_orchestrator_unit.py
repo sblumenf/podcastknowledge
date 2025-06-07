@@ -17,18 +17,16 @@ from src.core.exceptions import PipelineError, ConfigurationError
 from src.core.interfaces import AudioProvider, LLMProvider, GraphProvider, EmbeddingProvider
 from src.extraction.extraction import KnowledgeExtractor
 from src.processing.segmentation import VTTSegmenter
-from src.services.embeddings import EmbeddingsService
-from src.storage.graph_storage import GraphStorageService
-from src.services.llm import LLMService
-from src.seeding.components.signal_manager import SignalManager
-from src.seeding.components.provider_coordinator import ProviderCoordinator
 from src.seeding.components.checkpoint_manager import CheckpointManager
 from src.seeding.components.pipeline_executor import PipelineExecutor
-from src.storage.storage_coordinator import StorageCoordinator
+from src.seeding.components.provider_coordinator import ProviderCoordinator
+from src.seeding.components.signal_manager import SignalManager
 from src.seeding.orchestrator import VTTKnowledgeExtractor
-
-
-class TestPodcastKnowledgePipeline:
+from src.services.embeddings import EmbeddingsService
+from src.services.llm import LLMService
+from src.storage.graph_storage import GraphStorageService
+from src.storage.storage_coordinator import StorageCoordinator
+class TestVTTKnowledgeExtractor:
     """Test VTTKnowledgeExtractor class."""
     
     @pytest.fixture

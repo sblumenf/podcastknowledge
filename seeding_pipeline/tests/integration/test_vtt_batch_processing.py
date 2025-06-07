@@ -16,9 +16,9 @@ import pytest
 
 from src.core.config import PipelineConfig
 from src.core.exceptions import ValidationError, PipelineError
-from src.vtt.vtt_parser import VTTParser
 from src.seeding.checkpoint import ProgressCheckpoint
 from src.seeding.transcript_ingestion import TranscriptIngestion
+from src.vtt.vtt_parser import VTTParser
 class TestVTTBatchProcessing:
     """Test suite for VTT batch processing scenarios."""
     

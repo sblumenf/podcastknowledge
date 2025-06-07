@@ -1,14 +1,14 @@
 """Baseline performance tests for the pipeline."""
 
-import pytest
-import time
-from statistics import mean, stdev
 from pathlib import Path
-from src.seeding.orchestrator import VTTKnowledgeExtractor
+import time
+
+from statistics import mean, stdev
+import pytest
+
 from src.core.config import SeedingConfig
+from src.seeding.orchestrator import VTTKnowledgeExtractor
 from src.storage.graph_storage import GraphStorageService
-
-
 @pytest.mark.slow
 @pytest.mark.performance
 @pytest.mark.requires_docker

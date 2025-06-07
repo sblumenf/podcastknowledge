@@ -10,6 +10,7 @@ from typing import Dict, List, Any, Optional, Union
 from unittest.mock import Mock, MagicMock
 import json
 import random
+
 import pytest
 
 from src.core.extraction_interface import (

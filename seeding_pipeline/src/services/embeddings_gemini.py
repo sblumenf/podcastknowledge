@@ -3,12 +3,11 @@
 from typing import List, Dict, Any, Optional, Tuple
 import logging
 
-import numpy as np
 import google.generativeai as genai
+import numpy as np
 
 from src.core.exceptions import ProviderError, RateLimitError
 from src.utils.rate_limiting import WindowedRateLimiter
-
 logger = logging.getLogger(__name__)
 
 

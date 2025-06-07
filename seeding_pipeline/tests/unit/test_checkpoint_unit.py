@@ -1,10 +1,11 @@
 """Unit tests for checkpoint management."""
 
+from datetime import datetime
+from pathlib import Path
+from unittest.mock import Mock, patch, MagicMock, mock_open
 import json
 import os
-from pathlib import Path
-from datetime import datetime
-from unittest.mock import Mock, patch, MagicMock, mock_open
+
 import pytest
 
 from src.seeding.checkpoint import (

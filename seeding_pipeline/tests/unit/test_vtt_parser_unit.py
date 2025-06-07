@@ -1,15 +1,14 @@
 """Comprehensive unit tests for VTT parser module."""
 
-import pytest
 from pathlib import Path
-from unittest.mock import Mock, patch, mock_open
 from typing import List
+from unittest.mock import Mock, patch, mock_open
 
-from src.vtt.vtt_parser import VTTParser, VTTCue
+import pytest
+
 from src.core.exceptions import ValidationError
 from src.core.interfaces import TranscriptSegment
-
-
+from src.vtt.vtt_parser import VTTParser, VTTCue
 class TestVTTCue:
     """Test VTTCue dataclass."""
     

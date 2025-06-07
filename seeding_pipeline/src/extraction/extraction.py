@@ -12,8 +12,6 @@ import json
 import logging
 import re
 
-from src.core.extraction_interface import Segment
-from src.core.interfaces import TranscriptSegment
 from src.core.extraction_interface import (
     Entity,
     Insight,
@@ -21,7 +19,9 @@ from src.core.extraction_interface import (
     EntityType as BaseEntityType,
     InsightType as BaseInsightType,
     QuoteType,
+    Segment
 )
+from src.core.interfaces import TranscriptSegment
 
 
 # Create mock enum values for test compatibility

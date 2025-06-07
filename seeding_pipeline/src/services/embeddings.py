@@ -4,12 +4,11 @@ This module now uses the Gemini embeddings implementation.
 The original sentence-transformers implementation is preserved in embeddings_backup.py.
 """
 
-import os
-import logging
 from typing import Optional
+import logging
+import os
 
 from src.services.embeddings_gemini import GeminiEmbeddingsService
-
 logger = logging.getLogger(__name__)
 
 

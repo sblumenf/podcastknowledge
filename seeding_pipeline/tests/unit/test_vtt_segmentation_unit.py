@@ -1,14 +1,13 @@
 """Comprehensive unit tests for VTT segmentation module."""
 
-import pytest
-from unittest.mock import Mock, patch
 from typing import List, Dict, Any
+from unittest.mock import Mock, patch
 
-from src.vtt.vtt_segmentation import VTTSegmenter, SegmentMetadata
-from src.core.interfaces import TranscriptSegment
+import pytest
+
 from src.core import constants
-
-
+from src.core.interfaces import TranscriptSegment
+from src.vtt.vtt_segmentation import VTTSegmenter, SegmentMetadata
 class TestSegmentMetadata:
     """Test SegmentMetadata dataclass."""
     

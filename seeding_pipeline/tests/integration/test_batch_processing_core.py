@@ -1,11 +1,12 @@
 """Core tests for batch processing functionality."""
 
-import pytest
-from unittest.mock import Mock, patch, MagicMock
 from concurrent.futures import ThreadPoolExecutor
-import time
-import threading
 from pathlib import Path
+from unittest.mock import Mock, patch, MagicMock
+import threading
+import time
+
+import pytest
 
 from src.seeding.batch_processor import (
     BatchProcessor, BatchItem, BatchResult, create_batch_items

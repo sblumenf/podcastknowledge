@@ -1,8 +1,9 @@
 """Comprehensive unit tests for pattern matching utilities."""
 
-import re
-import pytest
 from unittest.mock import Mock, patch, MagicMock
+import re
+
+import pytest
 
 from src.utils.patterns import (
     PatternMatch,

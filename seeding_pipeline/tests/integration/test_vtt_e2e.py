@@ -11,12 +11,12 @@ import pytest
 
 from src.core.config import PipelineConfig
 from src.core.extraction_interface import Entity, EntityType, Relationship, RelationshipType
-from src.vtt.vtt_parser import VTTParser
-from src.services.embeddings import EmbeddingsService
-from src.storage.graph_storage import GraphStorageService
-from src.services.llm import LLMService
 from src.seeding.orchestrator import VTTKnowledgeExtractor
 from src.seeding.transcript_ingestion import TranscriptIngestionManager
+from src.services.embeddings import EmbeddingsService
+from src.services.llm import LLMService
+from src.storage.graph_storage import GraphStorageService
+from src.vtt.vtt_parser import VTTParser
 class TestVTTEndToEnd:
     """End-to-end tests for VTT processing pipeline."""
     

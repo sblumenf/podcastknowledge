@@ -1,9 +1,10 @@
 """Comprehensive unit tests for validation utilities."""
 
-import pytest
 from datetime import datetime
 from unittest.mock import Mock, patch, MagicMock
 import logging
+
+import pytest
 
 from src.utils.validation import (
     validate_text_input,

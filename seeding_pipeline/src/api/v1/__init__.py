@@ -33,7 +33,6 @@ def deprecated(version=None, replacement=None):
     def decorator(func):
         import functools
         import warnings
-        
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
             message = f"{func.__name__} is deprecated"

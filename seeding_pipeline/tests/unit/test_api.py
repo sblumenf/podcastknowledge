@@ -10,7 +10,7 @@ import json
 from datetime import datetime
 
 from src.api.app import create_app
-from src.api.health import HealthStatus, ComponentHealth
+from src.api.health import HealthStatus, HealthStatus
 from src.api.metrics import RequestMetrics, MetricsCollector
 
 
@@ -67,7 +67,7 @@ class TestHealthEndpoints:
     @patch('src.api.health.check_component_health')
     def test_health_check_all_healthy(self, mock_check):
         Test health check when all components healthy.
-        mock_check.return_value = ComponentHealth(
+        mock_check.return_value = HealthStatus(
             name="test",
             status=HealthStatus.HEALTHY,
             message="Component is healthy"
@@ -87,12 +87,12 @@ class TestHealthEndpoints:
     def test_health_check_degraded(self, mock_check):
         Test health check when components degraded.
         mock_check.side_effect = [
-            ComponentHealth(
+            HealthStatus(
                 name="neo4j",
                 status=HealthStatus.HEALTHY,
                 message="Connected"
             ),
-            ComponentHealth(
+            HealthStatus(
                 name="llm",
                 status=HealthStatus.DEGRADED,
                 message="High latency",
@@ -112,7 +112,7 @@ class TestHealthEndpoints:
     @patch('src.api.health.check_component_health')
     def test_health_check_unhealthy(self, mock_check):
         Test health check when components unhealthy.
-        mock_check.return_value = ComponentHealth(
+        mock_check.return_value = HealthStatus(
             name="neo4j",
             status=HealthStatus.UNHEALTHY,
             message="Connection failed",

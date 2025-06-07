@@ -1,11 +1,12 @@
 """Comprehensive unit tests for transcript ingestion module."""
 
-import pytest
-from unittest.mock import Mock, patch, MagicMock, mock_open
-from pathlib import Path
 from datetime import datetime
-import json
+from pathlib import Path
+from unittest.mock import Mock, patch, MagicMock, mock_open
 import hashlib
+import json
+
+import pytest
 
 from src.seeding.transcript_ingestion import (
     VTTFile, TranscriptIngestion, TranscriptIngestionManager

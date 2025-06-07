@@ -1,12 +1,13 @@
 """Comprehensive unit tests for batch processor module."""
 
-import pytest
-from unittest.mock import Mock, patch, call
 from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
-import time
-import threading
 from dataclasses import dataclass
 from typing import List, Any
+from unittest.mock import Mock, patch, call
+import threading
+import time
+
+import pytest
 
 from src.seeding.batch_processor import (
     BatchItem, BatchResult, BatchProcessor

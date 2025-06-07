@@ -1,11 +1,11 @@
 """VTT processing integration tests."""
 
-import pytest
 from pathlib import Path
-from src.vtt.vtt_parser import VTTParser
+
+import pytest
+
 from src.core.exceptions import ValidationError
-
-
+from src.vtt.vtt_parser import VTTParser
 @pytest.mark.integration
 class TestVTTProcessing:
     """Test VTT file processing functionality."""

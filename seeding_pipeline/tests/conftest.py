@@ -3,15 +3,14 @@ Pytest configuration and shared fixtures.
 """
 
 from pathlib import Path
+from unittest.mock import patch, Mock
 import os
 import tempfile
 
 import pytest
-from unittest.mock import patch, Mock
 
-# Import fixtures to make them available globally
-from tests.utils.neo4j_mocks import create_mock_neo4j_driver, patch_neo4j_for_tests
 from tests.utils.external_service_mocks import patch_external_services_for_tests
+from tests.utils.neo4j_mocks import create_mock_neo4j_driver, patch_neo4j_for_tests
 @pytest.fixture(scope="session")
 def project_root():
     """Get the project root directory."""

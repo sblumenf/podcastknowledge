@@ -1,15 +1,14 @@
 """Comprehensive unit tests for Gemini embeddings service module."""
 
-import pytest
-from unittest.mock import Mock, patch, MagicMock
-import numpy as np
 from typing import List
+from unittest.mock import Mock, patch, MagicMock
 
-from src.services.embeddings_gemini import GeminiEmbeddingsService
+import numpy as np
+import pytest
+
 from src.core.exceptions import ProviderError, RateLimitError
+from src.services.embeddings_gemini import GeminiEmbeddingsService
 from src.utils.rate_limiting import WindowedRateLimiter
-
-
 class TestGeminiEmbeddingsService:
     """Test GeminiEmbeddingsService functionality."""
     

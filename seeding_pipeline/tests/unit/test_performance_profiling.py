@@ -1,14 +1,15 @@
 """Comprehensive unit tests for performance profiling utilities."""
 
+from datetime import datetime
+from pathlib import Path
+from unittest.mock import Mock, patch, MagicMock, call
+import io
 import json
 import time
-from pathlib import Path
-from datetime import datetime
-from unittest.mock import Mock, patch, MagicMock, call
-import pytest
-import io
-import pstats
+
 import cProfile
+import pstats
+import pytest
 
 from src.utils.performance_profiling import (
     ProfileResult,

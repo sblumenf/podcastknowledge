@@ -7,8 +7,8 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 from unittest.mock import Mock, patch
 import json
-import time
 import tempfile
+import time
 
 from neo4j import GraphDatabase
 import pytest
@@ -18,8 +18,6 @@ from src.core.exceptions import PipelineError
 from src.seeding.orchestrator import VTTKnowledgeExtractor
 from src.seeding.transcript_ingestion import VTTFile
 from tests.utils.neo4j_mocks import create_mock_neo4j_driver
-
-
 class TestVTTProcessingScenarios:
     """End-to-end test scenarios for VTT processing."""
     

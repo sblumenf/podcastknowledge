@@ -7,9 +7,9 @@ preprocessing and extraction modules without duplicating their functionality.
 from typing import List, Dict, Any, Optional, Tuple
 import logging
 import re
-import unicodedata
-from difflib import SequenceMatcher
 
+from difflib import SequenceMatcher
+import unicodedata
 logger = logging.getLogger(__name__)
 
 

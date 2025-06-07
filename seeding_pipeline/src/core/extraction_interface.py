@@ -8,8 +8,6 @@ extraction modes must implement, enabling seamless switching between modes.
 from dataclasses import dataclass
 from enum import Enum
 from typing import Protocol, List, Dict, Any, Optional
-
-
 class EntityType(Enum):
     """Types of entities that can be extracted."""
     PERSON = "person"

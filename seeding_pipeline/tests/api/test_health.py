@@ -5,7 +5,7 @@ from unittest.mock import patch, MagicMock
 import pytest
 
 from src.api.health import (
-    HealthChecker, HealthStatus, ComponentHealth,
+    HealthChecker, HealthStatus, HealthStatus,
     health_check, readiness_check, liveness_check
 )
 
@@ -90,7 +90,7 @@ class TestHealthChecker:
         with patch.object(health_checker, '_check_neo4j') as mock_neo4j, \
              patch.object(health_checker, '_check_system_resources') as mock_resources:
             
-            mock_neo4j.return_value = ComponentHealth("neo4j", HealthStatus.HEALTHY, "OK")
+            mock_neo4j.return_value = HealthStatus("neo4j", HealthStatus.HEALTHY, "OK")
             mock_resources.return_value = {
                 'name': 'system_resources',
                 'status': HealthStatus.HEALTHY.value,
@@ -107,7 +107,7 @@ class TestHealthChecker:
     def test_check_readiness(self, health_checker):
         """Test readiness check."""
         with patch.object(health_checker, '_check_neo4j') as mock_neo4j:
-            mock_neo4j.return_value = ComponentHealth("neo4j", HealthStatus.HEALTHY, "OK")
+            mock_neo4j.return_value = HealthStatus("neo4j", HealthStatus.HEALTHY, "OK")
             
             result = health_checker.check_readiness()
             

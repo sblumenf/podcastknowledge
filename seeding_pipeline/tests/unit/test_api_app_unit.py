@@ -1,10 +1,9 @@
 """Unit tests for API app module - simplified version."""
 
-import json
-import pytest
 from unittest.mock import Mock, patch, mock_open
+import json
 
-
+import pytest
 class TestAPIAppFunctions:
     """Test API app functions with minimal dependencies."""
     

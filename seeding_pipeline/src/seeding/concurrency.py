@@ -10,7 +10,6 @@ from enum import Enum
 from typing import Any, Callable, List, Optional
 import logging
 import threading
-
 logger = logging.getLogger(__name__)
 
 

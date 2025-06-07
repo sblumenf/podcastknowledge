@@ -9,9 +9,8 @@ from typing import Dict, List, Any, Optional, Union
 from unittest.mock import MagicMock, Mock
 import json
 import random
+
 import pytest
-
-
 class MockLLMResponse:
     """Mock LLM response object."""
     def __init__(self, text: str):

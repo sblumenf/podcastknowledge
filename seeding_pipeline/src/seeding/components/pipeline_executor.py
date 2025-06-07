@@ -10,8 +10,6 @@ from src.core.interfaces import TranscriptSegment
 from src.core.models import Podcast, Episode, Segment
 from src.utils.logging import get_logger
 from src.utils.memory import cleanup_memory
-
-
 def add_span_attributes(attributes: Dict[str, Any]) -> None:
     """Mock implementation for tracing/observability attributes."""
     # This is a placeholder for actual tracing implementation

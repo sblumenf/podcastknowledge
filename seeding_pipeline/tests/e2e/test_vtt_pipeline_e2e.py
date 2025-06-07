@@ -1,17 +1,15 @@
 """E2E tests for VTT → Knowledge Graph pipeline."""
-from tests.utils.neo4j_mocks import create_mock_neo4j_driver
-
-import pytest
 from pathlib import Path
 from typing import Dict, Any
-import tempfile
 import os
+import tempfile
 
-from src.seeding.orchestrator import VTTKnowledgeExtractor
-from src.core.config import SeedingConfig
 from neo4j import GraphDatabase
+import pytest
 
-
+from src.core.config import SeedingConfig
+from src.seeding.orchestrator import VTTKnowledgeExtractor
+from tests.utils.neo4j_mocks import create_mock_neo4j_driver
 @pytest.mark.e2e
 class TestVTTPipelineE2E:
     """End-to-end tests for the complete VTT processing pipeline."""

@@ -1,15 +1,15 @@
 """Critical path end-to-end test for VTT to Knowledge Graph pipeline."""
 
-import pytest
 from pathlib import Path
 from unittest.mock import Mock, patch, MagicMock
 import tempfile
-from src.vtt.vtt_parser import VTTParser
+
+import pytest
+
+from src.core.models import Episode, Segment
 from src.extraction.extraction import KnowledgeExtractor, ExtractionConfig
 from src.storage.graph_storage import GraphStorageService
-from src.core.models import Episode, Segment
-
-
+from src.vtt.vtt_parser import VTTParser
 class TestCriticalPath:
     """End-to-end test of the complete VTT to Knowledge Graph pipeline."""
 

@@ -6,8 +6,8 @@ from unittest.mock import Mock, MagicMock
 
 import pytest
 
-from src.core.interfaces import EmbeddingProvider
 from src.core.extraction_interface import Entity, EntityType
+from src.core.interfaces import EmbeddingProvider
 from src.extraction.entity_resolution import (
     EntityResolver, EntityMatch, EntityRelationship, EntityResolutionConfig
 )

@@ -1,184 +1,133 @@
 #!/usr/bin/env python3
-"""Fix import statements in test files based on mappings."""
+"""Fix test imports based on import_mapping.json."""
 
-import re
 import json
+import re
 from pathlib import Path
-import argparse
+from typing import Dict, List, Tuple
 
-def load_mappings():
-    """Load import mappings from analysis."""
-    with open('test_tracking/import_mapping.json', 'r') as f:
-        data = json.load(f)
+def load_import_mapping(mapping_file: Path) -> Dict:
+    """Load the import mapping from JSON file."""
+    with open(mapping_file, 'r') as f:
+        return json.load(f)
+
+def fix_module_imports(content: str, mappings: List[Dict]) -> Tuple[str, int]:
+    """Fix module imports based on mappings."""
+    changes = 0
+    lines = content.split('\n')
     
-    # Combine known mappings with found alternatives
-    mappings = {
-        # Module mappings
-        'from cli import': 'from src.cli.cli import',
-        'from src.processing.extraction import': 'from src.extraction.extraction import',
-        'from src.processing.parsers import': 'from src.extraction.parsers import',
-        'from src.processing.preprocessor import': 'from src.extraction.preprocessor import',
-        'from src.processing.prompts import': 'from src.extraction.prompts import',
-        'from src.processing.complexity_analysis import': 'from src.extraction.complexity_analysis import',
-        'from src.processing.entity_resolution import': 'from src.extraction.entity_resolution import',
-        'from src.processing.importance_scoring import': 'from src.extraction.importance_scoring import',
-        'from src.processing.vtt_parser import': 'from src.vtt.vtt_parser import',
-        
-        # Class name mappings
-        'PodcastKnowledgePipeline': 'VTTKnowledgeExtractor',
-        'EnhancedPodcastSegmenter': 'VTTSegmenter',
-        
-        # Add found alternatives
-        'from src.core.models import Relationship': 'from src.core.extraction_interface import Relationship',
-        'from src.core.models import Segment': 'from src.core.extraction_interface import Segment',
-        'from src.core.models import Entity': 'from src.core.extraction_interface import Entity',
-        'from src.core.models import Insight': 'from src.core.extraction_interface import Insight',
-        'from src.core.models import Quote': 'from src.core.extraction_interface import Quote',
-    }
-    
-    # Add class location mappings
-    for class_name, location in data.get('found_alternatives', {}).items():
-        # Skip if it's already in the right place
-        if class_name not in ['Relationship', 'Segment', 'Entity', 'Insight', 'Quote']:
-            continue
+    for i, line in enumerate(lines):
+        for mapping in mappings:
+            if mapping['type'] == 'moved_module':
+                old_module = mapping['old']
+                new_module = mapping['new']
+                name = mapping.get('name', '')
+                
+                # Fix "from old_module import name"
+                pattern = f"from {re.escape(old_module)} import"
+                if re.search(pattern, line):
+                    lines[i] = line.replace(f"from {old_module} import", f"from {new_module} import")
+                    changes += 1
+                    print(f"  Fixed: {old_module} -> {new_module}")
             
-    return mappings
+            elif mapping['type'] == 'renamed_class':
+                old_name = mapping['old']
+                new_name = mapping['new']
+                
+                # Replace class name in imports and usage
+                if old_name in line:
+                    lines[i] = line.replace(old_name, new_name)
+                    changes += 1
+                    print(f"  Renamed: {old_name} -> {new_name}")
+    
+    return '\n'.join(lines), changes
 
-def fix_imports_in_file(file_path, mappings, dry_run=False):
-    """Fix imports in a single file."""
-    with open(file_path, 'r') as f:
+def fix_test_file(test_file: Path, file_info: Dict) -> bool:
+    """Fix imports in a single test file."""
+    if not test_file.exists():
+        return False
+    
+    print(f"\nProcessing: {test_file}")
+    
+    # Read file content
+    with open(test_file, 'r') as f:
         content = f.read()
     
-    original_content = content
-    changes_made = []
+    # Apply fixes
+    missing = file_info.get('missing', [])
+    if not missing:
+        print("  No fixes needed")
+        return False
     
-    # Apply module import fixes
-    for old_pattern, new_pattern in mappings.items():
-        if old_pattern.startswith('from '):
-            # Direct replacement for from imports
-            if old_pattern in content:
-                content = content.replace(old_pattern, new_pattern)
-                changes_made.append(f"{old_pattern} -> {new_pattern}")
-        else:
-            # Class name replacements
-            # Be careful to only replace in appropriate contexts
-            pattern = r'\b' + re.escape(old_pattern) + r'\b'
-            if re.search(pattern, content):
-                content = re.sub(pattern, new_pattern, content)
-                changes_made.append(f"{old_pattern} -> {new_pattern}")
+    new_content, changes = fix_module_imports(content, missing)
     
-    # Special handling for common patterns
+    # Write back if changes were made
+    if changes > 0:
+        with open(test_file, 'w') as f:
+            f.write(new_content)
+        print(f"  Applied {changes} fixes")
+        return True
     
-    # Fix: from src.seeding import PodcastKnowledgePipeline
-    pattern = r'from src\.seeding import PodcastKnowledgePipeline'
-    if re.search(pattern, content):
-        content = re.sub(pattern, 'from src.seeding.orchestrator import VTTKnowledgeExtractor', content)
-        changes_made.append("PodcastKnowledgePipeline import fixed")
-    
-    # Fix: from src.seeding.orchestrator import PodcastKnowledgePipeline
-    pattern = r'from src\.seeding\.orchestrator import PodcastKnowledgePipeline'
-    if re.search(pattern, content):
-        content = re.sub(pattern, 'from src.seeding.orchestrator import VTTKnowledgeExtractor', content)
-        changes_made.append("PodcastKnowledgePipeline orchestrator import fixed")
-    
-    # Fix: from src.api.health import ComponentHealth
-    pattern = r'from src\.api\.health import ComponentHealth'
-    if re.search(pattern, content):
-        content = re.sub(pattern, 'from src.api.health import HealthStatus', content)
-        changes_made.append("ComponentHealth -> HealthStatus")
-    
-    # Fix: from src.utils.logging import ContextFilter
-    pattern = r'from src\.utils\.logging import .*?ContextFilter'
-    if re.search(pattern, content):
-        # Remove ContextFilter from imports
-        content = re.sub(r',?\s*ContextFilter', '', content)
-        changes_made.append("Removed ContextFilter import")
-    
-    # Fix: from src.utils.text_processing import clean_segment_text, normalize_entity_name
-    if 'from src.utils.text_processing import' in content and ('clean_segment_text' in content or 'normalize_entity_name' in content):
-        # These functions don't exist, remove them
-        content = re.sub(r',?\s*clean_segment_text', '', content)
-        content = re.sub(r',?\s*normalize_entity_name', '', content)
-        changes_made.append("Removed non-existent text processing imports")
-    
-    # Fix: from src.utils.retry import retry_with_backoff, RetryError
-    if 'retry_with_backoff' in content:
-        content = re.sub(r'retry_with_backoff', 'retry', content)
-        changes_made.append("retry_with_backoff -> retry")
-    
-    if 'RetryError' in content:
-        # RetryError doesn't exist, use Exception instead
-        content = re.sub(r'\bRetryError\b', 'Exception', content)
-        changes_made.append("RetryError -> Exception")
-    
-    # Fix: from src.utils.rate_limiting import SlidingWindowRateLimiter
-    if 'SlidingWindowRateLimiter' in content:
-        content = re.sub(r'SlidingWindowRateLimiter', 'RateLimiter', content)
-        changes_made.append("SlidingWindowRateLimiter -> RateLimiter")
-    
-    # Fix: from src.processing.segmentation import EnhancedPodcastSegmenter
-    pattern = r'from src\.processing\.segmentation import EnhancedPodcastSegmenter'
-    if re.search(pattern, content):
-        content = re.sub(pattern, 'from src.vtt.vtt_segmentation import VTTSegmenter', content)
-        changes_made.append("EnhancedPodcastSegmenter segmentation import fixed")
-    
-    # Fix: from src.seeding.concurrency import Priority
-    if 'from src.seeding.concurrency import Priority' in content:
-        # Priority enum doesn't exist, remove or replace with string
-        content = content.replace('from src.seeding.concurrency import Priority', '')
-        content = re.sub(r'Priority\.\w+', '"high"', content)
-        changes_made.append("Removed Priority enum import")
-    
-    # Clean up empty imports
-    content = re.sub(r'from\s+\S+\s+import\s*\n', '', content)
-    content = re.sub(r'from\s+\S+\s+import\s*$', '', content, flags=re.MULTILINE)
-    
-    if content != original_content:
-        if not dry_run:
-            with open(file_path, 'w') as f:
-                f.write(content)
-        return changes_made
-    
-    return []
+    return False
 
 def main():
-    parser = argparse.ArgumentParser(description='Fix test imports')
-    parser.add_argument('--dry-run', action='store_true', help='Show changes without applying')
-    args = parser.parse_args()
+    """Main function to fix all test imports."""
+    # Load import mapping
+    mapping_file = Path('test_tracking/import_mapping.json')
+    if not mapping_file.exists():
+        print(f"Error: {mapping_file} not found")
+        return
     
-    mappings = load_mappings()
+    mapping_data = load_import_mapping(mapping_file)
+    import_analysis = mapping_data.get('import_analysis', {})
     
-    # Get all test files
-    test_files = list(Path('tests').rglob('*.py'))
-    
+    # Fix each test file
     fixed_count = 0
-    total_changes = []
+    for test_file_str, file_info in import_analysis.items():
+        test_file = Path(test_file_str)
+        if fix_test_file(test_file, file_info):
+            fixed_count += 1
+    
+    print(f"\n{'='*50}")
+    print(f"Fixed {fixed_count} test files")
+    
+    # Additional specific fixes for common patterns
+    print("\nApplying additional pattern-based fixes...")
+    
+    # Fix all occurrences of PodcastKnowledgePipeline -> VTTKnowledgeExtractor
+    test_files = list(Path('tests').rglob('*.py'))
+    pattern_fixes = 0
     
     for test_file in test_files:
-        if test_file.name == '__init__.py':
-            continue
-        
-        changes = fix_imports_in_file(test_file, mappings, args.dry_run)
-        if changes:
-            fixed_count += 1
-            print(f"\n{test_file}:")
-            for change in changes:
-                print(f"  - {change}")
-            total_changes.extend([(str(test_file), change) for change in changes])
+        try:
+            with open(test_file, 'r') as f:
+                content = f.read()
+            
+            original_content = content
+            
+            # Apply common replacements
+            content = content.replace('PodcastKnowledgePipeline', 'VTTKnowledgeExtractor')
+            content = content.replace('ComponentHealth', 'HealthStatus')
+            content = content.replace('EnhancedPodcastSegmenter', 'VTTSegmenter')
+            
+            # Fix module paths
+            content = re.sub(r'from cli import', 'from src.cli.cli import', content)
+            content = re.sub(r'from src\.processing\.extraction import', 'from src.extraction.extraction import', content)
+            content = re.sub(r'from src\.processing\.entity_resolution import', 'from src.extraction.entity_resolution import', content)
+            content = re.sub(r'from src\.processing\.vtt_parser import', 'from src.vtt.vtt_parser import', content)
+            content = re.sub(r'from src\.processing\.parsers import', 'from src.extraction.parsers import', content)
+            
+            if content != original_content:
+                with open(test_file, 'w') as f:
+                    f.write(content)
+                pattern_fixes += 1
+                print(f"  Fixed patterns in: {test_file}")
+                
+        except Exception as e:
+            print(f"  Error processing {test_file}: {e}")
     
-    print(f"\n{'Would fix' if args.dry_run else 'Fixed'} {fixed_count} files")
-    print(f"Total changes: {len(total_changes)}")
-    
-    if not args.dry_run:
-        # Save change log
-        change_log = {
-            'files_fixed': fixed_count,
-            'total_changes': len(total_changes),
-            'changes': total_changes
-        }
-        with open('test_tracking/import_fixes.json', 'w') as f:
-            json.dump(change_log, f, indent=2)
-        print("\nChange log saved to test_tracking/import_fixes.json")
+    print(f"\nFixed patterns in {pattern_fixes} additional files")
+    print("\nImport fixing complete!")
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()

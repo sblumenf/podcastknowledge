@@ -12,7 +12,6 @@ import tempfile
 import weakref
 
 import atexit
-
 try:
     import psutil
 except ImportError:

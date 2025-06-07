@@ -8,12 +8,12 @@ import tempfile
 
 import pytest
 
+from src.core.extraction_interface import Entity, Insight, Quote, QuoteType
 from src.core.interfaces import TranscriptSegment, LLMProvider
 from src.extraction.extraction import EntityType, InsightType
-from src.core.extraction_interface import Entity, Insight, Quote, QuoteType
 from src.extraction.extraction import KnowledgeExtractor, ExtractionResult
-from src.vtt.vtt_parser import VTTParser
 from src.seeding.transcript_ingestion import TranscriptIngestion, VTTFile
+from src.vtt.vtt_parser import VTTParser
 class TestVTTKnowledgeExtraction:
     """Test suite for knowledge extraction from VTT segments."""
     

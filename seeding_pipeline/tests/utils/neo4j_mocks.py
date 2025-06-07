@@ -7,9 +7,8 @@ testing without a real Neo4j instance.
 
 from typing import Dict, List, Any, Optional
 from unittest.mock import MagicMock, Mock
+
 import pytest
-
-
 class MockNode:
     """Mock Neo4j Node."""
 

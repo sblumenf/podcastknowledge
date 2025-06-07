@@ -1,21 +1,20 @@
 """Performance baseline tests for batch processing."""
 
-import pytest
-import time
-import json
-import statistics
-from pathlib import Path
 from datetime import datetime
+from pathlib import Path
 from unittest.mock import Mock, patch
-import psutil
+import json
 import tempfile
+import time
 
-from src.seeding.batch_processor import BatchProcessor, BatchItem
-from src.vtt.vtt_parser import VTTParser
+import psutil
+import pytest
+import statistics
+
 from src.extraction.extraction import KnowledgeExtractor, ExtractionConfig
+from src.seeding.batch_processor import BatchProcessor, BatchItem
 from src.storage.graph_storage import GraphStorageService
-
-
+from src.vtt.vtt_parser import VTTParser
 class TestBatchPerformance:
     """Establish performance baselines for batch processing."""
     

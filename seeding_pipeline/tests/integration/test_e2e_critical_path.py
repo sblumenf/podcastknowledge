@@ -1,12 +1,12 @@
 """End-to-end critical path integration tests."""
 
-import pytest
 from pathlib import Path
-from src.seeding.orchestrator import VTTKnowledgeExtractor
+
+import pytest
+
 from src.core.config import SeedingConfig
+from src.seeding.orchestrator import VTTKnowledgeExtractor
 from src.storage.graph_storage import GraphStorageService
-
-
 @pytest.mark.integration
 @pytest.mark.slow
 @pytest.mark.requires_docker

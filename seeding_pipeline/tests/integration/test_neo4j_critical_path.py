@@ -1,11 +1,10 @@
 """Neo4j critical path integration tests."""
 
 import pytest
-from src.storage.graph_storage import GraphStorageService
-from src.core.models import Episode, Segment
+
 from src.core.exceptions import ConnectionError as PodcastConnectionError, ProviderError
-
-
+from src.core.models import Episode, Segment
+from src.storage.graph_storage import GraphStorageService
 @pytest.mark.integration
 @pytest.mark.requires_docker
 class TestNeo4jCriticalPath:

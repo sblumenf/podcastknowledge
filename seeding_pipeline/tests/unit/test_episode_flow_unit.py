@@ -1,14 +1,13 @@
 """Unit tests for episode flow processing."""
 
-import json
-import pytest
 from datetime import datetime
 from unittest.mock import Mock, patch, MagicMock, call
+import json
 
-from src.processing.episode_flow import EpisodeFlowAnalyzer
+import pytest
+
 from src.core.models import Segment, Entity
-
-
+from src.processing.episode_flow import EpisodeFlowAnalyzer
 class TestEpisodeFlowAnalyzer:
     """Test EpisodeFlowAnalyzer class."""
     

@@ -10,11 +10,9 @@ import json
 import os
 import sys
 
-import yaml
-
 from ..core.feature_flags import FeatureFlag, get_feature_flag_manager, get_all_flags
 from ..utils.logging import get_logger
-
+import yaml
 logger = get_logger(__name__)
 
 

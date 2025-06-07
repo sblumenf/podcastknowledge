@@ -1,10 +1,9 @@
 """Simple memory management utilities."""
 
+from typing import Optional, Dict, Any
 import gc
 import logging
 import time
-from typing import Optional, Dict, Any
-
 logger = logging.getLogger(__name__)
 
 

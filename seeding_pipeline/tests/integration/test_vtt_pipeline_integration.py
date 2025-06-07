@@ -1,17 +1,15 @@
 """Integration tests for the VTT pipeline orchestrator."""
 
+from pathlib import Path
 from unittest.mock import Mock, patch, MagicMock
 import os
 import tempfile
-from pathlib import Path
 
 import pytest
 
 from src.core.config import SeedingConfig
 from src.core.exceptions import PipelineError
 from src.seeding.orchestrator import VTTKnowledgeExtractor
-
-
 @pytest.fixture
 def mock_providers():
     """Create mock providers for testing."""

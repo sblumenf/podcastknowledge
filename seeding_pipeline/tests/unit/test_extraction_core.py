@@ -1,11 +1,11 @@
 """Core tests for knowledge extraction functionality."""
 
-import pytest
 from unittest.mock import Mock, patch, MagicMock
-from src.extraction.extraction import KnowledgeExtractor, ExtractionConfig, ExtractionResult
+
+import pytest
+
 from src.core.models import Segment
-
-
+from src.extraction.extraction import KnowledgeExtractor, ExtractionConfig, ExtractionResult
 class TestKnowledgeExtractionCore:
     """Core tests for knowledge extraction functionality."""
     
