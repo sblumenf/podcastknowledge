@@ -1,14 +1,17 @@
-"""VTT (WebVTT) file parser for processing transcript files."""
+"""VTT (WebVTT) file parser for processing transcript files with memory optimization."""
 
 from dataclasses import dataclass
 from datetime import timedelta
 from pathlib import Path
-from typing import List, Dict, Any, Optional, Tuple
+from typing import List, Dict, Any, Optional, Tuple, Iterator
 import logging
 import re
+import gc
+import psutil
 
 from src.core.exceptions import ValidationError
 from src.core.interfaces import TranscriptSegment
+
 logger = logging.getLogger(__name__)
 
 
@@ -24,7 +27,7 @@ class VTTCue:
 
 
 class VTTParser:
-    """Parser for WebVTT (Web Video Text Tracks) format files."""
+    """Parser for WebVTT (Web Video Text Tracks) format files with memory optimization."""
     
     # Regex patterns for VTT parsing
     TIMESTAMP_PATTERN = re.compile(
@@ -37,9 +40,30 @@ class VTTParser:
         r'<v\s*([^>]*)>'
     )
     
-    def __init__(self) -> None:
-        """Initialize VTT parser."""
+    def __init__(self, batch_size: int = 100, max_segment_buffer: int = 1000,
+                 enable_memory_monitoring: bool = True) -> None:
+        """Initialize VTT parser with memory optimization settings.
+        
+        Args:
+            batch_size: Number of captions to process at once
+            max_segment_buffer: Maximum segments to keep in memory
+            enable_memory_monitoring: Log memory usage during processing
+        """
         self.cues: List[VTTCue] = []
+        self.batch_size = batch_size
+        self.max_segment_buffer = max_segment_buffer
+        self.enable_memory_monitoring = enable_memory_monitoring
+        self._processed_segments = 0
+    
+    def _log_memory_usage(self, stage: str):
+        """Log current memory usage."""
+        if self.enable_memory_monitoring:
+            try:
+                process = psutil.Process()
+                memory_mb = process.memory_info().rss / 1024 / 1024
+                logger.info(f"Memory usage at {stage}: {memory_mb:.2f} MB")
+            except:
+                pass  # psutil not available
     
     def parse_file(self, file_path: Path) -> List[TranscriptSegment]:
         """Parse a VTT file and return transcript segments.
@@ -56,13 +80,20 @@ class VTTParser:
         if not file_path.exists():
             raise ValidationError(f"VTT file not found: {file_path}")
         
-        try:
-            with open(file_path, 'r', encoding='utf-8') as f:
-                content = f.read()
-        except Exception as e:
-            raise ValidationError(f"Failed to read VTT file: {e}")
-        
-        return self.parse_content(content)
+        # For small files, use existing method
+        file_size_mb = file_path.stat().st_size / 1024 / 1024
+        if file_size_mb < 10:  # Less than 10MB, use regular parsing
+            try:
+                with open(file_path, 'r', encoding='utf-8') as f:
+                    content = f.read()
+            except Exception as e:
+                raise ValidationError(f"Failed to read VTT file: {e}")
+            
+            return self.parse_content(content)
+        else:
+            # For large files, use streaming
+            logger.info(f"Using streaming parser for large file ({file_size_mb:.1f} MB)")
+            return list(self.parse_file_streaming(file_path))
     
     def parse_content(self, content: str) -> List[TranscriptSegment]:
         """Parse VTT content and return transcript segments.
@@ -245,6 +276,146 @@ class VTTParser:
             segments.append(segment)
         
         return segments
+    
+    def parse_file_streaming(self, file_path: Path) -> Iterator[TranscriptSegment]:
+        """Parse a VTT file using streaming to minimize memory usage.
+        
+        Args:
+            file_path: Path to the VTT file
+            
+        Yields:
+            TranscriptSegment objects as they are parsed
+            
+        Raises:
+            ValidationError: If file format is invalid
+        """
+        self._log_memory_usage("start_streaming")
+        
+        if not file_path.exists():
+            raise ValidationError(f"VTT file not found: {file_path}")
+        
+        try:
+            with open(file_path, 'r', encoding='utf-8') as f:
+                # Check header
+                first_line = f.readline().strip()
+                if not first_line.startswith('WEBVTT'):
+                    raise ValidationError("Invalid VTT file: Missing WEBVTT header")
+                
+                # Skip header metadata
+                line = f.readline()
+                while line and line.strip() and not self._is_timestamp_line(line):
+                    line = f.readline()
+                
+                # Process cues in batches
+                batch_cues = []
+                cue_index = 0
+                lines_buffer = []
+                
+                while True:
+                    line = f.readline()
+                    if not line:  # EOF
+                        # Process any remaining buffer
+                        if lines_buffer:
+                            cue = self._parse_cue_from_lines(lines_buffer, cue_index)
+                            if cue:
+                                batch_cues.append(cue)
+                                cue_index += 1
+                        
+                        # Yield final batch
+                        if batch_cues:
+                            for segment in self._convert_to_segments(batch_cues):
+                                yield segment
+                                self._processed_segments += 1
+                        break
+                    
+                    line = line.rstrip('\n')
+                    
+                    # Empty line marks end of cue
+                    if not line.strip() and lines_buffer:
+                        cue = self._parse_cue_from_lines(lines_buffer, cue_index)
+                        if cue:
+                            batch_cues.append(cue)
+                            cue_index += 1
+                            
+                            # Process batch when full
+                            if len(batch_cues) >= self.batch_size:
+                                for segment in self._convert_to_segments(batch_cues):
+                                    yield segment
+                                    self._processed_segments += 1
+                                
+                                # Clear batch and hint garbage collection
+                                batch_cues = []
+                                if self._processed_segments % 500 == 0:
+                                    gc.collect()
+                                    self._log_memory_usage(f"after_{self._processed_segments}_segments")
+                        
+                        lines_buffer = []
+                    else:
+                        lines_buffer.append(line)
+                
+                self._log_memory_usage("end_streaming")
+                
+        except Exception as e:
+            raise ValidationError(f"Failed to parse VTT file: {e}")
+    
+    def _parse_cue_from_lines(self, lines: List[str], cue_index: int) -> Optional[VTTCue]:
+        """Parse a single cue from buffered lines.
+        
+        Args:
+            lines: Buffered lines for a cue
+            cue_index: Current cue index
+            
+        Returns:
+            VTTCue object or None if invalid
+        """
+        if not lines:
+            return None
+        
+        i = 0
+        
+        # Skip cue identifier if present
+        if i < len(lines) - 1 and self._is_timestamp_line(lines[i + 1]):
+            i += 1
+        
+        # Find timestamp line
+        while i < len(lines) and not self._is_timestamp_line(lines[i]):
+            i += 1
+        
+        if i >= len(lines):
+            return None
+        
+        # Parse timestamp
+        timing_match = self.CUE_TIMING_PATTERN.match(lines[i].strip())
+        if not timing_match:
+            return None
+        
+        start_time = self._parse_timestamp(timing_match.group(1))
+        end_time = self._parse_timestamp(timing_match.group(2))
+        settings = self._parse_settings(timing_match.group(3)) if timing_match.group(3) else None
+        
+        i += 1
+        
+        # Collect text lines
+        text_lines = []
+        while i < len(lines) and lines[i].strip():
+            text_lines.append(lines[i])
+            i += 1
+        
+        if not text_lines:
+            return None
+        
+        text = '\n'.join(text_lines)
+        speaker = self._extract_speaker(text)
+        text = self.SPEAKER_PATTERN.sub('', text).strip()
+        
+        return VTTCue(
+            index=cue_index,
+            start_time=start_time,
+            end_time=end_time,
+            text=text,
+            speaker=speaker,
+            settings=settings
+        )
     
     def merge_short_segments(self, 
                            segments: List[TranscriptSegment], 
