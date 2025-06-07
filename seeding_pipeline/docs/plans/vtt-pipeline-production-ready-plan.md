@@ -20,7 +20,7 @@ This plan transforms the VTT-to-Neo4j knowledge extraction pipeline from its cur
 
 ### 1.2 Fix Critical Import Errors
 
-- [ ] **Task**: Update all test imports to match current module structure
+- [x] **Task**: Update all test imports to match current module structure
   - **Purpose**: Enable tests to find relocated modules and classes
   - **Steps**:
     1. Use context7 MCP tool to verify current module locations
@@ -39,7 +39,7 @@ This plan transforms the VTT-to-Neo4j knowledge extraction pipeline from its cur
 
 ### 1.3 Fix Python Syntax Errors
 
-- [ ] **Task**: Repair syntax errors in 5 test files
+- [x] **Task**: Repair syntax errors in 5 test files
   - **Purpose**: Allow test files to be parsed and executed
   - **Steps**:
     1. Use context7 MCP tool for Python testing best practices
@@ -55,7 +55,7 @@ This plan transforms the VTT-to-Neo4j knowledge extraction pipeline from its cur
 
 ### 1.4 Remove Obsolete Tests
 
-- [ ] **Task**: Delete tests for removed modules
+- [x] **Task**: Delete tests for removed modules
   - **Purpose**: Clean test suite of non-existent functionality
   - **Steps**:
     1. Use context7 MCP tool to confirm module deletions
@@ -71,7 +71,7 @@ This plan transforms the VTT-to-Neo4j knowledge extraction pipeline from its cur
 
 ### 1.5 Establish Critical Path Tests
 
-- [ ] **Task**: Identify and fix critical path tests
+- [x] **Task**: Identify and fix critical path tests
   - **Purpose**: Create minimal test set for pipeline validation
   - **Steps**:
     1. Use context7 MCP tool to review critical test documentation
