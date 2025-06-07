@@ -43,11 +43,23 @@ data/
 logs/
 cache/
 checkpoints/
+test_checkpoints/
+base/
+audio/
+test_audio/
+output/
+test_output/
+processed_podcasts/
+profiling_results/
+component_tracking/
+test_tracking/
 *.db
 *.sqlite
 *.egg-info/
 dist/
 build/
+benchmarks/
+htmlcov/
 
 # Git
 .git/
@@ -95,5 +107,4 @@ docker-compose*.yml
 !README.md
 !CHANGELOG.md
 Makefile
-scripts/
 notebooks/

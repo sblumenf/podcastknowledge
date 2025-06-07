@@ -16,6 +16,10 @@ psutil==5.9.6
 # Graph Analysis (required by ImportanceScorer)
 networkx==3.1
 
+# Numerical Operations (required for embeddings)
+numpy==1.24.4
+scipy==1.10.1
+
 # Progress Display
 tqdm==4.66.1
 

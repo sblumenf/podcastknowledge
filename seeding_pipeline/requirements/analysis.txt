@@ -1,0 +1,11 @@
+# Graph Analysis & Advanced Processing
+-r base.txt
+
+# Graph algorithms
+networkx==3.1
+
+# Scientific computing
+scipy==1.11.4
+
+# System monitoring
+psutil==5.9.6

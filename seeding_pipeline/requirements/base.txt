@@ -1,0 +1,17 @@
+# Core Dependencies for VTT Knowledge Extraction
+# Minimal set required for basic pipeline operation
+
+# Database
+neo4j==5.14.0
+
+# Configuration
+python-dotenv==1.0.0
+PyYAML==6.0.1
+
+# LLM & Embeddings (Gemini-based)
+google-generativeai==0.3.2
+langchain-google-genai==0.0.5
+
+# Essential Processing
+numpy==1.24.3
+tqdm==4.66.1
