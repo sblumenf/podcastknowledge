@@ -63,8 +63,17 @@ cd vtt-knowledge-pipeline
 python -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
 
-# Install dependencies
-pip install -e ".[dev]"  # Install with development dependencies
+# Install dependencies - Choose based on your needs:
+
+# Option 1: Core functionality only (fastest, ~60 seconds)
+pip install -r requirements-core.txt
+
+# Option 2: Core + API server
+pip install -r requirements-core.txt
+pip install -r requirements-api.txt
+
+# Option 3: Full installation with all features
+pip install -r requirements.txt
 ```
 
 ### Basic Usage
