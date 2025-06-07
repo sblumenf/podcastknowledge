@@ -26,6 +26,32 @@ The VTT Knowledge Graph Pipeline automatically:
 
 ## Quick Start
 
+### Setting Up Virtual Environment
+
+1. **Create Virtual Environment**:
+   ```bash
+   ./scripts/setup_venv.sh
+   ```
+
+2. **Activate Virtual Environment**:
+   - Linux/Mac:
+     ```bash
+     source venv/bin/activate
+     ```
+   - Windows Command Prompt:
+     ```cmd
+     venv\Scripts\activate
+     ```
+   - Windows PowerShell:
+     ```powershell
+     venv\Scripts\Activate.ps1
+     ```
+
+3. **Deactivate** (when done):
+   ```bash
+   deactivate
+   ```
+
 ### Installation
 
 ```bash

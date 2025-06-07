@@ -1,0 +1,90 @@
+# Virtual Environments
+venv/
+env/
+.venv/
+.env/
+ENV/
+env.bak/
+venv.bak/
+
+# Python Cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyc
+*.pyo
+
+# Distribution/Packaging
+build/
+dist/
+*.egg-info/
+*.egg
+.eggs/
+
+# IDE/Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS Files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+coverage.xml
+*.cover
+.hypothesis/
+
+# Type Checkers
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.pyre/
+.pytype/
+
+# Logs
+*.log
+logs/
+
+# Environment Variables
+.env
+.env.local
+
+# Project Specific
+output/
+processed_podcasts/
+checkpoints/
+*.ckpt
+*.ckpt.gz
+test_output/
+test_checkpoints/
+
+# Temporary Files
+*.tmp
+*.temp
+tmp/
+temp/
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Jupyter Notebooks
+.ipynb_checkpoints/
+
+# Documentation Build
+docs/_build/
+docs/.doctrees/
+
+# Profiling
+*.prof
+profiling_results/
