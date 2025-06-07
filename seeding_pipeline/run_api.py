@@ -11,7 +11,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 
 import uvicorn
 from src.api.app import app
-from src.utils.logging import setup_logging
+from src.utils.log_utils import setup_logging
 
 # Configure logging
 setup_logging()

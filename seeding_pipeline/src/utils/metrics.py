@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import Dict, Any, List, Optional, Callable
 from collections import defaultdict, deque
 
-from src.utils.logging import get_logger
+from src.utils.log_utils import get_logger
 from src.utils.logging_enhanced import get_metrics_collector
 
 

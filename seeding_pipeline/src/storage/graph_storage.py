@@ -12,7 +12,7 @@ from queue import Queue, Empty
 from src.core.exceptions import ProviderError, ConnectionError
 from src.core.models import Podcast, Episode, Segment
 from src.utils.retry import retry, ExponentialBackoff
-from src.utils.logging import get_logger
+from src.utils.log_utils import get_logger
 from src.utils.logging_enhanced import (
     trace_operation,
     log_performance_metric,

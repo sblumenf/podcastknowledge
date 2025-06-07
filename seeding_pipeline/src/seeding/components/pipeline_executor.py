@@ -8,7 +8,7 @@ import os
 from src.core.exceptions import PipelineError
 from src.core.interfaces import TranscriptSegment
 from src.core.models import Podcast, Episode, Segment
-from src.utils.logging import get_logger
+from src.utils.log_utils import get_logger
 from src.utils.memory import cleanup_memory
 def add_span_attributes(attributes: Dict[str, Any]) -> None:
     """Mock implementation for tracing/observability attributes."""

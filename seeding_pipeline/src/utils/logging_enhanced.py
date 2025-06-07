@@ -12,7 +12,7 @@ from typing import Dict, Any, Optional, Callable, List
 import threading
 from queue import Queue, Empty
 
-from src.utils.logging import (
+from src.utils.log_utils import (
     get_logger, 
     get_correlation_id, 
     set_correlation_id,

@@ -4,7 +4,7 @@ from typing import Dict, Any, List, Optional
 import logging
 
 from src.core.models import Entity
-from src.utils.logging import get_logger
+from src.utils.log_utils import get_logger
 logger = get_logger(__name__)
 
 

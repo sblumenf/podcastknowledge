@@ -7,7 +7,24 @@ Main API:
 """
 
 from .__version__ import __version__, __version_info__, __api_version__
-from .seeding import VTTKnowledgeExtractor
+
+# Lazy import to avoid circular dependencies
+_VTTKnowledgeExtractor = None
+
+def _get_vtt_knowledge_extractor():
+    """Lazy import of VTTKnowledgeExtractor."""
+    global _VTTKnowledgeExtractor
+    if _VTTKnowledgeExtractor is None:
+        from .seeding import VTTKnowledgeExtractor
+        _VTTKnowledgeExtractor = VTTKnowledgeExtractor
+    return _VTTKnowledgeExtractor
+
+# Module-level getattr for lazy imports
+def __getattr__(name):
+    if name == 'VTTKnowledgeExtractor':
+        return _get_vtt_knowledge_extractor()
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+
 # Convenience functions
 def extract_vtt_knowledge(vtt_file_path, use_large_context=True, config=None):
     """Extract knowledge from a single VTT file.
@@ -26,7 +43,8 @@ def extract_vtt_knowledge(vtt_file_path, use_large_context=True, config=None):
     if config is None:
         config = Config()
     
-    pipeline = VTTKnowledgeExtractor(config)
+    VTTKnowledgeExtractorClass = _get_vtt_knowledge_extractor()
+    pipeline = VTTKnowledgeExtractorClass(config)
     try:
         return pipeline.process_vtt_files([Path(vtt_file_path)], use_large_context)
     finally:
@@ -52,7 +70,8 @@ def extract_vtt_directory(directory_path, pattern="*.vtt", recursive=False,
     if config is None:
         config = Config()
     
-    pipeline = VTTKnowledgeExtractor(config)
+    VTTKnowledgeExtractorClass = _get_vtt_knowledge_extractor()
+    pipeline = VTTKnowledgeExtractorClass(config)
     try:
         return pipeline.process_vtt_directory(
             directory_path, pattern, recursive, use_large_context

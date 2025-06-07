@@ -12,7 +12,7 @@ from src.core.config import PipelineConfig
 from src.core.exceptions import ValidationError, PipelineError
 from src.core.interfaces import TranscriptSegment
 from src.core.models import Podcast, Episode
-from src.utils.logging import get_logger
+from src.utils.log_utils import get_logger
 from src.vtt import VTTParser
 logger = get_logger(__name__)
 

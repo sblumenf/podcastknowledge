@@ -14,7 +14,7 @@ from src.seeding import VTTKnowledgeExtractor
 from src.core.config import PipelineConfig
 from src.vtt import VTTParser
 from src.utils.logging_enhanced import get_logger, get_metrics_collector
-from src.utils.logging import set_correlation_id, generate_correlation_id
+from src.utils.log_utils import set_correlation_id, generate_correlation_id
 
 
 def create_test_vtt():

@@ -18,7 +18,7 @@ from src.core.config import PipelineConfig
 from src.utils.metrics import get_pipeline_metrics
 from src.utils.health_check import get_health_checker
 from src.storage import GraphStorageService
-from src.utils.logging import get_logger, set_correlation_id, generate_correlation_id
+from src.utils.log_utils import get_logger, set_correlation_id, generate_correlation_id
 
 
 class RealDataValidator:

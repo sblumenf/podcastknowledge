@@ -22,7 +22,7 @@ from src.core.feature_flags import FeatureFlag, set_flag
 from src.providers.llm import get_llm_provider
 from src.providers.embeddings import get_embedding_provider
 from src.providers.graph.schemaless_neo4j import SchemalessNeo4jProvider
-from src.utils.logging import get_logger, setup_logging
+from src.utils.log_utils import get_logger, setup_logging
 
 logger = get_logger(__name__)
 

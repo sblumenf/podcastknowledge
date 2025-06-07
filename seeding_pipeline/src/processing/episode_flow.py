@@ -8,7 +8,7 @@ from scipy.spatial.distance import cosine
 import numpy as np
 
 from src.core.models import Entity, Segment
-from src.utils.logging import get_logger
+from src.utils.log_utils import get_logger
 logger = get_logger(__name__)
 
 

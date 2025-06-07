@@ -24,7 +24,7 @@ from src.core.config import PipelineConfig
 from src.core.exceptions import PipelineError
 from src.vtt import VTTParser
 from src.seeding.transcript_ingestion import TranscriptIngestionManager
-from src.utils.logging import get_logger
+from src.utils.log_utils import get_logger
 from src.utils.logging_enhanced import setup_enhanced_logging, log_performance_metric, trace_operation, log_batch_progress, get_metrics_collector
 from src.utils.health_check import get_health_checker
 from src.seeding.checkpoint import ProgressCheckpoint

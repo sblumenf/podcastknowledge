@@ -19,7 +19,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 from src.core.config import PipelineConfig
 from src.core.feature_flags import FeatureFlag, set_flag, validate_feature_flags
 from src.seeding import PodcastKnowledgePipeline
-from src.utils.logging import get_logger, setup_logging
+from src.utils.log_utils import get_logger, setup_logging
 from src.providers.graph import get_graph_provider
 
 logger = get_logger(__name__)
