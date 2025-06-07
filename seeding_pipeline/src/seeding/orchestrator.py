@@ -25,6 +25,7 @@ from src.storage import GraphStorageService
 from src.utils.logging import get_logger, log_execution_time, log_error_with_context, log_metric
 from src.utils.memory import cleanup_memory
 from src.utils.resources import ProgressCheckpoint
+from src.utils.metrics import get_pipeline_metrics
 
 logger = get_logger(__name__)
 
@@ -201,6 +202,9 @@ class VTTKnowledgeExtractor:
         """
         from src.seeding.transcript_ingestion import TranscriptIngestion
         
+        # Get metrics instance
+        metrics = get_pipeline_metrics()
+        
         # Ensure vtt_files is a list
         if not isinstance(vtt_files, list):
             vtt_files = [vtt_files]
@@ -232,6 +236,10 @@ class VTTKnowledgeExtractor:
                     break
                 
                 try:
+                    # Start timing file processing
+                    file_start_time = datetime.now().timestamp()
+                    file_path = str(vtt_file.path) if hasattr(vtt_file, 'path') else 'unknown'
+                    
                     result = ingestion.process_vtt_file(vtt_file)
                     
                     if result['status'] == 'success':
@@ -262,12 +270,38 @@ class VTTKnowledgeExtractor:
                         
                         summary['files_processed'] += 1
                         summary['total_segments'] += result.get('segment_count', 0)
+                        
+                        # Record file processing metrics
+                        file_end_time = datetime.now().timestamp()
+                        metrics.record_file_processing(
+                            file_path,
+                            file_start_time,
+                            file_end_time,
+                            result.get('segment_count', 0),
+                            success=True
+                        )
+                        
+                        # Record entity extraction rate
+                        entity_count = len(extraction_result.get('entities', [])) if 'extraction_result' in locals() else 0
+                        if entity_count > 0:
+                            metrics.record_entity_extraction(entity_count)
+                            
                     else:
                         summary['files_failed'] += 1
                         summary['errors'].append({
                             'file': str(vtt_file.path),
                             'error': result.get('error', 'Unknown error')
                         })
+                        
+                        # Record failed file processing
+                        file_end_time = datetime.now().timestamp()
+                        metrics.record_file_processing(
+                            file_path,
+                            file_start_time,
+                            file_end_time,
+                            0,
+                            success=False
+                        )
                     
                     # Add schemaless-specific metrics
                     if result.get('extraction_mode') == 'schemaless':

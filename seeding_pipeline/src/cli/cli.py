@@ -24,7 +24,9 @@ from src.core.config import PipelineConfig
 from src.core.exceptions import PipelineError
 from src.vtt import VTTParser
 from src.seeding.transcript_ingestion import TranscriptIngestionManager
-from src.utils.logging import setup_logging, get_logger
+from src.utils.logging import get_logger
+from src.utils.logging_enhanced import setup_enhanced_logging, log_performance_metric, trace_operation, log_batch_progress, get_metrics_collector
+from src.utils.health_check import get_health_checker
 from src.seeding.checkpoint import ProgressCheckpoint
 from src.seeding.batch_processor import BatchProcessor, BatchItem, BatchResult
 import time
@@ -271,7 +273,7 @@ def schema_stats(args: argparse.Namespace) -> int:
 
 
 def setup_logging_cli(verbose: bool = False, log_file: Optional[str] = None) -> None:
-    """Set up structured logging configuration."""
+    """Set up enhanced structured logging configuration with rotation and metrics."""
     level = "DEBUG" if verbose else os.environ.get("VTT_KG_LOG_LEVEL", "INFO")
     
     # Create logs directory if needed
@@ -279,11 +281,15 @@ def setup_logging_cli(verbose: bool = False, log_file: Optional[str] = None) -> 
         log_dir = Path(log_file).parent
         log_dir.mkdir(exist_ok=True, parents=True)
     
-    setup_logging(
+    # Use enhanced logging with rotation, metrics, and tracing
+    setup_enhanced_logging(
         level=level,
         log_file=log_file,
+        max_bytes=int(os.environ.get("VTT_KG_LOG_MAX_BYTES", 10 * 1024 * 1024)),  # 10MB default
+        backup_count=int(os.environ.get("VTT_KG_LOG_BACKUP_COUNT", 5)),
         structured=os.environ.get("VTT_KG_LOG_FORMAT", "json").lower() == "json",
-        correlation_id=None
+        enable_metrics=True,
+        enable_tracing=True
     )
 
 
@@ -358,6 +364,7 @@ def validate_vtt_file(file_path: Path) -> Tuple[bool, Optional[str]]:
         return False, f"Error validating file {file_path}: {str(e)}"
 
 
+@trace_operation("batch_vtt_processing")
 def process_vtt_batch(vtt_files: List[Path], pipeline, checkpoint, args) -> int:
     """Process VTT files in parallel using batch processing.
     
@@ -373,6 +380,13 @@ def process_vtt_batch(vtt_files: List[Path], pipeline, checkpoint, args) -> int:
     logger = get_logger(__name__)
     start_time = time.time()
     
+    # Log batch processing start
+    logger.info(f"Starting batch processing of {len(vtt_files)} VTT files", extra={
+        'file_count': len(vtt_files),
+        'parallel': True,
+        'workers': args.workers
+    })
+    
     # Thread-safe counters
     lock = threading.Lock()
     counters = {'processed': 0, 'failed': 0, 'skipped': 0}
@@ -382,6 +396,16 @@ def process_vtt_batch(vtt_files: List[Path], pipeline, checkpoint, args) -> int:
         elapsed = time.time() - start_time
         rate = current / elapsed if elapsed > 0 else 0
         eta = (total - current) / rate if rate > 0 else 0
+        
+        # Log progress with metrics
+        log_batch_progress(
+            logger,
+            current,
+            total,
+            "vtt_batch_processing",
+            start_time,
+            {'file_type': 'vtt', 'workers': args.workers}
+        )
         
         print(f"\rProgress: {current}/{total} ({current/total*100:.1f}%) | "
               f"Rate: {rate:.1f} files/s | ETA: {format_duration(int(eta))}", 
@@ -506,6 +530,29 @@ def process_vtt_batch(vtt_files: List[Path], pipeline, checkpoint, args) -> int:
     stats = batch_processor.get_statistics()
     total_time = time.time() - start_time
     
+    # Log performance metrics
+    log_performance_metric(
+        logger,
+        "batch_processing.total_time",
+        total_time,
+        unit="seconds",
+        operation="vtt_batch_processing",
+        tags={
+            'file_count': str(len(vtt_files)),
+            'worker_count': str(max_workers),
+            'success_count': str(counters['processed']),
+            'failed_count': str(counters['failed'])
+        }
+    )
+    
+    log_performance_metric(
+        logger,
+        "batch_processing.files_per_second",
+        stats['average_rate'],
+        unit="files/second",
+        operation="vtt_batch_processing"
+    )
+    
     # Print summary
     print("\n" + "="*50)
     print("Batch Processing Summary:")
@@ -516,6 +563,17 @@ def process_vtt_batch(vtt_files: List[Path], pipeline, checkpoint, args) -> int:
     print(f"  Total time: {format_duration(int(total_time))}")
     print(f"  Average rate: {stats['average_rate']:.1f} files/s")
     print(f"  Workers used: {max_workers}")
+    
+    # Log final summary
+    logger.info("Batch processing completed", extra={
+        'total_files': len(vtt_files),
+        'processed': counters['processed'],
+        'failed': counters['failed'],
+        'skipped': counters['skipped'],
+        'total_time_seconds': total_time,
+        'average_rate': stats['average_rate'],
+        'workers': max_workers
+    })
     
     if counters['failed'] > 0:
         print("\nSome files failed to process. Check logs for details.")
@@ -830,6 +888,58 @@ def process_vtt_directory(args: argparse.Namespace) -> int:
         return 1
 
 
+def health_check(args: argparse.Namespace) -> int:
+    """Check system health status.
+    
+    Args:
+        args: Command line arguments
+        
+    Returns:
+        Exit code (0 for success, 1 for failure)
+    """
+    try:
+        health_checker = get_health_checker()
+        
+        if args.component:
+            # Check specific component
+            check_method = health_checker._component_checks.get(args.component)
+            if not check_method:
+                print(f"Error: Unknown component '{args.component}'", file=sys.stderr)
+                return 1
+            
+            result = check_method()
+            
+            if args.format == 'json':
+                print(json.dumps(result.to_dict(), indent=2))
+            else:
+                print(f"\n{args.component.upper()} Health Check")
+                print("=" * 40)
+                print(f"Status: {result.status}")
+                print(f"Message: {result.message}")
+                if result.details:
+                    print("\nDetails:")
+                    for key, value in result.details.items():
+                        print(f"  {key}: {value}")
+        else:
+            # Full health check
+            if args.format == 'json':
+                health_data = health_checker.check_all()
+                print(json.dumps(health_data, indent=2))
+            else:
+                # Use the formatted CLI summary
+                summary = health_checker.get_cli_summary()
+                print(summary)
+        
+        return 0
+        
+    except Exception as e:
+        print(f"Health check failed: {e}", file=sys.stderr)
+        if args.verbose:
+            import traceback
+            traceback.print_exc()
+        return 1
+
+
 def check_status(args: argparse.Namespace) -> int:
     """Check processing status.
     
@@ -1105,6 +1215,27 @@ Examples:
         help='Skip confirmation prompt'
     )
     
+    # Health check command
+    health_parser = subparsers.add_parser(
+        'health',
+        help='Check system health status'
+    )
+    
+    health_parser.add_argument(
+        '--component',
+        type=str,
+        choices=['system', 'neo4j', 'llm_api', 'checkpoints', 'metrics'],
+        help='Check specific component health'
+    )
+    
+    health_parser.add_argument(
+        '--format',
+        type=str,
+        choices=['text', 'json'],
+        default='text',
+        help='Output format (default: text)'
+    )
+    
     # Parse arguments
     args = parser.parse_args()
     
@@ -1118,6 +1249,8 @@ Examples:
         return checkpoint_status(args)
     elif args.command == 'checkpoint-clean':
         return checkpoint_clean(args)
+    elif args.command == 'health':
+        return health_check(args)
     else:
         parser.print_help()
         return 1

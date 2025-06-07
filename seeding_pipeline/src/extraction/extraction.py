@@ -13,6 +13,13 @@ import logging
 import re
 import time
 
+from src.utils.logging import get_logger
+from src.utils.logging_enhanced import (
+    trace_operation,
+    log_performance_metric,
+    ProcessingTraceLogger
+)
+
 from src.core.extraction_interface import (
     Entity,
     Insight,
@@ -170,6 +177,7 @@ class KnowledgeExtractor:
         self._batch_size = 10  # Process 10 segments at once
 
     @track_component_impact("knowledge_extractor", "2.0.0")
+    @trace_operation("extract_knowledge")
     def extract_knowledge(
         self, segment: Segment, episode_metadata: Optional[Dict[str, Any]] = None, **kwargs
     ) -> ExtractionResult:
@@ -184,6 +192,9 @@ class KnowledgeExtractor:
         Returns:
             ExtractionResult with extracted knowledge
         """
+        logger = get_logger(__name__)
+        start_time = time.time()
+        
         if self.config.dry_run:
             return self._preview_extraction(segment)
 
@@ -245,6 +256,22 @@ class KnowledgeExtractor:
                 # Don't fail extraction if tracking fails
                 pass
 
+        # Log performance metrics
+        extraction_time = time.time() - start_time
+        log_performance_metric(
+            logger,
+            "extraction.segment_time",
+            extraction_time,
+            unit="seconds",
+            operation="extract_knowledge",
+            tags={
+                'segment_id': segment.id,
+                'entity_count': str(len(entities)),
+                'quote_count': str(len(quotes)),
+                'relationship_count': str(len(relationships))
+            }
+        )
+        
         return ExtractionResult(
             entities=entities, quotes=quotes, relationships=relationships, metadata=metadata
         )
@@ -402,6 +429,7 @@ class KnowledgeExtractor:
             for key in keys_to_delete:
                 del self._entity_cache[key]
     
+    @trace_operation("extract_knowledge_batch")
     def extract_knowledge_batch(self, segments: List[Segment], 
                               episode_metadata: Optional[Dict[str, Any]] = None) -> List[ExtractionResult]:
         """Extract knowledge from multiple segments in batch for efficiency.

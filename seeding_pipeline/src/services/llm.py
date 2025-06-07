@@ -11,6 +11,7 @@ from functools import lru_cache
 from src.core.exceptions import ProviderError, RateLimitError
 from src.utils.rate_limiting import WindowedRateLimiter
 from src.utils.retry import ExponentialBackoff, CircuitState
+from src.utils.metrics import get_pipeline_metrics
 
 logger = logging.getLogger(__name__)
 
@@ -192,10 +193,16 @@ class LLMService:
             RateLimitError: If rate limits are exceeded
             ProviderError: If API call fails after all retries
         """
+        # Get metrics instance
+        metrics = get_pipeline_metrics()
+        api_start_time = time.time()
+        
         # Check cache first
         cache_key = self._get_cache_key(prompt)
         cached_response = self._get_cached_response(cache_key)
         if cached_response:
+            # Record cache hit as successful API call with 0 latency
+            metrics.record_api_call(self.provider, success=True, latency=0)
             return cached_response
             
         # Check circuit breaker
@@ -235,6 +242,10 @@ class LLMService:
                 # Cache successful response
                 self._cache_response(cache_key, result)
                 
+                # Record successful API call
+                api_latency = time.time() - api_start_time
+                metrics.record_api_call(self.provider, success=True, latency=api_latency)
+                
                 return result
                 
             except Exception as e:
@@ -263,6 +274,11 @@ class LLMService:
                     
         # All retries failed
         logger.error(f"All API attempts failed, using fallback")
+        
+        # Record failed API call
+        api_latency = time.time() - api_start_time
+        metrics.record_api_call(self.provider, success=False, latency=api_latency)
+        
         return self._fallback_extraction(prompt)
             
     def complete_with_options(self, prompt: str, temperature: Optional[float] = None,

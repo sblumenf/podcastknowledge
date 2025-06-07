@@ -13,6 +13,7 @@ import time
 
 from ..core.config import PipelineConfig
 from ..utils.resources import get_system_resources
+from ..utils.health_check import get_health_checker as get_enhanced_health_checker, HealthStatus as EnhancedHealthStatus
 from neo4j import GraphDatabase
 from neo4j.exceptions import ServiceUnavailable
 class HealthStatus(Enum):
@@ -96,8 +97,18 @@ class HealthChecker:
                 "message": f"Resource check failed: {str(e)}"
             }
     
-    def check_health(self) -> Dict[str, Any]:
-        """Perform basic health checks."""
+    def check_health(self, use_enhanced: bool = True) -> Dict[str, Any]:
+        """Perform basic health checks.
+        
+        Args:
+            use_enhanced: Whether to use the enhanced health checker with more components
+        """
+        if use_enhanced:
+            # Use the enhanced health checker for comprehensive checks
+            enhanced_checker = get_enhanced_health_checker()
+            return enhanced_checker.check_all()
+        
+        # Original basic health check
         neo4j_health = self._check_neo4j()
         resource_health = self._check_system_resources()
         

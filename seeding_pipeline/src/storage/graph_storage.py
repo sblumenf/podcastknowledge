@@ -12,8 +12,15 @@ from queue import Queue, Empty
 from src.core.exceptions import ProviderError, ConnectionError
 from src.core.models import Podcast, Episode, Segment
 from src.utils.retry import retry, ExponentialBackoff
+from src.utils.logging import get_logger
+from src.utils.logging_enhanced import (
+    trace_operation,
+    log_performance_metric,
+    ProcessingTraceLogger
+)
+from src.utils.metrics import get_pipeline_metrics
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class GraphStorageService:
@@ -326,6 +333,7 @@ class GraphStorageService:
                         f"between {source_id} and {target_id}: {e}"
                     )
                     
+    @trace_operation("neo4j_query")
     def query(self, cypher: str, parameters: Optional[Dict[str, Any]] = None,
               use_cache: bool = False, cache_key: Optional[str] = None) -> List[Dict[str, Any]]:
         """Execute a Cypher query with optional caching.
@@ -339,11 +347,20 @@ class GraphStorageService:
         Returns:
             List of result dictionaries
         """
+        start_time = time.time()
+        
         # Check cache if enabled
         if use_cache:
             cache_key = cache_key or self._generate_cache_key(cypher, parameters)
             cached_result = self._get_cached_result(cache_key)
             if cached_result is not None:
+                log_performance_metric(
+                    logger,
+                    "neo4j.query.cache_hit",
+                    1,
+                    unit="count",
+                    operation="neo4j_query"
+                )
                 return cached_result
         
         with self.session() as session:
@@ -362,9 +379,32 @@ class GraphStorageService:
                 if use_cache:
                     self._cache_result(cache_key, records)
                 
+                # Log query performance
+                query_time = time.time() - start_time
+                log_performance_metric(
+                    logger,
+                    "neo4j.query.execution_time",
+                    query_time,
+                    unit="seconds",
+                    operation="neo4j_query",
+                    tags={
+                        'cached': 'false',
+                        'result_count': str(len(records))
+                    }
+                )
+                
+                # Record database metrics
+                metrics = get_pipeline_metrics()
+                metrics.record_db_operation("query", query_time, success=True)
+                
                 return records
                 
             except Exception as e:
+                # Record failed database operation
+                query_time = time.time() - start_time
+                metrics = get_pipeline_metrics()
+                metrics.record_db_operation("query", query_time, success=False)
+                
                 raise ProviderError("neo4j", f"Query execution failed: {e}")
     
     def _generate_cache_key(self, cypher: str, parameters: Optional[Dict[str, Any]]) -> str:
@@ -524,6 +564,7 @@ class GraphStorageService:
                 except Exception as e:
                     logger.warning(f"Index already exists or failed: {e}")
                     
+    @trace_operation("neo4j_create_nodes_bulk")
     def create_nodes_bulk(self, node_type: str, nodes_data: List[Dict[str, Any]]) -> List[str]:
         """Create multiple nodes in a single transaction using UNWIND.
         
@@ -536,6 +577,9 @@ class GraphStorageService:
         """
         if not nodes_data:
             return []
+        
+        start_time = time.time()
+        node_count = len(nodes_data)
         
         # Ensure all nodes have IDs
         for node in nodes_data:
@@ -554,10 +598,46 @@ class GraphStorageService:
                     """
                     
                     result = session.run(cypher, nodes=nodes_data)
-                    return [record["id"] for record in result]
+                    created_ids = [record["id"] for record in result]
+                    
+                    # Log performance metrics
+                    operation_time = time.time() - start_time
+                    log_performance_metric(
+                        logger,
+                        "neo4j.bulk_create_nodes.time",
+                        operation_time,
+                        unit="seconds",
+                        operation="neo4j_create_nodes_bulk",
+                        tags={
+                            'node_type': node_type,
+                            'node_count': str(node_count),
+                            'success': 'true'
+                        }
+                    )
+                    
+                    # Record database metrics
+                    metrics = get_pipeline_metrics()
+                    metrics.record_db_operation("bulk_create_nodes", operation_time, success=True)
+                    
+                    return created_ids
                     
             except Exception as e:
                 logger.error(f"Bulk node creation failed for {node_type}: {e}")
+                
+                # Log bulk failure metric
+                log_performance_metric(
+                    logger,
+                    "neo4j.bulk_create_nodes.failure",
+                    1,
+                    unit="count",
+                    operation="neo4j_create_nodes_bulk",
+                    tags={
+                        'node_type': node_type,
+                        'node_count': str(node_count),
+                        'error': str(type(e).__name__)
+                    }
+                )
+                
                 # Fall back to individual creation
                 ids = []
                 for node_data in nodes_data:
@@ -569,6 +649,7 @@ class GraphStorageService:
                         ids.append(node_data.get('id', 'unknown'))
                 return ids
     
+    @trace_operation("neo4j_create_relationships_bulk")
     def create_relationships_bulk(self, relationships: List[Dict[str, Any]]) -> int:
         """Create multiple relationships in a single transaction using UNWIND.
         
