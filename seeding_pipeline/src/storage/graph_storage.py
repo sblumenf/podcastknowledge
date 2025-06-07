@@ -3,6 +3,7 @@
 from contextlib import contextmanager
 from datetime import datetime
 from typing import Dict, Any, List, Optional, Tuple
+import json
 import logging
 import threading
 import time
@@ -58,6 +59,11 @@ class GraphStorageService:
         self._extraction_times = []
         self._entity_counts = []
         self._relationship_counts = []
+        
+        # Query cache for frequently accessed data
+        self._query_cache = {}
+        self._cache_ttl = 300  # 5 minutes
+        self._cache_lock = threading.Lock()
         
     def _ensure_driver(self) -> None:
         """Ensure Neo4j driver is initialized."""
@@ -320,16 +326,26 @@ class GraphStorageService:
                         f"between {source_id} and {target_id}: {e}"
                     )
                     
-    def query(self, cypher: str, parameters: Optional[Dict[str, Any]] = None) -> List[Dict[str, Any]]:
-        """Execute a Cypher query.
+    def query(self, cypher: str, parameters: Optional[Dict[str, Any]] = None,
+              use_cache: bool = False, cache_key: Optional[str] = None) -> List[Dict[str, Any]]:
+        """Execute a Cypher query with optional caching.
         
         Args:
             cypher: Cypher query string
             parameters: Optional query parameters
+            use_cache: Whether to use caching for this query
+            cache_key: Optional custom cache key (auto-generated if not provided)
             
         Returns:
             List of result dictionaries
         """
+        # Check cache if enabled
+        if use_cache:
+            cache_key = cache_key or self._generate_cache_key(cypher, parameters)
+            cached_result = self._get_cached_result(cache_key)
+            if cached_result is not None:
+                return cached_result
+        
         with self.session() as session:
             try:
                 if parameters:
@@ -341,10 +357,65 @@ class GraphStorageService:
                 records = []
                 for record in result:
                     records.append(dict(record))
+                
+                # Cache result if enabled
+                if use_cache:
+                    self._cache_result(cache_key, records)
+                
                 return records
                 
             except Exception as e:
                 raise ProviderError("neo4j", f"Query execution failed: {e}")
+    
+    def _generate_cache_key(self, cypher: str, parameters: Optional[Dict[str, Any]]) -> str:
+        """Generate cache key from query and parameters."""
+        import hashlib
+        key_str = cypher
+        if parameters:
+            # Sort parameters for consistent hashing
+            param_str = json.dumps(parameters, sort_keys=True)
+            key_str += param_str
+        return hashlib.md5(key_str.encode()).hexdigest()
+    
+    def _get_cached_result(self, cache_key: str) -> Optional[List[Dict[str, Any]]]:
+        """Get cached query result if available and not expired."""
+        with self._cache_lock:
+            if cache_key in self._query_cache:
+                cached = self._query_cache[cache_key]
+                if time.time() - cached['timestamp'] < self._cache_ttl:
+                    logger.debug(f"Cache hit for query: {cache_key}")
+                    return cached['result']
+                else:
+                    # Expired
+                    del self._query_cache[cache_key]
+        return None
+    
+    def _cache_result(self, cache_key: str, result: List[Dict[str, Any]]):
+        """Cache query result with timestamp."""
+        with self._cache_lock:
+            self._query_cache[cache_key] = {
+                'result': result,
+                'timestamp': time.time()
+            }
+            
+            # Clean old entries if cache is getting large
+            if len(self._query_cache) > 1000:
+                self._clean_expired_cache()
+    
+    def _clean_expired_cache(self):
+        """Remove expired entries from cache."""
+        current_time = time.time()
+        expired_keys = []
+        
+        for key, cached in self._query_cache.items():
+            if current_time - cached['timestamp'] >= self._cache_ttl:
+                expired_keys.append(key)
+        
+        for key in expired_keys:
+            del self._query_cache[key]
+        
+        if expired_keys:
+            logger.debug(f"Cleaned {len(expired_keys)} expired cache entries")
                 
     def process_segment_schemaless(self, segment: Segment, episode: Episode, 
                                  podcast: Podcast) -> Dict[str, Any]:
@@ -416,19 +487,197 @@ class GraphStorageService:
     def setup_schema(self) -> None:
         """Set up basic indexes and constraints."""
         with self.session() as session:
+            # Constraints for uniqueness
             constraints = [
                 "CREATE CONSTRAINT IF NOT EXISTS FOR (p:Podcast) REQUIRE p.id IS UNIQUE",
                 "CREATE CONSTRAINT IF NOT EXISTS FOR (e:Episode) REQUIRE e.id IS UNIQUE",
-                "CREATE CONSTRAINT IF NOT EXISTS FOR (s:Segment) REQUIRE s.id IS UNIQUE"
+                "CREATE CONSTRAINT IF NOT EXISTS FOR (s:Segment) REQUIRE s.id IS UNIQUE",
+                "CREATE CONSTRAINT IF NOT EXISTS FOR (en:Entity) REQUIRE en.id IS UNIQUE",
+                "CREATE CONSTRAINT IF NOT EXISTS FOR (t:Topic) REQUIRE t.name IS UNIQUE"
             ]
             
+            # Indexes for common lookups
+            indexes = [
+                "CREATE INDEX IF NOT EXISTS FOR (p:Podcast) ON (p.title)",
+                "CREATE INDEX IF NOT EXISTS FOR (e:Episode) ON (e.title)",
+                "CREATE INDEX IF NOT EXISTS FOR (e:Episode) ON (e.published_date)",
+                "CREATE INDEX IF NOT EXISTS FOR (s:Segment) ON (s.speaker)",
+                "CREATE INDEX IF NOT EXISTS FOR (s:Segment) ON (s.start_time)",
+                "CREATE INDEX IF NOT EXISTS FOR (en:Entity) ON (en.name)",
+                "CREATE INDEX IF NOT EXISTS FOR (en:Entity) ON (en.type)",
+                "CREATE INDEX IF NOT EXISTS FOR ()-[r:MENTIONED_IN]-() ON (r.confidence)"
+            ]
+            
+            # Create constraints
             for constraint in constraints:
                 try:
                     session.run(constraint)
                     logger.info(f"Created constraint: {constraint}")
                 except Exception as e:
                     logger.warning(f"Constraint already exists or failed: {e}")
+            
+            # Create indexes
+            for index in indexes:
+                try:
+                    session.run(index)
+                    logger.info(f"Created index: {index}")
+                except Exception as e:
+                    logger.warning(f"Index already exists or failed: {e}")
                     
+    def create_nodes_bulk(self, node_type: str, nodes_data: List[Dict[str, Any]]) -> List[str]:
+        """Create multiple nodes in a single transaction using UNWIND.
+        
+        Args:
+            node_type: Type/label of the nodes
+            nodes_data: List of node properties dictionaries
+            
+        Returns:
+            List of created node IDs
+        """
+        if not nodes_data:
+            return []
+        
+        # Ensure all nodes have IDs
+        for node in nodes_data:
+            if 'id' not in node:
+                raise ValueError(f"All nodes of type {node_type} must have an 'id' property")
+        
+        with self._lock:
+            try:
+                with self.session() as session:
+                    # Use UNWIND for bulk creation
+                    cypher = f"""
+                    UNWIND $nodes AS node
+                    CREATE (n:{node_type})
+                    SET n = node
+                    RETURN n.id AS id
+                    """
+                    
+                    result = session.run(cypher, nodes=nodes_data)
+                    return [record["id"] for record in result]
+                    
+            except Exception as e:
+                logger.error(f"Bulk node creation failed for {node_type}: {e}")
+                # Fall back to individual creation
+                ids = []
+                for node_data in nodes_data:
+                    try:
+                        node_id = self.create_node(node_type, node_data)
+                        ids.append(node_id)
+                    except Exception as node_e:
+                        logger.error(f"Failed to create individual node: {node_e}")
+                        ids.append(node_data.get('id', 'unknown'))
+                return ids
+    
+    def create_relationships_bulk(self, relationships: List[Dict[str, Any]]) -> int:
+        """Create multiple relationships in a single transaction using UNWIND.
+        
+        Args:
+            relationships: List of relationship dictionaries with:
+                - source_id: Source node ID
+                - target_id: Target node ID
+                - rel_type: Relationship type
+                - properties: Optional relationship properties
+                
+        Returns:
+            Number of relationships created
+        """
+        if not relationships:
+            return 0
+        
+        with self._lock:
+            try:
+                with self.session() as session:
+                    # Group by relationship type for more efficient processing
+                    rel_by_type = {}
+                    for rel in relationships:
+                        rel_type = rel['rel_type']
+                        if rel_type not in rel_by_type:
+                            rel_by_type[rel_type] = []
+                        rel_by_type[rel_type].append(rel)
+                    
+                    total_created = 0
+                    
+                    # Process each relationship type
+                    for rel_type, rels in rel_by_type.items():
+                        cypher = f"""
+                        UNWIND $rels AS rel
+                        MATCH (a {{id: rel.source_id}})
+                        MATCH (b {{id: rel.target_id}})
+                        CREATE (a)-[r:{rel_type}]->(b)
+                        SET r = rel.properties
+                        RETURN count(r) AS count
+                        """
+                        
+                        # Prepare data
+                        rel_data = [
+                            {
+                                'source_id': r['source_id'],
+                                'target_id': r['target_id'],
+                                'properties': r.get('properties', {})
+                            }
+                            for r in rels
+                        ]
+                        
+                        result = session.run(cypher, rels=rel_data)
+                        count = result.single()["count"]
+                        total_created += count
+                    
+                    return total_created
+                    
+            except Exception as e:
+                logger.error(f"Bulk relationship creation failed: {e}")
+                # Fall back to individual creation
+                created = 0
+                for rel in relationships:
+                    try:
+                        self.create_relationship(
+                            rel['source_id'],
+                            rel['target_id'],
+                            rel['rel_type'],
+                            rel.get('properties')
+                        )
+                        created += 1
+                    except Exception as rel_e:
+                        logger.error(f"Failed to create individual relationship: {rel_e}")
+                return created
+    
+    def merge_nodes_bulk(self, node_type: str, nodes_data: List[Dict[str, Any]], 
+                        merge_keys: List[str]) -> List[str]:
+        """Merge multiple nodes in a single transaction using UNWIND.
+        
+        Args:
+            node_type: Type/label of the nodes
+            nodes_data: List of node properties dictionaries
+            merge_keys: Keys to use for matching existing nodes
+            
+        Returns:
+            List of node IDs (existing or created)
+        """
+        if not nodes_data:
+            return []
+        
+        with self._lock:
+            try:
+                with self.session() as session:
+                    # Build MERGE clause with specified keys
+                    merge_props = ", ".join([f"{key}: node.{key}" for key in merge_keys])
+                    
+                    cypher = f"""
+                    UNWIND $nodes AS node
+                    MERGE (n:{node_type} {{{merge_props}}})
+                    ON CREATE SET n = node
+                    ON MATCH SET n += node
+                    RETURN n.id AS id
+                    """
+                    
+                    result = session.run(cypher, nodes=nodes_data)
+                    return [record["id"] for record in result]
+                    
+            except Exception as e:
+                logger.error(f"Bulk node merge failed for {node_type}: {e}")
+                raise ProviderError("neo4j", f"Bulk merge failed: {e}")
+    
     def get_performance_metrics(self) -> Dict[str, Any]:
         """Get performance metrics.
         

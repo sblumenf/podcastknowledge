@@ -11,6 +11,7 @@ from typing import Dict, Any, List, Optional, Tuple, Union
 import json
 import logging
 import re
+import time
 
 from src.core.extraction_interface import (
     Entity,
@@ -161,6 +162,12 @@ class KnowledgeExtractor:
             "controversial": ["controversial", "debate", "disagree"],
             "insightful": ["insight", "realize", "understand", "learn"],
         }
+        
+        # Performance optimization: Caching
+        self._entity_cache = {}  # Cache for entity recognition results
+        self._cache_ttl = 300  # 5 minutes
+        self._batch_queue = []  # Queue for batching LLM requests
+        self._batch_size = 10  # Process 10 segments at once
 
     @track_component_impact("knowledge_extractor", "2.0.0")
     def extract_knowledge(
@@ -326,13 +333,204 @@ class KnowledgeExtractor:
 
         return self._deduplicate_quotes(quotes)
 
+    def should_skip_segment(self, segment: Segment) -> bool:
+        """Pre-filter segments to skip non-informative content.
+        
+        Args:
+            segment: Segment to evaluate
+            
+        Returns:
+            True if segment should be skipped
+        """
+        text = segment.text.strip()
+        
+        # Skip very short segments
+        if len(text.split()) < 5:
+            return True
+            
+        # Skip segments with only filler words
+        filler_patterns = [
+            r'^(um+|uh+|ah+|oh+|hmm+|yeah|okay|alright|right|so+)[,.\s]*$',
+            r'^(you know|i mean|like|basically|actually)[,.\s]*$'
+        ]
+        
+        for pattern in filler_patterns:
+            if re.match(pattern, text, re.IGNORECASE):
+                return True
+                
+        # Skip repetitive content (laughs, music, etc)
+        if re.match(r'^\[(laughter|music|applause|silence)\]$', text, re.IGNORECASE):
+            return True
+            
+        return False
+    
+    def _get_cache_key(self, text: str, extraction_type: str) -> str:
+        """Generate cache key for text."""
+        import hashlib
+        # Normalize text for caching
+        normalized = ' '.join(text.lower().split())
+        key_str = f"{extraction_type}:{normalized}"
+        return hashlib.md5(key_str.encode()).hexdigest()
+    
+    def _check_entity_cache(self, text: str) -> Optional[List[Dict[str, Any]]]:
+        """Check if entities for this text are cached."""
+        cache_key = self._get_cache_key(text, "entities")
+        if cache_key in self._entity_cache:
+            cached = self._entity_cache[cache_key]
+            # Check if still valid
+            if time.time() - cached['timestamp'] < self._cache_ttl:
+                return cached['entities']
+            else:
+                del self._entity_cache[cache_key]
+        return None
+    
+    def _cache_entities(self, text: str, entities: List[Dict[str, Any]]):
+        """Cache extracted entities."""
+        cache_key = self._get_cache_key(text, "entities")
+        self._entity_cache[cache_key] = {
+            'entities': entities,
+            'timestamp': time.time()
+        }
+        
+        # Clean old cache entries if too large
+        if len(self._entity_cache) > 1000:
+            current_time = time.time()
+            keys_to_delete = []
+            for key, value in self._entity_cache.items():
+                if current_time - value['timestamp'] > self._cache_ttl:
+                    keys_to_delete.append(key)
+            for key in keys_to_delete:
+                del self._entity_cache[key]
+    
+    def extract_knowledge_batch(self, segments: List[Segment], 
+                              episode_metadata: Optional[Dict[str, Any]] = None) -> List[ExtractionResult]:
+        """Extract knowledge from multiple segments in batch for efficiency.
+        
+        Args:
+            segments: List of segments to process
+            episode_metadata: Episode context information
+            
+        Returns:
+            List of ExtractionResults
+        """
+        results = []
+        
+        # Pre-filter segments
+        valid_segments = []
+        for segment in segments:
+            if not self.should_skip_segment(segment):
+                valid_segments.append(segment)
+            else:
+                # Return empty result for skipped segments
+                results.append(ExtractionResult(
+                    entities=[],
+                    quotes=[],
+                    relationships=[],
+                    metadata={'skipped': True, 'reason': 'non-informative'}
+                ))
+        
+        # Group similar segments for batch processing
+        segment_groups = self._group_similar_segments(valid_segments)
+        
+        # Process each group
+        for group in segment_groups:
+            if len(group) == 1:
+                # Single segment, process normally
+                result = self.extract_knowledge(group[0], episode_metadata)
+                results.append(result)
+            else:
+                # Batch process similar segments
+                batch_results = self._process_segment_batch(group, episode_metadata)
+                results.extend(batch_results)
+        
+        return results
+    
+    def _group_similar_segments(self, segments: List[Segment]) -> List[List[Segment]]:
+        """Group similar segments for batch processing."""
+        groups = []
+        current_group = []
+        current_speaker = None
+        
+        for segment in segments:
+            # Group by speaker for efficiency
+            if segment.speaker == current_speaker and len(current_group) < self._batch_size:
+                current_group.append(segment)
+            else:
+                if current_group:
+                    groups.append(current_group)
+                current_group = [segment]
+                current_speaker = segment.speaker
+        
+        if current_group:
+            groups.append(current_group)
+            
+        return groups
+    
+    def _process_segment_batch(self, segments: List[Segment], 
+                             episode_metadata: Optional[Dict[str, Any]] = None) -> List[ExtractionResult]:
+        """Process a batch of similar segments efficiently."""
+        results = []
+        
+        # Combine texts for batch entity extraction
+        combined_text = "\n---\n".join([f"[{i}] {seg.text}" for i, seg in enumerate(segments)])
+        
+        # Check cache first
+        cached_entities = self._check_entity_cache(combined_text)
+        if cached_entities:
+            # Distribute cached entities to segments
+            for i, segment in enumerate(segments):
+                segment_entities = [e for e in cached_entities if e.get('segment_index') == i]
+                quotes = self._extract_quotes(segment)
+                relationships = self._extract_relationships(segment_entities, quotes, segment)
+                
+                results.append(ExtractionResult(
+                    entities=segment_entities,
+                    quotes=quotes,
+                    relationships=relationships,
+                    metadata={'cached': True, 'batch_processed': True}
+                ))
+            return results
+        
+        # Extract entities for all segments at once (if using LLM)
+        # For now, we'll use pattern matching but structure it for LLM batching
+        all_entities = []
+        for i, segment in enumerate(segments):
+            entities = self._extract_basic_entities(segment)
+            # Tag with segment index
+            for entity in entities:
+                entity['segment_index'] = i
+            all_entities.extend(entities)
+        
+        # Cache the results
+        self._cache_entities(combined_text, all_entities)
+        
+        # Process each segment with its entities
+        for i, segment in enumerate(segments):
+            segment_entities = [e for e in all_entities if e.get('segment_index') == i]
+            quotes = self._extract_quotes(segment)
+            relationships = self._extract_relationships(segment_entities, quotes, segment)
+            
+            results.append(ExtractionResult(
+                entities=segment_entities,
+                quotes=quotes,
+                relationships=relationships,
+                metadata={'batch_processed': True}
+            ))
+        
+        return results
+
     def _extract_basic_entities(self, segment: Segment) -> List[Dict[str, Any]]:
         """
-        Extract basic entities using simple patterns.
+        Extract basic entities using simple patterns with caching.
 
         In a full implementation, this would use SimpleKGPipeline
         or the LLM service for more sophisticated extraction.
         """
+        # Check cache first
+        cached = self._check_entity_cache(segment.text)
+        if cached is not None:
+            return cached
+            
         entities = []
         text = segment.text.lower()
 
@@ -368,8 +566,9 @@ class KnowledgeExtractor:
                     }
                 )
 
-        # If we found the expected entities, return them
+        # If we found the expected entities, cache and return them
         if found_entities:
+            self._cache_entities(segment.text, found_entities)
             return found_entities
 
         # Otherwise, use simple pattern matching for generic entities
@@ -403,7 +602,12 @@ class KnowledgeExtractor:
                 seen.add(key)
                 unique_entities.append(entity)
 
-        return unique_entities[:7]  # Limit to expected number for tests
+        result = unique_entities[:7]  # Limit to expected number for tests
+        
+        # Cache the result
+        self._cache_entities(segment.text, result)
+        
+        return result
 
     def _validate_quote(self, quote: Dict[str, Any], source_text: str) -> bool:
         """

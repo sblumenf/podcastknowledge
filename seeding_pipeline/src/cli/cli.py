@@ -26,6 +26,9 @@ from src.vtt import VTTParser
 from src.seeding.transcript_ingestion import TranscriptIngestionManager
 from src.utils.logging import setup_logging, get_logger
 from src.seeding.checkpoint import ProgressCheckpoint
+from src.seeding.batch_processor import BatchProcessor, BatchItem, BatchResult
+import time
+import threading
 
 
 def load_podcast_configs(config_path: Path) -> List[Dict[str, Any]]:
@@ -355,6 +358,173 @@ def validate_vtt_file(file_path: Path) -> Tuple[bool, Optional[str]]:
         return False, f"Error validating file {file_path}: {str(e)}"
 
 
+def process_vtt_batch(vtt_files: List[Path], pipeline, checkpoint, args) -> int:
+    """Process VTT files in parallel using batch processing.
+    
+    Args:
+        vtt_files: List of VTT file paths to process
+        pipeline: VTTKnowledgeExtractor pipeline instance
+        checkpoint: Optional checkpoint manager
+        args: Command line arguments
+        
+    Returns:
+        Exit code (0 for success, 1 for failure)
+    """
+    logger = get_logger(__name__)
+    start_time = time.time()
+    
+    # Thread-safe counters
+    lock = threading.Lock()
+    counters = {'processed': 0, 'failed': 0, 'skipped': 0}
+    
+    def progress_callback(current: int, total: int):
+        """Display progress with ETA calculation."""
+        elapsed = time.time() - start_time
+        rate = current / elapsed if elapsed > 0 else 0
+        eta = (total - current) / rate if rate > 0 else 0
+        
+        print(f"\rProgress: {current}/{total} ({current/total*100:.1f}%) | "
+              f"Rate: {rate:.1f} files/s | ETA: {format_duration(int(eta))}", 
+              end='', flush=True)
+    
+    def process_single_file(batch_item: BatchItem) -> Dict[str, Any]:
+        """Process a single VTT file in a worker thread."""
+        file_path = batch_item.data
+        
+        # Validate file
+        is_valid, error = validate_vtt_file(file_path)
+        if not is_valid:
+            logger.error(f"Invalid VTT file: {file_path} - {error}")
+            return {
+                'success': False,
+                'error': f"Invalid file: {error}",
+                'file_path': str(file_path)
+            }
+        
+        # Check if already processed
+        if checkpoint:
+            file_hash = get_file_hash(file_path)
+            if checkpoint.is_vtt_processed(str(file_path), file_hash):
+                return {
+                    'success': False,
+                    'skipped': True,
+                    'error': 'Already processed',
+                    'file_path': str(file_path)
+                }
+        
+        try:
+            # Create ingestion manager (each thread gets its own)
+            ingestion_manager = TranscriptIngestionManager(
+                pipeline=pipeline,
+                checkpoint=checkpoint
+            )
+            
+            # Process the VTT file
+            result = ingestion_manager.process_vtt_file(
+                vtt_file=str(file_path),
+                metadata={
+                    'source': 'cli',
+                    'file_name': file_path.name,
+                    'file_path': str(file_path),
+                    'processed_at': datetime.now().isoformat()
+                }
+            )
+            
+            if result['success'] and checkpoint:
+                # Save checkpoint
+                checkpoint.mark_vtt_processed(
+                    str(file_path),
+                    file_hash,
+                    result['segments_processed']
+                )
+            
+            result['file_path'] = str(file_path)
+            return result
+            
+        except Exception as e:
+            logger.error(f"Failed to process {file_path}: {str(e)}", exc_info=True)
+            return {
+                'success': False,
+                'error': str(e),
+                'file_path': str(file_path)
+            }
+    
+    # Create batch items
+    batch_items = [
+        BatchItem(
+            id=str(i),
+            data=file_path,
+            priority=file_path.stat().st_size if file_path.exists() else 0  # Prioritize smaller files
+        )
+        for i, file_path in enumerate(vtt_files)
+    ]
+    
+    # Initialize batch processor
+    max_workers = getattr(args, 'workers', 4)  # Default to 4 workers
+    batch_processor = BatchProcessor(
+        max_workers=max_workers,
+        batch_size=1,  # Process files individually
+        use_processes=False,  # Use threads to share Neo4j connection pool
+        progress_callback=progress_callback
+    )
+    
+    print(f"\nProcessing {len(vtt_files)} VTT files in parallel with {max_workers} workers...")
+    
+    # Process all files
+    results = batch_processor.process_items(
+        items=batch_items,
+        process_func=process_single_file
+    )
+    
+    # Clear progress line
+    print("\r" + " " * 80 + "\r", end='')
+    
+    # Process results
+    for result_obj in results:
+        if result_obj.success:
+            result = result_obj.result
+            file_path = Path(result['file_path'])
+            
+            if result.get('skipped'):
+                print(f"  ⏭ {file_path.name} - Already processed")
+                with lock:
+                    counters['skipped'] += 1
+            elif result.get('success'):
+                print(f"  ✓ {file_path.name} - {result.get('segments_processed', 0)} segments")
+                with lock:
+                    counters['processed'] += 1
+            else:
+                print(f"  ✗ {file_path.name} - {result.get('error', 'Unknown error')}")
+                with lock:
+                    counters['failed'] += 1
+        else:
+            print(f"  ✗ File {result_obj.item_id} - {result_obj.error}")
+            with lock:
+                counters['failed'] += 1
+    
+    # Get statistics
+    stats = batch_processor.get_statistics()
+    total_time = time.time() - start_time
+    
+    # Print summary
+    print("\n" + "="*50)
+    print("Batch Processing Summary:")
+    print(f"  Total files: {len(vtt_files)}")
+    print(f"  Successfully processed: {counters['processed']}")
+    print(f"  Failed: {counters['failed']}")
+    print(f"  Skipped (already processed): {counters['skipped']}")
+    print(f"  Total time: {format_duration(int(total_time))}")
+    print(f"  Average rate: {stats['average_rate']:.1f} files/s")
+    print(f"  Workers used: {max_workers}")
+    
+    if counters['failed'] > 0:
+        print("\nSome files failed to process. Check logs for details.")
+        return 1 if counters['processed'] == 0 else 0
+    
+    print("\nBatch processing completed successfully!")
+    return 0
+
+
 def process_vtt(args: argparse.Namespace) -> int:
     """Process VTT transcript files into knowledge graph.
     
@@ -415,7 +585,11 @@ def process_vtt(args: argparse.Namespace) -> int:
                 extraction_mode='vtt'
             )
         
-        # Process files
+        # Use batch processing for multiple files
+        if len(vtt_files) > 1 and args.parallel:
+            return process_vtt_batch(vtt_files, pipeline, checkpoint, args)
+        
+        # Process files sequentially (existing code)
         processed = 0
         failed = 0
         skipped = 0
@@ -878,6 +1052,19 @@ Examples:
         type=str,
         default='checkpoints',
         help='Directory for checkpoint files (default: checkpoints)'
+    )
+    
+    vtt_parser.add_argument(
+        '--parallel',
+        action='store_true',
+        help='Process files in parallel using multiple workers'
+    )
+    
+    vtt_parser.add_argument(
+        '--workers',
+        type=int,
+        default=4,
+        help='Number of parallel workers to use (default: 4)'
     )
     
     # Checkpoint status command
