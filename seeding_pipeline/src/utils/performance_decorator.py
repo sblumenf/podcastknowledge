@@ -12,7 +12,7 @@ import time
 
 from ..api.metrics import get_metrics_collector
 from ..utils.component_tracker import get_component_tracker
-from ..utils.logging import get_logger
+from ..utils.log_utils import get_logger
 try:
     import psutil
 except ImportError:

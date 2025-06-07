@@ -9,7 +9,7 @@ from typing import Optional, Callable, Any, Dict
 import functools
 import warnings
 
-from ..utils.logging import get_logger
+from ..utils.log_utils import get_logger
 logger = get_logger(__name__)
 
 

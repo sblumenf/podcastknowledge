@@ -13,7 +13,7 @@ from typing import Dict, Any, Optional, List, Callable
 import threading
 import time
 
-from ..utils.logging import get_logger
+from ..utils.log_utils import get_logger
 try:
     import psutil
 except ImportError:

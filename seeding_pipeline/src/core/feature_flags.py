@@ -11,7 +11,7 @@ from functools import lru_cache
 from typing import Dict, Any, Optional
 import os
 
-from ..utils.logging import get_logger
+from ..utils.log_utils import get_logger
 logger = get_logger(__name__)
 
 
