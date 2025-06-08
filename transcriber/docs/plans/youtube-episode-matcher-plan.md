@@ -191,7 +191,7 @@ This plan implements a fully automated YouTube episode matching system that find
   - Validation: All tests pass, coverage >95%
 
 ### Task 5.2: Create Unit Tests for Match Scorer
-- [ ] Write tests/test_youtube_match_scorer.py
+- [x] Write tests/test_youtube_match_scorer.py
   - Purpose: Validate scoring accuracy
   - Steps:
     1. Use context7 MCP tool to review scoring test patterns
@@ -206,7 +206,7 @@ This plan implements a fully automated YouTube episode matching system that find
   - Validation: Scoring behaves predictably
 
 ### Task 5.3: Create Integration Tests
-- [ ] Write tests/test_youtube_episode_matcher_integration.py
+- [x] Write tests/test_youtube_episode_matcher_integration.py
   - Purpose: Test complete matching flow
   - Steps:
     1. Use context7 MCP tool to review integration testing patterns
@@ -221,7 +221,7 @@ This plan implements a fully automated YouTube episode matching system that find
   - Validation: Integration tests cover all paths
 
 ### Task 5.4: Create Mock YouTube API Responses
-- [ ] Create tests/fixtures/youtube_api_responses.py
+- [x] Create tests/fixtures/youtube_api_responses.py
   - Purpose: Consistent test data
   - Steps:
     1. Use context7 MCP tool to review fixture best practices
