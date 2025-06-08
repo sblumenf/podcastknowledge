@@ -10,14 +10,29 @@ This module implements sophisticated importance calculation that considers:
 - Cross-reference score (how often referenced by other entities/insights)
 """
 
-from typing import List, Dict, Optional, Tuple, Any
+from typing import List, Dict, Optional, Tuple, Any, Union
 import logging
 import math
 
 from ..core.models import Entity, Insight, Segment
-import networkx as nx
-import numpy as np
+from ..utils.optional_deps import (
+    HAS_NETWORKX, HAS_NUMPY, 
+    fallback_degree_centrality, fallback_betweenness_centrality, 
+    fallback_eigenvector_centrality, _warn_once
+)
+
 logger = logging.getLogger(__name__)
+
+# Optional imports with fallbacks
+if HAS_NETWORKX:
+    import networkx as nx
+else:
+    nx = None
+
+if HAS_NUMPY:
+    import numpy as np
+else:
+    np = None
 
 
 class ImportanceScorer:
@@ -87,63 +102,109 @@ class ImportanceScorer:
     def calculate_structural_centrality(
         self, 
         entity_id: str, 
-        graph: nx.Graph
+        graph: Union['nx.Graph', Dict[str, List[str]]]
     ) -> float:
         """
         Measure how central the entity is in the knowledge structure.
         
         Args:
             entity_id: ID of the entity to analyze
-            graph: NetworkX graph containing entities and relationships
+            graph: NetworkX graph or dict representation of graph containing entities and relationships
             
         Returns:
             Centrality factor between 0 and 1
         """
-        if not graph.has_node(entity_id):
-            logger.warning(f"Entity {entity_id} not found in graph")
-            return 0.0
-            
         try:
-            # Calculate different centrality measures
-            degree_cent = nx.degree_centrality(graph).get(entity_id, 0.0)
-            
-            # Betweenness centrality: how often this entity bridges other concepts
-            between_cent = nx.betweenness_centrality(graph).get(entity_id, 0.0)
-            
-            # Eigenvector centrality: connection to other important entities
-            # Handle case where graph might be disconnected
-            try:
-                eigen_cent = nx.eigenvector_centrality(graph, max_iter=1000).get(entity_id, 0.0)
-            except nx.PowerIterationFailedConvergence:
-                logger.warning("Eigenvector centrality failed to converge, using degree centrality")
-                eigen_cent = degree_cent
-            except:
-                eigen_cent = 0.0
+            if HAS_NETWORKX and hasattr(graph, 'has_node'):
+                # Use NetworkX for optimal performance
+                return self._calculate_centrality_networkx(entity_id, graph)
+            else:
+                # Use fallback implementations
+                if not HAS_NETWORKX:
+                    _warn_once(
+                        "NetworkX not available. Using simplified centrality calculations. "
+                        "Install networkx for better accuracy: pip install networkx"
+                    )
                 
-            # Combine with weights
-            # Betweenness is most important for knowledge bridging
-            weighted_score = (
-                0.3 * degree_cent +
-                0.5 * between_cent +
-                0.2 * eigen_cent
-            )
-            
-            return min(1.0, weighted_score)
-            
+                # Convert NetworkX graph to dict if needed
+                if hasattr(graph, 'adjacency'):
+                    graph_dict = {str(node): [str(neighbor) for neighbor in graph.neighbors(node)] 
+                                 for node in graph.nodes()}
+                else:
+                    graph_dict = graph
+                
+                return self._calculate_centrality_fallback(entity_id, graph_dict)
+                
         except Exception as e:
             logger.error(f"Error calculating structural centrality: {e}")
             return 0.0
     
+    def _calculate_centrality_networkx(self, entity_id: str, graph: 'nx.Graph') -> float:
+        """Calculate centrality using NetworkX (optimal implementation)."""
+        if not graph.has_node(entity_id):
+            logger.warning(f"Entity {entity_id} not found in graph")
+            return 0.0
+        
+        # Calculate different centrality measures
+        degree_cent = nx.degree_centrality(graph).get(entity_id, 0.0)
+        
+        # Betweenness centrality: how often this entity bridges other concepts
+        between_cent = nx.betweenness_centrality(graph).get(entity_id, 0.0)
+        
+        # Eigenvector centrality: connection to other important entities
+        # Handle case where graph might be disconnected
+        try:
+            eigen_cent = nx.eigenvector_centrality(graph, max_iter=1000).get(entity_id, 0.0)
+        except nx.PowerIterationFailedConvergence:
+            logger.warning("Eigenvector centrality failed to converge, using degree centrality")
+            eigen_cent = degree_cent
+        except:
+            eigen_cent = 0.0
+            
+        # Combine with weights
+        # Betweenness is most important for knowledge bridging
+        weighted_score = (
+            0.3 * degree_cent +
+            0.5 * between_cent +
+            0.2 * eigen_cent
+        )
+        
+        return min(1.0, weighted_score)
+    
+    def _calculate_centrality_fallback(self, entity_id: str, graph_dict: Dict[str, List[str]]) -> float:
+        """Calculate centrality using pure Python fallback implementations."""
+        if entity_id not in graph_dict:
+            logger.warning(f"Entity {entity_id} not found in graph")
+            return 0.0
+        
+        # Use fallback implementations
+        degree_centrality = fallback_degree_centrality(graph_dict)
+        between_centrality = fallback_betweenness_centrality(graph_dict)
+        eigen_centrality = fallback_eigenvector_centrality(graph_dict)
+        
+        degree_cent = degree_centrality.get(entity_id, 0.0)
+        between_cent = between_centrality.get(entity_id, 0.0)
+        eigen_cent = eigen_centrality.get(entity_id, 0.0)
+        
+        # Combine with weights (same as NetworkX version)
+        weighted_score = (
+            0.3 * degree_cent +
+            0.5 * between_cent +
+            0.2 * eigen_cent
+        )
+        
+        return min(1.0, weighted_score)
+    
     def calculate_semantic_centrality(
         self, 
-        entity_embedding: Optional[np.ndarray], 
-        all_embeddings: List[np.ndarray]
+        entity_embedding: Optional[Union['np.ndarray', List[float]]], 
+        all_embeddings: List[Union['np.ndarray', List[float]]]
     ) -> float:
         """
         Determine semantic importance based on embedding relationships.
         
         Args:
-            entity_embedding: Embedding vector for the entity
+            entity_embedding: Embedding vector for the entity (numpy array or list)
             all_embeddings: List of all entity embeddings in the episode
             
         Returns:
@@ -151,7 +212,23 @@ class ImportanceScorer:
         """
         if entity_embedding is None or len(all_embeddings) == 0:
             return 0.5  # Default to neutral if no embeddings available
-            
+        
+        if HAS_NUMPY:
+            return self._calculate_semantic_centrality_numpy(entity_embedding, all_embeddings)
+        else:
+            if not HAS_NUMPY:
+                _warn_once(
+                    "NumPy not available. Using pure Python for semantic calculations. "
+                    "Install numpy for better performance: pip install numpy"
+                )
+            return self._calculate_semantic_centrality_fallback(entity_embedding, all_embeddings)
+    
+    def _calculate_semantic_centrality_numpy(
+        self, 
+        entity_embedding: Union['np.ndarray', List[float]], 
+        all_embeddings: List[Union['np.ndarray', List[float]]]
+    ) -> float:
+        """Calculate semantic centrality using NumPy (optimal implementation)."""
         # Convert to numpy array if needed
         if not isinstance(entity_embedding, np.ndarray):
             entity_embedding = np.array(entity_embedding)
@@ -174,6 +251,48 @@ class ImportanceScorer:
             
         # Calculate average similarity (semantic centrality)
         avg_similarity = np.mean(similarities)
+        
+        # Transform to 0-1 range (similarity is already -1 to 1, we want 0 to 1)
+        centrality_score = (avg_similarity + 1) / 2
+        
+        return float(centrality_score)
+    
+    def _calculate_semantic_centrality_fallback(
+        self, 
+        entity_embedding: Union['np.ndarray', List[float]], 
+        all_embeddings: List[Union['np.ndarray', List[float]]]
+    ) -> float:
+        """Calculate semantic centrality using pure Python fallback."""
+        # Ensure we have a list
+        if hasattr(entity_embedding, 'tolist'):
+            entity_embedding = entity_embedding.tolist()
+        
+        # Calculate cosine similarity to all other entities using pure Python
+        similarities = []
+        for other_embedding in all_embeddings:
+            if other_embedding is not None:
+                # Ensure we have a list
+                if hasattr(other_embedding, 'tolist'):
+                    other_embedding = other_embedding.tolist()
+                
+                # Pure Python cosine similarity
+                if len(entity_embedding) == len(other_embedding):
+                    # Dot product
+                    dot_product = sum(a * b for a, b in zip(entity_embedding, other_embedding))
+                    
+                    # Magnitudes
+                    mag1 = sum(a * a for a in entity_embedding) ** 0.5
+                    mag2 = sum(b * b for b in other_embedding) ** 0.5
+                    
+                    if mag1 > 0 and mag2 > 0:
+                        similarity = dot_product / (mag1 * mag2)
+                        similarities.append(similarity)
+                
+        if not similarities:
+            return 0.5
+            
+        # Calculate average similarity (semantic centrality)
+        avg_similarity = sum(similarities) / len(similarities)
         
         # Transform to 0-1 range (similarity is already -1 to 1, we want 0 to 1)
         centrality_score = (avg_similarity + 1) / 2

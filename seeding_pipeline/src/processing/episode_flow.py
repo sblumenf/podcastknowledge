@@ -4,11 +4,10 @@ from collections import defaultdict, Counter
 from typing import List, Dict, Any, Optional, Tuple
 import logging
 
-from scipy.spatial.distance import cosine
-import numpy as np
-
 from src.core.models import Entity, Segment
 from src.utils.log_utils import get_logger
+from src.utils.optional_deps import cosine_distance, HAS_SCIPY, HAS_NUMPY, _warn_once
+
 logger = get_logger(__name__)
 
 
@@ -84,10 +83,15 @@ class EpisodeFlowAnalyzer:
             return 0.5  # Default neutral similarity
         
         try:
-            emb1 = np.array(self.embedding_provider.embed_text(text1))
-            emb2 = np.array(self.embedding_provider.embed_text(text2))
-            return 1 - cosine(emb1, emb2)
-        except:
+            emb1 = self.embedding_provider.embed_text(text1)
+            emb2 = self.embedding_provider.embed_text(text2)
+            
+            # Use our optional dependency cosine distance function
+            # (it returns distance, so we subtract from 1 to get similarity)
+            distance = cosine_distance(emb1, emb2)
+            return 1.0 - distance
+        except Exception as e:
+            logger.warning(f"Failed to calculate semantic similarity: {e}")
             return 0.5
     
     def _detect_transition_type(
