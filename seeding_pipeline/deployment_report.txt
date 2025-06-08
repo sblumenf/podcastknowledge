@@ -1,5 +1,5 @@
 VTT Pipeline Deployment Validation
-Started at: 2025-06-08 11:00:51.385710
+Started at: 2025-06-08 11:24:11.262915
 
 
 ============================================================
@@ -55,7 +55,7 @@ Started at: 2025-06-08 11:00:51.385710
 ============================================================
   8. Sample VTT Processing Test
 ============================================================
-[92m✓ Created sample VTT file: tmpotzcznrf.vtt[0m
+[92m✓ Created sample VTT file: tmpk4och9w6.vtt[0m
 [93m⚠ Sample VTT parsing failed (expected without dependencies)[0m
 
 ============================================================
@@ -67,7 +67,7 @@ Started at: 2025-06-08 11:00:51.385710
   Deployment Validation Summary
 ============================================================
 
-Validation completed at: 2025-06-08 11:00:53.258125
+Validation completed at: 2025-06-08 11:24:12.919339
 Duration: 1 seconds
 
 [92m✓ DEPLOYMENT VALIDATION PASSED[0m
