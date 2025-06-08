@@ -11,15 +11,15 @@ import asyncio
 from src.config import Config
 from src.utils.logging import get_logger, setup_logging
 from src.utils.batch_progress import BatchProgressTracker
-from src.utils.progress import ProgressReporter, ConsoleProgressBar, LogProgressReporter
-from src.feed_parser import FeedParser, FeedParserError
-from src.file_organizer import FileOrganizer, FileOrganizerError
-from src.metadata_index import MetadataIndex, MetadataIndexError
+from src.utils.progress import ProgressBar
+from src.feed_parser import parse_feed, Episode, PodcastMetadata
+from src.file_organizer import FileOrganizer
+from src.metadata_index import MetadataIndex
 from src.vtt_generator import VTTGenerator
 from src.speaker_identifier import SpeakerIdentifier
 from src.transcription_processor import TranscriptionProcessor
-from src.gemini_client import GeminiClient, TranscriptionError
-from src.progress_tracker import ProgressTracker, TranscriptionProgress
+from src.gemini_client import RateLimitedGeminiClient
+from src.progress_tracker import ProgressTracker, EpisodeStatus
 from src.checkpoint_recovery import CheckpointManager, CheckpointError
 from src.key_rotation_manager import KeyRotationManager
 from src.retry_wrapper import RetryWrapper, RetryConfig
