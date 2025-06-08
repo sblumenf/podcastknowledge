@@ -342,6 +342,13 @@ class Config:
         if self.security.rotation_strategy not in valid_strategies:
             errors.append(f"Rotation strategy must be one of: {valid_strategies}")
         
+        # Validate YouTube API configuration
+        if self.youtube_api.confidence_threshold < 0 or self.youtube_api.confidence_threshold > 1:
+            errors.append("YouTube API confidence threshold must be between 0 and 1")
+            
+        if self.youtube_api.max_results_per_search < 1 or self.youtube_api.max_results_per_search > 50:
+            errors.append("YouTube API max results per search must be between 1 and 50")
+        
         # Check for API key availability
         available_keys = 0
         for key_var in self.security.api_key_vars:
