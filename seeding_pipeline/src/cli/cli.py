@@ -1058,6 +1058,28 @@ def format_file_size(bytes: int) -> str:
         return f"{bytes / (1024 * 1024 * 1024):.1f} GB"
 
 
+def minimal_process(args: argparse.Namespace) -> int:
+    """Handle minimal CLI command by delegating to minimal_cli module."""
+    # Import the minimal CLI function
+    from src.cli.minimal_cli import main as minimal_main
+    
+    # Create args for minimal CLI (convert from namespace to argv)
+    minimal_argv = [args.vtt_file]
+    if hasattr(args, 'dry_run') and args.dry_run:
+        minimal_argv.append('--dry-run')
+    if hasattr(args, 'verbose') and args.verbose:
+        minimal_argv.append('--verbose')
+    
+    # Override sys.argv temporarily to pass args to minimal CLI
+    import sys
+    original_argv = sys.argv
+    try:
+        sys.argv = ['minimal_cli.py'] + minimal_argv
+        return minimal_main()
+    finally:
+        sys.argv = original_argv
+
+
 def main() -> int:
     """Main CLI entry point."""
     parser = argparse.ArgumentParser(
@@ -1236,6 +1258,24 @@ Examples:
         help='Output format (default: text)'
     )
     
+    # Minimal CLI command - lightweight entry point
+    minimal_parser = subparsers.add_parser(
+        'minimal',
+        help='Minimal VTT processing (fast startup, lightweight)'
+    )
+    
+    minimal_parser.add_argument(
+        'vtt_file',
+        type=str,
+        help='VTT file to process'
+    )
+    
+    minimal_parser.add_argument(
+        '--dry-run',
+        action='store_true',
+        help='Parse and validate VTT file without processing'
+    )
+    
     # Parse arguments
     args = parser.parse_args()
     
@@ -1251,6 +1291,8 @@ Examples:
         return checkpoint_clean(args)
     elif args.command == 'health':
         return health_check(args)
+    elif args.command == 'minimal':
+        return minimal_process(args)
     else:
         parser.print_help()
         return 1
