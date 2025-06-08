@@ -7,6 +7,13 @@ with validation, helpful error messages, and defaults.
 
 from typing import Optional, Dict, Any
 import os
+from pathlib import Path
+from dotenv import load_dotenv
+
+# Load .env file if it exists
+env_path = Path('.env')
+if env_path.exists():
+    load_dotenv(env_path)
 class EnvironmentConfig:
     """Centralized environment variable access with validation."""
     
@@ -153,6 +160,50 @@ class EnvironmentConfig:
                 "MAX_MEMORY_GB",
                 4.0,
                 "Maximum memory usage in GB"
+            ),
+            "MAX_MEMORY_MB": cls.get_int(
+                "MAX_MEMORY_MB",
+                2048,
+                "Maximum memory usage in MB"
+            ),
+            "MAX_CONCURRENT_FILES": cls.get_int(
+                "MAX_CONCURRENT_FILES",
+                1,
+                "Maximum concurrent files to process"
+            ),
+            "BATCH_SIZE": cls.get_int(
+                "BATCH_SIZE",
+                10,
+                "Processing batch size"
+            ),
+            
+            # Feature Flags
+            "ENABLE_ENHANCED_LOGGING": cls.get_bool(
+                "ENABLE_ENHANCED_LOGGING",
+                False,
+                "Enable enhanced logging with rotation and JSON format"
+            ),
+            "ENABLE_METRICS": cls.get_bool(
+                "ENABLE_METRICS",
+                False,
+                "Enable metrics collection"
+            ),
+            
+            # Development Settings
+            "DEBUG_MODE": cls.get_bool(
+                "DEBUG_MODE",
+                False,
+                "Enable debug mode"
+            ),
+            "CHECKPOINT_DIR": cls.get_optional(
+                "CHECKPOINT_DIR",
+                "checkpoints",
+                "Directory for storing checkpoints"
+            ),
+            "OUTPUT_DIR": cls.get_optional(
+                "OUTPUT_DIR",
+                "output",
+                "Directory for output files"
             ),
         }
     

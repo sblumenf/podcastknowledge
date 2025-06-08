@@ -484,7 +484,13 @@ def process_vtt_batch(vtt_files: List[Path], pipeline, checkpoint, args) -> int:
     ]
     
     # Initialize batch processor
-    max_workers = getattr(args, 'workers', 4)  # Default to 4 workers
+    # Respect environment variable limits
+    env_max_workers = os.getenv('MAX_WORKERS', os.getenv('MAX_CONCURRENT_FILES'))
+    if env_max_workers:
+        max_workers = min(int(env_max_workers), getattr(args, 'workers', 4))
+    else:
+        max_workers = getattr(args, 'workers', 4)  # Default to 4 workers
+    
     batch_processor = BatchProcessor(
         max_workers=max_workers,
         batch_size=1,  # Process files individually
@@ -1129,6 +1135,12 @@ Examples:
         help='Path to log file'
     )
     
+    parser.add_argument(
+        '--low-resource',
+        action='store_true',
+        help='Enable low-resource mode (optimized for systems with <4GB RAM)'
+    )
+    
     # Subcommands
     subparsers = parser.add_subparsers(
         dest='command',
@@ -1278,6 +1290,13 @@ Examples:
     
     # Parse arguments
     args = parser.parse_args()
+    
+    # Apply low-resource mode if requested
+    if hasattr(args, 'low_resource') and args.low_resource:
+        from src.utils.resource_detection import apply_low_resource_mode, get_resource_summary
+        apply_low_resource_mode()
+        if args.verbose:
+            print("\n" + get_resource_summary() + "\n")
     
     # Set up logging
     setup_logging_cli(args.verbose, args.log_file if hasattr(args, 'log_file') else None)
