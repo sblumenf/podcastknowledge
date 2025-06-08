@@ -323,14 +323,19 @@ def fast_mock_feed_parser():
 # === Automatic Cleanup Fixtures ===
 
 @pytest.fixture(autouse=True)
-def cleanup_environment(monkeypatch):
+def cleanup_environment(tmp_path, monkeypatch):
     """Automatically set up and clean test environment."""
     # Set minimal test API keys
     monkeypatch.setenv('GEMINI_API_KEY_1', 'test_key_1')
     
+    # Use isolated state directory for each test
+    test_state_dir = tmp_path / "test_state"
+    test_state_dir.mkdir()
+    monkeypatch.setenv('STATE_DIR', str(test_state_dir))
+    
     yield
     
-    # Cleanup happens automatically
+    # Cleanup happens automatically via tmp_path
 
 
 @pytest.fixture

@@ -33,10 +33,10 @@ class TestCLICommandParsing:
     def test_transcribe_command_with_options(self):
         """Test transcribe command with various options."""
         args = parse_arguments([
+            '--verbose',
             'transcribe', '--feed-url', 'https://example.com/feed.xml',
             '--max-episodes', '10',
             '--output-dir', '/tmp/output',
-            '--verbose',
             '--resume'
         ])
         assert args.command == 'transcribe'
@@ -47,9 +47,9 @@ class TestCLICommandParsing:
     
     def test_query_command_parsing(self):
         """Test query command parsing."""
-        args = parse_arguments(['query', 'test query', '--limit', '5'])
+        args = parse_arguments(['query', '--keywords', 'test query', '--limit', '5'])
         assert args.command == 'query'
-        assert args.query == 'test query'
+        assert args.keywords == 'test query'
         assert args.limit == 5
     
     def test_state_command_parsing(self):
@@ -102,21 +102,27 @@ class TestCLIErrorHandling:
             reset_state=False
         )
         
-        with patch('src.orchestrator.TranscriptionOrchestrator') as mock_orchestrator:
-            mock_instance = mock_orchestrator.return_value
-            mock_instance.process_feed.side_effect = KeyboardInterrupt()
+        with patch('feedparser.parse') as mock_parse:
+            mock_parse.side_effect = KeyboardInterrupt()
             
             result = await transcribe_command(args)
             assert result != 0
     
     @pytest.mark.asyncio
-    async def test_network_error_handling(self):
+    async def test_network_error_handling(self, tmp_path, monkeypatch):
         """Test handling of network errors."""
+        # Use isolated temp directory for this test
+        test_output_dir = tmp_path / "output"
+        test_data_dir = tmp_path / "data"
+        
+        # Set isolated environment variables
+        monkeypatch.setenv('STATE_DIR', str(test_data_dir))
+        
         args = argparse.Namespace(
             command='transcribe',
             feed_url='https://example.com/feed.xml',
             max_episodes=5,
-            output_dir='output',
+            output_dir=str(test_output_dir),
             verbose=False,
             resume=False,
             dry_run=False,
@@ -125,9 +131,9 @@ class TestCLIErrorHandling:
             reset_state=False
         )
         
-        with patch('src.orchestrator.TranscriptionOrchestrator') as mock_orchestrator:
-            mock_instance = mock_orchestrator.return_value
-            mock_instance.process_feed.side_effect = Exception("Network error: Connection refused")
+        # Mock the TranscriptionOrchestrator in the cli module namespace
+        with patch('src.cli.TranscriptionOrchestrator') as mock_orchestrator:
+            mock_orchestrator.side_effect = Exception("Network error: Connection refused")
             
             result = await transcribe_command(args)
             assert result != 0
@@ -197,13 +203,20 @@ class TestCLIProgressDisplay:
             assert result == 0
     
     @pytest.mark.asyncio
-    async def test_verbose_output(self):
+    async def test_verbose_output(self, tmp_path, monkeypatch):
         """Test verbose output mode."""
+        # Use isolated temp directory for this test
+        test_output_dir = tmp_path / "output"
+        test_data_dir = tmp_path / "data"
+        
+        # Set isolated environment variables
+        monkeypatch.setenv('STATE_DIR', str(test_data_dir))
+        
         args = argparse.Namespace(
             command='transcribe',
             feed_url='https://example.com/feed.xml',
             max_episodes=5,
-            output_dir='output',
+            output_dir=str(test_output_dir),
             verbose=True,  # Verbose enabled
             resume=False,
             dry_run=False,
@@ -221,7 +234,16 @@ class TestCLIProgressDisplay:
                 'skipped': 0,
                 'episodes': []
             })
+            mock_instance.gemini_client.get_usage_summary.return_value = {
+                'key_1': {
+                    'requests_today': 10,
+                    'requests_remaining': 15,
+                    'tokens_today': 100000,
+                    'tokens_remaining': 900000
+                }
+            }
             
+            # Patch the logger directly in the cli module
             with patch('src.cli.logger') as mock_logger:
                 result = await transcribe_command(args)
                 assert result == 0
@@ -289,13 +311,20 @@ class TestCLIIntegration:
             assert result == 0
     
     @pytest.mark.asyncio
-    async def test_retry_failed_episodes(self):
+    async def test_retry_failed_episodes(self, tmp_path, monkeypatch):
         """Test retry failed episodes functionality."""
+        # Use isolated temp directory for this test
+        test_output_dir = tmp_path / "output"
+        test_data_dir = tmp_path / "data"
+        
+        # Set isolated environment variables
+        monkeypatch.setenv('STATE_DIR', str(test_data_dir))
+        
         args = argparse.Namespace(
             command='transcribe',
             feed_url='https://example.com/feed.xml',
             max_episodes=5,
-            output_dir='output',
+            output_dir=str(test_output_dir),
             verbose=False,
             resume=False,
             dry_run=False,
@@ -312,7 +341,7 @@ class TestCLIIntegration:
                 Mock(title='Episode 2', error='API error', attempt_count=2)
             ]
             
-            with patch('src.cli._retry_failed_episodes') as mock_retry:
+            with patch('src.cli._retry_failed_episodes', new_callable=AsyncMock) as mock_retry:
                 mock_retry.return_value = 0
                 result = await transcribe_command(args)
                 mock_retry.assert_called_once()
@@ -350,48 +379,69 @@ class TestCommandFunctions:
         """Test query command functionality."""
         args = argparse.Namespace(
             command='query',
-            query='test search',
+            speaker=None,
+            podcast=None,
+            date=None,
+            date_range=None,
+            keywords='test search',
+            all=None,
+            export_csv=None,
             limit=10,
             stats=False,
             verbose=False
         )
         
-        with patch('src.metadata_index.get_metadata_index') as mock_get_index:
+        with patch('src.cli.get_metadata_index') as mock_get_index:
             mock_index = Mock()
-            mock_index.search_episodes.return_value = [
-                {
-                    'podcast': 'Test Podcast',
-                    'title': 'Episode 1',
-                    'guid': 'ep1',
-                    'score': 0.95
-                }
-            ]
+            mock_index.search_by_keywords.return_value = Mock(
+                query='test search',
+                total_results=1,
+                episodes=[
+                    Mock(
+                        title='Episode 1',
+                        podcast_name='Test Podcast',
+                        publication_date='2024-01-01',
+                        file_path='/test/path.vtt',
+                        speakers=['Host'],
+                        duration=1800,
+                        episode_number=1
+                    )
+                ],
+                search_time_ms=5.0
+            )
             mock_get_index.return_value = mock_index
             
             result = query_command(args)
             assert result == 0
-            mock_index.search_episodes.assert_called_once_with('test search', limit=10)
+            mock_index.search_by_keywords.assert_called_once_with('test search')
     
     def test_show_quota_command(self):
         """Test show quota command."""
         args = argparse.Namespace(
             command='show-quota',
             export_csv=None,
+            reset_usage=False,
             verbose=False
         )
         
-        with patch('src.key_rotation_manager.KeyRotationManager') as mock_krm:
-            mock_instance = mock_krm.return_value
-            mock_instance.get_all_usage_summary.return_value = {
-                'key1': {
-                    'requests_today': 10,
-                    'tokens_today': 1000,
-                    'daily_limit': 100
-                }
-            }
-            
-            result = show_quota_command(args)
-            assert result == 0
+        with patch('src.config.Config') as mock_config_class:
+            mock_config = mock_config_class.return_value
+            with patch('src.gemini_client.create_gemini_client') as mock_create_client:
+                with patch('src.key_rotation_manager.create_key_rotation_manager') as mock_create_krm:
+                    mock_client = Mock()
+                    mock_client.get_usage_summary.return_value = {
+                        'key_1': {
+                            'requests_today': 10,
+                            'tokens_today': 50000,
+                            'requests_remaining': 15,
+                            'tokens_remaining': 950000
+                        }
+                    }
+                    mock_create_client.return_value = mock_client
+                    mock_create_krm.return_value = Mock()
+                    
+                    result = show_quota_command(args)
+                    assert result == 0
 
 
 class TestMainFunction:
@@ -399,7 +449,7 @@ class TestMainFunction:
     
     def test_main_function_transcribe(self):
         """Test main function with transcribe command."""
-        test_args = ['cli.py', 'transcribe', 'https://example.com/feed.xml']
+        test_args = ['cli.py', 'transcribe', '--feed-url', 'https://example.com/feed.xml']
         
         with patch('sys.argv', test_args):
             with patch('asyncio.run') as mock_run:
@@ -410,7 +460,7 @@ class TestMainFunction:
     
     def test_main_function_query(self):
         """Test main function with query command."""
-        test_args = ['cli.py', 'query', 'test search']
+        test_args = ['cli.py', 'query', '--keywords', 'test search']
         
         with patch('sys.argv', test_args):
             with patch('src.cli.query_command') as mock_query:

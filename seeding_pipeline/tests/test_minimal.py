@@ -40,19 +40,20 @@ class TestVTTParsing(unittest.TestCase):
         # Import minimal functionality
         try:
             from src.vtt.vtt_parser import VTTParser
+            from pathlib import Path
             parser = VTTParser()
             
             # Test parsing
-            segments = parser.parse(valid_vtt)
+            segments = parser.parse_file(Path(valid_vtt))
             self.assertIsInstance(segments, list)
             self.assertGreater(len(segments), 0)
             
             # Check first segment
             segment = segments[0]
-            self.assertIn('text', segment)
-            self.assertIn('start_time', segment)
-            self.assertIn('end_time', segment)
-            self.assertEqual(segment['text'], "Hello, this is a test.")
+            self.assertTrue(hasattr(segment, 'text'))
+            self.assertTrue(hasattr(segment, 'start_time'))
+            self.assertTrue(hasattr(segment, 'end_time'))
+            self.assertEqual(segment.text, "Hello, this is a test.")
             
         except ImportError as e:
             self.skipTest(f"VTT parser not available: {e}")

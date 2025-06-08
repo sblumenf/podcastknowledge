@@ -20,9 +20,9 @@ from src.speaker_identifier import SpeakerIdentifier
 from src.transcription_processor import TranscriptionProcessor
 from src.gemini_client import RateLimitedGeminiClient
 from src.progress_tracker import ProgressTracker, EpisodeStatus
-from src.checkpoint_recovery import CheckpointManager, CheckpointError
+from src.checkpoint_recovery import CheckpointManager
 from src.key_rotation_manager import KeyRotationManager
-from src.retry_wrapper import RetryWrapper, RetryConfig
+from src.retry_wrapper import with_retry_and_circuit_breaker, CircuitBreakerState
 from src.orchestrator import TranscriptionOrchestrator
 
 
