@@ -86,6 +86,15 @@ class YouTubeSearchConfig:
 
 
 @dataclass
+class YouTubeAPIConfig:
+    """YouTube Data API v3 configuration settings."""
+    api_key: str = ""
+    max_results_per_search: int = 10
+    search_quota_per_episode: int = 500
+    confidence_threshold: float = 0.90
+
+
+@dataclass
 class ValidationConfig:
     """Transcript validation configuration settings."""
     enabled: bool = True
@@ -123,6 +132,7 @@ class Config:
         self.logging = LoggingConfig()
         self.security = SecurityConfig()
         self.youtube_search = YouTubeSearchConfig()
+        self.youtube_api = YouTubeAPIConfig()
         self.validation = ValidationConfig()
         self.development = DevelopmentConfig()
         
@@ -167,6 +177,7 @@ class Config:
         self._apply_config_section('logging', self.logging)
         self._apply_config_section('security', self.security)
         self._apply_config_section('youtube_search', self.youtube_search)
+        self._apply_config_section('youtube_api', self.youtube_api)
         self._apply_config_section('validation', self.validation)
         self._apply_config_section('development', self.development)
         
@@ -249,6 +260,10 @@ class Config:
         # Development configuration overrides
         self._apply_env_override('PODCAST_DRY_RUN', 'development.dry_run', bool)
         self._apply_env_override('PODCAST_DEBUG_MODE', 'development.debug_mode', bool)
+        
+        # YouTube API configuration overrides
+        self._apply_env_override('YOUTUBE_API_KEY', 'youtube_api.api_key', str)
+        self._apply_env_override('YOUTUBE_CONFIDENCE_THRESHOLD', 'youtube_api.confidence_threshold', float)
     
     def _apply_env_override(self, env_var: str, config_path: str, value_type: type):
         """Apply a single environment variable override.
