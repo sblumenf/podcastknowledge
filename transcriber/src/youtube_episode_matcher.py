@@ -7,7 +7,7 @@ to find the best YouTube match for podcast episodes.
 import json
 import asyncio
 from typing import Dict, List, Optional, Any, Tuple
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 
 from src.youtube_api_client import YouTubeAPIClient, YouTubeAPIError, QuotaExceededError

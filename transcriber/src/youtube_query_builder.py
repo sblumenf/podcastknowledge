@@ -101,6 +101,10 @@ class QueryBuilder:
         Returns:
             Exact match search query
         """
+        # Strip and normalize input strings
+        podcast_name = podcast_name.strip()
+        episode_title = episode_title.strip()
+        
         # Use quotes for exact phrase matching
         query = f'"{podcast_name}" "{episode_title}"'
         return self._normalize_query(query)
