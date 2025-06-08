@@ -7,9 +7,9 @@ import json
 import pytest
 
 from src.core.extraction_interface import (
-from src.processing.adapters.schemaless_adapter import SchemalessAdapter
     Segment, Entity, Relationship, Quote, Insight
 )
+from src.processing.adapters.schemaless_adapter import SchemalessAdapter
 
 
 class TestSchemalessAdapter:

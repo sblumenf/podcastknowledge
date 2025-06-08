@@ -29,7 +29,7 @@ class QueryBuilder:
         self.guest_patterns = [
             r'(?:with|featuring|ft\.?|guest[:\s])\s*([^,\-\(\)]+)',
             r'(?:interview(?:ing)?|conversation with)\s*([^,\-\(\)]+)',
-            r'-\s*([^-]+?)\s*(?:\||$)',  # Name after dash
+            r'(?:^[^-]+)\s*-\s*([^-|\(\)]+?)(?:\s*(?:\||$))',  # Name after dash
         ]
         
     def build_queries(
@@ -263,7 +263,8 @@ class QueryBuilder:
             'of', 'with', 'by', 'from', 'as', 'is', 'was', 'are', 'were', 'been',
             'be', 'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would',
             'could', 'should', 'may', 'might', 'must', 'can', 'this', 'that',
-            'these', 'those', 'i', 'you', 'he', 'she', 'it', 'we', 'they'
+            'these', 'those', 'i', 'you', 'he', 'she', 'it', 'we', 'they',
+            'over', 'under', 'above', 'below', 'between', 'through'
         }
         
         key_terms = []

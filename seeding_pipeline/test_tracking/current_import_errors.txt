@@ -1,0 +1,13 @@
+  <Class TestBackwardCompatibility>
+    <Function test_legacy_data_formats>
+    <Function test_deprecated_validation_patterns>
+
+==================================== ERRORS ====================================
+_________ ERROR collecting tests/integration/test_failure_recovery.py __________
+--
+    return compile(source, filename, mode, flags,
+E     File "/home/sergeblumenfeld/podcastknowledge/seeding_pipeline/tests/integration/test_failure_recovery.py", line 11
+E       from src.extraction.extraction import KnowledgeExtractor
+E       ^^^^
+E   SyntaxError: invalid syntax
+_________ ERROR collecting tests/unit/test_schemaless_adapter_unit.py __________

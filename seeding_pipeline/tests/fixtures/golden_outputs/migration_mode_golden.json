@@ -1,6 +1,6 @@
 {
   "extraction_mode": "migration",
-  "created_at": "2025-06-06T21:20:49.626411",
+  "created_at": "2025-06-08T16:51:23.333931",
   "segments_count": 5,
   "results": [
     {
@@ -133,12 +133,12 @@
         "fixed_entity_count": 4,
         "schemaless_entity_count": 6,
         "new_entity_types": [
+          "Medical Institution",
+          "Performance Metric",
+          "AI Technology",
           "AI Expert",
           "Podcast Host",
-          "AI Company",
-          "Medical Institution",
-          "AI Technology",
-          "Performance Metric"
+          "AI Company"
         ]
       }
     },
@@ -272,12 +272,12 @@
         "fixed_entity_count": 4,
         "schemaless_entity_count": 6,
         "new_entity_types": [
+          "Medical Institution",
+          "Performance Metric",
+          "AI Technology",
           "AI Expert",
           "Podcast Host",
-          "AI Company",
-          "Medical Institution",
-          "AI Technology",
-          "Performance Metric"
+          "AI Company"
         ]
       }
     },
@@ -411,12 +411,12 @@
         "fixed_entity_count": 4,
         "schemaless_entity_count": 6,
         "new_entity_types": [
+          "Medical Institution",
+          "Performance Metric",
+          "AI Technology",
           "AI Expert",
           "Podcast Host",
-          "AI Company",
-          "Medical Institution",
-          "AI Technology",
-          "Performance Metric"
+          "AI Company"
         ]
       }
     },
@@ -550,12 +550,12 @@
         "fixed_entity_count": 4,
         "schemaless_entity_count": 6,
         "new_entity_types": [
+          "Medical Institution",
+          "Performance Metric",
+          "AI Technology",
           "AI Expert",
           "Podcast Host",
-          "AI Company",
-          "Medical Institution",
-          "AI Technology",
-          "Performance Metric"
+          "AI Company"
         ]
       }
     },
@@ -689,12 +689,12 @@
         "fixed_entity_count": 4,
         "schemaless_entity_count": 6,
         "new_entity_types": [
+          "Medical Institution",
+          "Performance Metric",
+          "AI Technology",
           "AI Expert",
           "Podcast Host",
-          "AI Company",
-          "Medical Institution",
-          "AI Technology",
-          "Performance Metric"
+          "AI Company"
         ]
       }
     }

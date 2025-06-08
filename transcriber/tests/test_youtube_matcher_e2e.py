@@ -46,22 +46,26 @@ class TestYouTubeMatcherE2E:
         # Mock Tim Ferriss Show search results
         def search_side_effect(query, **kwargs):
             if "Tim Ferriss" in query and "123" in query:
+                # Return flattened format as API client would
                 return [
-                    factory.create_search_item(
-                        video_id="tim_123_official",
-                        title="The Tim Ferriss Show #123: Dr. Jane Smith - The Science of Longevity",
-                        channel_id="tim_ferriss_channel",
-                        channel_title="Tim Ferriss",
-                        description="Dr. Jane Smith discusses breakthrough research on longevity",
-                        published_at=datetime.utcnow() - timedelta(days=2)
-                    ),
-                    factory.create_search_item(
-                        video_id="tim_123_clips",
-                        title="Best Moments - Tim Ferriss & Dr. Jane Smith on Longevity",
-                        channel_id="tim_clips_channel",
-                        channel_title="Tim Ferriss Clips",
-                        published_at=datetime.utcnow() - timedelta(days=1)
-                    )
+                    {
+                        'video_id': 'tim_123_official',
+                        'title': 'The Tim Ferriss Show #123: Dr. Jane Smith - The Science of Longevity',
+                        'channel_id': 'tim_ferriss_channel',
+                        'channel_title': 'Tim Ferriss',
+                        'published_at': (datetime.utcnow() - timedelta(days=2)).isoformat() + 'Z',
+                        'description': 'Dr. Jane Smith discusses breakthrough research on longevity',
+                        'thumbnail_url': 'https://i.ytimg.com/vi/tim_123_official/default.jpg'
+                    },
+                    {
+                        'video_id': 'tim_123_clips',
+                        'title': 'Best Moments - Tim Ferriss & Dr. Jane Smith on Longevity',
+                        'channel_id': 'tim_clips_channel',
+                        'channel_title': 'Tim Ferriss Clips',
+                        'published_at': (datetime.utcnow() - timedelta(days=1)).isoformat() + 'Z',
+                        'description': 'Highlights from the interview',
+                        'thumbnail_url': 'https://i.ytimg.com/vi/tim_123_clips/default.jpg'
+                    }
                 ]
             return []
             

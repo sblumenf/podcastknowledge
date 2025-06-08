@@ -8,12 +8,12 @@ import time
 import pytest
 
 from src.core.exceptions import (
+    PodcastKGError, ProviderError, ConnectionError, CheckpointError
+)
 from src.extraction.extraction import KnowledgeExtractor
 from src.seeding.batch_processor import BatchProcessor, BatchItem
 from src.seeding.checkpoint import ProgressCheckpoint
 from src.storage.graph_storage import GraphStorageService
-    PodcastKGError, ProviderError, ConnectionError, CheckpointError
-)
 
 
 class TestFailureRecovery:

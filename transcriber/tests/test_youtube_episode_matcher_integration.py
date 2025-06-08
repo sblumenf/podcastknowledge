@@ -29,7 +29,12 @@ class TestYouTubeEpisodeMatcherIntegration:
     @pytest.fixture
     def matcher(self, config):
         """Create matcher instance with mocked API client."""
-        with patch('src.youtube_episode_matcher.YouTubeAPIClient'):
+        with patch('src.youtube_episode_matcher.YouTubeAPIClient') as mock_client_class:
+            mock_client = Mock()
+            mock_client.SEARCH_COST = 100
+            mock_client.VIDEO_DETAILS_COST = 1
+            mock_client.get_quota_status.return_value = {'used': 0, 'limit': 10000}
+            mock_client_class.return_value = mock_client
             return YouTubeEpisodeMatcher(config)
     
     @pytest.fixture
