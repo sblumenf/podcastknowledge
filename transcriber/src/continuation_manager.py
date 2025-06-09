@@ -306,10 +306,12 @@ class ContinuationManager:
         
         return f"""Please continue the transcript from {time_str}. Maintain the same format with timestamps and speaker identification.
 
+Format each line as: [MM:SS] Speaker Name: What they said
+
 Previous context:
 {context_section}
 
-Continue from {time_str}:"""
+Continue from [{time_str}]:"""
     
     async def _request_continuation_direct(self, 
                                          audio_url: str, 

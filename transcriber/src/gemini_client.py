@@ -549,6 +549,14 @@ class RateLimitedGeminiClient:
         
         return f"""I would like a full transcript, time stamped and diarized with clear identification of speaker changes.
 
+Please format each line as: [MM:SS] Speaker Name: What they said
+
+For example:
+[00:00] Host Name: Welcome to the show...
+[00:15] Guest Name: Thank you for having me...
+
+Use the actual names when known (e.g., "Mel Robbins", "Dr. Smith"), or use descriptive labels like "Host", "Guest", "Speaker 1", etc. when names are unclear.
+
 Podcast: {podcast_name}
 Episode: {episode_title}{guest_info}"""
     
