@@ -227,27 +227,31 @@ class TextToVTTConverter:
         Returns:
             Speaker identifier or None if not found
         """
-        # Speaker patterns
+        # First remove any timestamp from the beginning
+        line_without_timestamp = line
+        timestamp_patterns = [
+            r'^\[\d{1,2}:\d{2}(?::\d{2})?\]\s*',  # [HH:MM:SS] or [MM:SS]
+            r'^\(\d{1,2}:\d{2}(?::\d{2})?\)\s*',  # (HH:MM:SS) or (MM:SS)
+            r'^\d{1,2}:\d{2}(?::\d{2})?\s+',      # HH:MM:SS or MM:SS
+        ]
+        
+        for pattern in timestamp_patterns:
+            line_without_timestamp = re.sub(pattern, '', line_without_timestamp)
+        
+        # Speaker patterns (now applied to line without timestamp)
         patterns = [
-            r'^\[?([A-Z][a-zA-Z\s]+)\]?\s*:\s*',  # Name: or [Name]:
-            r'^\[?Speaker\s*(\d+)\]?\s*:?\s*',     # Speaker 1 or [Speaker 1]
-            r'^\[?SPEAKER\s*(\d+)\]?\s*:?\s*',     # SPEAKER 1 or [SPEAKER 1]
-            r'^\[?Host\]?\s*:?\s*',                # Host or [Host]
-            r'^\[?Guest\]?\s*:?\s*',               # Guest or [Guest]
+            r'^([A-Z][a-zA-Z\s]+?):\s*',          # Name: (e.g., "Mel Robbins:")
+            r'^(Speaker\s*\d+):\s*',               # Speaker 1:
+            r'^(SPEAKER\s*\d+):\s*',               # SPEAKER 1:
+            r'^(Host):\s*',                        # Host:
+            r'^(Guest\s*(?:Expert)?):?\s*',       # Guest: or Guest Expert:
+            r'^\[([A-Z][a-zA-Z\s]+?)\]\s*:\s*',   # [Name]:
         ]
         
         for pattern in patterns:
-            match = re.search(pattern, line, re.IGNORECASE)
+            match = re.search(pattern, line_without_timestamp)
             if match:
-                if match.groups() and match.group(1):
-                    # Extract the captured group (name or number)
-                    if match.group(1).isdigit():
-                        return f"Speaker {match.group(1)}"
-                    else:
-                        return match.group(1).strip()
-                else:
-                    # Extract the whole match (Host, Guest, etc.)
-                    return match.group(0).replace(':', '').replace('[', '').replace(']', '').strip()
+                return match.group(1).strip()
         
         return None
     
@@ -264,25 +268,26 @@ class TextToVTTConverter:
         
         # Remove timestamp patterns
         timestamp_patterns = [
-            r'\[?\d{1,2}:\d{2}(?::\d{2})?\]?\s*',
-            r'[Aa]t\s+\d{1,2}:\d{2}(?::\d{2})?\s*',
-            r'[Tt]ime:\s*\d{1,2}:\d{2}(?::\d{2})?\s*',
+            r'^\[?\d{1,2}:\d{2}(?::\d{2})?\]?\s*',     # [HH:MM:SS] or HH:MM:SS at start
+            r'^[Aa]t\s+\d{1,2}:\d{2}(?::\d{2})?\s*',   # At HH:MM:SS
+            r'^[Tt]ime:\s*\d{1,2}:\d{2}(?::\d{2})?\s*', # Time: HH:MM:SS
         ]
         
         for pattern in timestamp_patterns:
             text = re.sub(pattern, '', text)
         
-        # Remove speaker patterns
+        # Remove speaker patterns (must match exactly how speakers appear)
         speaker_patterns = [
-            r'^\[?[A-Z][a-zA-Z\s]+\]?\s*:\s*',     # Name:
-            r'^\[?Speaker\s*\d+\]?\s*:?\s*',       # Speaker N
-            r'^\[?SPEAKER\s*\d+\]?\s*:?\s*',       # SPEAKER N
-            r'^\[?Host\]?\s*:?\s*',                # Host
-            r'^\[?Guest\]?\s*:?\s*',               # Guest
+            r'^([A-Z][a-zA-Z\s]+?):\s*',          # Name: (e.g., "Mel Robbins:")
+            r'^(Speaker\s*\d+):\s*',               # Speaker 1:
+            r'^(SPEAKER\s*\d+):\s*',               # SPEAKER 1:
+            r'^(Host):\s*',                        # Host:
+            r'^(Guest\s*(?:Expert)?):?\s*',       # Guest: or Guest Expert:
+            r'^\[([A-Z][a-zA-Z\s]+?)\]\s*:\s*',   # [Name]:
         ]
         
         for pattern in speaker_patterns:
-            text = re.sub(pattern, '', text, flags=re.IGNORECASE)
+            text = re.sub(pattern, '', text)
         
         return text.strip()
     
@@ -368,13 +373,15 @@ class TextToVTTConverter:
         if not text:
             return ""
         
-        # Add voice tag if provided
+        # Check if we need to split the text
         if voice_tag:
-            text = f"{voice_tag}{text}"
-        
-        # Split into lines if text is too long
-        if len(text) <= self.max_chars_per_line:
-            return text
+            # Check total length including voice tag
+            full_text = f"{voice_tag}{text}"
+            if len(full_text) <= self.max_chars_per_line:
+                return full_text
+        else:
+            if len(text) <= self.max_chars_per_line:
+                return text
         
         # Split text into words and create lines
         words = text.split()
@@ -382,9 +389,6 @@ class TextToVTTConverter:
         current_line = voice_tag if voice_tag else ""
         
         for word in words:
-            # Skip the voice tag word since it's already in current_line
-            if voice_tag and word.startswith("<v "):
-                continue
             
             test_line = f"{current_line} {word}".strip()
             
