@@ -6,6 +6,7 @@ including checkpoint recovery and error handling.
 
 import asyncio
 import json
+import os
 from pathlib import Path
 from typing import Dict, List, Optional, Any, Tuple
 from datetime import datetime, timedelta
@@ -23,6 +24,11 @@ from src.retry_wrapper import QuotaExceededException, CircuitBreakerOpenExceptio
 from src.utils.logging import get_logger, log_progress
 from src.utils.batch_progress import BatchProgressTracker
 from src.config import Config
+# New simplified workflow components
+from src.transcript_analyzer import TranscriptAnalyzer
+from src.continuation_manager import ContinuationManager
+from src.transcript_stitcher import TranscriptStitcher
+from src.text_to_vtt_converter import TextToVTTConverter
 
 logger = get_logger('orchestrator')
 
@@ -71,6 +77,15 @@ class TranscriptionOrchestrator:
         )
         self.vtt_generator = VTTGenerator(self.checkpoint_manager)
         self.youtube_searcher = YouTubeSearcher(self.config)
+        
+        # Initialize new simplified workflow components
+        self.transcript_analyzer = TranscriptAnalyzer()
+        self.continuation_manager = ContinuationManager(
+            self.gemini_client, 
+            max_attempts=self.config.validation.max_continuation_attempts
+        )
+        self.transcript_stitcher = TranscriptStitcher()
+        self.text_to_vtt_converter = TextToVTTConverter()
         
         # Check for resumable checkpoint
         self.resume_mode = resume
@@ -415,6 +430,161 @@ class TranscriptionOrchestrator:
         Returns:
             Processing result
         """
+        # Check if simplified workflow is enabled
+        use_simplified_workflow = os.getenv('USE_SIMPLIFIED_WORKFLOW', 'false').lower() == 'true'
+        
+        if use_simplified_workflow:
+            return await self._process_episode_simplified(episode, episode_data)
+        else:
+            return await self._process_episode_legacy(episode, episode_data)
+    
+    async def _process_episode_simplified(self, episode: Episode, 
+                                        episode_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Process episode using new simplified workflow.
+        
+        Args:
+            episode: Episode to process
+            episode_data: Episode metadata
+            
+        Returns:
+            Processing result
+        """
+        start_time = datetime.now()
+        
+        try:
+            # Update progress tracker
+            self.progress_tracker.update_episode_state(
+                episode.guid, EpisodeStatus.IN_PROGRESS, episode_data
+            )
+            
+            logger.info(f"Starting simplified transcription: {episode.title}")
+            
+            # Stage 1: Raw Transcription (using simplified prompt)
+            if self.checkpoint_manager:
+                self.checkpoint_manager.update_stage('raw_transcription')
+            
+            logger.info("Stage 1: Raw transcription with simple prompt")
+            raw_transcript = await self.gemini_client.transcribe_audio(
+                episode.audio_url, episode_data
+            )
+            
+            if not raw_transcript:
+                raise Exception("Raw transcription failed")
+            
+            # Stage 2: Coverage Analysis and Continuation Loop
+            if self.checkpoint_manager:
+                self.checkpoint_manager.update_stage('continuation_analysis')
+            
+            logger.info("Stage 2: Coverage analysis and continuation")
+            complete_transcript, continuation_info = await self.continuation_manager.ensure_complete_transcript(
+                raw_transcript, 
+                episode.audio_url, 
+                episode_data,
+                min_coverage=self.config.validation.min_coverage_ratio
+            )
+            
+            # Store continuation info in episode data
+            episode_data['_continuation_info'] = continuation_info
+            
+            # Stage 3: Transcript Stitching (if multiple segments)
+            if self.checkpoint_manager:
+                self.checkpoint_manager.update_stage('transcript_stitching')
+            
+            logger.info("Stage 3: Transcript stitching")
+            # Note: continuation_manager already handles stitching internally
+            final_raw_transcript = complete_transcript
+            
+            # Stage 4: Text-to-VTT Conversion
+            if self.checkpoint_manager:
+                self.checkpoint_manager.update_stage('vtt_conversion')
+            
+            logger.info("Stage 4: Converting raw transcript to VTT format")
+            vtt_content = self.text_to_vtt_converter.convert(final_raw_transcript, episode_data)
+            
+            if not vtt_content:
+                raise Exception("VTT conversion failed")
+            
+            # Stage 5: Save VTT File
+            output_path = self._generate_output_path(episode_data)
+            success = self.text_to_vtt_converter.save_vtt_file(vtt_content, output_path)
+            
+            if not success:
+                raise Exception(f"Failed to save VTT file to {output_path}")
+            
+            # Update progress tracker
+            self.progress_tracker.update_episode_state(
+                episode.guid, EpisodeStatus.COMPLETED, episode_data,
+                output_file=str(output_path),
+                continuation_info=continuation_info
+            )
+            
+            if self.checkpoint_manager:
+                self.checkpoint_manager.mark_completed()
+            
+            logger.info(f"Simplified workflow completed: {output_path}")
+            logger.info(f"Continuation attempts: {continuation_info.get('attempts', 0)}, "
+                       f"final coverage: {continuation_info.get('final_coverage', 0):.1%}")
+            
+            return {
+                'episode_id': episode.guid,
+                'title': episode.title,
+                'status': 'completed',
+                'output_file': str(output_path),
+                'workflow': 'simplified',
+                'continuation_info': continuation_info,
+                'duration': (datetime.now() - start_time).total_seconds()
+            }
+            
+        except QuotaExceededException as e:
+            logger.warning(f"Quota exceeded for episode: {e}")
+            raise
+        
+        except CircuitBreakerOpenException as e:
+            logger.error(f"Circuit breaker open for episode: {e}")
+            self.progress_tracker.update_episode_state(
+                episode.guid, EpisodeStatus.FAILED, episode_data,
+                error=str(e)
+            )
+            if self.checkpoint_manager:
+                self.checkpoint_manager.mark_failed(str(e))
+            
+            return {
+                'episode_id': episode.guid,
+                'title': episode.title,
+                'status': 'skipped',
+                'reason': 'circuit_breaker_open',
+                'error': str(e)
+            }
+        
+        except Exception as e:
+            logger.error(f"Simplified episode processing failed: {e}")
+            self.progress_tracker.update_episode_state(
+                episode.guid, EpisodeStatus.FAILED, episode_data,
+                error=str(e)
+            )
+            if self.checkpoint_manager:
+                self.checkpoint_manager.mark_failed(str(e))
+            
+            return {
+                'episode_id': episode.guid,
+                'title': episode.title,
+                'status': 'failed',
+                'error': str(e),
+                'workflow': 'simplified',
+                'duration': (datetime.now() - start_time).total_seconds()
+            }
+    
+    async def _process_episode_legacy(self, episode: Episode, 
+                                    episode_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Process episode using legacy workflow.
+        
+        Args:
+            episode: Episode to process
+            episode_data: Episode metadata
+            
+        Returns:
+            Processing result
+        """
         start_time = datetime.now()
         
         try:
@@ -733,3 +903,29 @@ class TranscriptionOrchestrator:
             logger.info("Cleaned up old checkpoints")
         
         # Could also clean up old progress data if needed
+    
+    def _generate_output_path(self, episode_data: Dict[str, Any]) -> Path:
+        """Generate output path for VTT file.
+        
+        Args:
+            episode_data: Episode metadata
+            
+        Returns:
+            Path for the output VTT file
+        """
+        # Create safe filename from episode title
+        title = episode_data.get('title', 'Unknown_Episode')
+        safe_title = "".join(c for c in title if c.isalnum() or c in (' ', '-', '_')).rstrip()
+        safe_title = safe_title.replace(' ', '_')[:100]  # Limit length
+        
+        # Create podcast subdirectory
+        podcast_name = episode_data.get('podcast_name', 'Unknown_Podcast')
+        safe_podcast = "".join(c for c in podcast_name if c.isalnum() or c in (' ', '-', '_')).rstrip()
+        safe_podcast = safe_podcast.replace(' ', '_')[:50]
+        
+        podcast_dir = self.output_dir / safe_podcast
+        podcast_dir.mkdir(parents=True, exist_ok=True)
+        
+        # Generate VTT filename
+        filename = f"{safe_title}.vtt"
+        return podcast_dir / filename
