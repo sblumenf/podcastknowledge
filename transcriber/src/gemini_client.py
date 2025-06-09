@@ -393,9 +393,16 @@ class RateLimitedGeminiClient:
         elapsed_time = time.time() - start_time
         
         # Extract transcript
-        transcript = response.text
-        if not transcript:
+        raw_transcript = response.text
+        if not raw_transcript:
             raise Exception("Empty transcript returned from API")
+        
+        # Save raw response as intermediate .txt file for debugging
+        if episode_metadata.get('title'):
+            self._save_raw_transcript(raw_transcript, episode_metadata)
+        
+        # Parse the raw transcript response
+        parsed_transcript = self._parse_transcript_response(raw_transcript, episode_metadata)
         
         # Update usage tracking
         # Note: Actual token count would come from response metadata if available
@@ -410,7 +417,7 @@ class RateLimitedGeminiClient:
         self._save_usage_state()
         
         logger.info(f"Transcription completed in {elapsed_time:.1f}s")
-        return transcript
+        return parsed_transcript
     
     async def identify_speakers(self, transcript: str, episode_metadata: Dict[str, Any]) -> Dict[str, str]:
         """Identify speakers in transcript based on context.
@@ -544,6 +551,63 @@ class RateLimitedGeminiClient:
 
 Podcast: {podcast_name}
 Episode: {episode_title}{guest_info}"""
+    
+    def _save_raw_transcript(self, raw_transcript: str, metadata: Dict[str, Any]):
+        """Save raw transcript response to .txt file for debugging.
+        
+        Args:
+            raw_transcript: Raw transcript text from API
+            metadata: Episode metadata
+        """
+        try:
+            # Create safe filename from episode title
+            title = metadata.get('title', 'Unknown')
+            safe_title = "".join(c for c in title if c.isalnum() or c in (' ', '-', '_')).rstrip()
+            safe_title = safe_title.replace(' ', '_')[:50]  # Limit length
+            
+            # Save to data directory
+            data_dir = Path("data/raw_transcripts")
+            data_dir.mkdir(parents=True, exist_ok=True)
+            
+            filename = f"{safe_title}_raw.txt"
+            filepath = data_dir / filename
+            
+            with open(filepath, 'w', encoding='utf-8') as f:
+                f.write(f"# Raw Transcript Response\n")
+                f.write(f"# Podcast: {metadata.get('podcast_name', 'Unknown')}\n")
+                f.write(f"# Episode: {metadata.get('title', 'Unknown')}\n")
+                f.write(f"# Generated: {datetime.now(timezone.utc).isoformat()}\n\n")
+                f.write(raw_transcript)
+            
+            logger.info(f"Saved raw transcript to: {filepath}")
+            
+        except Exception as e:
+            logger.warning(f"Failed to save raw transcript: {e}")
+    
+    def _parse_transcript_response(self, raw_transcript: str, metadata: Dict[str, Any]) -> str:
+        """Parse raw transcript response and extract timestamps.
+        
+        Args:
+            raw_transcript: Raw transcript text from API
+            metadata: Episode metadata
+            
+        Returns:
+            Processed transcript with extracted timestamps
+        """
+        try:
+            # For now, return the raw transcript as-is
+            # This will be enhanced in Phase 4 when we build the text-to-VTT converter
+            logger.info("Processing raw transcript response (Phase 2 - minimal processing)")
+            
+            # Basic cleaning - remove excessive whitespace
+            cleaned_transcript = '\n'.join(line.strip() for line in raw_transcript.split('\n') if line.strip())
+            
+            return cleaned_transcript
+            
+        except Exception as e:
+            logger.error(f"Failed to parse transcript response: {e}")
+            # Return raw transcript as fallback
+            return raw_transcript
     
     def _build_speaker_identification_prompt(self, transcript: str, metadata: Dict[str, Any]) -> str:
         """Build prompt for speaker identification."""
