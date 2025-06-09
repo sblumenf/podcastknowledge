@@ -486,6 +486,29 @@ class TranscriptionOrchestrator:
             # Store continuation info in episode data
             episode_data['_continuation_info'] = continuation_info
             
+            # Check if episode should be failed based on continuation results
+            if self.continuation_manager.should_fail_episode(continuation_info):
+                failure_reason = self.continuation_manager.get_failure_reason(continuation_info)
+                logger.error(f"Episode failed continuation requirements: {failure_reason}")
+                
+                self.progress_tracker.update_episode_state(
+                    episode.guid, EpisodeStatus.FAILED, episode_data,
+                    error=failure_reason
+                )
+                if self.checkpoint_manager:
+                    self.checkpoint_manager.mark_failed(failure_reason)
+                
+                return {
+                    'episode_id': episode.guid,
+                    'title': episode.title,
+                    'status': 'failed',
+                    'error': failure_reason,
+                    'workflow': 'simplified',
+                    'failure_type': continuation_info.get('failure_type', 'coverage_failure'),
+                    'continuation_info': continuation_info,
+                    'duration': (datetime.now() - start_time).total_seconds()
+                }
+            
             # Stage 3: Transcript Stitching (if multiple segments)
             if self.checkpoint_manager:
                 self.checkpoint_manager.update_stage('transcript_stitching')

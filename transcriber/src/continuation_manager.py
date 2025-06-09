@@ -109,7 +109,9 @@ class ContinuationManager:
             "final_coverage": 0.0,
             "success": False,
             "segments_count": 1,
-            "error": None
+            "error": None,
+            "consecutive_failures": 0,
+            "api_errors": []
         }
         
         # Parse episode duration
@@ -162,8 +164,20 @@ class ContinuationManager:
                 
                 if not continuation:
                     logger.warning(f"Failed to get continuation on attempt {attempts + 1}")
-                    continuation_info["error"] = f"Continuation failed at attempt {attempts + 1}"
-                    break
+                    continuation_info["consecutive_failures"] += 1
+                    continuation_info["api_errors"].append(f"Empty response on attempt {attempts + 1}")
+                    
+                    # Fail after 3 consecutive empty responses
+                    if continuation_info["consecutive_failures"] >= 3:
+                        continuation_info["error"] = "Too many consecutive empty continuation responses"
+                        continuation_info["failure_type"] = "consecutive_api_failures"
+                        break
+                    
+                    attempts += 1
+                    continue
+                
+                # Reset consecutive failures on success
+                continuation_info["consecutive_failures"] = 0
                 
                 # Add continuation to segments
                 segments.append(continuation)
@@ -177,8 +191,19 @@ class ContinuationManager:
                 
             except Exception as e:
                 logger.error(f"Error requesting continuation: {e}")
-                continuation_info["error"] = str(e)
-                break
+                continuation_info["consecutive_failures"] += 1
+                continuation_info["api_errors"].append(f"API error on attempt {attempts + 1}: {str(e)}")
+                
+                # Fail after 3 consecutive API errors
+                if continuation_info["consecutive_failures"] >= 3:
+                    continuation_info["error"] = f"Too many consecutive API errors: {str(e)}"
+                    continuation_info["failure_type"] = "consecutive_api_failures"
+                    break
+                
+                attempts += 1
+                # Longer pause after errors
+                if attempts < self.max_attempts:
+                    await self._async_sleep(5.0)
         
         # Final processing
         final_transcript = self._simple_concatenate(segments)
@@ -188,14 +213,35 @@ class ContinuationManager:
         continuation_info["segments_count"] = len(segments)
         continuation_info["completed_at"] = datetime.now(timezone.utc).isoformat()
         
+        # Determine failure conditions
         if attempts >= self.max_attempts:
             logger.warning(f"Reached maximum continuation attempts ({self.max_attempts})")
             continuation_info["error"] = f"Max attempts ({self.max_attempts}) reached"
+            continuation_info["failure_type"] = "max_attempts_exceeded"
         
-        if not continuation_info["success"] and not continuation_info["error"]:
-            continuation_info["error"] = "Insufficient coverage achieved"
+        elif final_coverage < min_coverage:
+            logger.warning(f"Insufficient coverage: {final_coverage:.1%} < {min_coverage:.1%}")
+            continuation_info["error"] = f"Insufficient coverage: {final_coverage:.1%} < {min_coverage:.1%}"
+            continuation_info["failure_type"] = "insufficient_coverage"
+        
+        elif len(segments) == 1 and final_coverage < 0.5:
+            logger.warning(f"Very low coverage on initial transcript: {final_coverage:.1%}")
+            continuation_info["error"] = f"Very low initial coverage: {final_coverage:.1%}"
+            continuation_info["failure_type"] = "initial_transcript_too_short"
+        
+        # Additional failure conditions
+        if not continuation_info["success"]:
+            if not continuation_info.get("error"):
+                continuation_info["error"] = "Unknown failure in continuation process"
+                continuation_info["failure_type"] = "unknown"
+            
+            # Clean up temporary files on failure
+            self._cleanup_on_failure(segments)
         
         logger.info(f"Continuation loop completed: {final_coverage:.1%} coverage with {len(segments)} segments")
+        
+        if continuation_info.get("failure_type"):
+            logger.error(f"Episode failed: {continuation_info['failure_type']} - {continuation_info['error']}")
         
         return final_transcript, continuation_info
     
@@ -345,6 +391,74 @@ Continue from {time_str}:"""
         """
         import asyncio
         await asyncio.sleep(seconds)
+    
+    def _cleanup_on_failure(self, segments: List[str]):
+        """Clean up temporary files and resources on failure.
+        
+        Args:
+            segments: List of transcript segments that may have temporary files
+        """
+        try:
+            # For now, just log the cleanup
+            # In the future, this could clean up actual temporary files
+            logger.info(f"Cleaning up after failure: {len(segments)} segments processed")
+            
+            # Could implement:
+            # - Delete temporary raw transcript files
+            # - Clean up partial VTT files
+            # - Reset any state variables
+            
+        except Exception as e:
+            logger.warning(f"Failed to cleanup on failure: {e}")
+    
+    def should_fail_episode(self, continuation_info: Dict[str, Any]) -> bool:
+        """Check if episode should be failed based on continuation results.
+        
+        Args:
+            continuation_info: Continuation tracking information
+            
+        Returns:
+            True if episode should be failed
+        """
+        # Check for explicit failure conditions
+        if continuation_info.get("failure_type"):
+            return True
+        
+        # Check for very low coverage
+        final_coverage = continuation_info.get("final_coverage", 0.0)
+        if final_coverage < 0.3:  # Less than 30% coverage is always a failure
+            return True
+        
+        # Check for no progress (stuck in loop)
+        attempts = continuation_info.get("attempts", 0)
+        segments_count = continuation_info.get("segments_count", 1)
+        if attempts > 5 and segments_count <= 2:  # Many attempts but few segments
+            return True
+        
+        return False
+    
+    def get_failure_reason(self, continuation_info: Dict[str, Any]) -> str:
+        """Get human-readable failure reason.
+        
+        Args:
+            continuation_info: Continuation tracking information
+            
+        Returns:
+            Formatted failure reason
+        """
+        failure_type = continuation_info.get("failure_type", "unknown")
+        error = continuation_info.get("error", "Unknown error")
+        final_coverage = continuation_info.get("final_coverage", 0.0)
+        attempts = continuation_info.get("attempts", 0)
+        
+        if failure_type == "max_attempts_exceeded":
+            return f"Maximum continuation attempts ({attempts}) reached with {final_coverage:.1%} coverage"
+        elif failure_type == "insufficient_coverage":
+            return f"Insufficient coverage achieved: {final_coverage:.1%}"
+        elif failure_type == "initial_transcript_too_short":
+            return f"Initial transcript too short: {final_coverage:.1%} coverage"
+        else:
+            return f"Episode failed: {error}"
     
     def get_continuation_stats(self) -> Dict[str, Any]:
         """Get statistics about continuation manager usage.
