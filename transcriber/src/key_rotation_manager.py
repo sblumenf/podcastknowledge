@@ -188,6 +188,7 @@ class KeyRotationManager:
         self.api_keys = api_keys
         self.key_states: List[APIKeyState] = []
         self.current_index = 0
+        self.use_paid_key_only = os.getenv('USE_PAID_KEY_ONLY', 'false').lower() == 'true'
         
         # Determine state directory
         if state_dir:
@@ -208,7 +209,10 @@ class KeyRotationManager:
         # Load saved state if exists
         self._load_state()
         
-        logger.info(f"Initialized key rotation manager with {len(api_keys)} keys")
+        if self.use_paid_key_only:
+            logger.info(f"Initialized key rotation manager in PAID KEY ONLY mode with first key: {self.key_states[0].key_name}")
+        else:
+            logger.info(f"Initialized key rotation manager with {len(api_keys)} keys")
     
     def _load_state(self):
         """Load saved rotation state from file."""
@@ -275,6 +279,25 @@ class KeyRotationManager:
                 state.consecutive_failures = 0
                 state.error_message = None
     
+    def use_paid_key_only(self):
+        """Force the manager to use only the first (paid) API key."""
+        self.use_paid_key_only = True
+        self.current_index = 0
+        logger.info("Switched to paid key only mode - will use only first API key")
+    
+    def is_paid_tier(self, key_index: int = 0) -> bool:
+        """Check if a key is paid tier.
+        
+        For now, assumes first key is paid tier if USE_PAID_KEY_ONLY is set.
+        
+        Args:
+            key_index: Index of key to check
+            
+        Returns:
+            True if key is considered paid tier
+        """
+        return key_index == 0 and self.use_paid_key_only
+    
     def get_next_key(self) -> Tuple[str, int]:
         """Get the next available API key using round-robin rotation.
         
@@ -284,7 +307,16 @@ class KeyRotationManager:
         Raises:
             Exception: If no keys are available
         """
-        # Try up to len(keys) times to find an available key
+        # If in paid key only mode, always use first key
+        if self.use_paid_key_only:
+            first_state = self.key_states[0]
+            if first_state.status != KeyStatus.ERROR:  # Allow paid key even if rate limited
+                logger.info(f"Using paid key (first key): {first_state.key_name}")
+                return self.api_keys[0], 0
+            else:
+                raise Exception("Paid API key (first key) is in error state and cannot be used")
+        
+        # Original round-robin logic for free tier mode
         attempts = 0
         starting_index = self.current_index
         
@@ -404,7 +436,17 @@ class KeyRotationManager:
         Returns:
             Tuple of (api_key, key_index) or None if no key has quota
         """
-        # Check all keys for quota availability
+        # If in paid key only mode, always return first key (no quota limits)
+        if self.use_paid_key_only:
+            first_state = self.key_states[0]
+            if first_state.status != KeyStatus.ERROR:
+                logger.info(f"Using paid key (no quota limits): {first_state.key_name}")
+                return self.api_keys[0], 0
+            else:
+                logger.warning("Paid API key is in error state")
+                return None
+        
+        # Original quota checking logic for free tier mode
         for i, state in enumerate(self.key_states):
             if state.is_usable(RATE_LIMITS):
                 # Additional check for tokens if provided
