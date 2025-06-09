@@ -41,7 +41,7 @@ RATE_LIMITS = {
 }
 
 # Model configuration
-DEFAULT_MODEL = 'gemini-1.5-pro-latest'
+DEFAULT_MODEL = 'gemini-2.5-pro-preview-05-06'
 
 
 @dataclass
@@ -482,58 +482,42 @@ class RateLimitedGeminiClient:
     
     def _build_transcription_prompt(self, metadata: Dict[str, Any]) -> str:
         """Build prompt for audio transcription."""
-        return f"""Please transcribe this podcast episode into WebVTT (VTT) format with the following requirements:
+        description = metadata.get('description', '')
+        
+        return f"""Transcribe this podcast episode with timestamps and speaker identification.
 
-1. Include accurate timestamps in HH:MM:SS.mmm format
-2. Identify different speakers as SPEAKER_1, SPEAKER_2, etc.
-3. Use <v SPEAKER_N> tags for speaker identification
-4. Keep each subtitle segment under 2 lines and about 5-7 seconds
-5. Include a NOTE block at the beginning with episode metadata
-
-Episode Information:
-- Podcast: {metadata.get('podcast_name', 'Unknown')}
-- Title: {metadata.get('title', 'Unknown')}
-- Date: {metadata.get('publication_date', 'Unknown')}
-- Description: {metadata.get('description', '')[:200]}...
-
-Format the output as a valid WebVTT file starting with:
-WEBVTT
-
-NOTE
+EPISODE INFO:
 Podcast: {metadata.get('podcast_name', 'Unknown')}
 Episode: {metadata.get('title', 'Unknown')}
-Date: {metadata.get('publication_date', 'Unknown')}
+Host: {metadata.get('author', 'Unknown')}
 
-Then include the timed transcript with speaker tags."""
+DESCRIPTION:
+{description}
+
+Create a WebVTT transcript that:
+- Identifies speakers by name when possible (using context from the description)
+- Uses natural segment breaks that preserve complete thoughts
+- Includes accurate timestamps
+- Shows clear speaker changes using <v Speaker> tags
+
+Focus on creating a readable, accurate transcript."""
     
     def _build_speaker_identification_prompt(self, transcript: str, metadata: Dict[str, Any]) -> str:
         """Build prompt for speaker identification."""
-        return f"""Analyze this podcast transcript and identify the speakers based on context clues.
+        description = metadata.get('description', '')
+        
+        return f"""Identify the speakers in this podcast transcript using the context provided.
 
-Podcast Information:
-- Podcast Name: {metadata.get('podcast_name', 'Unknown')}
-- Host/Author: {metadata.get('author', 'Unknown')}
-- Episode Title: {metadata.get('title', 'Unknown')}
-- Description: {metadata.get('description', '')[:300]}...
+EPISODE: {metadata.get('title', 'Unknown')}
+HOST: {metadata.get('author', 'Unknown')}
+DESCRIPTION: {description}
 
-Transcript excerpt (first 1000 characters):
-{transcript[:1000]}...
+TRANSCRIPT EXCERPT:
+{transcript[:2000]}
 
-Please identify each speaker (SPEAKER_1, SPEAKER_2, etc.) based on:
-1. Self-introductions or introductions by others
-2. References to names in conversation
-3. Speaking patterns (host usually introduces the show and guests)
-4. Context from the episode title and description
+Return a JSON mapping of speaker labels to names. Use actual names from the description when available.
 
-Return a JSON object mapping speaker labels to identified names or roles.
-If you cannot identify a speaker with confidence, use descriptive roles like "HOST", "GUEST_1", etc.
-
-Example response format:
-{{
-  "SPEAKER_1": "Lisa Park (Host)",
-  "SPEAKER_2": "Dr. Rahman (Guest)",
-  "SPEAKER_3": "GUEST_2"
-}}"""
+Example: {{"SPEAKER_1": "Mel Robbins (Host)", "SPEAKER_2": "Bryan Stevenson"}}"""
     
     def _parse_duration(self, duration_str: str) -> float:
         """Parse duration string to minutes."""

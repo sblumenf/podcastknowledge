@@ -78,7 +78,7 @@ class SecurityConfig:
 class YouTubeSearchConfig:
     """YouTube search configuration settings."""
     enabled: bool = True
-    method: str = "rss_only"
+    method: str = "rss_only"  # Options: "rss_only", "simple", "advanced"
     cache_results: bool = True
     fuzzy_match_threshold: float = 0.85
     duration_tolerance: float = 0.1
@@ -264,6 +264,9 @@ class Config:
         # YouTube API configuration overrides
         self._apply_env_override('YOUTUBE_API_KEY', 'youtube_api.api_key', str)
         self._apply_env_override('YOUTUBE_CONFIDENCE_THRESHOLD', 'youtube_api.confidence_threshold', float)
+        
+        # YouTube search method override
+        self._apply_env_override('YOUTUBE_SEARCH_METHOD', 'youtube_search.method', str)
     
     def _apply_env_override(self, env_var: str, config_path: str, value_type: type):
         """Apply a single environment variable override.

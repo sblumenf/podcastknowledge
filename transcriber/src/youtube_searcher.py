@@ -80,18 +80,46 @@ class YouTubeSearcher:
             logger.debug(f"Cache hit for {episode_title}: {cached_result}")
             return cached_result if cached_result != "NOT_FOUND" else None
         
-        # Try RSS extraction first
+        # Try different search methods based on configuration
         youtube_url = None
-        if episode_description and getattr(self.config.youtube_search, 'extract_from_rss', True):
-            youtube_url = self._extract_youtube_url_from_text(episode_description)
-            if youtube_url:
-                logger.info(f"Found YouTube URL in RSS for {episode_title}: {youtube_url}")
         
-        # Try external search if enabled and RSS extraction failed
-        if not youtube_url and getattr(self.config.youtube_search, 'use_yt_dlp', False):
-            # This would require yt-dlp dependency (pending approval)
-            # youtube_url = self._search_with_yt_dlp(podcast_name, episode_title, episode_number, duration_seconds)
-            logger.debug("yt-dlp search not implemented (requires approval)")
+        if self.method == "rss_only":
+            # Only extract from RSS description
+            if episode_description:
+                youtube_url = self._extract_youtube_url_from_text(episode_description)
+                if youtube_url:
+                    logger.info(f"Found YouTube URL in RSS for {episode_title}: {youtube_url}")
+        
+        elif self.method == "simple":
+            # First try RSS, then simple YouTube API search
+            if episode_description:
+                youtube_url = self._extract_youtube_url_from_text(episode_description)
+                if youtube_url:
+                    logger.info(f"Found YouTube URL in RSS for {episode_title}: {youtube_url}")
+            
+            # If RSS failed, try simple YouTube API search
+            if not youtube_url and podcast_name:
+                youtube_url = await self._simple_youtube_search(podcast_name, episode_title, duration_seconds)
+                if youtube_url:
+                    logger.info(f"Found YouTube URL via simple search for {episode_title}: {youtube_url}")
+        
+        elif self.method == "advanced":
+            # RSS first, then use the complex episode matcher system (future implementation)
+            if episode_description:
+                youtube_url = self._extract_youtube_url_from_text(episode_description)
+                if youtube_url:
+                    logger.info(f"Found YouTube URL in RSS for {episode_title}: {youtube_url}")
+            
+            # Future: integrate with youtube_episode_matcher for complex search
+            if not youtube_url:
+                logger.debug("Advanced YouTube search not yet implemented")
+        
+        else:
+            logger.warning(f"Unknown YouTube search method: {self.method}, falling back to RSS only")
+            if episode_description:
+                youtube_url = self._extract_youtube_url_from_text(episode_description)
+                if youtube_url:
+                    logger.info(f"Found YouTube URL in RSS for {episode_title}: {youtube_url}")
         
         # Cache the result
         if self.cache_results:
@@ -100,6 +128,86 @@ class YouTubeSearcher:
             self._save_cache()
         
         return youtube_url
+    
+    async def _simple_youtube_search(self, podcast_name: str, episode_title: str, 
+                                   duration_seconds: Optional[int] = None) -> Optional[str]:
+        """Perform a simple YouTube API search for the episode.
+        
+        Args:
+            podcast_name: Name of the podcast
+            episode_title: Title of the episode
+            duration_seconds: Expected duration for validation
+            
+        Returns:
+            YouTube URL if found with confidence, None otherwise
+        """
+        try:
+            import requests
+            import os
+            
+            # Get YouTube API key from config
+            api_key = getattr(self.config.youtube_api, 'api_key', '') or os.getenv('YOUTUBE_API_KEY')
+            if not api_key:
+                logger.warning("No YouTube API key configured for simple search")
+                return None
+            
+            # Build simple search query: "Podcast Name" "Episode Title" (truncated)
+            episode_title_short = episode_title[:50] if len(episode_title) > 50 else episode_title
+            query = f'"{podcast_name}" "{episode_title_short}"'
+            
+            # YouTube Data API search
+            url = 'https://www.googleapis.com/youtube/v3/search'
+            params = {
+                'part': 'snippet',
+                'q': query,
+                'type': 'video',
+                'maxResults': 5,
+                'key': api_key
+            }
+            
+            logger.debug(f"Simple YouTube search query: {query}")
+            
+            response = requests.get(url, params=params, timeout=10)
+            
+            if response.status_code != 200:
+                logger.warning(f"YouTube API search failed: {response.status_code}")
+                return None
+            
+            data = response.json()
+            items = data.get('items', [])
+            
+            if not items:
+                logger.debug(f"No YouTube results found for query: {query}")
+                return None
+            
+            # Simple validation: take first result if it looks reasonable
+            first_result = items[0]
+            video_id = first_result['id']['videoId']
+            video_title = first_result['snippet']['title']
+            channel_title = first_result['snippet']['channelTitle']
+            
+            # Basic confidence check: video title should contain some podcast keywords
+            podcast_words = set(podcast_name.lower().split())
+            video_words = set(video_title.lower().split())
+            
+            # Check if there's reasonable overlap between podcast name and video title/channel
+            title_overlap = len(podcast_words & video_words) / len(podcast_words) if podcast_words else 0
+            channel_overlap = len(podcast_words & set(channel_title.lower().split())) / len(podcast_words) if podcast_words else 0
+            
+            confidence = max(title_overlap, channel_overlap)
+            min_confidence = 0.3  # Lower threshold for simple mode
+            
+            if confidence >= min_confidence:
+                youtube_url = f"https://www.youtube.com/watch?v={video_id}"
+                logger.info(f"Simple search found video (confidence: {confidence:.2f}): {video_title} by {channel_title}")
+                return youtube_url
+            else:
+                logger.debug(f"Low confidence match ({confidence:.2f}): {video_title} by {channel_title}")
+                return None
+                
+        except Exception as e:
+            logger.warning(f"Simple YouTube search failed: {e}")
+            return None
     
     def _extract_youtube_url_from_text(self, text: str) -> Optional[str]:
         """Extract YouTube URL from RSS text content.

@@ -2,11 +2,18 @@
   "episode_id": "92319569-004c-4a6e-b348-5f12758cd2e0",
   "audio_url": "https://dts.podtrac.com/redirect.mp3/tracking.swap.fm/track/0bDcdoop59bdTYSfajQW/pdst.fm/e/stitcher.simplecastaudio.com/b9de9f5f-6dab-4833-b4c2-05f1d28dd998/episodes/c924a266-b675-40b6-bf52-b3d5b9b5c64d/audio/128/default.mp3?aid=rss_feed&awCollectionId=b9de9f5f-6dab-4833-b4c2-05f1d28dd998&awEpisodeId=c924a266-b675-40b6-bf52-b3d5b9b5c64d&feed=UCwaTX1J",
   "title": "This Conversation Will Change Your Life: Do This to Find Purpose & Meaning",
-  "status": "failed",
-  "stage_completed": [],
-  "temporary_files": {},
-  "start_time": "2025-06-08T22:45:56.767456",
-  "last_update": "2025-06-08T22:50:28.479741",
+  "status": "completed",
+  "stage_completed": [
+    "transcription",
+    "speaker_identification",
+    "vtt_generation"
+  ],
+  "temporary_files": {
+    "transcription": "data/checkpoints/temp/92319569-004c-4a6e-b348-5f12758cd2e0_transcription.tmp",
+    "speaker_mapping": "data/checkpoints/temp/92319569-004c-4a6e-b348-5f12758cd2e0_speaker_mapping.tmp"
+  },
+  "start_time": "2025-06-08T23:46:24.653545",
+  "last_update": "2025-06-08T23:52:33.051220",
   "metadata": {
     "title": "This Conversation Will Change Your Life: Do This to Find Purpose & Meaning",
     "audio_url": "https://dts.podtrac.com/redirect.mp3/tracking.swap.fm/track/0bDcdoop59bdTYSfajQW/pdst.fm/e/stitcher.simplecastaudio.com/b9de9f5f-6dab-4833-b4c2-05f1d28dd998/episodes/c924a266-b675-40b6-bf52-b3d5b9b5c64d/audio/128/default.mp3?aid=rss_feed&awCollectionId=b9de9f5f-6dab-4833-b4c2-05f1d28dd998&awEpisodeId=c924a266-b675-40b6-bf52-b3d5b9b5c64d&feed=UCwaTX1J",
@@ -22,7 +29,12 @@
     "youtube_url": null,
     "file_size": 90888611,
     "mime_type": "audio/mpeg",
-    "podcast_name": "The Mel Robbins Podcast"
+    "podcast_name": "The Mel Robbins Podcast",
+    "_continuation_info": {
+      "continuation_attempts": 1,
+      "final_coverage_ratio": 0.10040457746478873,
+      "segment_count": 2
+    }
   },
-  "error": "Transcription failed"
+  "final_output": "data/transcripts/The_Mel_Robbins_Podcast/2025-06-05_This_Conversation_Will_Change_Your_Life__Do_This_to_Find_Purpose_&_Meaning.vtt"
 }

@@ -292,6 +292,11 @@ class TranscriptionOrchestrator:
             
             # Resume from appropriate stage
             if resume_stage == 'transcription':
+                # Check if YouTube URL search was completed, if not, do it now
+                if not checkpoint.metadata.get('youtube_url') and self.youtube_searcher.search_enabled:
+                    logger.info("YouTube URL missing from checkpoint, running search before transcription")
+                    await self._search_youtube_url(episode, checkpoint.metadata)
+                
                 # Need to redo transcription
                 result = await self._process_episode_full(episode, checkpoint.metadata)
             elif resume_stage == 'speaker_identification':
@@ -351,34 +356,7 @@ class TranscriptionOrchestrator:
         
         # Search for YouTube URL if enabled
         if self.youtube_searcher.search_enabled:
-            try:
-                # Parse duration to seconds if available
-                duration_seconds = None
-                if episode.duration:
-                    # Try to parse duration string (e.g., "1:23:45" or "45:30")
-                    duration_parts = episode.duration.split(':')
-                    if len(duration_parts) == 3:  # hours:minutes:seconds
-                        duration_seconds = int(duration_parts[0]) * 3600 + int(duration_parts[1]) * 60 + int(duration_parts[2])
-                    elif len(duration_parts) == 2:  # minutes:seconds
-                        duration_seconds = int(duration_parts[0]) * 60 + int(duration_parts[1])
-                
-                youtube_url = await self.youtube_searcher.search_youtube_url(
-                    podcast_name=podcast_metadata.title,
-                    episode_title=episode.title,
-                    episode_description=episode.description,
-                    episode_number=episode.episode_number,
-                    duration_seconds=duration_seconds
-                )
-                
-                if youtube_url:
-                    episode.youtube_url = youtube_url
-                    episode_data['youtube_url'] = youtube_url
-                    logger.info(f"Found YouTube URL for {episode.title}: {youtube_url}")
-                else:
-                    logger.debug(f"No YouTube URL found for {episode.title}")
-                    
-            except Exception as e:
-                logger.warning(f"YouTube search failed for {episode.title}: {e}")
+            await self._search_youtube_url(episode, episode_data)
         
         # Start checkpoint
         if self.checkpoint_manager:
@@ -387,6 +365,44 @@ class TranscriptionOrchestrator:
             )
         
         return await self._process_episode_full(episode, episode_data)
+    
+    async def _search_youtube_url(self, episode: Episode, episode_data: Dict[str, Any]):
+        """Search for YouTube URL for the episode.
+        
+        Args:
+            episode: Episode to search for
+            episode_data: Episode metadata dictionary to update
+        """
+        try:
+            # Parse duration to seconds if available
+            duration_seconds = None
+            if episode.duration:
+                # Try to parse duration string (e.g., "1:23:45" or "45:30")
+                duration_parts = episode.duration.split(':')
+                if len(duration_parts) == 3:  # hours:minutes:seconds
+                    duration_seconds = int(duration_parts[0]) * 3600 + int(duration_parts[1]) * 60 + int(duration_parts[2])
+                elif len(duration_parts) == 2:  # minutes:seconds
+                    duration_seconds = int(duration_parts[0]) * 60 + int(duration_parts[1])
+            
+            youtube_url = await self.youtube_searcher.search_youtube_url(
+                podcast_name=episode_data.get('podcast_name', ''),
+                episode_title=episode.title,
+                episode_description=episode.description,
+                episode_number=episode.episode_number,
+                duration_seconds=duration_seconds
+            )
+            
+            if youtube_url:
+                episode.youtube_url = youtube_url
+                episode_data['youtube_url'] = youtube_url
+                logger.info(f"Found YouTube URL for {episode.title}: {youtube_url}")
+            else:
+                episode_data['youtube_url'] = None
+                logger.debug(f"No YouTube URL found for {episode.title}")
+                
+        except Exception as e:
+            episode_data['youtube_url'] = None
+            logger.warning(f"YouTube search failed for {episode.title}: {e}")
     
     async def _process_episode_full(self, episode: Episode, 
                                   episode_data: Dict[str, Any]) -> Dict[str, Any]:
