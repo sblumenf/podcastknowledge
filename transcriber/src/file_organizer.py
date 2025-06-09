@@ -4,6 +4,7 @@ This module provides functionality for organizing VTT transcript files with
 consistent naming patterns, directory structure, and metadata tracking.
 """
 
+import os
 import re
 import json
 import shutil
@@ -39,26 +40,31 @@ class EpisodeMetadata:
 class FileOrganizer:
     """Organizes podcast transcript files with consistent naming and structure."""
     
-    def __init__(self, base_dir: Optional[str] = None, config: Optional[Config] = None):
+    def __init__(self, base_output_dir: Optional[str] = None, config: Optional[Config] = None):
         """Initialize file organizer.
         
         Args:
-            base_dir: Base directory for storing transcripts. If None, uses config or default.
+            base_output_dir: Base directory for storing transcripts. 
+                           Defaults to TRANSCRIPT_OUTPUT_DIR environment variable.
             config: Optional configuration object. If provided, settings from config are used.
         """
         # Store config for later use
         self.config = config
         
-        # Determine base directory
-        if base_dir is not None:
-            # Explicit base_dir takes precedence
-            self.base_dir = Path(base_dir)
-        elif config is not None:
-            # Use config if available
-            self.base_dir = Path(config.output.default_dir)
+        # Use explicit output directory from parameter or environment
+        if base_output_dir:
+            self.base_dir = Path(base_output_dir)
         else:
-            # Fall back to default
-            self.base_dir = Path("data/transcripts")
+            # First check for new TRANSCRIPT_OUTPUT_DIR variable
+            env_dir = os.getenv('TRANSCRIPT_OUTPUT_DIR')
+            if env_dir:
+                self.base_dir = Path(env_dir)
+            elif config:
+                # Fall back to config if available
+                self.base_dir = Path(config.output.default_dir)
+            else:
+                # Fall back to old env var or default
+                self.base_dir = Path(os.getenv('PODCAST_OUTPUT_DIR', 'data/transcripts'))
         
         # Only create directory if it's not a test path
         if not str(self.base_dir).startswith('/test'):
@@ -235,6 +241,33 @@ class FileOrganizer:
                 break
         
         return relative_path, full_path
+    
+    def get_output_path(self, episode: 'Episode') -> Path:
+        """Get the output path for an Episode object.
+        
+        Args:
+            episode: Episode object from feed parser.
+            
+        Returns:
+            Path object for the output VTT file.
+        """
+        # Extract podcast name from episode if available
+        podcast_name = getattr(episode, 'podcast_name', 'Unknown_Podcast')
+        
+        # Format publication date
+        if hasattr(episode, 'published_date') and episode.published_date:
+            pub_date = episode.published_date.strftime('%Y-%m-%d')
+        else:
+            pub_date = datetime.now().strftime('%Y-%m-%d')
+        
+        # Generate filename
+        relative_path, full_path = self.generate_filename(
+            podcast_name=podcast_name,
+            episode_title=episode.title,
+            publication_date=pub_date
+        )
+        
+        return Path(full_path)
     
     def create_episode_file(self, podcast_name: str, episode_title: str,
                            publication_date: str, speakers: List[str],

@@ -276,8 +276,8 @@ class TestVTTSegmenter:
         # Create mock segments with proper attributes
         mock_segment = Mock()
         mock_segment.text = "Test text"
-        mock_segment.start = 0.0
-        mock_segment.end = 2.0
+        mock_segment.start_time = 0.0
+        mock_segment.end_time = 2.0
         mock_segment.speaker = "Speaker1"
         
         segments = [mock_segment]

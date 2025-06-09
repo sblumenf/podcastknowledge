@@ -98,7 +98,7 @@ class YouTubeAPIConfig:
 class ValidationConfig:
     """Transcript validation configuration settings."""
     enabled: bool = True
-    min_coverage_ratio: float = 0.85
+    min_coverage_ratio: float = 0.95
     max_continuation_attempts: int = 10
 
 
@@ -108,7 +108,7 @@ class SimplifiedWorkflowConfig:
     enabled: bool = False
     use_paid_key_only: bool = False
     require_full_coverage: bool = True
-    min_coverage_threshold: float = 0.85
+    min_coverage_threshold: float = 0.95
     max_continuation_attempts: int = 10
     enable_transcript_stitching: bool = True
     save_raw_transcripts: bool = False

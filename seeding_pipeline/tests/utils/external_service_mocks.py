@@ -234,23 +234,27 @@ def mock_external_requests(monkeypatch):
 
 def patch_external_services_for_tests(monkeypatch):
     """Patch all external services for testing."""
-    # Patch Google Gemini
+    # Patch Google Gemini - avoid importing to prevent IPython dependency issues
     try:
-        import google.generativeai as genai
         mock_model = MockGeminiModel()
         monkeypatch.setattr("google.generativeai.GenerativeModel", lambda model_name: mock_model)
         monkeypatch.setattr("google.generativeai.configure", lambda api_key: None)
-    except ImportError:
+    except (ImportError, AttributeError):
         pass
     
-    # Patch sentence transformers
+    # Patch sentence transformers - avoid importing to prevent dependency issues  
     try:
-        from sentence_transformers import SentenceTransformer
         mock_embedding = MockEmbeddingModel()
         monkeypatch.setattr("sentence_transformers.SentenceTransformer", lambda model_name: mock_embedding)
-    except ImportError:
+    except (ImportError, AttributeError):
         pass
     
     # Patch common LLM providers
-    monkeypatch.setattr("src.services.llm.GoogleGeminiProvider", create_mock_llm_service, raising=False)
-    monkeypatch.setattr("src.services.embeddings.EmbeddingService", create_mock_embedding_service, raising=False)
+    try:
+        monkeypatch.setattr("src.services.llm.GoogleGeminiProvider", create_mock_llm_service)
+    except (ImportError, AttributeError):
+        pass
+    try:
+        monkeypatch.setattr("src.services.embeddings.EmbeddingService", create_mock_embedding_service)
+    except (ImportError, AttributeError):
+        pass

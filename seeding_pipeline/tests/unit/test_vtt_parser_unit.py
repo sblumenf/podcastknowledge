@@ -63,11 +63,17 @@ class TestVTTParser:
         with pytest.raises(ValidationError, match="VTT file not found"):
             parser.parse_file(Path("/non/existent/file.vtt"))
     
+    @patch('pathlib.Path.stat')
     @patch('pathlib.Path.exists')
     @patch('builtins.open', mock_open(read_data="WEBVTT\n\n00:00:00.000 --> 00:00:01.000\nHello"))
-    def test_parse_file_success(self, mock_exists, parser):
+    def test_parse_file_success(self, mock_exists, mock_stat, parser):
         """Test parsing a valid VTT file."""
         mock_exists.return_value = True
+        # Mock stat to return a small file size
+        mock_stat_obj = Mock()
+        mock_stat_obj.st_size = 100  # 100 bytes
+        mock_stat.return_value = mock_stat_obj
+        
         segments = parser.parse_file(Path("test.vtt"))
         
         assert len(segments) == 1
@@ -75,11 +81,17 @@ class TestVTTParser:
         assert segments[0].start_time == 0.0
         assert segments[0].end_time == 1.0
     
+    @patch('pathlib.Path.stat')
     @patch('pathlib.Path.exists')
     @patch('builtins.open', side_effect=IOError("Read error"))
-    def test_parse_file_read_error(self, mock_file, mock_exists, parser):
+    def test_parse_file_read_error(self, mock_file, mock_exists, mock_stat, parser):
         """Test file read error."""
         mock_exists.return_value = True
+        # Mock stat to return a small file size
+        mock_stat_obj = Mock()
+        mock_stat_obj.st_size = 100  # 100 bytes
+        mock_stat.return_value = mock_stat_obj
+        
         with pytest.raises(ValidationError, match="Failed to read VTT file"):
             parser.parse_file(Path("test.vtt"))
     

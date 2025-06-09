@@ -1,13 +1,13 @@
 # RSS Feed parsing
 feedparser>=6.0.0
 
-# Google Gemini API client
-google-generativeai>=0.3.0
+# Deepgram API client
+deepgram-sdk==3.0.0
 
 # Environment variable management
 python-dotenv>=1.0.0
 
-# Retry logic with exponential backoff
+# Retry logic with exponential backoff (keeping for potential future use)
 tenacity>=8.0.0
 # YAML configuration parsing
 PyYAML>=6.0.0

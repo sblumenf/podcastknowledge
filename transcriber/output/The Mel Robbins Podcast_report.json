@@ -1,0 +1,50 @@
+{
+  "podcast": "The Mel Robbins Podcast",
+  "processing_date": "2025-06-09T14:04:38.823587",
+  "summary": {
+    "total_processed": 1,
+    "successful": 1,
+    "failed": 0,
+    "skipped": 0
+  },
+  "episodes": [
+    {
+      "episode_id": "8899ba48-8d61-4679-b826-ce491d372ec5",
+      "title": "Finally Feel Good in Your Body: 4 Expert Steps to Feeling More Confident Today",
+      "status": "completed",
+      "output_file": "output/The_Mel_Robbins_Podcast/2025-06-09_Finally_Feel_Good_in_Your_Body__4_Expert_Steps_to_Feeling_More_Confident_Today.vtt",
+      "speakers": [],
+      "duration": 0.025962
+    }
+  ],
+  "api_usage": {
+    "key_1": {
+      "requests_today": 1,
+      "tokens_today": 144500,
+      "requests_remaining": 24,
+      "tokens_remaining": 855500,
+      "is_available": true
+    },
+    "key_2": {
+      "requests_today": 1,
+      "tokens_today": 2000,
+      "requests_remaining": 24,
+      "tokens_remaining": 998000,
+      "is_available": true
+    },
+    "key_3": {
+      "requests_today": 0,
+      "tokens_today": 0,
+      "requests_remaining": 25,
+      "tokens_remaining": 1000000,
+      "is_available": true
+    },
+    "key_4": {
+      "requests_today": 0,
+      "tokens_today": 0,
+      "requests_remaining": 25,
+      "tokens_remaining": 1000000,
+      "is_available": false
+    }
+  }
+}

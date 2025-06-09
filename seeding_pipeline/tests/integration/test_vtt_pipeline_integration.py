@@ -161,7 +161,7 @@ class TestVTTPipelineIntegration:
         """Test component initialization with provider coordinator."""
         with patch('src.seeding.components.provider_coordinator.LLMService') as mock_llm_class, \
              patch('src.seeding.components.provider_coordinator.GraphStorageService') as mock_graph_class, \
-             patch('src.seeding.components.provider_coordinator.EmbeddingsService') as mock_embedding_class:
+             patch('src.seeding.components.provider_coordinator.GeminiEmbeddingsService') as mock_embedding_class:
             
             # Configure mocks
             mock_llm_class.return_value = mock_providers['llm']
@@ -201,7 +201,7 @@ Second segment of episode two.
         
         with patch('src.seeding.components.provider_coordinator.LLMService') as mock_llm_class, \
              patch('src.seeding.components.provider_coordinator.GraphStorageService') as mock_graph_class, \
-             patch('src.seeding.components.provider_coordinator.EmbeddingsService') as mock_embedding_class:
+             patch('src.seeding.components.provider_coordinator.GeminiEmbeddingsService') as mock_embedding_class:
             
             # Configure mocks
             mock_llm_class.return_value = mock_providers['llm']
@@ -231,7 +231,7 @@ Second segment of episode two.
         """Test pipeline cleanup."""
         with patch('src.seeding.components.provider_coordinator.LLMService') as mock_llm_class, \
              patch('src.seeding.components.provider_coordinator.GraphStorageService') as mock_graph_class, \
-             patch('src.seeding.components.provider_coordinator.EmbeddingsService') as mock_embedding_class:
+             patch('src.seeding.components.provider_coordinator.GeminiEmbeddingsService') as mock_embedding_class:
             
             # Configure mocks
             mock_llm_class.return_value = mock_providers['llm']

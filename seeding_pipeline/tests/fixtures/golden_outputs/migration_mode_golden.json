@@ -1,6 +1,6 @@
 {
   "extraction_mode": "migration",
-  "created_at": "2025-06-09T00:26:08.965089",
+  "created_at": "2025-06-09T15:43:52.988735",
   "segments_count": 5,
   "results": [
     {
@@ -133,12 +133,12 @@
         "fixed_entity_count": 4,
         "schemaless_entity_count": 6,
         "new_entity_types": [
-          "Podcast Host",
           "Performance Metric",
-          "AI Company",
+          "Medical Institution",
           "AI Technology",
+          "Podcast Host",
           "AI Expert",
-          "Medical Institution"
+          "AI Company"
         ]
       }
     },
@@ -272,12 +272,12 @@
         "fixed_entity_count": 4,
         "schemaless_entity_count": 6,
         "new_entity_types": [
-          "Podcast Host",
           "Performance Metric",
-          "AI Company",
+          "Medical Institution",
           "AI Technology",
+          "Podcast Host",
           "AI Expert",
-          "Medical Institution"
+          "AI Company"
         ]
       }
     },
@@ -411,12 +411,12 @@
         "fixed_entity_count": 4,
         "schemaless_entity_count": 6,
         "new_entity_types": [
-          "Podcast Host",
           "Performance Metric",
-          "AI Company",
+          "Medical Institution",
           "AI Technology",
+          "Podcast Host",
           "AI Expert",
-          "Medical Institution"
+          "AI Company"
         ]
       }
     },
@@ -550,12 +550,12 @@
         "fixed_entity_count": 4,
         "schemaless_entity_count": 6,
         "new_entity_types": [
-          "Podcast Host",
           "Performance Metric",
-          "AI Company",
+          "Medical Institution",
           "AI Technology",
+          "Podcast Host",
           "AI Expert",
-          "Medical Institution"
+          "AI Company"
         ]
       }
     },
@@ -689,12 +689,12 @@
         "fixed_entity_count": 4,
         "schemaless_entity_count": 6,
         "new_entity_types": [
-          "Podcast Host",
           "Performance Metric",
-          "AI Company",
+          "Medical Institution",
           "AI Technology",
+          "Podcast Host",
           "AI Expert",
-          "Medical Institution"
+          "AI Company"
         ]
       }
     }

@@ -9,6 +9,11 @@ import pytest
 from src.core.exceptions import ValidationError
 from src.core.interfaces import TranscriptSegment
 from src.vtt.vtt_parser import VTTParser, VTTCue
+
+
+@pytest.mark.vtt
+@pytest.mark.vtt_parser
+@pytest.mark.unit
 class TestVTTParser:
     """Test suite for VTT parser."""
     
@@ -88,6 +93,7 @@ First cue is fine.
 00:00:02.000 -->"""
 
     # Tests for basic functionality
+    @pytest.mark.critical
     def test_parse_simple_vtt(self):
         """Test parsing a simple VTT file."""
         segments = self.parser.parse_content(self.VALID_VTT_SIMPLE)

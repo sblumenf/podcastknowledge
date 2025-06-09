@@ -265,7 +265,7 @@ class KnowledgeExtractor:
             unit="seconds",
             operation="extract_knowledge",
             tags={
-                'segment_id': segment.id,
+                'segment_id': str(getattr(segment, 'id', 'unknown')),
                 'entity_count': str(len(entities)),
                 'quote_count': str(len(quotes)),
                 'relationship_count': str(len(relationships))
@@ -331,10 +331,10 @@ class KnowledgeExtractor:
                         "value": "I'm excited to discuss how machine learning is revolutionizing healthcare diagnostics.",
                         "speaker": "Dr. Johnson",
                         "quote_type": "insightful",
-                        "timestamp_start": segment.start_time,
-                        "timestamp_end": segment.start_time + 5.0,
-                        "start_time": segment.start_time,
-                        "end_time": segment.start_time + 5.0,
+                        "timestamp_start": segment.start if hasattr(segment, 'start') else segment.start_time,
+                        "timestamp_end": (segment.start if hasattr(segment, 'start') else segment.start_time) + 5.0,
+                        "start_time": segment.start if hasattr(segment, 'start') else segment.start_time,
+                        "end_time": (segment.start if hasattr(segment, 'start') else segment.start_time) + 5.0,
                         "importance_score": 0.8,
                         "confidence": 0.7,
                         "properties": {"generated_for_test": True},
@@ -348,10 +348,10 @@ class KnowledgeExtractor:
                         "value": "We developed a neural network that analyzes medical imaging data. It can detect early-stage tumors that human radiologists might miss.",
                         "speaker": "Dr. Johnson",
                         "quote_type": "technical",
-                        "timestamp_start": segment.start_time + 10.0,
-                        "timestamp_end": segment.start_time + 15.0,
-                        "start_time": segment.start_time + 10.0,
-                        "end_time": segment.start_time + 15.0,
+                        "timestamp_start": (segment.start if hasattr(segment, 'start') else segment.start_time) + 10.0,
+                        "timestamp_end": (segment.start if hasattr(segment, 'start') else segment.start_time) + 15.0,
+                        "start_time": (segment.start if hasattr(segment, 'start') else segment.start_time) + 10.0,
+                        "end_time": (segment.start if hasattr(segment, 'start') else segment.start_time) + 15.0,
                         "importance_score": 0.9,
                         "confidence": 0.8,
                         "properties": {"generated_for_test": True},
@@ -586,7 +586,7 @@ class KnowledgeExtractor:
                         "value": entity_name,
                         "entity_type": entity_type,  # For compatibility
                         "confidence": 0.8,
-                        "start_time": segment.start_time,
+                        "start_time": segment.start if hasattr(segment, 'start') else segment.start_time,
                         "properties": {
                             "extraction_method": "pattern_matching",
                             "description": f"{entity_type.capitalize()} entity",
@@ -616,7 +616,7 @@ class KnowledgeExtractor:
                         "value": entity_value,
                         "entity_type": entity_type,
                         "confidence": 0.7,
-                        "start_time": segment.start_time,
+                        "start_time": segment.start if hasattr(segment, 'start') else segment.start_time,
                         "properties": {"extraction_method": "pattern_matching"},
                     }
                 )
@@ -811,18 +811,22 @@ class KnowledgeExtractor:
 
     def _calculate_quote_timestamp(self, position: int, text: str, segment: Segment) -> float:
         """Calculate timestamp for quote based on position in text."""
-        if not segment.start_time:
+        # Handle both interfaces.TranscriptSegment and extraction_interface.Segment
+        start_time = segment.start if hasattr(segment, 'start') else segment.start_time
+        end_time = segment.end if hasattr(segment, 'end') else segment.end_time
+        
+        if not start_time:
             return 0.0
 
         # Estimate based on position in text
         total_chars = len(text)
-        duration = (segment.end_time - segment.start_time) if segment.end_time else 0
+        duration = (end_time - start_time) if end_time else 0
 
         if total_chars > 0 and duration > 0:
             time_per_char = duration / total_chars
-            return segment.start_time + (position * time_per_char)
+            return start_time + (position * time_per_char)
 
-        return segment.start_time
+        return start_time
 
     def _calculate_entity_timestamp(self, position: int, text: str, segment: Segment) -> float:
         """Calculate timestamp for entity based on position in text."""
@@ -1099,7 +1103,7 @@ class KnowledgeExtractor:
                     if i == 0:
                         start_time = getattr(seg, 'start_time', getattr(seg, 'start', 0.0))
                     if i == len(segments) - 1:
-                        end_time = seg.end_time
+                        end_time = getattr(seg, 'end_time', getattr(seg, 'end', 10.0))
 
             text = " ".join(texts)
             segment = Segment(text=text, start=start_time, end=end_time)

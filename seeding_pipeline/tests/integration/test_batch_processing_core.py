@@ -75,9 +75,12 @@ class TestBatchProcessingCore:
         assert len(results) == 5
         assert all(r.success for r in results)
         
-        # Verify results
-        for i, result in enumerate(results):
-            assert result.item_id == f"test_episode_{i+1}"
+        # Verify results (order not guaranteed due to parallel processing)
+        result_ids = sorted([r.item_id for r in results])
+        expected_ids = [f"test_episode_{i+1}" for i in range(5)]
+        assert result_ids == sorted(expected_ids)
+        
+        for result in results:
             assert result.result["entities"] == 10
             assert result.result["relationships"] == 5
     

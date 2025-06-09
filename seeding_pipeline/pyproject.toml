@@ -68,6 +68,12 @@ markers = [
     "benchmark: marks tests as benchmark tests",
     "external: marks tests that require external services",
     "memory_intensive: marks tests that use significant memory",
+    "vtt: marks tests as VTT-specific",
+    "vtt_parser: marks tests for VTT parser functionality",
+    "vtt_segmentation: marks tests for VTT segmentation",
+    "vtt_extraction: marks tests for VTT knowledge extraction",
+    "critical: marks tests as critical path",
+    "neo4j: marks tests that require Neo4j",
 ]
 timeout = 30
 
