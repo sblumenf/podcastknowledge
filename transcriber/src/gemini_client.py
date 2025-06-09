@@ -524,26 +524,26 @@ class RateLimitedGeminiClient:
         return speaker_mapping
     
     def _build_transcription_prompt(self, metadata: Dict[str, Any]) -> str:
-        """Build prompt for audio transcription."""
+        """Build simplified prompt for audio transcription."""
+        # Get basic episode context
+        podcast_name = metadata.get('podcast_name', 'Unknown')
+        episode_title = metadata.get('title', 'Unknown')
         description = metadata.get('description', '')
         
-        return f"""Transcribe this podcast episode with timestamps and speaker identification.
+        # Extract guest info from description if available
+        guest_info = ""
+        if description:
+            # Simple extraction of guest info - look for common patterns
+            lines = description.split('\n')
+            for line in lines[:3]:  # Check first 3 lines
+                if any(word in line.lower() for word in ['guest', 'interview', 'with', 'featuring']):
+                    guest_info = f"\nGuest info: {line.strip()}"
+                    break
+        
+        return f"""I would like a full transcript, time stamped and diarized with clear identification of speaker changes.
 
-EPISODE INFO:
-Podcast: {metadata.get('podcast_name', 'Unknown')}
-Episode: {metadata.get('title', 'Unknown')}
-Host: {metadata.get('author', 'Unknown')}
-
-DESCRIPTION:
-{description}
-
-Create a WebVTT transcript that:
-- Identifies speakers by name when possible (using context from the description)
-- Uses natural segment breaks that preserve complete thoughts
-- Includes accurate timestamps
-- Shows clear speaker changes using <v Speaker> tags
-
-Focus on creating a readable, accurate transcript."""
+Podcast: {podcast_name}
+Episode: {episode_title}{guest_info}"""
     
     def _build_speaker_identification_prompt(self, transcript: str, metadata: Dict[str, Any]) -> str:
         """Build prompt for speaker identification."""
