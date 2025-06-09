@@ -58,11 +58,22 @@ class APIKeyUsage:
         if self.last_reset is None:
             self.last_reset = datetime.now(timezone.utc)
     
-    def can_make_request(self) -> bool:
-        """Check if this key can make a request based on rate limits."""
+    def can_make_request(self, is_paid_tier: bool = False) -> bool:
+        """Check if this key can make a request based on rate limits.
+        
+        Args:
+            is_paid_tier: If True, bypass quota limits for paid tier keys
+            
+        Returns:
+            True if key can make a request
+        """
+        # For paid tier keys, skip quota checks but still check availability
+        if is_paid_tier:
+            return self.is_available
+            
         now = datetime.now(timezone.utc)
         
-        # Check daily limits
+        # Check daily limits for free tier keys
         if self.requests_today >= RATE_LIMITS['rpd']:
             logger.warning(f"API key {self.key_index + 1} hit daily request limit")
             return False
@@ -126,6 +137,23 @@ class RateLimitedGeminiClient:
         
         # Load usage state if exists
         self._load_usage_state()
+    
+    def is_paid_tier(self, key_index: int) -> bool:
+        """Check if a key is paid tier.
+        
+        Args:
+            key_index: Index of the key to check
+            
+        Returns:
+            True if key is paid tier
+        """
+        # Use key rotation manager's method if available
+        if self.key_rotation_manager and hasattr(self.key_rotation_manager, 'is_paid_tier'):
+            return self.key_rotation_manager.is_paid_tier(key_index)
+        
+        # Fallback: check if USE_PAID_KEY_ONLY is set and this is the first key
+        use_paid_only = os.getenv('USE_PAID_KEY_ONLY', 'false').lower() == 'true'
+        return key_index == 0 and use_paid_only
     
     def _load_usage_state(self):
         """Load usage state from file if it exists."""
@@ -203,9 +231,10 @@ class RateLimitedGeminiClient:
         
         # Find available key
         for i, tracker in enumerate(self.usage_trackers):
-            if tracker.can_make_request():
-                # Wait if needed for rate limiting
-                if tracker.last_request_time:
+            is_paid = self.is_paid_tier(i)
+            if tracker.can_make_request(is_paid_tier=is_paid):
+                # For free tier keys, wait if needed for rate limiting
+                if not is_paid and tracker.last_request_time:
                     time_since_last = (now - tracker.last_request_time).total_seconds()
                     wait_time = (60 / RATE_LIMITS['rpm']) - time_since_last
                     if wait_time > 0:
@@ -214,6 +243,8 @@ class RateLimitedGeminiClient:
                 
                 # Configure the API key for this request
                 genai.configure(api_key=self.api_keys[i])
+                if is_paid:
+                    logger.info(f"Using paid tier key {i + 1} (no quota limits)")
                 return self.models[i], i
         
         logger.error("No API keys available due to rate limits")
@@ -235,11 +266,14 @@ class RateLimitedGeminiClient:
         if not model:
             raise Exception("No API keys available")
         
-        # Check if we should skip this episode to preserve quota
+        # Check if we should skip this episode to preserve quota (skip for paid tier keys)
         tracker = self.usage_trackers[key_index]
-        if should_skip_episode(tracker.requests_today):
+        is_paid = self.is_paid_tier(key_index)
+        if not is_paid and should_skip_episode(tracker.requests_today):
             logger.warning(f"Skipping episode to preserve daily quota")
             return None
+        elif is_paid:
+            logger.info(f"Using paid tier key - not checking episode skip quota")
         
         logger.info(f"Starting transcription for: {episode_metadata.get('title', 'Unknown')}")
         logger.info(f"Using API key {key_index + 1}")
@@ -310,10 +344,13 @@ class RateLimitedGeminiClient:
         duration_minutes = self._parse_duration(duration_str)
         estimated_tokens = int(duration_minutes * 2000)
         
-        # Check if we'll exceed token limits
+        # Check if we'll exceed token limits (skip for paid tier keys)
         tracker = self.usage_trackers[key_index]
-        if tracker.tokens_today + estimated_tokens > RATE_LIMITS['tpd']:
+        is_paid = self.is_paid_tier(key_index)
+        if not is_paid and tracker.tokens_today + estimated_tokens > RATE_LIMITS['tpd']:
             raise QuotaExceededException("Would exceed daily token limit with this request")
+        elif is_paid:
+            logger.info(f"Using paid tier key - bypassing token limit check ({estimated_tokens} tokens estimated)")
         
         # Make the API call
         start_time = time.time()
@@ -389,11 +426,14 @@ class RateLimitedGeminiClient:
         if not model:
             raise Exception("No API keys available")
         
-        # Check if we should skip this to preserve quota
+        # Check if we should skip this to preserve quota (skip for paid tier keys)
         tracker = self.usage_trackers[key_index]
-        if should_skip_episode(tracker.requests_today):
+        is_paid = self.is_paid_tier(key_index)
+        if not is_paid and should_skip_episode(tracker.requests_today):
             logger.warning(f"Skipping speaker identification to preserve daily quota")
             return {}
+        elif is_paid:
+            logger.info(f"Using paid tier key - not checking speaker identification quota")
         
         logger.info("Starting speaker identification")
         logger.info(f"Using API key {key_index + 1}")
@@ -444,8 +484,11 @@ class RateLimitedGeminiClient:
         estimated_tokens = len(prompt.split()) * 2  # Rough estimate
         
         tracker = self.usage_trackers[key_index]
-        if tracker.tokens_today + estimated_tokens > RATE_LIMITS['tpd']:
+        is_paid = self.is_paid_tier(key_index)
+        if not is_paid and tracker.tokens_today + estimated_tokens > RATE_LIMITS['tpd']:
             raise QuotaExceededException("Would exceed daily token limit with this request")
+        elif is_paid:
+            logger.info(f"Using paid tier key for speaker identification - bypassing token limit check")
         
         # Make the API call
         response = await model.generate_content_async(
