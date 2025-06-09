@@ -129,18 +129,28 @@ class SpeakerIdentifier:
                                    transcript: str, 
                                    metadata: Dict[str, Any],
                                    speaker_labels: List[str]) -> str:
-        """Build enhanced prompt for speaker identification."""
+        """Build validation and gap-filling prompt for speaker identification."""
         # Extract sample dialogue for each speaker
         speaker_samples = self._extract_speaker_samples(transcript, speaker_labels)
         
-        # Build samples text
+        # Analyze existing identifications vs generic labels
+        identified_speakers = []
+        generic_speakers = []
+        for label in speaker_labels:
+            if label.startswith('SPEAKER_'):
+                generic_speakers.append(label)
+            else:
+                identified_speakers.append(label)
+        
+        # Build samples text with identification status
         samples_text = ""
         for label, samples in speaker_samples.items():
-            samples_text += f"\n{label} sample dialogue:\n"
+            status = "✓ Already identified" if label not in generic_speakers else "⚠ Needs identification"
+            samples_text += f"\n{label} ({status}) sample dialogue:\n"
             for sample in samples[:3]:  # First 3 samples
                 samples_text += f"- \"{sample}\"\n"
         
-        return f"""Analyze this podcast transcript and identify the speakers based on context clues.
+        return f"""Validate and enhance speaker identifications in this podcast transcript.
 
 **Podcast Information:**
 - Podcast Name: {metadata.get('podcast_name', 'Unknown')}
@@ -149,44 +159,45 @@ class SpeakerIdentifier:
 - Description: {metadata.get('description', '')[:500]}...
 - Publication Date: {metadata.get('publication_date', 'Unknown')}
 
-**Speaker Labels Found:** {', '.join(speaker_labels)}
+**Current Speaker Status:**
+- Already Identified: {', '.join(identified_speakers) if identified_speakers else 'None'}
+- Need Identification: {', '.join(generic_speakers) if generic_speakers else 'None'}
 
-**Sample Dialogue for Each Speaker:**
+**Sample Dialogue Analysis:**
 {samples_text}
 
-**Instructions:**
-1. Identify each speaker based on:
+**Validation and Gap-Filling Instructions:**
+
+1. **For already identified speakers:** Validate accuracy and consistency
+   - Confirm the name matches the actual speaker in the dialogue
+   - Check if role context (Host, Guest, etc.) is appropriate
+   - Suggest corrections only if clearly wrong
+
+2. **For generic labels (SPEAKER_N):** Identify based on context clues
    - Self-introductions (e.g., "I'm John Smith")
    - Being introduced by others (e.g., "Our guest today is...")
    - References in conversation (e.g., "As Sarah mentioned...")
    - Speaking patterns and roles (hosts typically introduce the show)
    - Context from episode title and description
 
-2. For each speaker, provide:
-   - The most likely name or descriptive role
-   - Consider the podcast format (interview, panel, solo, etc.)
+3. **Enhancement guidelines:**
+   - Add role context when clear: "John Smith (Host)" or "Dr. Sarah Johnson (Guest)"
+   - For unknown names, use descriptive roles: "Host", "Guest", "Co-host"
+   - Number multiple similar roles: "Guest 1", "Guest 2"
 
-3. If you cannot identify a specific name:
-   - Use descriptive roles: "Host", "Guest", "Co-host", etc.
-   - Number multiple guests: "Guest 1", "Guest 2", etc.
+4. **Quality assurance:**
+   - Ensure consistency throughout the transcript
+   - Prefer specific names over generic roles when identifiable
+   - When uncertain, maintain existing generic labels rather than guessing
 
-4. Consider common podcast patterns:
-   - SPEAKER_1 is often the host (introduces show, asks questions)
-   - Subsequent speakers are typically guests or co-hosts
-
-**Return a JSON object mapping speaker labels to identified names/roles:**
+**Return a JSON object with final speaker mappings:**
 {{
   "SPEAKER_1": "Name or Role (additional context)",
-  "SPEAKER_2": "Name or Role (additional context)",
+  "John Smith": "John Smith (Host)",
   ...
 }}
 
-Example response:
-{{
-  "SPEAKER_1": "Lisa Park (Host)",
-  "SPEAKER_2": "Dr. Michael Chen (Guest - AI Researcher)",
-  "SPEAKER_3": "Sarah Johnson (Co-host)"
-}}"""
+**Note:** Return ALL speaker labels found in the transcript, whether they needed changes or not."""
     
     def _extract_speaker_samples(self, 
                                transcript: str, 
@@ -226,11 +237,11 @@ Example response:
                          mapping: Dict[str, str], 
                          expected_labels: List[str],
                          metadata: Dict[str, Any]) -> Dict[str, str]:
-        """Validate and enhance speaker mapping.
+        """Validate and enhance speaker mapping for hybrid approach.
         
         Args:
-            mapping: Raw mapping from API
-            expected_labels: Expected speaker labels
+            mapping: Raw mapping from API (validation stage)
+            expected_labels: Expected speaker labels (mix of generic and identified)
             metadata: Episode metadata for fallback
             
         Returns:
@@ -238,22 +249,39 @@ Example response:
         """
         validated = {}
         
-        # Ensure all expected labels have mappings
+        # Handle each label based on whether it's already identified or generic
         for label in expected_labels:
-            if label in mapping and mapping[label]:
-                # Clean and validate the identified name
-                identified = mapping[label].strip()
-                
-                # Remove any JSON artifacts or quotes
-                identified = identified.strip('"\'')
-                
-                # Ensure it's not just the generic label
-                if identified and identified != label:
-                    validated[label] = identified
+            if label.startswith('SPEAKER_'):
+                # Generic label - needs identification from mapping
+                if label in mapping and mapping[label]:
+                    # Clean and validate the identified name
+                    identified = mapping[label].strip()
+                    
+                    # Remove any JSON artifacts or quotes
+                    identified = identified.strip('"\'')
+                    
+                    # Ensure it's not just the generic label
+                    if identified and identified != label:
+                        validated[label] = identified
+                    else:
+                        validated[label] = self._get_fallback_name(label, metadata)
                 else:
                     validated[label] = self._get_fallback_name(label, metadata)
             else:
-                validated[label] = self._get_fallback_name(label, metadata)
+                # Already identified speaker - validate or enhance from mapping
+                if label in mapping and mapping[label]:
+                    # API suggested an enhancement/correction
+                    enhanced = mapping[label].strip().strip('"\'')
+                    
+                    # Use enhancement if it's substantively different and better
+                    if enhanced and enhanced != label and len(enhanced) > len(label):
+                        validated[label] = enhanced
+                    else:
+                        # Keep original identification
+                        validated[label] = label
+                else:
+                    # No mapping provided, keep original
+                    validated[label] = label
         
         return validated
     
@@ -293,7 +321,7 @@ Example response:
         """Create fallback mapping when API fails.
         
         Args:
-            speaker_labels: List of speaker labels
+            speaker_labels: List of speaker labels (mix of generic and identified)
             metadata: Episode metadata
             
         Returns:
@@ -301,7 +329,12 @@ Example response:
         """
         mapping = {}
         for label in speaker_labels:
-            mapping[label] = self._get_fallback_name(label, metadata)
+            if label.startswith('SPEAKER_'):
+                # Generic label needs fallback identification
+                mapping[label] = self._get_fallback_name(label, metadata)
+            else:
+                # Already identified speaker - keep as is
+                mapping[label] = label
         return mapping
     
     def apply_speaker_mapping(self, 
@@ -310,11 +343,11 @@ Example response:
         """Apply speaker mapping to VTT transcript.
         
         Args:
-            vtt_transcript: Original VTT with generic labels
-            speaker_mapping: Mapping from generic to identified names
+            vtt_transcript: VTT with mix of generic and identified speaker labels
+            speaker_mapping: Mapping from all labels to final identified names
             
         Returns:
-            Updated VTT transcript with identified speakers
+            Updated VTT transcript with final speaker identifications
         """
         updated_transcript = vtt_transcript
         

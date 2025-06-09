@@ -1,137 +1,74 @@
-"""Direct LLM service for Gemini API interaction with error resilience."""
+"""Direct LLM service for Gemini API interaction with API key rotation."""
 
 from typing import Dict, Any, Optional, List
 import logging
 import time
 import hashlib
 import json
-from datetime import datetime, timedelta
-from functools import lru_cache
+from datetime import datetime
 
 from src.core.exceptions import ProviderError, RateLimitError
-from src.utils.rate_limiting import WindowedRateLimiter
-from src.utils.retry import ExponentialBackoff, CircuitState
+from src.utils.retry import ExponentialBackoff
 from src.utils.metrics import get_pipeline_metrics
+from src.utils.key_rotation_manager import KeyRotationManager
 
 logger = logging.getLogger(__name__)
 
 
-class CircuitBreaker:
-    """Circuit breaker pattern for API calls."""
-    
-    def __init__(self, failure_threshold: int = 5, recovery_timeout: int = 60):
-        """Initialize circuit breaker.
-        
-        Args:
-            failure_threshold: Number of failures before opening
-            recovery_timeout: Seconds before trying half-open state
-        """
-        self.failure_threshold = failure_threshold
-        self.recovery_timeout = recovery_timeout
-        self.failure_count = 0
-        self.last_failure_time = None
-        self.state = CircuitState.CLOSED
-        
-    def call_succeeded(self):
-        """Record successful call."""
-        self.failure_count = 0
-        self.state = CircuitState.CLOSED
-        
-    def call_failed(self):
-        """Record failed call."""
-        self.failure_count += 1
-        self.last_failure_time = datetime.now()
-        
-        if self.failure_count >= self.failure_threshold:
-            self.state = CircuitState.OPEN
-            logger.warning(f"Circuit breaker opened after {self.failure_count} failures")
-            
-    def can_attempt_call(self) -> bool:
-        """Check if call can be attempted."""
-        if self.state == CircuitState.CLOSED:
-            return True
-            
-        if self.state == CircuitState.OPEN:
-            # Check if we should try half-open
-            if self.last_failure_time:
-                time_since_failure = (datetime.now() - self.last_failure_time).total_seconds()
-                if time_since_failure >= self.recovery_timeout:
-                    self.state = CircuitState.HALF_OPEN
-                    logger.info("Circuit breaker entering half-open state")
-                    return True
-                    
-        return self.state == CircuitState.HALF_OPEN
-
-
 class LLMService:
-    """Direct Gemini LLM service with resilience features."""
+    """Direct Gemini LLM service with API key rotation."""
     
-    def __init__(self, api_key: str, model_name: str = 'gemini-2.5-flash', 
+    def __init__(self, key_rotation_manager: KeyRotationManager, 
+                 model_name: str = 'gemini-2.5-flash', 
                  temperature: float = 0.7, max_tokens: int = 4096,
                  enable_cache: bool = True, cache_ttl: int = 3600):
-        """Initialize LLM service with direct configuration.
+        """Initialize LLM service with key rotation support.
         
         Args:
-            api_key: Gemini API key
+            key_rotation_manager: KeyRotationManager instance for API key rotation
             model_name: Model to use (default: gemini-2.5-flash)
             temperature: Generation temperature (default: 0.7)
             max_tokens: Maximum output tokens (default: 4096)
             enable_cache: Enable response caching (default: True)
             cache_ttl: Cache time-to-live in seconds (default: 3600)
         """
-        if not api_key:
-            raise ValueError("Gemini API key is required")
+        if not key_rotation_manager:
+            raise ValueError("KeyRotationManager is required")
             
-        self.api_key = api_key
+        self.key_rotation_manager = key_rotation_manager
         self.model_name = model_name
         self.temperature = temperature
         self.max_tokens = max_tokens
         self.client = None
+        self.provider = "gemini"
         
         # Resilience features
-        self.circuit_breaker = CircuitBreaker()
         self.backoff = ExponentialBackoff(base=2.0, max_delay=60.0)
         self.enable_cache = enable_cache
         self.cache_ttl = cache_ttl
         self._response_cache = {} if enable_cache else None
         
-        # Set up rate limiter with Gemini-specific limits
-        self.rate_limiter = WindowedRateLimiter({
-            'gemini-2.5-flash': {
-                'rpm': 10,      # Requests per minute
-                'tpm': 250000,  # Tokens per minute
-                'rpd': 500      # Requests per day
-            },
-            'gemini-2.0-flash': {
-                'rpm': 15,
-                'tpm': 1000000,
-                'rpd': 1500
-            },
-            'default': {
-                'rpm': 10,
-                'tpm': 100000,
-                'rpd': 500
-            }
-        })
+    def _ensure_client(self, api_key: str) -> None:
+        """Ensure the Gemini client is initialized with the given API key.
         
-    def _ensure_client(self) -> None:
-        """Ensure the Gemini client is initialized."""
-        if self.client is None:
-            try:
-                from langchain_google_genai import ChatGoogleGenerativeAI
-            except ImportError:
-                raise ImportError(
-                    "langchain_google_genai is not installed. "
-                    "Install with: pip install langchain-google-genai"
-                )
-                
-            self.client = ChatGoogleGenerativeAI(
-                model=self.model_name,
-                google_api_key=self.api_key,
-                temperature=self.temperature,
-                max_output_tokens=self.max_tokens,
+        Args:
+            api_key: API key to use for client initialization
+        """
+        try:
+            from langchain_google_genai import ChatGoogleGenerativeAI
+        except ImportError:
+            raise ImportError(
+                "langchain_google_genai is not installed. "
+                "Install with: pip install langchain-google-genai"
             )
-            logger.info(f"Initialized Gemini client with model: {self.model_name}")
+            
+        self.client = ChatGoogleGenerativeAI(
+            model=self.model_name,
+            google_api_key=api_key,
+            temperature=self.temperature,
+            max_output_tokens=self.max_tokens,
+        )
+        logger.debug(f"Initialized Gemini client with model: {self.model_name}")
             
     def _get_cache_key(self, prompt: str, temperature: Optional[float] = None) -> str:
         """Generate cache key for prompt."""
@@ -161,27 +98,9 @@ class LLMService:
                 'timestamp': datetime.now()
             }
             
-    def _fallback_extraction(self, prompt: str) -> str:
-        """Pattern-based extraction fallback when API fails."""
-        logger.info("Using pattern-based fallback extraction")
-        
-        # Simple pattern-based extraction for entities
-        if "entities" in prompt.lower() or "extract" in prompt.lower():
-            # Look for capitalized words as potential entities
-            import re
-            words = re.findall(r'\b[A-Z][a-z]+\b', prompt)
-            entities = list(set(words))[:5]  # Limit to 5 entities
-            
-            return json.dumps({
-                "entities": [{"name": e, "type": "UNKNOWN"} for e in entities],
-                "source": "pattern_fallback"
-            })
-            
-        # Default fallback
-        return json.dumps({"error": "API unavailable", "source": "fallback"})
 
     def complete(self, prompt: str) -> str:
-        """Generate completion with resilience features.
+        """Generate completion with API key rotation.
         
         Args:
             prompt: Input prompt text
@@ -190,7 +109,7 @@ class LLMService:
             Generated completion text
             
         Raises:
-            RateLimitError: If rate limits are exceeded
+            RateLimitError: If all API keys are exhausted
             ProviderError: If API call fails after all retries
         """
         # Get metrics instance
@@ -204,41 +123,35 @@ class LLMService:
             # Record cache hit as successful API call with 0 latency
             metrics.record_api_call(self.provider, success=True, latency=0)
             return cached_response
-            
-        # Check circuit breaker
-        if not self.circuit_breaker.can_attempt_call():
-            logger.warning("Circuit breaker is open, using fallback")
-            return self._fallback_extraction(prompt)
-        
-        self._ensure_client()
         
         # Estimate tokens (rough approximation)
-        estimated_tokens = len(prompt.split()) * 1.3
+        estimated_tokens = int(len(prompt.split()) * 1.3)
         
-        # Check rate limits
-        if not self.rate_limiter.can_make_request(self.model_name, estimated_tokens):
-            logger.warning("Rate limit exceeded, using fallback")
-            return self._fallback_extraction(prompt)
-            
         # Try with exponential backoff
         self.backoff.reset()
         last_exception = None
         
         for attempt in range(3):  # Max 3 attempts
             try:
+                # Get next available API key
+                api_key, key_index = self.key_rotation_manager.get_next_key(self.model_name)
+                
+                # Ensure client is initialized with this key
+                self._ensure_client(api_key)
+                
                 # Make the request
                 response = self.client.invoke(prompt)
-                
-                # Record successful request
-                self.rate_limiter.record_request(self.model_name, estimated_tokens)
-                self.circuit_breaker.call_succeeded()
                 
                 # Extract content from response
                 if hasattr(response, 'content'):
                     result = response.content
                 else:
                     result = str(response)
-                    
+                
+                # Report success to rotation manager
+                self.key_rotation_manager.mark_key_success(key_index)
+                self.key_rotation_manager.update_key_usage(key_index, estimated_tokens, self.model_name)
+                
                 # Cache successful response
                 self._cache_response(cache_key, result)
                 
@@ -250,36 +163,35 @@ class LLMService:
                 
             except Exception as e:
                 last_exception = e
-                self.rate_limiter.record_error(self.model_name, str(type(e).__name__))
+                
+                # Check if it's a key rotation exception (no keys available)
+                if "No API keys available" in str(e):
+                    logger.error("All API keys exhausted")
+                    raise RateLimitError("All API keys have exceeded their quotas")
+                
+                # Report failure to rotation manager if we have a key index
+                if 'key_index' in locals():
+                    self.key_rotation_manager.mark_key_failure(key_index, str(e))
                 
                 # Check if it's a rate limit error
                 if "quota" in str(e).lower() or "rate" in str(e).lower():
-                    if attempt == 0:  # First attempt, try backoff
-                        delay = self.backoff.get_next_delay()
-                        logger.warning(f"Rate limit hit, retrying in {delay}s...")
-                        time.sleep(delay)
-                        continue
-                    else:
-                        logger.warning("Rate limit persists, using fallback")
-                        self.circuit_breaker.call_failed()
-                        return self._fallback_extraction(prompt)
-                        
-                # Other errors
+                    logger.warning(f"Rate limit hit on attempt {attempt + 1}, trying next key...")
+                    continue
+                    
+                # Other errors - retry with backoff
                 if attempt < 2:
                     delay = self.backoff.get_next_delay()
                     logger.warning(f"API error on attempt {attempt + 1}, retrying in {delay}s: {e}")
                     time.sleep(delay)
-                else:
-                    self.circuit_breaker.call_failed()
                     
         # All retries failed
-        logger.error(f"All API attempts failed, using fallback")
+        logger.error(f"All API attempts failed: {last_exception}")
         
         # Record failed API call
         api_latency = time.time() - api_start_time
         metrics.record_api_call(self.provider, success=False, latency=api_latency)
         
-        return self._fallback_extraction(prompt)
+        raise ProviderError(self.provider, f"Gemini completion failed after all retries: {last_exception}")
             
     def complete_with_options(self, prompt: str, temperature: Optional[float] = None,
                             max_tokens: Optional[int] = None) -> Dict[str, Any]:
@@ -293,34 +205,31 @@ class LLMService:
         Returns:
             Dict with content and metadata
         """
-        self._ensure_client()
-        
         # Use provided values or defaults
         temp = temperature if temperature is not None else self.temperature
         tokens = max_tokens if max_tokens is not None else self.max_tokens
         
-        # Create a temporary client if settings differ
-        if temp != self.temperature or tokens != self.max_tokens:
+        # Estimate tokens
+        estimated_tokens = int(len(prompt.split()) * 1.3)
+        
+        try:
+            # Get next available API key
+            api_key, key_index = self.key_rotation_manager.get_next_key(self.model_name)
+            
+            # Create client with custom settings
             from langchain_google_genai import ChatGoogleGenerativeAI
             temp_client = ChatGoogleGenerativeAI(
                 model=self.model_name,
-                google_api_key=self.api_key,
+                google_api_key=api_key,
                 temperature=temp,
                 max_output_tokens=tokens,
             )
-        else:
-            temp_client = self.client
             
-        # Estimate tokens
-        estimated_tokens = len(prompt.split()) * 1.3
-        
-        # Check rate limits
-        if not self.rate_limiter.can_make_request(self.model_name, estimated_tokens):
-            raise RateLimitError(f"Rate limit exceeded for model {self.model_name}")
-            
-        try:
             response = temp_client.invoke(prompt)
-            self.rate_limiter.record_request(self.model_name, estimated_tokens)
+            
+            # Report success to rotation manager
+            self.key_rotation_manager.mark_key_success(key_index)
+            self.key_rotation_manager.update_key_usage(key_index, estimated_tokens, self.model_name)
             
             content = response.content if hasattr(response, 'content') else str(response)
             
@@ -329,11 +238,14 @@ class LLMService:
                 'model': self.model_name,
                 'temperature': temp,
                 'max_tokens': tokens,
-                'usage': {'estimated_tokens': int(estimated_tokens)}
+                'usage': {'estimated_tokens': estimated_tokens}
             }
             
         except Exception as e:
-            self.rate_limiter.record_error(self.model_name, str(type(e).__name__))
+            # Report failure to rotation manager if we have a key index
+            if 'key_index' in locals():
+                self.key_rotation_manager.mark_key_failure(key_index, str(e))
+                
             if "quota" in str(e).lower() or "rate" in str(e).lower():
                 raise RateLimitError(f"Gemini rate limit error: {e}")
             raise ProviderError("gemini", f"Gemini completion failed: {e}")
@@ -367,9 +279,9 @@ class LLMService:
         return results
         
     def get_rate_limit_status(self) -> Dict[str, Any]:
-        """Get current rate limit status.
+        """Get current rate limit status from key rotation manager.
         
         Returns:
             Dict with rate limit information
         """
-        return self.rate_limiter.get_status()
+        return self.key_rotation_manager.get_status_summary()

@@ -440,3 +440,140 @@ No speaker tags here"""
         # Only the longer utterance should be included
         assert len(samples['SPEAKER_1']) == 1
         assert 'longer utterance' in samples['SPEAKER_1'][0]
+    
+    # New tests for hybrid approach
+    def test_extract_speaker_labels_hybrid(self, identifier):
+        """Test extracting labels with mix of generic and identified speakers."""
+        transcript = """WEBVTT
+
+00:00:01.000 --> 00:00:05.000
+<v John Smith (Host)>Welcome to the show
+
+00:00:05.000 --> 00:00:10.000
+<v SPEAKER_2>Thank you for having me
+
+00:00:10.000 --> 00:00:15.000
+<v Dr. Jane Doe>I'm excited to be here"""
+        
+        labels = identifier._extract_speaker_labels(transcript)
+        
+        assert set(labels) == {'John Smith (Host)', 'SPEAKER_2', 'Dr. Jane Doe'}
+    
+    def test_validate_mapping_hybrid_already_identified(self, identifier, sample_metadata):
+        """Test validating mapping with already identified speakers."""
+        mapping = {
+            'John Smith (Host)': 'John Smith (Host)',  # No change needed
+            'SPEAKER_2': 'Dr. Jane Doe (Guest)',       # Needs identification
+            'Sarah Wilson': 'Sarah Wilson (Co-host)'   # Enhancement with role
+        }
+        expected_labels = ['John Smith (Host)', 'SPEAKER_2', 'Sarah Wilson']
+        
+        result = identifier._validate_mapping(mapping, expected_labels, sample_metadata)
+        
+        assert result['John Smith (Host)'] == 'John Smith (Host)'
+        assert result['SPEAKER_2'] == 'Dr. Jane Doe (Guest)'
+        assert result['Sarah Wilson'] == 'Sarah Wilson (Co-host)'
+    
+    def test_validate_mapping_hybrid_no_enhancement(self, identifier, sample_metadata):
+        """Test validation preserves existing identifications when no enhancement."""
+        mapping = {
+            'Dr. Jane Smith': 'Dr. Jane Smith',  # Same value - keep original
+            'SPEAKER_2': 'Guest Speaker'         # Generic label gets identification
+        }
+        expected_labels = ['Dr. Jane Smith', 'SPEAKER_2']
+        
+        result = identifier._validate_mapping(mapping, expected_labels, sample_metadata)
+        
+        assert result['Dr. Jane Smith'] == 'Dr. Jane Smith'
+        assert result['SPEAKER_2'] == 'Guest Speaker'
+    
+    def test_create_fallback_mapping_hybrid(self, identifier, sample_metadata):
+        """Test creating fallback mapping with mix of speakers."""
+        labels = ['John Smith (Host)', 'SPEAKER_2', 'Dr. Jane Doe', 'SPEAKER_4']
+        
+        result = identifier._create_fallback_mapping(labels, sample_metadata)
+        
+        # Already identified speakers should remain unchanged
+        assert result['John Smith (Host)'] == 'John Smith (Host)'
+        assert result['Dr. Jane Doe'] == 'Dr. Jane Doe'
+        
+        # Generic speakers should get fallback names
+        assert result['SPEAKER_2'] == 'Guest'
+        assert result['SPEAKER_4'] == 'Guest 3'
+    
+    def test_build_identification_prompt_hybrid(self, identifier, sample_metadata):
+        """Test building prompt with mix of identified and generic speakers."""
+        transcript = """WEBVTT
+
+00:00:01.000 --> 00:00:05.000
+<v John Smith (Host)>Welcome to the show
+
+00:00:05.000 --> 00:00:10.000
+<v SPEAKER_2>Thank you for having me"""
+        
+        labels = ['John Smith (Host)', 'SPEAKER_2']
+        
+        prompt = identifier._build_identification_prompt(transcript, sample_metadata, labels)
+        
+        # Check that it identifies the status correctly
+        assert 'Already Identified: John Smith (Host)' in prompt
+        assert 'Need Identification: SPEAKER_2' in prompt
+        assert '✓ Already identified' in prompt
+        assert '⚠ Needs identification' in prompt
+    
+    def test_apply_speaker_mapping_hybrid(self, identifier):
+        """Test applying mapping with mix of generic and identified speakers."""
+        transcript = """WEBVTT
+
+00:00:01.000 --> 00:00:05.000
+<v John Smith (Host)>Welcome to the show
+
+00:00:05.000 --> 00:00:10.000
+<v SPEAKER_2>Thank you for having me
+
+00:00:10.000 --> 00:00:15.000
+<v Dr. Jane>I'm excited"""
+        
+        mapping = {
+            'John Smith (Host)': 'John Smith (Host)',  # No change
+            'SPEAKER_2': 'Guest Speaker',              # Generic to identified
+            'Dr. Jane': 'Dr. Jane Doe (Researcher)'    # Enhancement
+        }
+        
+        result = identifier.apply_speaker_mapping(transcript, mapping)
+        
+        assert '<v John Smith (Host)>' in result
+        assert '<v Guest Speaker>' in result
+        assert '<v Dr. Jane Doe (Researcher)>' in result
+        assert '<v SPEAKER_2>' not in result
+        assert '<v Dr. Jane>' not in result
+    
+    @pytest.mark.asyncio
+    async def test_identify_speakers_hybrid_scenario(self, identifier, sample_metadata):
+        """Test complete speaker identification in hybrid scenario."""
+        # Transcript with mix of identified and generic speakers
+        transcript = """WEBVTT
+
+00:00:01.000 --> 00:00:05.000
+<v John Smith (Host)>Welcome to Tech Talk
+
+00:00:05.000 --> 00:00:10.000
+<v SPEAKER_2>Thanks for having me
+
+00:00:10.000 --> 00:00:15.000
+<v John Smith (Host)>Today we're with Dr. Jane Smith
+
+00:00:15.000 --> 00:00:20.000
+<v SPEAKER_2>I'm excited to discuss AI"""
+        
+        # Mock API response for validation/gap-filling
+        identifier.gemini_client.identify_speakers.return_value = {
+            'John Smith (Host)': 'John Smith (Host)',
+            'SPEAKER_2': 'Dr. Jane Smith (Guest - AI Researcher)'
+        }
+        
+        result = await identifier.identify_speakers(transcript, sample_metadata)
+        
+        # Verify final mapping
+        assert result['John Smith (Host)'] == 'John Smith (Host)'
+        assert result['SPEAKER_2'] == 'Dr. Jane Smith (Guest - AI Researcher)'

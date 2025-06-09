@@ -121,7 +121,7 @@ class TranscriptionProcessor:
             return None
     
     def _build_transcription_prompt(self, metadata: Dict[str, Any]) -> str:
-        """Build enhanced prompt for VTT-formatted transcription."""
+        """Build enhanced prompt for VTT-formatted transcription with opportunistic speaker identification."""
         return f"""Please transcribe this podcast episode into WebVTT (VTT) format with the following requirements:
 
 1. **Format Requirements:**
@@ -129,22 +129,28 @@ class TranscriptionProcessor:
    - Include a NOTE block with episode metadata
    - Use timestamps in HH:MM:SS.mmm format (hours:minutes:seconds.milliseconds)
    - Each cue should have start time --> end time
-   - Use <v SPEAKER_N> tags for speaker identification
    - Keep segments 5-7 seconds long and under 2 lines of text
 
-2. **Speaker Diarization:**
-   - Identify different speakers as SPEAKER_1, SPEAKER_2, etc.
-   - Be consistent with speaker numbering throughout
-   - The host/interviewer is typically SPEAKER_1
+2. **Speaker Identification (Opportunistic Approach):**
+   - When speaker names are clearly mentioned or obvious from context, use them directly: <v John Smith> or <v Dr. Sarah Johnson>
+   - When uncertain about speaker identity, use generic labels: <v SPEAKER_1>, <v SPEAKER_2>, etc.
+   - Be consistent with speaker labeling throughout the transcript
+   - The host/interviewer is typically the first speaker
    - Pay attention to speaking patterns and voice changes
 
-3. **Episode Information:**
+3. **Episode Context:**
    - Podcast: {metadata.get('podcast_name', 'Unknown')}
    - Title: {metadata.get('title', 'Unknown')}
-   - Date: {metadata.get('published_date', metadata.get('publication_date', 'Unknown'))}
    - Host/Author: {metadata.get('author', 'Unknown')}
+   - Description: {metadata.get('description', '')[:200]}{'...' if len(metadata.get('description', '')) > 200 else ''}
 
-4. **Output Format Example:**
+4. **Speaker Identification Guidelines:**
+   - Listen for clear introductions: "I'm [Name]", "This is [Name]", "My name is [Name]"
+   - Notice when host introduces guests: "Joining me is [Name]" or "Our guest today is [Name]"
+   - Use episode context (title, description, host name) to help identify speakers when mentioned
+   - When in doubt, use generic labels - accuracy is more important than identification
+
+5. **Output Format Example:**
 ```
 WEBVTT
 
@@ -155,11 +161,11 @@ Date: {metadata.get('published_date', metadata.get('publication_date', 'Unknown'
 Duration: {metadata.get('duration', 'Unknown')}
 
 00:00:00.000 --> 00:00:05.500
-<v SPEAKER_1>Welcome to {metadata.get('podcast_name', 'the podcast')}.
+<v {metadata.get('author', 'SPEAKER_1')}>Welcome to {metadata.get('podcast_name', 'the podcast')}.
 I'm your host.
 
 00:00:05.500 --> 00:00:10.000
-<v SPEAKER_1>Today we're discussing
+<v {metadata.get('author', 'SPEAKER_1')}>Today we're discussing
 {metadata.get('title', 'an interesting topic')[:50]}...
 
 00:00:10.000 --> 00:00:15.000
