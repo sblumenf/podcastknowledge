@@ -967,7 +967,7 @@ async def test_api_command(args: argparse.Namespace) -> int:
             
             import google.generativeai as genai
             genai.configure(api_key=api_keys[0])
-            model = genai.GenerativeModel('gemini-2.5-pro-experimental')
+            model = genai.GenerativeModel('gemini-1.5-pro')
             
             response = await model.generate_content_async(test_prompt)
             

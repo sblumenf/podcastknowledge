@@ -1,0 +1,49 @@
+{
+  "meta": {
+    "last_updated": "2025-06-09T02:31:15.939316+00:00",
+    "total_processed": 0,
+    "daily_quota_used": 0,
+    "quota_reset_time": null,
+    "next_key_index": 0
+  },
+  "episodes": {
+    "92319569-004c-4a6e-b348-5f12758cd2e0": {
+      "guid": "92319569-004c-4a6e-b348-5f12758cd2e0",
+      "status": "in_progress",
+      "podcast_name": "The Mel Robbins Podcast",
+      "title": "This Conversation Will Change Your Life: Do This to Find Purpose & Meaning",
+      "audio_url": "https://dts.podtrac.com/redirect.mp3/tracking.swap.fm/track/0bDcdoop59bdTYSfajQW/pdst.fm/e/stitcher.simplecastaudio.com/b9de9f5f-6dab-4833-b4c2-05f1d28dd998/episodes/c924a266-b675-40b6-bf52-b3d5b9b5c64d/audio/128/default.mp3?aid=rss_feed&awCollectionId=b9de9f5f-6dab-4833-b4c2-05f1d28dd998&awEpisodeId=c924a266-b675-40b6-bf52-b3d5b9b5c64d&feed=UCwaTX1J",
+      "publication_date": null,
+      "attempt_count": 3,
+      "last_attempt": "2025-06-09T02:23:31.327506+00:00",
+      "completed_at": null,
+      "processing_time_seconds": null,
+      "output_file": null,
+      "error": null,
+      "error_type": null,
+      "api_key_used": "key_1",
+      "continuation_attempts": 0,
+      "final_coverage_ratio": null,
+      "segment_count": 1
+    },
+    "b566539e-4916-4d5c-8f6a-45b54d386ba2": {
+      "guid": "b566539e-4916-4d5c-8f6a-45b54d386ba2",
+      "status": "failed",
+      "podcast_name": "The Mel Robbins Podcast",
+      "title": "A Powerful Mindset Makes You Unstoppable: How to Train Your Mind & Unlock Your Full Potential",
+      "audio_url": "https://dts.podtrac.com/redirect.mp3/tracking.swap.fm/track/0bDcdoop59bdTYSfajQW/pdst.fm/e/stitcher.simplecastaudio.com/b9de9f5f-6dab-4833-b4c2-05f1d28dd998/episodes/9f8dbe43-6b80-4978-b39f-b07877a3c906/audio/128/default.mp3?aid=rss_feed&awCollectionId=b9de9f5f-6dab-4833-b4c2-05f1d28dd998&awEpisodeId=9f8dbe43-6b80-4978-b39f-b07877a3c906&feed=UCwaTX1J",
+      "publication_date": null,
+      "attempt_count": 1,
+      "last_attempt": "2025-06-09T02:30:32.411098+00:00",
+      "completed_at": null,
+      "processing_time_seconds": null,
+      "output_file": null,
+      "error": "Transcription failed",
+      "error_type": "unknown",
+      "api_key_used": "key_1",
+      "continuation_attempts": 0,
+      "final_coverage_ratio": null,
+      "segment_count": 1
+    }
+  }
+}

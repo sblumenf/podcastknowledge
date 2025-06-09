@@ -41,7 +41,7 @@ RATE_LIMITS = {
 }
 
 # Model configuration
-DEFAULT_MODEL = 'gemini-2.5-pro-experimental'
+DEFAULT_MODEL = 'gemini-2.5-pro-preview-06-05'
 
 
 @dataclass

@@ -167,7 +167,7 @@ class LLMService:
                 # Check if it's a key rotation exception (no keys available)
                 if "No API keys available" in str(e):
                     logger.error("All API keys exhausted")
-                    raise RateLimitError("All API keys have exceeded their quotas")
+                    raise RateLimitError("gemini", "All API keys have exceeded their quotas")
                 
                 # Report failure to rotation manager if we have a key index
                 if 'key_index' in locals():

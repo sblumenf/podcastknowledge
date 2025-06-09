@@ -102,11 +102,11 @@ class GeminiEmbeddingsService:
             # Check if it's a key rotation exception (no keys available)
             if "No API keys available" in str(e):
                 logger.error("All API keys exhausted for embeddings")
-                raise RateLimitError("All API keys have exceeded their quotas")
+                raise RateLimitError("gemini", "All API keys have exceeded their quotas")
             
             error_msg = str(e).lower()
             if "quota" in error_msg or "rate" in error_msg or "resource exhausted" in error_msg:
-                raise RateLimitError(f"Gemini rate limit error: {e}")
+                raise RateLimitError("gemini", f"Gemini rate limit error: {e}")
             elif "invalid" in error_msg or "not found" in error_msg:
                 raise ProviderError("gemini", f"Invalid request: {e}")
             else:
@@ -187,11 +187,11 @@ class GeminiEmbeddingsService:
                     # Check if it's a key rotation exception (no keys available)
                     if "No API keys available" in str(e):
                         logger.error("All API keys exhausted for batch embeddings")
-                        raise RateLimitError("All API keys have exceeded their quotas")
+                        raise RateLimitError("gemini", "All API keys have exceeded their quotas")
                     
                     error_msg = str(e).lower()
                     if "quota" in error_msg or "rate" in error_msg or "resource exhausted" in error_msg:
-                        raise RateLimitError(f"Gemini rate limit error: {e}")
+                        raise RateLimitError("gemini", f"Gemini rate limit error: {e}")
                     else:
                         raise ProviderError("gemini", f"Gemini batch embedding failed: {e}")
             else:

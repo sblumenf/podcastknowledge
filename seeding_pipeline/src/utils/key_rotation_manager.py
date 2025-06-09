@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import List, Optional, Dict, Any, Tuple
 from dataclasses import dataclass
 from enum import Enum
+import threading
 
 import logging
 
@@ -225,6 +226,7 @@ class KeyRotationManager:
         self.api_keys = api_keys
         self.key_states: List[APIKeyState] = []
         self.current_index = 0
+        self._lock = threading.Lock()  # Thread safety for concurrent access
         
         # Determine state directory
         if state_dir:
@@ -284,10 +286,13 @@ class KeyRotationManager:
         """Save current rotation state to file."""
         self.state_file.parent.mkdir(exist_ok=True)
         
+        # Create a snapshot of key states to avoid concurrent modification
+        key_states_snapshot = [state.to_dict() for state in list(self.key_states)]
+        
         data = {
             'current_index': self.current_index,
             'last_reset': datetime.now(timezone.utc).date().isoformat(),
-            'key_states': [state.to_dict() for state in self.key_states],
+            'key_states': key_states_snapshot,
             'last_updated': datetime.now(timezone.utc).isoformat()
         }
         
@@ -336,33 +341,34 @@ class KeyRotationManager:
         Raises:
             Exception: If no keys are available
         """
-        rate_limits = self.get_rate_limits_for_model(model) if model else DEFAULT_RATE_LIMITS
-        
-        # Try up to len(keys) times to find an available key
-        attempts = 0
-        starting_index = self.current_index
-        
-        while attempts < len(self.api_keys):
-            state = self.key_states[self.current_index]
+        with self._lock:
+            rate_limits = self.get_rate_limits_for_model(model) if model else DEFAULT_RATE_LIMITS
             
-            if state.is_usable(rate_limits, model):
-                key = self.api_keys[self.current_index]
-                key_index = self.current_index
+            # Try up to len(keys) times to find an available key
+            attempts = 0
+            starting_index = self.current_index
+            
+            while attempts < len(self.api_keys):
+                state = self.key_states[self.current_index]
                 
-                # Move to next key for next call (round-robin)
+                if state.is_usable(rate_limits, model):
+                    key = self.api_keys[self.current_index]
+                    key_index = self.current_index
+                    
+                    # Move to next key for next call (round-robin)
+                    self.current_index = (self.current_index + 1) % len(self.api_keys)
+                    self._save_state()
+                    
+                    logger.info(f"Selected {state.key_name} for next request (model: {model or 'default'})")
+                    return key, key_index
+                
+                # Try next key
                 self.current_index = (self.current_index + 1) % len(self.api_keys)
-                self._save_state()
-                
-                logger.info(f"Selected {state.key_name} for next request (model: {model or 'default'})")
-                return key, key_index
+                attempts += 1
             
-            # Try next key
-            self.current_index = (self.current_index + 1) % len(self.api_keys)
-            attempts += 1
-        
-        # No available keys found
-        self._log_key_status()
-        raise Exception("No API keys available. All keys are rate limited or have errors.")
+            # No available keys found
+            self._log_key_status()
+            raise Exception("No API keys available. All keys are rate limited or have errors.")
     
     def mark_key_success(self, key_index: int):
         """Mark a key as successfully used.
@@ -370,11 +376,12 @@ class KeyRotationManager:
         Args:
             key_index: Index of the key that was used
         """
-        if 0 <= key_index < len(self.key_states):
-            state = self.key_states[key_index]
-            state.mark_success()
-            self._save_state()
-            logger.debug(f"{state.key_name} marked as successful")
+        with self._lock:
+            if 0 <= key_index < len(self.key_states):
+                state = self.key_states[key_index]
+                state.mark_success()
+                self._save_state()
+                logger.debug(f"{state.key_name} marked as successful")
     
     def mark_key_failure(self, key_index: int, error_message: str):
         """Mark a key as failed.
@@ -383,11 +390,12 @@ class KeyRotationManager:
             key_index: Index of the key that failed
             error_message: Error message from the failure
         """
-        if 0 <= key_index < len(self.key_states):
-            state = self.key_states[key_index]
-            state.mark_failure(error_message)
-            self._save_state()
-            logger.warning(f"{state.key_name} marked as failed: {error_message}")
+        with self._lock:
+            if 0 <= key_index < len(self.key_states):
+                state = self.key_states[key_index]
+                state.mark_failure(error_message)
+                self._save_state()
+                logger.warning(f"{state.key_name} marked as failed: {error_message}")
     
     def get_key_by_index(self, key_index: int) -> Optional[str]:
         """Get a specific API key by index.
@@ -485,18 +493,19 @@ class KeyRotationManager:
             tokens_used: Number of tokens consumed
             model: Model name for model-specific tracking
         """
-        if 0 <= key_index < len(self.key_states):
-            state = self.key_states[key_index]
-            state.update_quota_usage(tokens=tokens_used, model=model)
-            self._save_state()
-            
-            rate_limits = self.get_rate_limits_for_model(model) if model else DEFAULT_RATE_LIMITS
-            logger.debug(
-                f"{state.key_name} usage updated: "
-                f"{state.requests_today}/{rate_limits['rpd']} requests, "
-                f"{state.tokens_today}/{rate_limits['tpd']} tokens today"
-                f" (model: {model or 'default'})"
-            )
+        with self._lock:
+            if 0 <= key_index < len(self.key_states):
+                state = self.key_states[key_index]
+                state.update_quota_usage(tokens=tokens_used, model=model)
+                self._save_state()
+                
+                rate_limits = self.get_rate_limits_for_model(model) if model else DEFAULT_RATE_LIMITS
+                logger.debug(
+                    f"{state.key_name} usage updated: "
+                    f"{state.requests_today}/{rate_limits['rpd']} requests, "
+                    f"{state.tokens_today}/{rate_limits['tpd']} tokens today"
+                    f" (model: {model or 'default'})"
+                )
     
     def get_quota_summary(self) -> List[Dict[str, Any]]:
         """Get quota usage summary for all keys.

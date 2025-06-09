@@ -1,0 +1,49 @@
+{
+  "podcast": "The Mel Robbins Podcast",
+  "processing_date": "2025-06-08T22:32:26.587479",
+  "summary": {
+    "total_processed": 0,
+    "successful": 0,
+    "failed": 1,
+    "skipped": 0
+  },
+  "episodes": [
+    {
+      "episode_id": "92319569-004c-4a6e-b348-5f12758cd2e0",
+      "title": "This Conversation Will Change Your Life: Do This to Find Purpose & Meaning",
+      "status": "failed",
+      "error": "Transcription failed",
+      "duration": 46.286407
+    }
+  ],
+  "api_usage": {
+    "key_1": {
+      "requests_today": 0,
+      "tokens_today": 0,
+      "requests_remaining": 25,
+      "tokens_remaining": 1000000,
+      "is_available": true
+    },
+    "key_2": {
+      "requests_today": 0,
+      "tokens_today": 0,
+      "requests_remaining": 25,
+      "tokens_remaining": 1000000,
+      "is_available": true
+    },
+    "key_3": {
+      "requests_today": 0,
+      "tokens_today": 0,
+      "requests_remaining": 25,
+      "tokens_remaining": 1000000,
+      "is_available": true
+    },
+    "key_4": {
+      "requests_today": 0,
+      "tokens_today": 0,
+      "requests_remaining": 25,
+      "tokens_remaining": 1000000,
+      "is_available": true
+    }
+  }
+}
