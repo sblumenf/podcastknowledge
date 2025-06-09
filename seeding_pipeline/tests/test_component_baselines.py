@@ -232,9 +232,7 @@ def pipeline_config():
         # Use test-specific settings
         checkpoint_dir=Path("test_checkpoints"),
         output_dir=Path("test_output"),
-        audio_dir=Path("test_audio"),
         use_gpu=False,  # Disable GPU for tests
-        max_episodes=1,
         checkpoint_interval=1
     )
 

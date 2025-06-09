@@ -60,7 +60,7 @@ class VTTKnowledgeExtractor:
         self.embedding_service: Optional[EmbeddingsService] = None
         
         # Processing components - maintain references for backward compatibility
-        self.segmenter: Optional[EnhancedPodcastSegmenter] = None
+        self.segmenter: Optional[Any] = None
         self.knowledge_extractor: Optional[KnowledgeExtractor] = None
         self.entity_resolver: Optional[EntityResolver] = None
         # Analytics components removed in Phase 3.3.1
@@ -230,15 +230,25 @@ class VTTKnowledgeExtractor:
         ingestion = TranscriptIngestion(self.config)
         
         try:
-            for vtt_file in vtt_files:
+            for vtt_file_path in vtt_files:
                 if self._shutdown_requested:
                     logger.info("Shutdown requested, stopping processing")
                     break
                 
                 try:
+                    # Convert Path to VTTFile if needed
+                    if isinstance(vtt_file_path, Path):
+                        vtt_file = ingestion._create_vtt_file(vtt_file_path)
+                        if not vtt_file:
+                            logger.warning(f"Failed to create VTTFile from {vtt_file_path}")
+                            summary['files_failed'] += 1
+                            continue
+                    else:
+                        vtt_file = vtt_file_path
+                    
                     # Start timing file processing
                     file_start_time = datetime.now().timestamp()
-                    file_path = str(vtt_file.path) if hasattr(vtt_file, 'path') else 'unknown'
+                    file_path = str(vtt_file.path if hasattr(vtt_file, 'path') else vtt_file)
                     
                     result = ingestion.process_vtt_file(vtt_file)
                     
@@ -289,7 +299,7 @@ class VTTKnowledgeExtractor:
                     else:
                         summary['files_failed'] += 1
                         summary['errors'].append({
-                            'file': str(vtt_file.path),
+                            'file': str(vtt_file.path if hasattr(vtt_file, 'path') else vtt_file),
                             'error': result.get('error', 'Unknown error')
                         })
                         
@@ -313,7 +323,7 @@ class VTTKnowledgeExtractor:
                     logger.error(f"Failed to process VTT file: {e}")
                     summary['files_failed'] += 1
                     summary['errors'].append({
-                        'file': str(vtt_file.path) if hasattr(vtt_file, 'path') else 'unknown',
+                        'file': str(vtt_file.path if hasattr(vtt_file, 'path') else vtt_file),
                         'error': str(e)
                     })
             

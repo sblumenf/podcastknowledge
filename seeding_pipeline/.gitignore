@@ -88,3 +88,5 @@ docs/.doctrees/
 # Profiling
 *.prof
 profiling_results/
+# Archived obsolete tests
+tests/archived_obsolete/

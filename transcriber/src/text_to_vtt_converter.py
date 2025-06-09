@@ -240,12 +240,12 @@ class TextToVTTConverter:
         
         # Speaker patterns (now applied to line without timestamp)
         patterns = [
-            r'^([A-Z][a-zA-Z\s]+?):\s*',          # Name: (e.g., "Mel Robbins:")
+            r'^([A-Z][a-zA-Z\s\.]+?):\s*',        # Name: (e.g., "Mel Robbins:" or "Dr. Smith:")
             r'^(Speaker\s*\d+):\s*',               # Speaker 1:
             r'^(SPEAKER\s*\d+):\s*',               # SPEAKER 1:
             r'^(Host):\s*',                        # Host:
             r'^(Guest\s*(?:Expert)?):?\s*',       # Guest: or Guest Expert:
-            r'^\[([A-Z][a-zA-Z\s]+?)\]\s*:\s*',   # [Name]:
+            r'^\[([A-Z][a-zA-Z\s\.]+?)\]\s*:\s*', # [Name]:
         ]
         
         for pattern in patterns:
@@ -278,12 +278,12 @@ class TextToVTTConverter:
         
         # Remove speaker patterns (must match exactly how speakers appear)
         speaker_patterns = [
-            r'^([A-Z][a-zA-Z\s]+?):\s*',          # Name: (e.g., "Mel Robbins:")
+            r'^([A-Z][a-zA-Z\s\.]+?):\s*',        # Name: (e.g., "Mel Robbins:" or "Dr. Smith:")
             r'^(Speaker\s*\d+):\s*',               # Speaker 1:
             r'^(SPEAKER\s*\d+):\s*',               # SPEAKER 1:
             r'^(Host):\s*',                        # Host:
             r'^(Guest\s*(?:Expert)?):?\s*',       # Guest: or Guest Expert:
-            r'^\[([A-Z][a-zA-Z\s]+?)\]\s*:\s*',   # [Name]:
+            r'^\[([A-Z][a-zA-Z\s\.]+?)\]\s*:\s*', # [Name]:
         ]
         
         for pattern in speaker_patterns:

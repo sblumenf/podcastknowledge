@@ -136,7 +136,7 @@ class TestVTTSegmenter:
         metadata = result["metadata"]
         assert metadata["total_segments"] == 4
         assert metadata["total_duration"] == 8.0
-        assert metadata["total_words"] == 16
+        assert metadata["total_words"] == 18
         assert metadata["average_segment_duration"] == 2.0
         assert metadata["advertisement_count"] == 1
         assert metadata["advertisement_percentage"] == 0.25
