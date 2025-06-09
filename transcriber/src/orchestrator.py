@@ -463,6 +463,11 @@ class TranscriptionOrchestrator:
             if self.checkpoint_manager:
                 self.checkpoint_manager.update_stage('raw_transcription')
             
+            self.progress_tracker.update_workflow_stage(
+                episode.guid, 'raw_transcription', 'simplified',
+                {"step": "Initial transcription with simplified prompt"}
+            )
+            
             logger.info("Stage 1: Raw transcription with simple prompt")
             raw_transcript = await self.gemini_client.transcribe_audio(
                 episode.audio_url, episode_data
@@ -475,6 +480,11 @@ class TranscriptionOrchestrator:
             if self.checkpoint_manager:
                 self.checkpoint_manager.update_stage('continuation_analysis')
             
+            self.progress_tracker.update_workflow_stage(
+                episode.guid, 'continuation_analysis', 'simplified',
+                {"step": "Analyzing coverage and requesting continuations"}
+            )
+            
             logger.info("Stage 2: Coverage analysis and continuation")
             complete_transcript, continuation_info = await self.continuation_manager.ensure_complete_transcript(
                 raw_transcript, 
@@ -486,10 +496,27 @@ class TranscriptionOrchestrator:
             # Store continuation info in episode data
             episode_data['_continuation_info'] = continuation_info
             
+            # Update progress tracking with continuation results
+            self.progress_tracker.update_continuation_progress(
+                episode.guid,
+                attempts=continuation_info.get('attempts', 0),
+                coverage=continuation_info.get('final_coverage', 0.0),
+                segments_count=continuation_info.get('segments_count', 1),
+                consecutive_failures=continuation_info.get('consecutive_failures', 0),
+                api_errors=continuation_info.get('api_errors', [])
+            )
+            
             # Check if episode should be failed based on continuation results
             if self.continuation_manager.should_fail_episode(continuation_info):
                 failure_reason = self.continuation_manager.get_failure_reason(continuation_info)
                 logger.error(f"Episode failed continuation requirements: {failure_reason}")
+                
+                # Update failure tracking
+                self.progress_tracker.update_failure_info(
+                    episode.guid, 
+                    continuation_info.get('failure_type', 'coverage_failure'),
+                    failure_reason
+                )
                 
                 self.progress_tracker.update_episode_state(
                     episode.guid, EpisodeStatus.FAILED, episode_data,
@@ -521,6 +548,11 @@ class TranscriptionOrchestrator:
             if self.checkpoint_manager:
                 self.checkpoint_manager.update_stage('vtt_conversion')
             
+            self.progress_tracker.update_workflow_stage(
+                episode.guid, 'vtt_conversion', 'simplified',
+                {"step": "Converting raw transcript to WebVTT format"}
+            )
+            
             logger.info("Stage 4: Converting raw transcript to VTT format")
             vtt_content = self.text_to_vtt_converter.convert(final_raw_transcript, episode_data)
             
@@ -528,6 +560,11 @@ class TranscriptionOrchestrator:
                 raise Exception("VTT conversion failed")
             
             # Stage 5: Save VTT File
+            self.progress_tracker.update_workflow_stage(
+                episode.guid, 'vtt_save', 'simplified',
+                {"step": "Saving VTT file to disk"}
+            )
+            
             output_path = self._generate_output_path(episode_data)
             success = self.text_to_vtt_converter.save_vtt_file(vtt_content, output_path)
             

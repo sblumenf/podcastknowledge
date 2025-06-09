@@ -61,6 +61,17 @@ class EpisodeProgress:
     final_coverage_ratio: Optional[float] = None
     segment_count: int = 1
     
+    # Simplified workflow stage tracking
+    workflow_type: Optional[str] = None  # 'simplified' or 'legacy'
+    current_stage: Optional[str] = None
+    stage_progress: Dict[str, Any] = field(default_factory=dict)
+    stage_timestamps: Dict[str, str] = field(default_factory=dict)
+    
+    # Additional continuation info
+    consecutive_failures: int = 0
+    api_errors: List[str] = field(default_factory=list)
+    failure_type: Optional[str] = None
+    
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for JSON serialization."""
         return {
@@ -80,7 +91,14 @@ class EpisodeProgress:
             'api_key_used': self.api_key_used,
             'continuation_attempts': self.continuation_attempts,
             'final_coverage_ratio': self.final_coverage_ratio,
-            'segment_count': self.segment_count
+            'segment_count': self.segment_count,
+            'workflow_type': self.workflow_type,
+            'current_stage': self.current_stage,
+            'stage_progress': self.stage_progress,
+            'stage_timestamps': self.stage_timestamps,
+            'consecutive_failures': self.consecutive_failures,
+            'api_errors': self.api_errors,
+            'failure_type': self.failure_type
         }
     
     @classmethod
@@ -115,7 +133,14 @@ class EpisodeProgress:
             api_key_used=data.get('api_key_used'),
             continuation_attempts=data.get('continuation_attempts', 0),
             final_coverage_ratio=data.get('final_coverage_ratio'),
-            segment_count=data.get('segment_count', 1)
+            segment_count=data.get('segment_count', 1),
+            workflow_type=data.get('workflow_type'),
+            current_stage=data.get('current_stage'),
+            stage_progress=data.get('stage_progress', {}),
+            stage_timestamps=data.get('stage_timestamps', {}),
+            consecutive_failures=data.get('consecutive_failures', 0),
+            api_errors=data.get('api_errors', []),
+            failure_type=data.get('failure_type')
         )
 
 
@@ -557,3 +582,173 @@ class ProgressTracker:
             
         else:
             logger.warning(f"Unexpected status update: {status} for episode {guid}")
+    
+    def update_workflow_stage(self, guid: str, stage: str, 
+                            workflow_type: str = 'simplified',
+                            stage_info: Optional[Dict[str, Any]] = None):
+        """Update the current workflow stage for an episode.
+        
+        Args:
+            guid: Episode GUID
+            stage: Current stage name
+            workflow_type: Type of workflow ('simplified' or 'legacy')
+            stage_info: Additional stage-specific information
+        """
+        if guid not in self.state.episodes:
+            logger.warning(f"Cannot update stage for unknown episode: {guid}")
+            return
+        
+        episode = self.state.episodes[guid]
+        episode.workflow_type = workflow_type
+        episode.current_stage = stage
+        episode.stage_timestamps[stage] = datetime.now(timezone.utc).isoformat()
+        
+        if stage_info:
+            episode.stage_progress[stage] = stage_info
+        
+        logger.debug(f"Episode {guid[:8]} -> Stage: {stage}")
+        self._save_state()
+    
+    def update_continuation_progress(self, guid: str, 
+                                   attempts: int,
+                                   coverage: float,
+                                   segments_count: int,
+                                   consecutive_failures: int = 0,
+                                   api_errors: Optional[List[str]] = None):
+        """Update continuation progress for an episode.
+        
+        Args:
+            guid: Episode GUID
+            attempts: Number of continuation attempts
+            coverage: Current coverage percentage (0.0-1.0)
+            segments_count: Number of transcript segments
+            consecutive_failures: Number of consecutive failures
+            api_errors: List of API error messages
+        """
+        if guid not in self.state.episodes:
+            logger.warning(f"Cannot update continuation progress for unknown episode: {guid}")
+            return
+        
+        episode = self.state.episodes[guid]
+        episode.continuation_attempts = attempts
+        episode.final_coverage_ratio = coverage
+        episode.segment_count = segments_count
+        episode.consecutive_failures = consecutive_failures
+        
+        if api_errors:
+            episode.api_errors = api_errors
+        
+        # Update stage progress with detailed continuation info
+        stage_info = {
+            "attempts": attempts,
+            "coverage": f"{coverage:.1%}",
+            "segments": segments_count,
+            "consecutive_failures": consecutive_failures,
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+        episode.stage_progress["continuation_analysis"] = stage_info
+        
+        logger.debug(f"Episode {guid[:8]} continuation: {attempts} attempts, {coverage:.1%} coverage")
+        self._save_state()
+    
+    def update_failure_info(self, guid: str, failure_type: str, error_details: str):
+        """Update failure information for an episode.
+        
+        Args:
+            guid: Episode GUID
+            failure_type: Type of failure (e.g., 'insufficient_coverage', 'max_attempts_exceeded')
+            error_details: Detailed error message
+        """
+        if guid not in self.state.episodes:
+            logger.warning(f"Cannot update failure info for unknown episode: {guid}")
+            return
+        
+        episode = self.state.episodes[guid]
+        episode.failure_type = failure_type
+        episode.error = error_details
+        episode.error_type = failure_type
+        
+        logger.info(f"Episode {guid[:8]} failed: {failure_type} - {error_details}")
+        self._save_state()
+    
+    def get_stage_summary(self, guid: str) -> Dict[str, Any]:
+        """Get stage progression summary for an episode.
+        
+        Args:
+            guid: Episode GUID
+            
+        Returns:
+            Dictionary with stage progression information
+        """
+        if guid not in self.state.episodes:
+            return {"error": "Episode not found"}
+        
+        episode = self.state.episodes[guid]
+        
+        return {
+            "episode_id": guid,
+            "title": episode.title,
+            "workflow_type": episode.workflow_type,
+            "current_stage": episode.current_stage,
+            "stage_timestamps": episode.stage_timestamps,
+            "stage_progress": episode.stage_progress,
+            "continuation_attempts": episode.continuation_attempts,
+            "final_coverage": episode.final_coverage_ratio,
+            "consecutive_failures": episode.consecutive_failures,
+            "failure_type": episode.failure_type
+        }
+    
+    def get_workflow_statistics(self) -> Dict[str, Any]:
+        """Get statistics about workflow usage and performance.
+        
+        Returns:
+            Dictionary with workflow statistics
+        """
+        stats = {
+            "total_episodes": len(self.state.episodes),
+            "by_workflow": {"simplified": 0, "legacy": 0, "unknown": 0},
+            "by_status": {"completed": 0, "failed": 0, "in_progress": 0, "pending": 0},
+            "by_failure_type": {},
+            "continuation_stats": {
+                "episodes_with_continuations": 0,
+                "total_continuation_attempts": 0,
+                "average_coverage": 0.0,
+                "average_segments": 0.0
+            }
+        }
+        
+        coverage_sum = 0.0
+        segments_sum = 0
+        episodes_with_coverage = 0
+        
+        for episode in self.state.episodes.values():
+            # Count by workflow type
+            workflow = episode.workflow_type or "unknown"
+            stats["by_workflow"][workflow] += 1
+            
+            # Count by status
+            stats["by_status"][episode.status.value] += 1
+            
+            # Count by failure type
+            if episode.failure_type:
+                stats["by_failure_type"][episode.failure_type] = stats["by_failure_type"].get(episode.failure_type, 0) + 1
+            
+            # Continuation statistics
+            if episode.continuation_attempts > 0:
+                stats["continuation_stats"]["episodes_with_continuations"] += 1
+                stats["continuation_stats"]["total_continuation_attempts"] += episode.continuation_attempts
+            
+            if episode.final_coverage_ratio is not None:
+                coverage_sum += episode.final_coverage_ratio
+                episodes_with_coverage += 1
+            
+            segments_sum += episode.segment_count
+        
+        # Calculate averages
+        if episodes_with_coverage > 0:
+            stats["continuation_stats"]["average_coverage"] = coverage_sum / episodes_with_coverage
+        
+        if len(self.state.episodes) > 0:
+            stats["continuation_stats"]["average_segments"] = segments_sum / len(self.state.episodes)
+        
+        return stats
