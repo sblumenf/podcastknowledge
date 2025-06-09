@@ -103,6 +103,18 @@ class ValidationConfig:
 
 
 @dataclass
+class SimplifiedWorkflowConfig:
+    """Simplified workflow configuration settings."""
+    enabled: bool = False
+    use_paid_key_only: bool = False
+    require_full_coverage: bool = True
+    min_coverage_threshold: float = 0.85
+    max_continuation_attempts: int = 10
+    enable_transcript_stitching: bool = True
+    save_raw_transcripts: bool = False
+
+
+@dataclass
 class DevelopmentConfig:
     """Development configuration settings."""
     dry_run: bool = False
@@ -134,6 +146,7 @@ class Config:
         self.youtube_search = YouTubeSearchConfig()
         self.youtube_api = YouTubeAPIConfig()
         self.validation = ValidationConfig()
+        self.simplified_workflow = SimplifiedWorkflowConfig()
         self.development = DevelopmentConfig()
         
         # Set test mode if specified
@@ -179,6 +192,7 @@ class Config:
         self._apply_config_section('youtube_search', self.youtube_search)
         self._apply_config_section('youtube_api', self.youtube_api)
         self._apply_config_section('validation', self.validation)
+        self._apply_config_section('simplified_workflow', self.simplified_workflow)
         self._apply_config_section('development', self.development)
         
         # Apply environment variable overrides
@@ -267,6 +281,13 @@ class Config:
         
         # YouTube search method override
         self._apply_env_override('YOUTUBE_SEARCH_METHOD', 'youtube_search.method', str)
+        
+        # Simplified workflow configuration overrides
+        self._apply_env_override('USE_SIMPLIFIED_WORKFLOW', 'simplified_workflow.enabled', bool)
+        self._apply_env_override('USE_PAID_KEY_ONLY', 'simplified_workflow.use_paid_key_only', bool)
+        self._apply_env_override('REQUIRE_FULL_COVERAGE', 'simplified_workflow.require_full_coverage', bool)
+        self._apply_env_override('MIN_COVERAGE_THRESHOLD', 'simplified_workflow.min_coverage_threshold', float)
+        self._apply_env_override('MAX_CONTINUATION_ATTEMPTS', 'simplified_workflow.max_continuation_attempts', int)
     
     def _apply_env_override(self, env_var: str, config_path: str, value_type: type):
         """Apply a single environment variable override.
@@ -424,6 +445,15 @@ class Config:
                 'api_key_vars': self.security.api_key_vars,
                 'rotation_strategy': self.security.rotation_strategy,
                 'fail_over_enabled': self.security.fail_over_enabled
+            },
+            'simplified_workflow': {
+                'enabled': self.simplified_workflow.enabled,
+                'use_paid_key_only': self.simplified_workflow.use_paid_key_only,
+                'require_full_coverage': self.simplified_workflow.require_full_coverage,
+                'min_coverage_threshold': self.simplified_workflow.min_coverage_threshold,
+                'max_continuation_attempts': self.simplified_workflow.max_continuation_attempts,
+                'enable_transcript_stitching': self.simplified_workflow.enable_transcript_stitching,
+                'save_raw_transcripts': self.simplified_workflow.save_raw_transcripts
             },
             'development': {
                 'dry_run': self.development.dry_run,

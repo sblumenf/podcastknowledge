@@ -175,12 +175,13 @@ class APIKeyState:
 class KeyRotationManager:
     """Manages round-robin rotation of multiple API keys."""
     
-    def __init__(self, api_keys: List[str], state_dir: Optional[Path] = None):
+    def __init__(self, api_keys: List[str], state_dir: Optional[Path] = None, config=None):
         """Initialize with list of API keys.
         
         Args:
             api_keys: List of API key strings
             state_dir: Directory for state files. Uses env var STATE_DIR or 'data' if not provided.
+            config: Configuration object with simplified workflow settings
         """
         if not api_keys:
             raise ValueError("At least one API key must be provided")
@@ -188,7 +189,13 @@ class KeyRotationManager:
         self.api_keys = api_keys
         self.key_states: List[APIKeyState] = []
         self.current_index = 0
-        self.use_paid_key_only = os.getenv('USE_PAID_KEY_ONLY', 'false').lower() == 'true'
+        
+        # Determine use_paid_key_only setting from config or environment
+        if config and hasattr(config, 'simplified_workflow'):
+            self.use_paid_key_only = config.simplified_workflow.use_paid_key_only
+        else:
+            # Fallback to environment variable for backward compatibility
+            self.use_paid_key_only = os.getenv('USE_PAID_KEY_ONLY', 'false').lower() == 'true'
         
         # Determine state directory
         if state_dir:
@@ -508,11 +515,12 @@ class KeyRotationManager:
             )
 
 
-def create_key_rotation_manager(state_dir: Optional[Path] = None) -> Optional[KeyRotationManager]:
+def create_key_rotation_manager(state_dir: Optional[Path] = None, config=None) -> Optional[KeyRotationManager]:
     """Create a key rotation manager from environment variables.
     
     Args:
         state_dir: Directory for state files. Uses env var STATE_DIR or 'data' if not provided.
+        config: Configuration object with simplified workflow settings
     
     Returns:
         KeyRotationManager instance or None if no keys found
@@ -538,4 +546,4 @@ def create_key_rotation_manager(state_dir: Optional[Path] = None) -> Optional[Ke
         logger.error("No API keys found in environment")
         return None
     
-    return KeyRotationManager(api_keys, state_dir)
+    return KeyRotationManager(api_keys, state_dir, config)

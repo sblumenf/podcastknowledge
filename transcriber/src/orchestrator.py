@@ -62,7 +62,7 @@ class TranscriptionOrchestrator:
             data_dir = Path("data")
         data_dir.mkdir(exist_ok=True)
         self.progress_tracker = ProgressTracker(data_dir / ".progress.json")
-        self.key_manager = create_key_rotation_manager()
+        self.key_manager = create_key_rotation_manager(config=self.config)
         self.gemini_client = create_gemini_client(self.key_manager)
         
         # Initialize checkpoint manager if enabled
@@ -82,7 +82,7 @@ class TranscriptionOrchestrator:
         self.transcript_analyzer = TranscriptAnalyzer()
         self.continuation_manager = ContinuationManager(
             self.gemini_client, 
-            max_attempts=self.config.validation.max_continuation_attempts
+            max_attempts=self.config.simplified_workflow.max_continuation_attempts
         )
         self.transcript_stitcher = TranscriptStitcher()
         self.text_to_vtt_converter = TextToVTTConverter()
@@ -431,9 +431,7 @@ class TranscriptionOrchestrator:
             Processing result
         """
         # Check if simplified workflow is enabled
-        use_simplified_workflow = os.getenv('USE_SIMPLIFIED_WORKFLOW', 'false').lower() == 'true'
-        
-        if use_simplified_workflow:
+        if self.config.simplified_workflow.enabled:
             return await self._process_episode_simplified(episode, episode_data)
         else:
             return await self._process_episode_legacy(episode, episode_data)
@@ -490,7 +488,7 @@ class TranscriptionOrchestrator:
                 raw_transcript, 
                 episode.audio_url, 
                 episode_data,
-                min_coverage=self.config.validation.min_coverage_ratio
+                min_coverage=self.config.simplified_workflow.min_coverage_threshold
             )
             
             # Store continuation info in episode data

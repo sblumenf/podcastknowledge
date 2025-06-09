@@ -67,6 +67,15 @@ validation:
   min_coverage_ratio: 0.85
   max_continuation_attempts: 10
 
+simplified_workflow:
+  enabled: false  # Enable simplified transcription workflow
+  use_paid_key_only: false  # Use only the first (paid tier) API key
+  require_full_coverage: true  # Require full episode coverage
+  min_coverage_threshold: 0.85  # Minimum coverage ratio for completion
+  max_continuation_attempts: 10  # Maximum continuation requests
+  enable_transcript_stitching: true  # Enable seamless segment stitching
+  save_raw_transcripts: false  # Save raw transcript responses
+
 development:
   dry_run: false
   debug_mode: false
