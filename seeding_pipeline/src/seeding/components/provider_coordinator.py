@@ -9,7 +9,7 @@ from src.core.exceptions import ConfigurationError
 from src.extraction import KnowledgeExtractor, EntityResolver
 from src.processing.episode_flow import EpisodeFlowAnalyzer
 from src.processing.segmentation import VTTTranscriptSegmenter
-from src.services import LLMService, EmbeddingsService
+from src.services import create_gemini_services, LLMService, GeminiEmbeddingsService
 from src.storage import GraphStorageService
 logger = logging.getLogger(__name__)
 
@@ -59,19 +59,25 @@ class ProviderCoordinator:
             # Convert config to dict for services
             config_dict = asdict(self.config) if hasattr(self.config, '__dataclass_fields__') else self.config
             
-            # Initialize services directly
-            # Get API key from config
-            api_key = getattr(self.config, 'google_api_key', None) or getattr(self.config, 'api_key', None)
-            if not api_key:
-                raise ConfigurationError("Google API key is required for LLM service")
-            
-            # Initialize LLM service
-            self.llm_service = LLMService(
-                api_key=api_key,
-                model_name=getattr(self.config, 'model_name', 'gemini-2.5-flash'),
-                temperature=getattr(self.config, 'temperature', 0.7),
-                max_tokens=getattr(self.config, 'max_tokens', 4096)
-            )
+            # Initialize services using factory function with key rotation
+            try:
+                # Create Gemini services with shared key rotation
+                self.llm_service, self.embedding_service = create_gemini_services(
+                    llm_model=getattr(self.config, 'model_name', 'gemini-2.5-flash'),
+                    embeddings_model=getattr(self.config, 'embedding_model', 'models/text-embedding-004'),
+                    temperature=getattr(self.config, 'temperature', 0.7),
+                    max_tokens=getattr(self.config, 'max_tokens', 4096),
+                    embeddings_batch_size=getattr(self.config, 'embedding_batch_size', 100),
+                    enable_cache=getattr(self.config, 'enable_cache', True),
+                    cache_ttl=getattr(self.config, 'cache_ttl', 3600)
+                )
+                logger.info("✓ Initialized Gemini services with API key rotation")
+            except ValueError as e:
+                # Fall back to direct API key if rotation not available
+                api_key = getattr(self.config, 'google_api_key', None) or getattr(self.config, 'api_key', None)
+                if not api_key:
+                    raise ConfigurationError("No API keys found. Please set GOOGLE_API_KEY or GEMINI_API_KEY_1-9")
+                raise ConfigurationError(f"Failed to initialize services: {e}")
             
             # Initialize graph storage service
             self.graph_service = GraphStorageService(
@@ -80,13 +86,6 @@ class ProviderCoordinator:
                 password=getattr(self.config, 'neo4j_password', None),
                 database=getattr(self.config, 'neo4j_database', 'neo4j'),
                 pool_size=getattr(self.config, 'pool_size', 50)
-            )
-            
-            # Initialize embeddings service with Gemini API
-            self.embedding_service = EmbeddingsService(
-                api_key=api_key,  # Use the same API key as LLM service
-                model_name=getattr(self.config, 'embedding_model', 'models/text-embedding-004'),
-                batch_size=getattr(self.config, 'embedding_batch_size', 100)
             )
             
             # Initialize processing components

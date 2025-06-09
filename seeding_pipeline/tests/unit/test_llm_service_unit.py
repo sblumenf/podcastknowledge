@@ -7,53 +7,68 @@ import pytest
 
 from src.core.exceptions import ProviderError, RateLimitError
 from src.services.llm import LLMService
-from src.utils.rate_limiting import WindowedRateLimiter
+from src.utils.key_rotation_manager import KeyRotationManager, APIKeyState, KeyStatus
 class TestLLMService:
     """Test LLMService functionality."""
     
     @pytest.fixture
-    def llm_service(self):
-        """Create LLM service instance."""
+    def mock_rotation_manager(self):
+        """Create mock key rotation manager."""
+        manager = Mock(spec=KeyRotationManager)
+        manager.get_next_key.return_value = ("test_api_key", 0)
+        manager.mark_key_success = Mock()
+        manager.mark_key_failure = Mock()
+        manager.update_key_usage = Mock()
+        manager.get_status_summary.return_value = {
+            'total_keys': 1,
+            'available_keys': 1,
+            'key_states': []
+        }
+        return manager
+    
+    @pytest.fixture
+    def llm_service(self, mock_rotation_manager):
+        """Create LLM service instance with rotation."""
         return LLMService(
-            api_key="test_api_key",
+            key_rotation_manager=mock_rotation_manager,
             model_name="gemini-2.5-flash",
             temperature=0.7,
             max_tokens=4096
         )
     
-    def test_initialization_success(self):
+    def test_initialization_success(self, mock_rotation_manager):
         """Test successful LLM service initialization."""
         service = LLMService(
-            api_key="test_key",
+            key_rotation_manager=mock_rotation_manager,
             model_name="gemini-2.0-flash",
             temperature=0.5,
             max_tokens=2048
         )
         
-        assert service.api_key == "test_key"
+        assert service.key_rotation_manager == mock_rotation_manager
         assert service.model_name == "gemini-2.0-flash"
         assert service.temperature == 0.5
         assert service.max_tokens == 2048
         assert service.client is None
-        assert isinstance(service.rate_limiter, WindowedRateLimiter)
     
-    def test_initialization_no_api_key(self):
-        """Test initialization without API key."""
-        with pytest.raises(ValueError, match="Gemini API key is required"):
-            LLMService(api_key="")
+    def test_initialization_no_rotation_manager(self):
+        """Test initialization without rotation manager."""
+        with pytest.raises(ValueError, match="KeyRotationManager is required"):
+            LLMService(key_rotation_manager=None)
     
-    def test_rate_limiter_configuration(self, llm_service):
-        """Test rate limiter is configured correctly."""
-        # Check that rate limiter has correct limits
-        limits = llm_service.rate_limiter.limits
+    def test_get_rate_limit_status(self, llm_service, mock_rotation_manager):
+        """Test getting rate limit status from rotation manager."""
+        expected_status = {
+            'total_keys': 3,
+            'available_keys': 2,
+            'key_states': []
+        }
+        mock_rotation_manager.get_status_summary.return_value = expected_status
         
-        assert 'gemini-2.5-flash' in limits
-        assert limits['gemini-2.5-flash']['rpm'] == 10
-        assert limits['gemini-2.5-flash']['tpm'] == 250000
-        assert limits['gemini-2.5-flash']['rpd'] == 500
+        status = llm_service.get_rate_limit_status()
         
-        assert 'gemini-2.0-flash' in limits
-        assert 'default' in limits
+        assert status == expected_status
+        mock_rotation_manager.get_status_summary.assert_called_once()
     
     @patch('src.services.llm.ChatGoogleGenerativeAI')
     def test_ensure_client_success(self, mock_chat_class, llm_service):
@@ -61,7 +76,7 @@ class TestLLMService:
         mock_client = Mock()
         mock_chat_class.return_value = mock_client
         
-        llm_service._ensure_client()
+        llm_service._ensure_client("test_api_key")
         
         assert llm_service.client == mock_client
         mock_chat_class.assert_called_once_with(
@@ -75,24 +90,29 @@ class TestLLMService:
         """Test client initialization with import error."""
         with patch.dict('sys.modules', {'langchain_google_genai': None}):
             with pytest.raises(ImportError, match="langchain_google_genai is not installed"):
-                llm_service._ensure_client()
+                llm_service._ensure_client("test_api_key")
     
     @patch('src.services.llm.ChatGoogleGenerativeAI')
-    def test_ensure_client_idempotent(self, mock_chat_class, llm_service):
-        """Test that _ensure_client is idempotent."""
-        mock_client = Mock()
-        mock_chat_class.return_value = mock_client
+    def test_ensure_client_changes_with_different_key(self, mock_chat_class, llm_service):
+        """Test that _ensure_client creates new client for different API key."""
+        mock_client1 = Mock()
+        mock_client2 = Mock()
+        mock_chat_class.side_effect = [mock_client1, mock_client2]
         
-        # Call twice
-        llm_service._ensure_client()
-        llm_service._ensure_client()
+        # Call with first key
+        llm_service._ensure_client("key1")
+        assert llm_service.client == mock_client1
         
-        # Should only create client once
-        mock_chat_class.assert_called_once()
+        # Call with different key
+        llm_service._ensure_client("key2")
+        assert llm_service.client == mock_client2
+        
+        # Should create client twice
+        assert mock_chat_class.call_count == 2
     
     @patch.object(LLMService, '_ensure_client')
-    def test_complete_success(self, mock_ensure, llm_service):
-        """Test successful completion."""
+    def test_complete_success(self, mock_ensure, llm_service, mock_rotation_manager):
+        """Test successful completion with rotation."""
         mock_response = Mock()
         mock_response.content = "Generated text response"
         
@@ -100,18 +120,18 @@ class TestLLMService:
         mock_client.invoke.return_value = mock_response
         llm_service.client = mock_client
         
-        # Mock rate limiter
-        llm_service.rate_limiter.can_make_request = Mock(return_value=True)
-        llm_service.rate_limiter.record_request = Mock()
-        
         result = llm_service.complete("Test prompt")
         
         assert result == "Generated text response"
         mock_client.invoke.assert_called_once_with("Test prompt")
-        llm_service.rate_limiter.record_request.assert_called_once()
+        
+        # Verify rotation manager was used
+        mock_rotation_manager.get_next_key.assert_called()
+        mock_rotation_manager.mark_key_success.assert_called_once_with(0)
+        mock_rotation_manager.update_key_usage.assert_called()
     
     @patch.object(LLMService, '_ensure_client')
-    def test_complete_no_content_attribute(self, mock_ensure, llm_service):
+    def test_complete_no_content_attribute(self, mock_ensure, llm_service, mock_rotation_manager):
         """Test completion when response has no content attribute."""
         mock_response = "String response"
         
@@ -119,19 +139,16 @@ class TestLLMService:
         mock_client.invoke.return_value = mock_response
         llm_service.client = mock_client
         
-        llm_service.rate_limiter.can_make_request = Mock(return_value=True)
-        llm_service.rate_limiter.record_request = Mock()
-        
         result = llm_service.complete("Test prompt")
         
         assert result == "String response"
+        mock_rotation_manager.mark_key_success.assert_called_once()
     
-    @patch.object(LLMService, '_ensure_client')
-    def test_complete_rate_limit_exceeded(self, mock_ensure, llm_service):
-        """Test completion when rate limit is exceeded."""
-        llm_service.rate_limiter.can_make_request = Mock(return_value=False)
+    def test_complete_no_keys_available(self, llm_service, mock_rotation_manager):
+        """Test completion when no API keys are available."""
+        mock_rotation_manager.get_next_key.side_effect = Exception("No API keys available")
         
-        with pytest.raises(RateLimitError, match="Rate limit exceeded"):
+        with pytest.raises(RateLimitError, match="All API keys have exceeded their quotas"):
             llm_service.complete("Test prompt")
     
     @patch.object(LLMService, '_ensure_client')

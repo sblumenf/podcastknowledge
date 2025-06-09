@@ -213,30 +213,43 @@ class HealthChecker:
     def check_llm_api(self) -> ComponentHealth:
         """Check LLM API availability."""
         try:
-            # Check for API key
-            api_key = os.getenv('GOOGLE_API_KEY', '')
-            if not api_key:
+            # Check for any API keys (supports rotation)
+            has_keys = any([
+                os.getenv('GOOGLE_API_KEY'),
+                os.getenv('GEMINI_API_KEY'),
+                any(os.getenv(f'GEMINI_API_KEY_{i}') for i in range(1, 10))
+            ])
+            
+            if not has_keys:
                 return ComponentHealth(
                     name='llm_api',
                     status=HealthStatus.UNHEALTHY,
-                    message="Google API key not configured"
+                    message="No API keys configured (GOOGLE_API_KEY, GEMINI_API_KEY, or GEMINI_API_KEY_1-9)"
                 )
             
-            # Try to initialize service (doesn't make actual call)
-            from src.services import LLMService
-            service = LLMService(provider="google", model="gemini-pro")
-            
-            # Check rate limit status
-            rate_status = service.get_rate_limit_status()
+            # Try to initialize service with rotation support
+            from src.services import create_llm_service_only
+            try:
+                service = create_llm_service_only(model_name="gemini-2.5-flash")
+                # Check rate limit status
+                rate_status = service.get_rate_limit_status()
+            except ValueError:
+                # No API keys available
+                return ComponentHealth(
+                    name='llm_api',
+                    status=HealthStatus.UNHEALTHY,
+                    message="No API keys available for rotation"
+                )
             
             return ComponentHealth(
                 name='llm_api',
                 status=HealthStatus.HEALTHY,
-                message="LLM API is configured",
+                message="LLM API is configured with key rotation",
                 details={
                     'provider': 'google',
-                    'model': 'gemini-pro',
-                    'api_key_configured': True,
+                    'model': 'gemini-2.5-flash',
+                    'api_keys_available': rate_status.get('total_keys', 0),
+                    'active_keys': rate_status.get('available_keys', 0),
                     'rate_limit_status': rate_status
                 }
             )

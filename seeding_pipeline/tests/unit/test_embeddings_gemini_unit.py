@@ -8,49 +8,66 @@ import pytest
 
 from src.core.exceptions import ProviderError, RateLimitError
 from src.services.embeddings_gemini import GeminiEmbeddingsService
-from src.utils.rate_limiting import WindowedRateLimiter
+from src.utils.key_rotation_manager import KeyRotationManager
 class TestGeminiEmbeddingsService:
     """Test GeminiEmbeddingsService functionality."""
     
     @pytest.fixture
-    def embeddings_service(self):
-        """Create embeddings service instance."""
+    def mock_rotation_manager(self):
+        """Create mock key rotation manager."""
+        manager = Mock(spec=KeyRotationManager)
+        manager.get_next_key.return_value = ("test_api_key", 0)
+        manager.mark_key_success = Mock()
+        manager.mark_key_failure = Mock()
+        manager.update_key_usage = Mock()
+        manager.get_status_summary.return_value = {
+            'total_keys': 1,
+            'available_keys': 1,
+            'key_states': []
+        }
+        return manager
+    
+    @pytest.fixture
+    def embeddings_service(self, mock_rotation_manager):
+        """Create embeddings service instance with rotation."""
         return GeminiEmbeddingsService(
-            api_key="test_api_key",
+            key_rotation_manager=mock_rotation_manager,
             model_name="models/text-embedding-004",
             batch_size=100
         )
     
-    def test_initialization_success(self):
+    def test_initialization_success(self, mock_rotation_manager):
         """Test successful service initialization."""
         service = GeminiEmbeddingsService(
-            api_key="test_key",
+            key_rotation_manager=mock_rotation_manager,
             model_name="models/custom-embedding",
             batch_size=50
         )
         
-        assert service.api_key == "test_key"
+        assert service.key_rotation_manager == mock_rotation_manager
         assert service.model_name == "models/custom-embedding"
         assert service.batch_size == 50
         assert service.dimension == 768
-        assert service._configured is False
-        assert isinstance(service.rate_limiter, WindowedRateLimiter)
+        assert service._current_api_key is None
     
-    def test_initialization_no_api_key(self):
-        """Test initialization without API key."""
-        with pytest.raises(ValueError, match="Gemini API key is required"):
-            GeminiEmbeddingsService(api_key="")
+    def test_initialization_no_rotation_manager(self):
+        """Test initialization without rotation manager."""
+        with pytest.raises(ValueError, match="KeyRotationManager is required"):
+            GeminiEmbeddingsService(key_rotation_manager=None)
     
-    def test_rate_limiter_configuration(self, embeddings_service):
-        """Test rate limiter is configured correctly."""
-        limits = embeddings_service.rate_limiter.limits
+    def test_get_rate_limit_status(self, embeddings_service, mock_rotation_manager):
+        """Test getting rate limit status from rotation manager."""
+        expected_status = {
+            'total_keys': 3,
+            'available_keys': 2,
+            'key_states': []
+        }
+        mock_rotation_manager.get_status_summary.return_value = expected_status
         
-        assert 'text-embedding-004' in limits
-        assert limits['text-embedding-004']['rpm'] == 1500
-        assert limits['text-embedding-004']['tpm'] == 4000000
-        assert limits['text-embedding-004']['rpd'] == 1500000
+        status = embeddings_service.get_rate_limit_status()
         
-        assert 'default' in limits
+        assert status == expected_status
+        mock_rotation_manager.get_status_summary.assert_called_once()
     
     @patch('src.services.embeddings_gemini.genai')
     def test_ensure_configured(self, mock_genai, embeddings_service):

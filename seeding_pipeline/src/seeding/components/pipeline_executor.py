@@ -10,6 +10,7 @@ from src.core.interfaces import TranscriptSegment
 from src.core.models import Podcast, Episode, Segment
 from src.utils.log_utils import get_logger
 from src.utils.memory import cleanup_memory
+from src.seeding.components.rotation_checkpoint_integration import RotationCheckpointIntegration
 def add_span_attributes(attributes: Dict[str, Any]) -> None:
     """Mock implementation for tracing/observability attributes."""
     # This is a placeholder for actual tracing implementation
@@ -62,6 +63,15 @@ class PipelineExecutor:
         self.knowledge_extractor = provider_coordinator.knowledge_extractor
         self.entity_resolver = provider_coordinator.entity_resolver
         self.segmenter = provider_coordinator.segmenter
+        
+        # Set up rotation checkpoint integration if key rotation is enabled
+        self.rotation_integration = None
+        if hasattr(self.llm_service, 'key_rotation_manager') and self.llm_service.key_rotation_manager:
+            self.rotation_integration = RotationCheckpointIntegration(
+                checkpoint_manager, 
+                self.llm_service.key_rotation_manager
+            )
+            logger.info("Initialized rotation checkpoint integration")
     
     def process_vtt_segments(self,
                            podcast_config: Dict[str, Any],
@@ -96,6 +106,10 @@ class PipelineExecutor:
             
             # Save segments checkpoint
             self.checkpoint_manager.save_progress(episode_id, "segments", segment_objects)
+            
+            # Save rotation state with checkpoint
+            if self.rotation_integration:
+                self.rotation_integration.save_rotation_state_with_checkpoint(episode_id, "segments")
             
             # Direct schemaless extraction (no mode selection)
             result = self._extract_knowledge_direct(
@@ -367,6 +381,10 @@ class PipelineExecutor:
             episode_id: Episode identifier
             result: Processing results
         """
+        # Save final rotation state before marking complete
+        if self.rotation_integration:
+            self.rotation_integration.save_rotation_state_with_checkpoint(episode_id, "complete")
+        
         # Mark episode as complete
         self.checkpoint_manager.mark_completed(episode_id, result)
         

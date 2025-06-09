@@ -161,12 +161,12 @@ Date: {metadata.get('published_date', metadata.get('publication_date', 'Unknown'
 Duration: {metadata.get('duration', 'Unknown')}
 
 00:00:00.000 --> 00:00:05.500
-<v {metadata.get('author', 'SPEAKER_1')}>Welcome to {metadata.get('podcast_name', 'the podcast')}.
+<v John Smith (Host)>Welcome to Tech Talk podcast.
 I'm your host.
 
 00:00:05.500 --> 00:00:10.000
-<v {metadata.get('author', 'SPEAKER_1')}>Today we're discussing
-{metadata.get('title', 'an interesting topic')[:50]}...
+<v John Smith (Host)>Today we're discussing
+artificial intelligence...
 
 00:00:10.000 --> 00:00:15.000
 <v SPEAKER_2>Thank you for having me.

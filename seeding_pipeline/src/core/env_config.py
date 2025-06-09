@@ -101,7 +101,57 @@ class EnvironmentConfig:
             "GOOGLE_API_KEY": cls.get_optional(
                 "GOOGLE_API_KEY",
                 None,
-                "Google API key for Gemini models"
+                "Google API key for Gemini models (backward compatibility)"
+            ),
+            "GEMINI_API_KEY": cls.get_optional(
+                "GEMINI_API_KEY",
+                None,
+                "Primary Gemini API key (alternative to GOOGLE_API_KEY)"
+            ),
+            "GEMINI_API_KEY_1": cls.get_optional(
+                "GEMINI_API_KEY_1",
+                None,
+                "First Gemini API key for rotation"
+            ),
+            "GEMINI_API_KEY_2": cls.get_optional(
+                "GEMINI_API_KEY_2",
+                None,
+                "Second Gemini API key for rotation"
+            ),
+            "GEMINI_API_KEY_3": cls.get_optional(
+                "GEMINI_API_KEY_3",
+                None,
+                "Third Gemini API key for rotation"
+            ),
+            "GEMINI_API_KEY_4": cls.get_optional(
+                "GEMINI_API_KEY_4",
+                None,
+                "Fourth Gemini API key for rotation"
+            ),
+            "GEMINI_API_KEY_5": cls.get_optional(
+                "GEMINI_API_KEY_5",
+                None,
+                "Fifth Gemini API key for rotation"
+            ),
+            "GEMINI_API_KEY_6": cls.get_optional(
+                "GEMINI_API_KEY_6",
+                None,
+                "Sixth Gemini API key for rotation"
+            ),
+            "GEMINI_API_KEY_7": cls.get_optional(
+                "GEMINI_API_KEY_7",
+                None,
+                "Seventh Gemini API key for rotation"
+            ),
+            "GEMINI_API_KEY_8": cls.get_optional(
+                "GEMINI_API_KEY_8",
+                None,
+                "Eighth Gemini API key for rotation"
+            ),
+            "GEMINI_API_KEY_9": cls.get_optional(
+                "GEMINI_API_KEY_9",
+                None,
+                "Ninth Gemini API key for rotation"
             ),
             "OPENAI_API_KEY": cls.get_optional(
                 "OPENAI_API_KEY",
@@ -204,6 +254,11 @@ class EnvironmentConfig:
                 "OUTPUT_DIR",
                 "output",
                 "Directory for output files"
+            ),
+            "STATE_DIR": cls.get_optional(
+                "STATE_DIR",
+                "data",
+                "Directory for storing API key rotation state files"
             ),
         }
     
