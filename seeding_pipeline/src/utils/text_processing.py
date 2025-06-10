@@ -66,15 +66,19 @@ def split_into_sentences(text: str) -> List[str]:
     if not text:
         return []
     
-    # Simple sentence splitting
-    # For production, consider using NLTK or spaCy
-    sentences = re.split(r'[.!?]+', text)
+    # More sophisticated sentence splitting that handles ellipsis
+    # Split on sentence endings but not on ellipsis (...)
+    # This regex looks for punctuation followed by space or end of string
+    # but not multiple periods in a row
+    sentences = re.split(r'(?<=[.!?])(?<!\.\.)(?:\s+|$)', text)
     
     # Clean and filter sentences
     cleaned_sentences = []
     for sentence in sentences:
         sentence = sentence.strip()
-        if sentence and len(sentence) > 10:  # Filter very short sentences
+        # Remove trailing punctuation
+        sentence = re.sub(r'[.!?]+$', '', sentence)
+        if sentence and len(sentence) > 2:  # Filter very short sentences (2 chars or less)
             cleaned_sentences.append(sentence)
     
     return cleaned_sentences
@@ -99,7 +103,8 @@ def truncate_text(text: str, max_length: int, suffix: str = "...") -> str:
     
     if truncate_at == -1:
         # No space found, just truncate at max_length
-        return text[:max_length - len(suffix)] + suffix
+        truncate_length = max_length - len(suffix)
+        return text[:truncate_length] + suffix
     
     return text[:truncate_at] + suffix
 
@@ -194,8 +199,10 @@ def extract_timestamps(text: str) -> List[float]:
         return []
     
     timestamps = []
+    found_positions = set()  # Track positions where we've found timestamps
     
     # Pattern for timestamps like "12:34", "1:23:45", "45s"
+    # Process patterns in order of specificity (most specific first)
     patterns = [
         (r'(\d{1,2}):(\d{2}):(\d{2})', lambda h, m, s: int(h)*3600 + int(m)*60 + int(s)),
         (r'(\d{1,2}):(\d{2})', lambda m, s: int(m)*60 + int(s)),
@@ -206,9 +213,15 @@ def extract_timestamps(text: str) -> List[float]:
     
     for pattern, converter in patterns:
         for match in re.finditer(pattern, text):
+            # Check if this position overlaps with a previously found timestamp
+            if any(match.start() < end and match.end() > start 
+                   for start, end in found_positions):
+                continue
+                
             try:
                 timestamp = converter(*match.groups())
                 timestamps.append(float(timestamp))
+                found_positions.add((match.start(), match.end()))
             except (ValueError, TypeError):
                 continue
     
@@ -248,8 +261,12 @@ def extract_metadata_markers(text: str) -> Dict[str, Any]:
         metadata['episode_title'] = episode_match.group(1)
     
     # Clean text (remove all markers)
-    clean_text = re.sub(r'\[[^\]]+\]\s*', '', text)
-    clean_text = re.sub(r'\[Note:.*\]', '', clean_text).strip()
+    # First remove non-Note markers (preserve spacing)
+    clean_text = re.sub(r'\[[^\]]+\]', '', text)
+    # Then remove Note markers
+    clean_text = re.sub(r'\[Note:.*?\]', '', clean_text)
+    # Clean up any excessive spaces (but keep double spaces if they existed)
+    clean_text = re.sub(r'  +', '  ', clean_text).strip()
     metadata['clean_text'] = clean_text
     
     return metadata
@@ -278,7 +295,16 @@ def is_question(text: str) -> bool:
                      'is', 'are', 'was', 'were', 'do', 'does', 'did',
                      'can', 'could', 'would', 'should', 'will']
     
-    first_word = text.split()[0].lower() if text.split() else ''
+    words = text.split()
+    if not words:
+        return False
+        
+    first_word = words[0].lower()
+    
+    # Special case: "what" followed by "a/an" is usually an exclamation
+    if first_word == 'what' and len(words) > 1 and words[1].lower() in ['a', 'an']:
+        return False
+    
     return first_word in question_words
 
 
@@ -294,20 +320,89 @@ def extract_speaker_turns(text: str) -> List[Dict[str, str]]:
     turns = []
     
     # Pattern for speaker markers like "Speaker:" or "[SPEAKER: Name]"
-    patterns = [
-        r'\[SPEAKER:\s*([^\]]+)\]\s*([^[]+?)(?=\[SPEAKER:|$)',
-        r'^([A-Z][^:]+):\s*(.+?)(?=^[A-Z][^:]+:|$)',
-    ]
+    # First, handle bracket format speakers
+    remaining_text = text
+    bracket_pattern = r'\[SPEAKER:\s*([^\]]+)\]\s*([^[]+?)(?=\[SPEAKER:|$)'
     
-    for pattern in patterns:
-        for match in re.finditer(pattern, text, re.MULTILINE | re.DOTALL):
-            speaker = match.group(1).strip()
-            content = match.group(2).strip()
-            if speaker and content:
+    # Extract all bracket format speakers and their positions
+    bracket_matches = []
+    for match in re.finditer(bracket_pattern, text, re.DOTALL):
+        bracket_matches.append((match.start(), match.end(), match))
+    
+    # Process bracket matches
+    for start, end, match in bracket_matches:
+        speaker = match.group(1).strip()
+        content = match.group(2).strip()
+        
+        # Check if content contains colon format speakers
+        # Make sure we only match at the beginning of a line or after a period and space
+        colon_pattern = r'(?:^|\.\s+)([A-Z][^:.]+):\s*(.+?)(?=(?:\.\s+[A-Z][^:.]+:|$))'
+        colon_matches = list(re.finditer(colon_pattern, content, re.DOTALL))
+        
+        if colon_matches:
+            # The pattern matches ". Guest:" so we need to include the period in the first part
+            first_match = colon_matches[0]
+            match_text = first_match.group(0)
+            
+            # Find where the actual speaker name starts (after the period and space)
+            if match_text.startswith('. '):
+                # Include everything up to and including the period
+                first_part = content[:first_match.start() + 1]  # +1 to include the period
+            else:
+                # Match starts at beginning, no period to include
+                first_part = content[:first_match.start()]
+            
+            first_part = first_part.strip()
+            if first_part:
+                turns.append({
+                    'speaker': speaker,
+                    'text': first_part
+                })
+            
+            # Process colon format speakers within
+            for colon_match in colon_matches:
+                turns.append({
+                    'speaker': colon_match.group(1).strip(),
+                    'text': colon_match.group(2).strip()
+                })
+        else:
+            # No colon format in content
+            if content:
                 turns.append({
                     'speaker': speaker,
                     'text': content
                 })
+    
+    # If no bracket format found, process entire text for colon format
+    if not bracket_matches:
+        # Split by lines and look for speaker patterns
+        lines = text.split('\n')
+        current_speaker = None
+        current_text = []
+        
+        for line in lines:
+            # Check if line starts with speaker name (capital letter followed by colon)
+            speaker_match = re.match(r'^([A-Z][^:]+):\s*(.+)', line)
+            if speaker_match:
+                # Save previous speaker's text if any
+                if current_speaker and current_text:
+                    turns.append({
+                        'speaker': current_speaker,
+                        'text': ' '.join(current_text).strip()
+                    })
+                # Start new speaker
+                current_speaker = speaker_match.group(1).strip()
+                current_text = [speaker_match.group(2).strip()]
+            elif current_speaker and line.strip():
+                # Continue current speaker's text
+                current_text.append(line.strip())
+        
+        # Don't forget the last speaker
+        if current_speaker and current_text:
+            turns.append({
+                'speaker': current_speaker,
+                'text': ' '.join(current_text).strip()
+            })
     
     return turns
 

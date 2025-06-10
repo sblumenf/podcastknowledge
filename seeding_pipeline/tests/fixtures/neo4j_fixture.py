@@ -14,8 +14,11 @@ def neo4j_container():
     """Provide Neo4j container for testing."""
     logger.info("Starting Neo4j test container...")
     container = Neo4jContainer("neo4j:5.14.0")
+    container.with_env("NEO4J_AUTH", "neo4j/testpassword")
+    container.with_env("NEO4J_ACCEPT_LICENSE_AGREEMENT", "yes")
     
     try:
+        # Increase startup timeout for container
         container.start()
         logger.info(f"Neo4j container started at {container.get_connection_url()}")
         yield container

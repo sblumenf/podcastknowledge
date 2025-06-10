@@ -91,32 +91,4 @@ class TestResponseParser:
         assert len(result.errors) > 0
 
 
-@pytest.mark.skip(reason="ValidationUtils class not implemented in current version")
-class TestValidationUtils:
-    """Test ValidationUtils class."""
-    
-    def test_validate_entity(self):
-        """Test entity validation."""
-        entity = Entity(id="1", name="Test Entity", entity_type=EntityType.PERSON)
-        
-        # ValidationUtils not implemented
-        assert True
-    
-    def test_validate_insight(self):
-        """Test insight validation."""
-        insight = Insight(id="1", title="Test", description="Test insight", insight_type=InsightType.FACTUAL, confidence_score=0.8)
-        
-        # ValidationUtils not implemented
-        assert True
-    
-    def test_validate_quote(self):
-        """Test quote validation."""
-        quote = Quote(
-            id="1",
-            text="Test quote",
-            speaker="Speaker",
-            quote_type=QuoteType.GENERAL
-        )
-        
-        # ValidationUtils not implemented
-        assert True
+# ValidationUtils class is not needed - validation is handled by src.utils.validation module

@@ -34,11 +34,12 @@ class TestSchemalessAdapter:
     def sample_segment(self):
         """Create sample segment."""
         return Segment(
+            id="seg_1",
             text="John Smith founded TechCorp in 2020. The company focuses on AI research.",
             speaker="Host",
-            start=10.0,
-            end=15.0,
-            id="seg_1"
+            start_time=10.0,
+            end_time=15.0,
+            episode_id="test_episode"
         )
     
     def test_initialization(self, adapter, mock_llm_provider, mock_embedding_provider):

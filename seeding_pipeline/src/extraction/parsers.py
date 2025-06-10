@@ -325,19 +325,48 @@ class ResponseParser:
         response = re.sub(r'```json\s*', '', response)
         response = re.sub(r'```\s*', '', response)
         
-        # Try to find JSON array or object
-        # Check for objects first as they might contain arrays
-        patterns = [
-            r'(\{[\s\S]*\})',  # JSON object
-            r'(\[[\s\S]*\])',  # JSON array
-        ]
-        
-        for pattern in patterns:
-            match = re.search(pattern, response)
-            if match:
-                return match.group(1)
+        # Try to find the first complete JSON structure
+        # Look for the first { or [ and try to find its matching } or ]
+        for start_match in re.finditer(r'[\[\{]', response):
+            start_pos = start_match.start()
+            start_char = start_match.group()
+            end_char = ']' if start_char == '[' else '}'
+            
+            # Simple bracket counting to find the matching end
+            count = 1
+            pos = start_pos + 1
+            in_string = False
+            escape_next = False
+            
+            while pos < len(response) and count > 0:
+                char = response[pos]
                 
-        # If no clear JSON found, try cleaning the response
+                if escape_next:
+                    escape_next = False
+                elif char == '\\':
+                    escape_next = True
+                elif char == '"' and not escape_next:
+                    in_string = not in_string
+                elif not in_string:
+                    if char == start_char:
+                        count += 1
+                    elif char == end_char:
+                        count -= 1
+                
+                pos += 1
+            
+            if count == 0:
+                # Found matching bracket
+                json_str = response[start_pos:pos]
+                try:
+                    # Validate it's actual JSON
+                    json.loads(json_str)
+                    return json_str
+                except json.JSONDecodeError:
+                    # Keep looking
+                    continue
+        
+        # If no valid JSON found, try the old cleaning approach
         lines = response.strip().split('\n')
         json_lines = []
         
@@ -347,7 +376,13 @@ class ResponseParser:
                 json_lines.append(line)
                 
         if json_lines:
-            return '\n'.join(json_lines)
+            cleaned = '\n'.join(json_lines)
+            # Try to parse to validate
+            try:
+                json.loads(cleaned)
+                return cleaned
+            except json.JSONDecodeError:
+                pass
             
         return None
         

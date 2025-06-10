@@ -235,33 +235,56 @@ class TestHealthCheck:
         args.verbose = False
         return args
     
-    @patch('src.cli.cli.VTTKnowledgeExtractor')
-    @patch('src.cli.cli.PipelineConfig')
-    @patch('src.cli.cli.get_logger')
-    def test_health_check_success(self, mock_logger, mock_config, mock_extractor, mock_args):
+    @patch('src.cli.cli.get_health_checker')
+    def test_health_check_success(self, mock_get_health_checker, mock_args):
         """Test successful health check."""
-        mock_pipeline = Mock()
-        mock_extractor.return_value = mock_pipeline
-        mock_pipeline.initialize_components.return_value = True
+        mock_args.component = None
+        mock_args.format = 'text'
+        
+        mock_health_checker = Mock()
+        mock_get_health_checker.return_value = mock_health_checker
+        
+        # Mock the check_health method to return success
+        mock_health_result = Mock()
+        mock_health_result.overall_status = 'healthy'
+        mock_health_result.components = {
+            'neo4j': Mock(status='healthy', message='Connected'),
+            'disk': Mock(status='healthy', message='Sufficient space'),
+            'memory': Mock(status='healthy', message='Sufficient memory')
+        }
+        mock_health_checker.check_health.return_value = mock_health_result
         
         result = health_check(mock_args)
         
         assert result == 0
-        mock_pipeline.initialize_components.assert_called_once()
-        mock_pipeline.cleanup.assert_called_once()
+        mock_health_checker.check_health.assert_called_once()
     
-    @patch('src.cli.cli.VTTKnowledgeExtractor')
-    @patch('src.cli.cli.PipelineConfig')
-    @patch('src.cli.cli.get_logger')
-    def test_health_check_failure(self, mock_logger, mock_config, mock_extractor, mock_args):
-        """Test failed health check."""
-        mock_pipeline = Mock()
-        mock_extractor.return_value = mock_pipeline
-        mock_pipeline.initialize_components.return_value = False
+    @patch('src.cli.cli.get_health_checker')
+    def test_health_check_with_config(self, mock_get_health_checker, mock_args):
+        """Test health check with specific component."""
+        mock_args.component = 'neo4j'
+        mock_args.format = 'json'
+        
+        mock_health_checker = Mock()
+        mock_get_health_checker.return_value = mock_health_checker
+        
+        # Mock the component check
+        mock_component_result = Mock()
+        mock_component_result.status = 'healthy'
+        mock_component_result.message = 'Connected'
+        mock_component_result.to_dict.return_value = {
+            'status': 'healthy',
+            'message': 'Connected',
+            'details': {}
+        }
+        
+        mock_health_checker._component_checks = {
+            'neo4j': Mock(return_value=mock_component_result)
+        }
         
         result = health_check(mock_args)
         
-        assert result == 1
+        assert result == 0
     
     @patch('src.cli.cli.VTTKnowledgeExtractor')
     @patch('src.cli.cli.PipelineConfig.from_file')

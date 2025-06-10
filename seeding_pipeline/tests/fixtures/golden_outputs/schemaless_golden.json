@@ -1,6 +1,6 @@
 {
   "extraction_mode": "schemaless",
-  "created_at": "2025-06-09T15:43:52.947998",
+  "created_at": "2025-06-09T23:46:49.564958",
   "segments_count": 5,
   "discovered_types": [
     "Podcast Host",
@@ -77,12 +77,12 @@
           }
         ],
         "discovered_types": [
-          "Performance Metric",
-          "Medical Institution",
+          "AI Company",
           "AI Technology",
-          "Podcast Host",
           "AI Expert",
-          "AI Company"
+          "Performance Metric",
+          "Podcast Host",
+          "Medical Institution"
         ]
       }
     },
@@ -152,12 +152,12 @@
           }
         ],
         "discovered_types": [
-          "Performance Metric",
-          "Medical Institution",
+          "AI Company",
           "AI Technology",
-          "Podcast Host",
           "AI Expert",
-          "AI Company"
+          "Performance Metric",
+          "Podcast Host",
+          "Medical Institution"
         ]
       }
     },
@@ -227,12 +227,12 @@
           }
         ],
         "discovered_types": [
-          "Performance Metric",
-          "Medical Institution",
+          "AI Company",
           "AI Technology",
-          "Podcast Host",
           "AI Expert",
-          "AI Company"
+          "Performance Metric",
+          "Podcast Host",
+          "Medical Institution"
         ]
       }
     },
@@ -302,12 +302,12 @@
           }
         ],
         "discovered_types": [
-          "Performance Metric",
-          "Medical Institution",
+          "AI Company",
           "AI Technology",
-          "Podcast Host",
           "AI Expert",
-          "AI Company"
+          "Performance Metric",
+          "Podcast Host",
+          "Medical Institution"
         ]
       }
     },
@@ -377,12 +377,12 @@
           }
         ],
         "discovered_types": [
-          "Performance Metric",
-          "Medical Institution",
+          "AI Company",
           "AI Technology",
-          "Podcast Host",
           "AI Expert",
-          "AI Company"
+          "Performance Metric",
+          "Podcast Host",
+          "Medical Institution"
         ]
       }
     }
