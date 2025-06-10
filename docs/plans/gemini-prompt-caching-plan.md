@@ -52,7 +52,7 @@ This plan implements Gemini's native prompt caching functionality to optimize co
 
 ### Phase 3: Context Caching Implementation
 
-- [ ] **Task 3.1**: Implement transcript prefix caching
+- [x] **Task 3.1**: Implement transcript prefix caching
   - Purpose: Cache large transcript contexts for segment processing
   - Steps:
     1. Create cache management logic for transcript prefixes
@@ -61,7 +61,7 @@ This plan implements Gemini's native prompt caching functionality to optimize co
     4. Set appropriate TTL (3600s recommended)
   - Validation: Cache creation and retrieval works correctly
 
-- [ ] **Task 3.2**: Implement prompt template caching
+- [x] **Task 3.2**: Implement prompt template caching
   - Purpose: Cache frequently used prompt templates
   - Steps:
     1. Identify common prompt patterns in `src/extraction/prompts.py`
