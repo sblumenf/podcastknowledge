@@ -209,12 +209,17 @@ def setup_logging(log_level: int = logging.INFO):
     Args:
         log_level: Logging level to set (default: INFO)
     """
+    # If already initialized, just update the log level
+    if PodcastTranscriberLogger._initialized:
+        logger_manager = PodcastTranscriberLogger()
+        logger_manager.logger.setLevel(log_level)
+        for handler in logger_manager.logger.handlers:
+            if isinstance(handler, logging.StreamHandler) and not isinstance(handler, logging.FileHandler):
+                handler.setLevel(max(log_level, logging.INFO))  # Console handler minimum INFO
+        return
+    
     # Force initialization of logger with desired level
     os.environ['LOG_LEVEL'] = logging.getLevelName(log_level)
-    
-    # Reset singleton to force reinitialization
-    PodcastTranscriberLogger._initialized = False
-    PodcastTranscriberLogger._instance = None
     
     # Initialize logger
     PodcastTranscriberLogger()

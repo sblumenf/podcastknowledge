@@ -374,14 +374,11 @@ class Config:
             errors.append("YouTube API max results per search must be between 1 and 50")
         
         # Check for API key availability
-        available_keys = 0
-        for key_var in self.security.api_key_vars:
-            if os.getenv(key_var):
-                available_keys += 1
-        
-        # In development mode with mock API calls, we don't need real API keys
-        if available_keys == 0 and not self.development.mock_api_calls:
-            errors.append(f"No API keys found in environment variables: {self.security.api_key_vars}")
+        # Skip Gemini API key check since we're using Deepgram now
+        # Check for Deepgram API key instead
+        deepgram_key = os.getenv('DEEPGRAM_API_KEY')
+        if not deepgram_key and not self.development.mock_api_calls:
+            errors.append("No Deepgram API key found in DEEPGRAM_API_KEY environment variable")
         
         if errors:
             error_msg = "Configuration validation failed:\\n" + "\\n".join(f"  - {error}" for error in errors)

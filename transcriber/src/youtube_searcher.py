@@ -402,3 +402,54 @@ class YouTubeSearcher:
             'not_found': not_found_entries,
             'cache_file_size': self.cache_file.stat().st_size if self.cache_file.exists() else 0
         }
+    
+    def search_youtube(self, query: str) -> Optional[List[Dict[str, str]]]:
+        """Synchronous wrapper for YouTube search.
+        
+        Args:
+            query: Search query string
+            
+        Returns:
+            List of search results or None
+        """
+        import asyncio
+        
+        # Parse the query to extract podcast and episode info
+        # Expected format: "Podcast Name Episode Title"
+        parts = query.split(' ', 1)
+        if len(parts) >= 2:
+            podcast_name = parts[0]
+            episode_title = parts[1]
+        else:
+            podcast_name = ""
+            episode_title = query
+        
+        # Run async search synchronously
+        try:
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            youtube_url = loop.run_until_complete(
+                self.search_youtube_url(
+                    episode_title=episode_title,
+                    podcast_name=podcast_name
+                )
+            )
+            loop.close()
+            
+            if youtube_url:
+                # Extract video ID from URL
+                import re
+                video_id_match = re.search(r'[?&]v=([a-zA-Z0-9_-]{11})', youtube_url)
+                if video_id_match:
+                    video_id = video_id_match.group(1)
+                    return [{
+                        'video_id': video_id,
+                        'url': youtube_url,
+                        'title': episode_title
+                    }]
+            
+            return None
+            
+        except Exception as e:
+            logger.warning(f"YouTube search failed: {str(e)}")
+            return None

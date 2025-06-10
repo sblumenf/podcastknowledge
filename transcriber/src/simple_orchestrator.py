@@ -13,8 +13,13 @@ from datetime import datetime
 from src.utils.logging import get_logger
 from src.deepgram_client import DeepgramClient
 from src.vtt_formatter import VTTFormatter
+from src.semantic_vtt_formatter import SemanticVTTFormatter
+from src.syntactic_vtt_formatter import SyntacticVTTFormatter
+from src.conversational_vtt_formatter import ConversationalVTTFormatter
 from src.file_organizer import FileOrganizer
 from src.feed_parser import Episode
+from src.config import Config
+from src.youtube_searcher import YouTubeSearcher
 
 logger = get_logger('simple_orchestrator')
 
@@ -34,8 +39,57 @@ class SimpleOrchestrator:
         
         # Initialize components
         self.deepgram_client = DeepgramClient(mock_enabled=mock_enabled)
-        self.vtt_formatter = VTTFormatter()
         self.file_organizer = FileOrganizer(base_output_dir=self.output_dir)
+        
+        # Load configuration
+        config = Config()
+        
+        # Initialize YouTube searcher if enabled
+        youtube_config = config.youtube_search
+        if youtube_config.enabled:
+            self.youtube_searcher = YouTubeSearcher(config)
+            logger.info("YouTube search enabled")
+        else:
+            self.youtube_searcher = None
+            logger.info("YouTube search disabled")
+        
+        # Load VTT formatting configuration
+        vtt_config = config._raw_config.get('vtt_formatting', {})
+        segmentation_type = vtt_config.get('segmentation_type', 'regular')
+        
+        # Initialize appropriate VTT formatter based on configuration
+        if segmentation_type == 'conversational':
+            conv_config = vtt_config.get('conversational', {})
+            self.vtt_formatter = ConversationalVTTFormatter(
+                min_segment_duration=conv_config.get('min_segment_duration', 3.0),
+                preferred_segment_duration=conv_config.get('preferred_segment_duration', 30.0),
+                max_segment_duration=conv_config.get('max_segment_duration', 180.0),
+                pause_threshold=conv_config.get('pause_threshold', 2.0),
+                merge_short_interjections=conv_config.get('merge_short_interjections', True),
+                respect_sentences=conv_config.get('respect_sentences', True),
+                use_discourse_markers=conv_config.get('use_discourse_markers', True)
+            )
+            logger.info("Using conversational VTT segmentation (podcast-optimized)")
+        elif segmentation_type == 'syntactic':
+            self.vtt_formatter = SyntacticVTTFormatter()
+            logger.info("Using syntactic VTT segmentation (research-based)")
+        elif segmentation_type == 'semantic':
+            semantic_config = vtt_config.get('semantic', {})
+            self.vtt_formatter = SemanticVTTFormatter(
+                min_cue_duration=semantic_config.get('min_cue_duration', 3.0),
+                max_cue_duration=semantic_config.get('max_cue_duration', 10.0),
+                prefer_sentence_breaks=semantic_config.get('prefer_sentence_breaks', True),
+                allow_clause_breaks=semantic_config.get('allow_clause_breaks', True),
+                max_chars_per_line=semantic_config.get('max_chars_per_line', 120)
+            )
+            logger.info("Using semantic VTT segmentation")
+        else:
+            regular_config = vtt_config.get('regular', {})
+            self.vtt_formatter = VTTFormatter(
+                max_cue_duration=regular_config.get('max_cue_duration', 7.0),
+                max_chars_per_line=regular_config.get('max_chars_per_line', 80)
+            )
+            logger.info("Using regular VTT segmentation")
         
         # Create output directory if it doesn't exist
         Path(self.output_dir).mkdir(parents=True, exist_ok=True)
@@ -65,22 +119,109 @@ class SimpleOrchestrator:
         start_time = datetime.now()
         
         try:
-            # Step 1: Transcribe audio
-            logger.info("Step 1: Transcribing audio with Deepgram")
+            # Step 1: Search for YouTube URL if enabled and not already present
+            if self.youtube_searcher and not episode.youtube_url:
+                logger.info("Step 1: Searching for YouTube URL")
+                search_query = f"{episode.podcast_name} {episode.title}"
+                try:
+                    youtube_results = self.youtube_searcher.search_youtube(search_query)
+                    if youtube_results and len(youtube_results) > 0:
+                        # Take the first result
+                        episode.youtube_url = f"https://www.youtube.com/watch?v={youtube_results[0]['video_id']}"
+                        logger.info(f"Found YouTube URL: {episode.youtube_url}")
+                    else:
+                        logger.info("No YouTube URL found")
+                except Exception as e:
+                    logger.warning(f"YouTube search failed: {str(e)}")
+            
+            # Step 2: Transcribe audio
+            logger.info("Step 2: Transcribing audio with Deepgram")
             deepgram_response = self.deepgram_client.transcribe_audio(episode.audio_url)
             
-            # Step 2: Format as VTT (includes speaker mapping)
-            logger.info("Step 2: Formatting transcript as VTT with speaker mapping")
-            vtt_content = self.vtt_formatter.format_deepgram_response(deepgram_response.results)
+            # Save comprehensive JSON with episode metadata and Deepgram response
+            import json
+            output_path = self.file_organizer.get_output_path(episode)
+            json_path = output_path.with_suffix('.json')
             
-            # Step 3: Validate VTT
-            logger.info("Step 3: Validating VTT content")
+            # Calculate transcript statistics
+            words = []
+            alternatives = []
+            if hasattr(deepgram_response.results, 'channels') and deepgram_response.results.channels:
+                alternatives = deepgram_response.results.channels[0].get('alternatives', [])
+                if alternatives:
+                    words = alternatives[0].get('words', [])
+            
+            # Count unique speakers
+            unique_speakers = set()
+            for word in words:
+                unique_speakers.add(word.get('speaker', 0))
+            
+            # Create comprehensive metadata
+            comprehensive_data = {
+                'episode': {
+                    'title': episode.title,
+                    'podcast_name': getattr(episode, 'podcast_name', None),
+                    'description': episode.description if episode.description else None,
+                    'published_date': episode.published_date.isoformat() if episode.published_date else None,
+                    'duration': episode.duration,
+                    'episode_number': episode.episode_number,
+                    'season_number': episode.season_number,
+                    'author': episode.author,
+                    'keywords': episode.keywords if episode.keywords else [],
+                    'link': episode.link,
+                    'youtube_url': episode.youtube_url,
+                    'audio_url': episode.audio_url,
+                    'guid': episode.guid,
+                    'file_size': episode.file_size,
+                    'mime_type': episode.mime_type
+                },
+                'transcription': {
+                    'service': 'Deepgram',
+                    'model': deepgram_response.metadata.get('model_info', {}).get(
+                        list(deepgram_response.metadata.get('model_info', {}).keys())[0] if deepgram_response.metadata.get('model_info') else '',
+                        {}
+                    ).get('arch', 'unknown'),
+                    'model_version': deepgram_response.metadata.get('model_info', {}).get(
+                        list(deepgram_response.metadata.get('model_info', {}).keys())[0] if deepgram_response.metadata.get('model_info') else '',
+                        {}
+                    ).get('version', 'unknown'),
+                    'request_id': deepgram_response.metadata.get('request_id'),
+                    'transcribed_at': datetime.utcnow().isoformat() + 'Z',
+                    'duration_seconds': deepgram_response.metadata.get('duration', 0),
+                    'word_count': len(words),
+                    'speakers_detected': len(unique_speakers),
+                    'confidence': alternatives[0].get('confidence', 0) if alternatives else 0
+                },
+                'deepgram_response': {
+                    'metadata': deepgram_response.metadata,
+                    'results': deepgram_response.results
+                }
+            }
+            
+            # Ensure directory exists
+            json_path.parent.mkdir(parents=True, exist_ok=True)
+            
+            # Write JSON file
+            with open(json_path, 'w', encoding='utf-8') as f:
+                json.dump(comprehensive_data, f, indent=2, default=str)  # default=str handles datetime serialization
+            logger.info(f"Saved comprehensive metadata to: {json_path}")
+            
+            # Step 3: Format as VTT (includes speaker mapping)
+            logger.info("Step 3: Formatting transcript as VTT with speaker mapping and metadata")
+            vtt_content = self.vtt_formatter.format_deepgram_response(
+                deepgram_response.results, 
+                episode=episode,
+                deepgram_metadata=deepgram_response.metadata
+            )
+            
+            # Step 4: Validate VTT
+            logger.info("Step 4: Validating VTT content")
             is_valid, error_msg = self.vtt_formatter.validate_vtt(vtt_content)
             if not is_valid:
                 raise ValueError(f"Invalid VTT content: {error_msg}")
             
-            # Step 4: Save VTT file
-            logger.info("Step 4: Saving VTT file")
+            # Step 5: Save VTT file
+            logger.info("Step 5: Saving VTT file")
             output_path = self.file_organizer.get_output_path(episode)
             
             # Ensure directory exists

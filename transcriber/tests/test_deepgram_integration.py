@@ -15,7 +15,6 @@ from src.simple_orchestrator import SimpleOrchestrator
 from src.feed_parser import Episode
 from src.deepgram_client import DeepgramClient, DeepgramResponse
 from src.vtt_formatter import VTTFormatter
-from src.speaker_mapper import SpeakerMapper
 from tests.fixtures.deepgram_responses import (
     get_successful_transcription,
     get_single_speaker_transcription,
@@ -60,30 +59,11 @@ class TestDeepgramIntegration:
         assert len(response.words) > 0
         assert response.metadata['duration'] > 0
     
-    def test_speaker_mapper_identification(self):
-        """Test speaker mapping correctly identifies host and guests."""
-        mapper = SpeakerMapper()
-        mock_response = get_successful_transcription()
-        words = mock_response['results']['channels'][0]['alternatives'][0]['words']
-        
-        # Analyze speakers
-        speaker_stats = mapper.analyze_transcript(words)
-        assert len(speaker_stats) == 2  # Host and one guest
-        
-        # Determine roles
-        role_mapping = mapper.determine_speaker_roles(speaker_stats)
-        assert 0 in role_mapping
-        assert role_mapping[0] == "Host"  # First speaker should be identified as host
-        assert 1 in role_mapping
-        assert role_mapping[1] == "Guest"
     
     def test_vtt_formatter_output(self):
         """Test VTT formatter generates valid WebVTT content."""
         formatter = VTTFormatter()
         mock_response = get_successful_transcription()
-        
-        # Set environment to enable speaker mapping
-        os.environ['SPEAKER_MAPPING_ENABLED'] = 'true'
         
         vtt_content = formatter.format_deepgram_response(mock_response['results'])
         
@@ -91,8 +71,8 @@ class TestDeepgramIntegration:
         assert vtt_content.startswith("WEBVTT")
         assert "NOTE Transcription powered by Deepgram" in vtt_content
         assert "-->" in vtt_content  # Has timestamp arrows
-        assert "<v Host>" in vtt_content  # Has speaker tags
-        assert "<v Guest>" in vtt_content
+        assert "<v Speaker 0>" in vtt_content  # Has speaker tags
+        assert "<v Speaker 1>" in vtt_content
         
         # Validate VTT format
         is_valid, error = formatter.validate_vtt(vtt_content)
@@ -161,40 +141,38 @@ class TestDeepgramIntegration:
     def test_single_speaker_podcast(self):
         """Test handling of single-speaker (monologue) podcasts."""
         formatter = VTTFormatter()
-        mapper = SpeakerMapper()
         
         mock_response = get_single_speaker_transcription()
         words = mock_response['results']['channels'][0]['alternatives'][0]['words']
         
-        # Check speaker mapping
-        speaker_stats = mapper.analyze_transcript(words)
-        assert len(speaker_stats) == 1  # Only one speaker
-        
-        role_mapping = mapper.determine_speaker_roles(speaker_stats)
-        assert role_mapping[0] == "Host"
+        # Verify only one speaker in mock data
+        speakers = set(word.get('speaker', 0) for word in words)
+        assert len(speakers) == 1  # Only one speaker
+        assert 0 in speakers  # Speaker 0
         
         # Format to VTT
         vtt_content = formatter.format_deepgram_response(mock_response['results'])
-        assert "<v Host>" in vtt_content
-        assert "<v Guest>" not in vtt_content
+        assert "<v Speaker 0>" in vtt_content
+        assert "<v Speaker 1>" not in vtt_content
     
     def test_multi_speaker_panel(self):
         """Test handling of multi-speaker panel discussions."""
         formatter = VTTFormatter()
-        mapper = SpeakerMapper()
         
         mock_response = get_multi_speaker_panel()
         words = mock_response['results']['channels'][0]['alternatives'][0]['words']
         
-        # Check speaker mapping
-        speaker_stats = mapper.analyze_transcript(words)
-        assert len(speaker_stats) == 4  # Host + 3 guests
+        # Verify multiple speakers in mock data
+        speakers = set(word.get('speaker', 0) for word in words)
+        assert len(speakers) == 4  # 4 speakers (0, 1, 2, 3)
+        assert speakers == {0, 1, 2, 3}
         
-        role_mapping = mapper.determine_speaker_roles(speaker_stats)
-        assert role_mapping[0] == "Host"
-        assert role_mapping[1] == "Guest"
-        assert role_mapping[2] == "Guest 2"
-        assert role_mapping[3] == "Guest 3"
+        # Format to VTT and verify all speakers appear
+        vtt_content = formatter.format_deepgram_response(mock_response['results'])
+        assert "<v Speaker 0>" in vtt_content
+        assert "<v Speaker 1>" in vtt_content
+        assert "<v Speaker 2>" in vtt_content
+        assert "<v Speaker 3>" in vtt_content
     
     def test_empty_transcription_handling(self):
         """Test handling of empty transcription results."""

@@ -73,9 +73,52 @@ class DeepgramClient:
         if self.mock_enabled:
             return self._get_mock_response(audio_url)
         
-        # Real API implementation would go here
-        # For now, we're only implementing mock functionality
-        raise NotImplementedError("Real Deepgram API calls not yet implemented")
+        # Import Deepgram SDK
+        from deepgram import DeepgramClient as DGClient, PrerecordedOptions, UrlSource
+        
+        # Initialize Deepgram client
+        dg_client = DGClient(self.api_key)
+        
+        # Configure transcription options
+        options = PrerecordedOptions(
+            model=self.model,
+            punctuate=True,
+            diarize=True,
+            smart_format=True,
+            utterances=True,
+            numerals=True,
+            paragraphs=True,
+        )
+        
+        # Create URL source
+        source = UrlSource(url=audio_url)
+        
+        try:
+            # Import httpx for timeout configuration
+            import httpx
+            
+            # Create a longer timeout (5 minutes for large files)
+            timeout = httpx.Timeout(300.0, connect=60.0)
+            
+            # Synchronous transcription with extended timeout
+            response = dg_client.listen.prerecorded.v('1').transcribe_url(
+                source, options, timeout=timeout
+            )
+            
+            logger.info("Transcription completed successfully")
+            
+            # The response is already a PrerecordedResponse object with the data we need
+            # Convert to dictionary format that matches our DeepgramResponse structure
+            # The response object has a to_dict() method to convert to dictionary
+            response_dict = response.to_dict() if hasattr(response, 'to_dict') else response
+            
+            return DeepgramResponse(
+                results=response_dict.get('results', {}),
+                metadata=response_dict.get('metadata', {})
+            )
+        except Exception as e:
+            logger.error(f"Error during transcription: {str(e)}")
+            raise
     
     def _get_mock_response(self, audio_url: str) -> DeepgramResponse:
         """Generate mock response for testing.

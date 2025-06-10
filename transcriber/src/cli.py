@@ -14,6 +14,10 @@ import logging
 # Add parent directory to path for imports
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+# Load environment variables from .env file
+from dotenv import load_dotenv
+load_dotenv()
+
 from src.simple_orchestrator import SimpleOrchestrator
 from src.feed_parser import parse_feed, validate_feed_url
 from src.utils.logging import setup_logging, get_logger
