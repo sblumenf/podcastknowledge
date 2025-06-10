@@ -8,6 +8,10 @@ from ..storage import GraphStorageService
 from .embeddings import EmbeddingsService
 from .embeddings_gemini import GeminiEmbeddingsService
 from .llm import LLMService
+from .llm_gemini_direct import GeminiDirectService
+from .llm_factory import LLMServiceFactory, LLMServiceType
+from .cache_manager import CacheManager
+from .cached_prompt_service import CachedPromptService
 from src.utils.key_rotation_manager import create_key_rotation_manager
 from src.utils.rotation_state_manager import RotationStateManager
 
@@ -63,8 +67,8 @@ def create_gemini_services(
     
     logger.info(f"Creating Gemini services with {key_rotation_manager.get_status_summary()['total_keys']} API keys")
     
-    # Create LLM service
-    llm_service = LLMService(
+    # Create LLM service using factory
+    llm_service = LLMServiceFactory.create_service(
         key_rotation_manager=key_rotation_manager,
         model_name=llm_model,
         temperature=temperature,
@@ -117,7 +121,7 @@ def create_llm_service_only(
             "GOOGLE_API_KEY, GEMINI_API_KEY, or GEMINI_API_KEY_1 through GEMINI_API_KEY_9"
         )
     
-    return LLMService(
+    return LLMServiceFactory.create_service(
         key_rotation_manager=key_rotation_manager,
         model_name=model_name,
         temperature=temperature,
@@ -163,6 +167,11 @@ def create_embeddings_service_only(
 # Export all classes and factory functions
 __all__ = [
     'LLMService',
+    'GeminiDirectService',
+    'LLMServiceFactory',
+    'LLMServiceType',
+    'CacheManager',
+    'CachedPromptService',
     'GraphStorageService',
     'EmbeddingsService',
     'GeminiEmbeddingsService',

@@ -72,7 +72,7 @@ This plan implements Gemini's native prompt caching functionality to optimize co
 
 ### Phase 4: Integration and Migration
 
-- [ ] **Task 4.1**: Create service factory for gradual migration
+- [x] **Task 4.1**: Create service factory for gradual migration
   - Purpose: Allow switching between old and new implementations
   - Steps:
     1. Create factory method in `src/services/__init__.py`
@@ -81,7 +81,7 @@ This plan implements Gemini's native prompt caching functionality to optimize co
     4. Update dependency injection points
   - Validation: Both services can be used interchangeably
 
-- [ ] **Task 4.2**: Update extraction pipeline
+- [x] **Task 4.2**: Update extraction pipeline
   - Purpose: Optimize extraction for cached contexts
   - Steps:
     1. Modify `src/extraction/extraction.py` to use cached contexts
