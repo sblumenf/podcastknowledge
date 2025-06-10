@@ -92,7 +92,7 @@ This plan implements Gemini's native prompt caching functionality to optimize co
 
 ### Phase 5: Testing and Optimization
 
-- [ ] **Task 5.1**: Performance benchmarking
+- [x] **Task 5.1**: Performance benchmarking
   - Purpose: Measure cost and latency improvements
   - Steps:
     1. Create benchmark script comparing old vs new
@@ -101,7 +101,7 @@ This plan implements Gemini's native prompt caching functionality to optimize co
     4. Document cost per transcript
   - Validation: 30%+ cost reduction achieved
 
-- [ ] **Task 5.2**: Integration testing
+- [x] **Task 5.2**: Integration testing
   - Purpose: Ensure system stability
   - Steps:
     1. Run full pipeline tests with new service
