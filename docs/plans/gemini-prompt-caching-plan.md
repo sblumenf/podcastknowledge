@@ -32,7 +32,7 @@ This plan implements Gemini's native prompt caching functionality to optimize co
 
 ### Phase 2: Direct API Integration
 
-- [ ] **Task 2.1**: Create new Gemini client wrapper
+- [x] **Task 2.1**: Create new Gemini client wrapper
   - Purpose: Replace LangChain with direct API calls
   - Steps:
     1. Create `src/services/llm_gemini_direct.py`
@@ -41,7 +41,7 @@ This plan implements Gemini's native prompt caching functionality to optimize co
     4. Integrate with existing key rotation manager
   - Validation: Unit tests pass for client initialization
 
-- [ ] **Task 2.2**: Implement basic content generation
+- [x] **Task 2.2**: Implement basic content generation
   - Purpose: Ensure feature parity with current implementation
   - Steps:
     1. Implement `generate_content` method
