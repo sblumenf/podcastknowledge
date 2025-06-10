@@ -451,5 +451,5 @@ class YouTubeSearcher:
             return None
             
         except Exception as e:
-            logger.warning(f"YouTube search failed: {str(e)}")
+            logger.error(f"YouTube search failed: {str(e)}", exc_info=True)
             return None

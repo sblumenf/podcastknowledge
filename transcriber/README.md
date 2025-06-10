@@ -9,9 +9,10 @@ A streamlined command-line tool for transcribing podcast episodes from RSS feeds
 - 🎙️ **Automatic RSS Feed Processing**: Parse and transcribe entire podcast catalogs
 - 🗣️ **Smart Speaker Identification**: Automatically identifies Host vs Guests based on speaking patterns
 - 📝 **WebVTT Output**: Industry-standard subtitle format with speaker labels
-- 🚀 **Simple Architecture**: No complex state management or checkpointing
+- 🚀 **Duplicate Prevention**: Automatically skips already-transcribed episodes
 - 🧪 **Mock Testing Support**: Develop and test without API calls
 - 📊 **Clear Progress Reporting**: Track transcription status and results
+- 🔄 **Progress Tracking**: Persistent tracking of completed transcriptions
 
 ## Prerequisites
 
@@ -69,6 +70,16 @@ LOG_LEVEL=INFO
 
 ## Usage
 
+### Quick Start
+
+```bash
+# Use the wrapper script (handles Python detection and virtual environment)
+./transcribe transcribe-single https://example.com/podcast.rss
+
+# Transcribe first non-trailer episode
+./transcribe transcribe-single https://example.com/podcast.rss --first-non-trailer
+```
+
 ### Basic Commands
 
 ```bash
@@ -78,8 +89,23 @@ python -m src.cli transcribe --feed-url https://example.com/podcast.rss
 # Transcribe only the first 5 episodes
 python -m src.cli transcribe --feed-url https://example.com/podcast.rss --max-episodes 5
 
+# Transcribe a single episode (convenience command)
+python -m src.cli transcribe-single https://example.com/podcast.rss
+
+# Skip trailer episodes
+python -m src.cli transcribe --feed-url https://example.com/podcast.rss --first-non-trailer
+
 # Use mock responses for testing (no API calls)
 python -m src.cli transcribe --feed-url https://example.com/podcast.rss --mock
+
+# Force re-transcription of already processed episodes
+python -m src.cli transcribe --feed-url https://example.com/podcast.rss --force
+
+# Check transcription progress
+python -m src.cli status
+
+# Check progress for specific podcast
+python -m src.cli status --podcast "The Tech Podcast"
 
 # Validate an RSS feed
 python -m src.cli validate-feed --feed-url https://example.com/podcast.rss
@@ -122,6 +148,30 @@ The system automatically identifies speakers based on:
 - **Speaking order**: First speaker is typically the host
 - **Speaking patterns**: Hosts usually introduce the show and guests
 - **Labels applied**: Host, Guest, Guest 2, Guest 3, etc.
+
+## Duplicate Prevention
+
+The system automatically tracks which episodes have been transcribed to avoid duplicate processing:
+
+- **Automatic Skipping**: Episodes that already have VTT files are skipped
+- **Progress File**: Tracking data stored in `data/transcribed_episodes.json`
+- **Force Override**: Use `--force` flag to re-transcribe episodes
+- **Migration Tool**: Import existing transcriptions into the tracking system
+
+### Migrating Existing Transcriptions
+
+If you have existing VTT files from before the duplicate prevention feature:
+
+```bash
+# Scan existing files and create progress tracking
+python scripts/migrate_existing_transcriptions.py
+
+# Preview what would be migrated (dry run)
+python scripts/migrate_existing_transcriptions.py --dry-run
+
+# Specify custom directories
+python scripts/migrate_existing_transcriptions.py --output-dir /path/to/vtt/files
+```
 
 ## Development
 

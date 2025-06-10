@@ -182,12 +182,11 @@ class VTTFormatter:
             header += "\nNOTE Content Details\n"
             
             if hasattr(episode, 'description') and episode.description:
-                # Truncate description if too long and clean it up
+                # Clean up description - replace newlines with spaces for VTT format
                 description = episode.description.strip()
-                if len(description) > 500:
-                    description = description[:497] + "..."
-                # Replace newlines with spaces for VTT format
                 description = description.replace('\n', ' ').replace('\r', ' ')
+                # Remove multiple consecutive spaces
+                description = ' '.join(description.split())
                 header += f"Description: {description}\n"
             
             if hasattr(episode, 'keywords') and episode.keywords:
