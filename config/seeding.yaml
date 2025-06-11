@@ -50,3 +50,11 @@ rate_limits:
 features:
   enable_checkpoints: true
   enable_entity_resolution: true
+
+# YouTube Search Configuration
+youtube_search:
+  enabled: true
+  # API key from environment variable: YOUTUBE_API_KEY
+  max_results: 5
+  confidence_threshold: 0.7
+  rate_limit_delay: 1.0  # seconds between searches
