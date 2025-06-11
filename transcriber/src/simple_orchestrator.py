@@ -17,7 +17,7 @@ from src.vtt_formatter import VTTFormatter
 from src.semantic_vtt_formatter import SemanticVTTFormatter
 from src.syntactic_vtt_formatter import SyntacticVTTFormatter
 from src.conversational_vtt_formatter import ConversationalVTTFormatter
-from src.file_organizer import FileOrganizer
+from src.file_organizer_simple import SimpleFileOrganizer
 from src.feed_parser import Episode
 from src.config import Config
 from src.youtube_searcher import YouTubeSearcher
@@ -43,7 +43,7 @@ class SimpleOrchestrator:
         # Initialize components
         self.progress_tracker = ProgressTracker()
         self.deepgram_client = DeepgramClient(mock_enabled=mock_enabled)
-        self.file_organizer = FileOrganizer(base_output_dir=self.output_dir)
+        self.file_organizer = SimpleFileOrganizer(base_output_dir=self.output_dir)
         
         # Load configuration
         config = Config()

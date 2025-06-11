@@ -25,7 +25,6 @@ if 'src.cli' in sys.modules:
 from src.orchestrator import TranscriptionOrchestrator
 from src.feed_parser import Episode, PodcastMetadata
 from src.progress_tracker import ProgressTracker, EpisodeStatus
-from src.utils.batch_progress import BatchProgressTracker
 
 
 @pytest.mark.performance
@@ -212,73 +211,6 @@ class TestBatchProcessingPerformance:
         assert len(pending) == num_episodes
         assert len(failed) == 0
     
-    @pytest.mark.asyncio
-    @pytest.mark.slow
-    async def test_batch_progress_tracker_performance(self, temp_data_dir):
-        """Test BatchProgressTracker performance with frequent updates."""
-        
-        progress_file = temp_data_dir / ".progress.json"
-        progress_tracker = ProgressTracker(progress_file)
-        
-        # Add episodes to progress tracker first
-        for i in range(100):
-            episode_data = {
-                'guid': f'batch-ep{i:03d}',
-                'title': f'Episode {i}',
-                'audio_url': f'https://example.com/audio/{i}.mp3',
-                'podcast_name': 'Batch Test Podcast'
-            }
-            progress_tracker.add_episode(episode_data)
-        
-        # Create batch tracker for 100 episodes
-        batch_tracker = BatchProgressTracker(progress_tracker, total_episodes=100)
-        
-        # Record initial memory
-        initial_memory = self.get_memory_usage()
-        
-        # Start batch
-        batch_tracker.start_batch()
-        
-        # Simulate processing with frequent updates
-        start_time = time.time()
-        
-        for i in range(100):
-            # Get episode
-            episode_guid = f'batch-ep{i:03d}'
-            
-            # Mark as in progress
-            progress_tracker.mark_started({'guid': episode_guid}, api_key_index=0)
-            
-            # Update current episode
-            batch_tracker.update_current_episode(f"Episode {i}")
-            
-            # Simulate some processing time
-            await asyncio.sleep(0.001)  # 1ms per episode
-            
-            # Complete episode
-            processing_time = 60.0 + (i % 10) * 10  # Vary processing time
-            progress_tracker.mark_completed(episode_guid, f"output/episode-{i}.vtt", processing_time)
-            batch_tracker.episode_completed(processing_time)
-        
-        total_time = time.time() - start_time
-        
-        # Finish batch
-        batch_tracker.finish_batch("Performance test completed")
-        
-        # Check final memory
-        final_memory = self.get_memory_usage()
-        memory_growth = final_memory['rss_mb'] - initial_memory['rss_mb']
-        
-        # Verify performance
-        assert total_time < 5.0, f"Processing 100 episodes took {total_time:.2f}s, expected <5s"
-        assert memory_growth < 50, f"Memory grew by {memory_growth:.1f}MB during processing"
-        
-        # Verify statistics are calculated correctly
-        status = batch_tracker.get_status_summary()
-        assert status['completed'] == 100
-        assert status['total_episodes'] == 100
-        assert status['success_rate'] == 100.0
-        assert len(batch_tracker.stats.processing_times) == 100
     
     @pytest.mark.slow
     def test_state_file_scalability(self, temp_data_dir):

@@ -10,11 +10,9 @@ import asyncio
 
 from src.config import Config
 from src.utils.logging import get_logger, setup_logging
-from src.utils.batch_progress import BatchProgressTracker
 from src.utils.progress import ProgressBar
 from src.feed_parser import parse_feed, Episode, PodcastMetadata
 from src.file_organizer import FileOrganizer
-from src.metadata_index import MetadataIndex
 from src.vtt_generator import VTTGenerator
 from src.speaker_identifier import SpeakerIdentifier
 from src.transcription_processor import TranscriptionProcessor
@@ -53,27 +51,6 @@ class TestCoreUtilities:
         logger.warning("Warning message")
         logger.error("Error message")
     
-    def test_batch_progress_tracker(self):
-        """Test batch progress tracking."""
-        tracker = BatchProgressTracker(total_items=10, batch_size=3)
-        
-        assert tracker.total_items == 10
-        assert tracker.batch_size == 3
-        assert tracker.completed_items == 0
-        
-        # Process batches
-        tracker.update_batch(3)
-        assert tracker.completed_items == 3
-        assert tracker.get_progress_percentage() == 30.0
-        
-        tracker.update_batch(3)
-        assert tracker.completed_items == 6
-        assert tracker.get_progress_percentage() == 60.0
-        
-        # Test time estimates
-        estimate = tracker.get_time_estimate()
-        assert 'elapsed' in estimate
-        assert 'remaining' in estimate
     
     def test_progress_reporters(self):
         """Test different progress reporter implementations."""
@@ -272,75 +249,6 @@ class TestGeminiClientComprehensive:
             assert result['model_used'] == 'gemini-1.5-flash-002'
 
 
-class TestMetadataIndexComprehensive:
-    """Comprehensive tests for metadata index."""
-    
-    @pytest.fixture
-    def index(self, tmp_path):
-        """Create metadata index instance."""
-        config = Config.create_test_config()
-        config.output.metadata_dir = str(tmp_path)
-        return MetadataIndex(config)
-    
-    def test_add_episode_metadata(self, index):
-        """Test adding episode metadata."""
-        metadata = {
-            'podcast_name': 'Test Podcast',
-            'episode_title': 'Episode 1',
-            'episode_guid': 'guid-123',
-            'audio_file': 'episode1.mp3',
-            'transcript_file': 'episode1.vtt',
-            'youtube_url': 'https://youtube.com/watch?v=123',
-            'transcription_date': datetime.utcnow().isoformat()
-        }
-        
-        index.add_episode(metadata)
-        
-        # Verify episode was added
-        assert 'guid-123' in index.episodes
-        assert index.episodes['guid-123']['podcast_name'] == 'Test Podcast'
-    
-    def test_search_episodes(self, index):
-        """Test searching episodes."""
-        # Add test episodes
-        index.add_episode({
-            'episode_guid': '1',
-            'podcast_name': 'Tech Podcast',
-            'episode_title': 'AI Discussion'
-        })
-        index.add_episode({
-            'episode_guid': '2',
-            'podcast_name': 'Science Show',
-            'episode_title': 'Physics Talk'
-        })
-        
-        # Search by podcast
-        results = index.search_episodes(podcast_name='Tech Podcast')
-        assert len(results) == 1
-        assert results[0]['episode_guid'] == '1'
-        
-        # Search by title keyword
-        results = index.search_episodes(title_contains='Discussion')
-        assert len(results) == 1
-        assert results[0]['episode_title'] == 'AI Discussion'
-    
-    def test_save_and_load_index(self, index, tmp_path):
-        """Test saving and loading index."""
-        # Add data
-        index.add_episode({
-            'episode_guid': 'test-123',
-            'podcast_name': 'Test Show'
-        })
-        
-        # Save
-        index.save_index()
-        
-        # Create new index and load
-        new_index = MetadataIndex(index.config)
-        new_index.load_index()
-        
-        assert 'test-123' in new_index.episodes
-        assert new_index.episodes['test-123']['podcast_name'] == 'Test Show'
 
 
 class TestProgressTrackerComprehensive:
@@ -420,7 +328,6 @@ class TestOrchestratorIntegration:
              patch('src.orchestrator.YouTubeSearcher'), \
              patch('src.orchestrator.FileOrganizer'), \
              patch('src.orchestrator.VTTGenerator'), \
-             patch('src.orchestrator.MetadataIndex'), \
              patch('src.orchestrator.ProgressTracker'), \
              patch('src.orchestrator.SpeakerIdentifier'):
             

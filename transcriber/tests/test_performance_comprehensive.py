@@ -23,7 +23,6 @@ import resource
 from src.orchestrator import TranscriptionOrchestrator
 from src.feed_parser import Episode, PodcastMetadata
 from src.progress_tracker import ProgressTracker, EpisodeStatus
-from src.utils.batch_progress import BatchProgressTracker
 from src.gemini_client import RateLimitedGeminiClient
 from src.retry_wrapper import RetryManager
 from src.config import Config
