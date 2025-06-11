@@ -115,7 +115,7 @@ This plan implements comprehensive enhancements to the seeding pipeline that wil
   - Test with non-existent episodes returns None
 
 ### Task 2.2: Integrate YouTube Discovery in Ingestion
-- [ ] Task description: Add YouTube search fallback during VTT processing
+- [x] Task description: Add YouTube search fallback during VTT processing
 - Purpose: Automatically find missing YouTube URLs
 - Steps:
   1. Use context7 MCP tool to review ingestion pipeline documentation

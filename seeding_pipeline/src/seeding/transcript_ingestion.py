@@ -7,6 +7,7 @@ from typing import Dict, Any, List, Optional, Union, Set, Tuple
 import hashlib
 import json
 import logging
+import os
 
 from src.core.config import PipelineConfig
 from src.core.exceptions import ValidationError, PipelineError
@@ -14,6 +15,11 @@ from src.core.interfaces import TranscriptSegment
 from src.core.models import Podcast, Episode
 from src.utils.log_utils import get_logger
 from src.vtt import VTTParser
+try:
+    from src.utils.youtube_search import YouTubeSearcher
+except ImportError:
+    YouTubeSearcher = None
+    
 logger = get_logger(__name__)
 
 
@@ -48,6 +54,22 @@ class TranscriptIngestion:
         self.config = config
         self.vtt_parser = VTTParser()
         self._processed_files: Set[str] = set()
+        
+        # Initialize YouTube searcher if enabled
+        self.youtube_searcher = None
+        if getattr(config, 'youtube_search_enabled', False):
+            if YouTubeSearcher:
+                try:
+                    api_key = getattr(config, 'youtube_api_key', None) or os.environ.get('YOUTUBE_API_KEY')
+                    if api_key:
+                        self.youtube_searcher = YouTubeSearcher(api_key)
+                        logger.info("YouTube search enabled for missing URLs")
+                    else:
+                        logger.warning("YouTube search enabled but no API key found")
+                except Exception as e:
+                    logger.warning(f"Failed to initialize YouTube searcher: {e}")
+            else:
+                logger.warning("YouTube search enabled but youtube_search module not available")
     
     def scan_directory(self, 
                       directory: Path, 
@@ -281,6 +303,25 @@ class TranscriptIngestion:
             logger.info(f"YouTube URL found for episode: {episode_data['youtube_url']}")
         else:
             logger.info("No YouTube URL found in VTT metadata")
+            
+            # Try to find YouTube URL using search if enabled
+            if self.youtube_searcher:
+                logger.info(f"Searching for YouTube URL for episode: {episode_data['title']}")
+                try:
+                    youtube_url = self.youtube_searcher.search_youtube_url(
+                        podcast_name=episode_data['podcast_name'],
+                        episode_title=episode_data['title'],
+                        published_date=episode_data.get('published_date')
+                    )
+                    
+                    if youtube_url:
+                        episode_data['youtube_url'] = youtube_url
+                        logger.info(f"Found YouTube URL via search: {youtube_url}")
+                    else:
+                        logger.info("YouTube search did not find a suitable match")
+                        
+                except Exception as e:
+                    logger.warning(f"YouTube search failed: {e}")
             
         return episode_data
     
