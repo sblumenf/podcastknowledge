@@ -69,6 +69,29 @@ class StorageCoordinator:
         if getattr(self.config, 'enhance_graph', True):
             logger.info("Enhancing knowledge graph...")
             self.graph_enhancer.enhance_episode(episode['id'])
+        
+        # Run knowledge discovery analyses if configured
+        if getattr(self.config, 'enable_knowledge_discovery', True):
+            try:
+                from src.analysis.analysis_orchestrator import run_knowledge_discovery
+                logger.info(f"Running knowledge discovery for episode {episode['id']}...")
+                
+                # Run analyses with a new session to avoid conflicts
+                with self.graph_provider.driver.session() as discovery_session:
+                    discovery_results = run_knowledge_discovery(episode['id'], discovery_session)
+                    
+                    if discovery_results.get('summary', {}).get('status') == 'healthy':
+                        logger.info(f"Knowledge discovery completed successfully for episode {episode['id']}")
+                        if discovery_results.get('summary', {}).get('key_findings'):
+                            logger.info(f"Key findings: {discovery_results['summary']['key_findings']}")
+                    else:
+                        logger.warning(f"Knowledge discovery partially completed for episode {episode['id']}")
+                        
+            except ImportError:
+                logger.warning("Knowledge discovery module not available")
+            except Exception as e:
+                logger.error(f"Error running knowledge discovery: {e}")
+                # Don't fail the pipeline if knowledge discovery fails
     
     def _store_podcast(self, podcast_config: Dict[str, Any]):
         """Store podcast node.

@@ -18,3 +18,9 @@ from .diversity_metrics import (
     get_diversity_insights,
     run_diversity_analysis
 )
+
+from .analysis_orchestrator import (
+    run_knowledge_discovery,
+    run_knowledge_discovery_batch,
+    get_analysis_configuration
+)

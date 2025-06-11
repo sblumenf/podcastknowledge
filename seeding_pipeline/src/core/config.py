@@ -91,6 +91,9 @@ class PipelineConfig:
     youtube_search_confidence_threshold: float = field(default_factory=lambda: float(os.environ.get("YOUTUBE_SEARCH_CONFIDENCE_THRESHOLD", "0.7")))
     youtube_search_rate_limit_delay: float = field(default_factory=lambda: float(os.environ.get("YOUTUBE_SEARCH_RATE_LIMIT_DELAY", "1.0")))
     
+    # Knowledge Discovery Settings
+    enable_knowledge_discovery: bool = field(default_factory=lambda: os.environ.get("ENABLE_KNOWLEDGE_DISCOVERY", "true").lower() == "true")
+    
     def __post_init__(self):
         """Convert string paths to Path objects and validate configuration."""
         # Convert paths
