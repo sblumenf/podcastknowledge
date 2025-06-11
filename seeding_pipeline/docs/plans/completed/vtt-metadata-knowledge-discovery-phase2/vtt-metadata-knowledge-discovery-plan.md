@@ -86,7 +86,7 @@ This plan implements comprehensive enhancements to the seeding pipeline that wil
 ## Phase 2: YouTube URL Discovery
 
 ### Task 2.1: Create Simple YouTube Search Module
-- [x] Task description: Implement basic YouTube search functionality ✅ COMPLETED
+- [x] Task description: Implement basic YouTube search functionality
 - Purpose: Find YouTube URLs for episodes missing them
 - Steps:
   1. Use context7 MCP tool to review YouTube Data API documentation
@@ -115,7 +115,7 @@ This plan implements comprehensive enhancements to the seeding pipeline that wil
   - Test with non-existent episodes returns None
 
 ### Task 2.2: Integrate YouTube Discovery in Ingestion
-- [x] Task description: Add YouTube search fallback during VTT processing ✅ COMPLETED
+- [x] Task description: Add YouTube search fallback during VTT processing
 - Purpose: Automatically find missing YouTube URLs
 - Steps:
   1. Use context7 MCP tool to review ingestion pipeline documentation
@@ -136,7 +136,7 @@ This plan implements comprehensive enhancements to the seeding pipeline that wil
   - Verify configuration flag works
 
 ### Task 2.3: Add YouTube Search Configuration
-- [x] Task description: Add configuration options for YouTube search ✅ COMPLETED
+- [x] Task description: Add configuration options for YouTube search
 - Purpose: Make YouTube search configurable and manageable
 - Steps:
   1. Use context7 MCP tool to review configuration system documentation
@@ -352,10 +352,10 @@ This plan implements comprehensive enhancements to the seeding pipeline that wil
    - [ ] Metadata parsing works for both JSON and human-readable formats
    - [ ] Backward compatible with VTT files lacking metadata
 
-2. **YouTube URL Discovery** ✅ PHASE 2 COMPLETE (January 11, 2025)
-   - [x] Missing YouTube URLs automatically discovered
-   - [x] Search accuracy >80% for known podcast episodes (validation logic implemented)
-   - [x] Rate limiting prevents API quota issues
+2. **YouTube URL Discovery**
+   - [ ] Missing YouTube URLs automatically discovered
+   - [ ] Search accuracy >80% for known podcast episodes
+   - [ ] Rate limiting prevents API quota issues
 
 3. **Knowledge Discovery**
    - [ ] Gap detection identifies topic clusters with low connectivity
