@@ -119,12 +119,12 @@ The solution will rebuild the progress tracker from existing VTT files using nor
 **Purpose**: Verify complete system works with normalization
 
 **Steps**:
-- [ ] Use context7 MCP tool to review testing patterns in the codebase
-- [ ] Test complete transcription workflow:
+- [x] Use context7 MCP tool to review testing patterns in the codebase
+- [x] Test complete transcription workflow:
   - Run find_next_episodes.py to verify correct episode identification
   - Attempt to transcribe already-done episodes (should skip)
   - Transcribe one new episode to verify new normalization works
-- [ ] Test with multiple title variations to ensure matching works
+- [x] Test with multiple title variations to ensure matching works
 
 **Validation**: System correctly skips existing episodes and processes only new ones
 
@@ -132,10 +132,10 @@ The solution will rebuild the progress tracker from existing VTT files using nor
 **Purpose**: Ensure solution works for future podcast additions
 
 **Steps**:
-- [ ] Use context7 MCP tool to review multi-podcast support patterns
-- [ ] Test normalization with various title formats common in different podcasts
-- [ ] Verify file organization and progress tracking work for multiple podcasts
-- [ ] Test edge cases like very long titles or special characters
+- [x] Use context7 MCP tool to review multi-podcast support patterns
+- [x] Test normalization with various title formats common in different podcasts
+- [x] Verify file organization and progress tracking work for multiple podcasts
+- [x] Test edge cases like very long titles or special characters
 
 **Validation**: System handles diverse podcast title formats correctly
 
