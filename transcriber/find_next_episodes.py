@@ -6,25 +6,34 @@ from pathlib import Path
 from datetime import datetime
 from src.feed_parser import parse_feed
 from src.utils.logging import setup_logging
+from src.progress_tracker import ProgressTracker
 
 def get_transcribed_episodes():
     """Get list of already transcribed episode titles."""
-    output_dir = Path("output/transcripts")
+    # First check the progress tracker
+    progress_tracker = ProgressTracker()
     transcribed = set()
     
+    # Get all episodes from progress tracker
+    for podcast_name in progress_tracker.get_all_podcasts():
+        episodes = progress_tracker.get_transcribed_episodes(podcast_name)
+        transcribed.update(episodes)
+    
+    # Also check filesystem as backup (for VTT files not in tracker)
+    output_dir = Path("output/transcripts")
     if output_dir.exists():
         for podcast_dir in output_dir.iterdir():
             if podcast_dir.is_dir():
-                for json_file in podcast_dir.glob("*.json"):
-                    try:
-                        with open(json_file, 'r') as f:
-                            data = json.load(f)
-                        episode_data = data.get('episode', {})
-                        title = episode_data.get('title')
-                        if title:
+                # Check for VTT files
+                for vtt_file in podcast_dir.glob("*.vtt"):
+                    # Extract title from filename (format: YYYY-MM-DD_Title.vtt)
+                    filename = vtt_file.stem
+                    if '_' in filename:
+                        # Split on first underscore to separate date from title
+                        parts = filename.split('_', 1)
+                        if len(parts) == 2:
+                            title = parts[1].replace('_', ' ').replace('&amp;', '&')
                             transcribed.add(title)
-                    except Exception as e:
-                        print(f"Error reading {json_file}: {e}")
     
     return transcribed
 

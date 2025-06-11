@@ -30,6 +30,9 @@ class FeatureFlag(Enum):
     ENABLE_QUOTE_POSTPROCESSING = "ENABLE_QUOTE_POSTPROCESSING"
     ENABLE_METADATA_ENRICHMENT = "ENABLE_METADATA_ENRICHMENT"
     ENABLE_ENTITY_RESOLUTION_POSTPROCESS = "ENABLE_ENTITY_RESOLUTION_POSTPROCESS"
+    
+    # Speaker identification flags
+    ENABLE_SPEAKER_IDENTIFICATION = "ENABLE_SPEAKER_IDENTIFICATION"
 
 
 @dataclass
@@ -95,6 +98,11 @@ class FeatureFlagManager:
                 name="SCHEMALESS_MIGRATION_MODE",
                 default_value=False,
                 description="Enable migration from fixed to schemaless schema"
+            ),
+            FeatureFlag.ENABLE_SPEAKER_IDENTIFICATION: FlagConfig(
+                name="ENABLE_SPEAKER_IDENTIFICATION",
+                default_value=True,
+                description="Enable LLM-based speaker identification for VTT transcripts"
             ),
         }
         

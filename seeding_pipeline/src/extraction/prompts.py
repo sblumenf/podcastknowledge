@@ -188,6 +188,53 @@ JSON RESPONSE:""",
             use_large_context=False
         )
         
+        # Speaker identification prompts
+        templates['speaker_identification'] = PromptTemplate(
+            name='speaker_identification',
+            version=PromptVersion.V2_0,
+            template="""Identify the actual names or descriptive roles of speakers in this podcast transcript.
+
+METADATA:
+{metadata}
+
+SPEAKER STATISTICS:
+{speaker_stats}
+
+OPENING CONVERSATION (first 10 minutes):
+{opening_segments}
+
+Based on the metadata, conversation patterns, and content:
+1. Identify actual speaker names from:
+   - Self-introductions (e.g., "I'm John", "this is Sarah")
+   - Address patterns (e.g., "Welcome, Dr. Smith")
+   - Host/guest patterns (hosts typically introduce guests)
+   - Episode metadata (podcast name, description)
+
+2. For unidentified speakers, assign descriptive roles based on:
+   - Speaking patterns (questions vs answers)
+   - Conversation dominance (hosts typically speak more)
+   - Topic expertise demonstrated
+   - Relationship dynamics
+
+Format your response as a valid JSON object with these fields:
+- speaker_mappings: Object mapping generic IDs to identified names/roles
+  - Example: {{"Speaker 0": "Mel Robbins (Host)", "Speaker 1": "Dr. Jane Smith (Guest Expert)"}}
+- confidence_scores: Object with confidence levels (0.0-1.0) for each identification
+- identification_methods: Object explaining how each speaker was identified
+- unresolved_speakers: Array of speaker IDs that couldn't be confidently identified
+
+Prioritize accuracy over completeness. If uncertain, use descriptive roles like:
+- "Primary Host (75% airtime)"
+- "Guest Expert - Psychology"
+- "Co-host/Interviewer"
+- "Brief Contributor"
+
+JSON RESPONSE:""",
+            variables=['metadata', 'speaker_stats', 'opening_segments'],
+            description='Identify speakers from transcript context',
+            use_large_context=True
+        )
+        
         # Quote extraction prompts
         templates['quote_extraction_large'] = PromptTemplate(
             name='quote_extraction_large',

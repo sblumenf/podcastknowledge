@@ -12,6 +12,7 @@ import re
 
 from ..core import constants
 from ..core.interfaces import TranscriptSegment
+from ..core.feature_flags import FeatureFlag, is_enabled
 logger = logging.getLogger(__name__)
 
 
@@ -33,7 +34,7 @@ class VTTSegmenter:
     such as advertisement detection and sentiment analysis.
     """
     
-    def __init__(self, config: Optional[Dict[str, Any]] = None):
+    def __init__(self, config: Optional[Dict[str, Any]] = None, llm_service = None):
         """
         Initialize VTT segmenter with configuration.
         
@@ -43,6 +44,7 @@ class VTTSegmenter:
                 - max_segment_tokens: Maximum tokens per segment
                 - ad_detection_enabled: Enable advertisement detection
                 - use_semantic_boundaries: Use semantic boundaries for segmentation
+            llm_service: Optional GeminiDirectService for speaker identification
         """
         # Default configuration
         default_config = {
@@ -56,14 +58,21 @@ class VTTSegmenter:
         if config:
             self.config.update(config)
             
+        self.llm_service = llm_service
+        self._speaker_identifier = None
+        
         logger.info(f"Initialized VTTSegmenter with config: {self.config}")
         
-    def process_segments(self, segments: List[TranscriptSegment]) -> Dict[str, Any]:
+    def process_segments(self, segments: List[TranscriptSegment], 
+                        episode_metadata: Optional[Dict[str, Any]] = None,
+                        cached_content_name: Optional[str] = None) -> Dict[str, Any]:
         """
         Process VTT transcript segments.
         
         Args:
             segments: List of transcript segments from VTT parser
+            episode_metadata: Optional metadata about the episode for speaker identification
+            cached_content_name: Optional cached content name for LLM calls
             
         Returns:
             Dictionary with processing results:
@@ -79,12 +88,28 @@ class VTTSegmenter:
                 "metadata": {"warning": "No segments provided"}
             }
             
+        # Identify speakers if enabled
+        speaker_identification_result = None
+        if is_enabled(FeatureFlag.ENABLE_SPEAKER_IDENTIFICATION) and self.llm_service:
+            logger.info("Performing speaker identification...")
+            try:
+                segments, speaker_identification_result = self._identify_speakers(
+                    segments, episode_metadata or {}, cached_content_name
+                )
+            except Exception as e:
+                logger.error(f"Speaker identification failed: {e}")
+                # Continue with original segments on failure
+            
         # Post-process segments
         logger.info("Post-processing segments...")
         processed_segments = self._post_process_segments(segments)
         
         # Calculate metadata
         metadata = self._calculate_metadata(processed_segments)
+        
+        # Add speaker identification info to metadata
+        if speaker_identification_result:
+            metadata['speaker_identification'] = speaker_identification_result
         
         return {
             "transcript": processed_segments,
@@ -273,3 +298,54 @@ class VTTSegmenter:
             "speakers": sorted(list(speakers)),
             "sentiment_distribution": sentiment_distribution,
         }
+        
+    def _identify_speakers(self, 
+                          segments: List[TranscriptSegment], 
+                          episode_metadata: Dict[str, Any],
+                          cached_content_name: Optional[str] = None) -> tuple:
+        """
+        Identify speakers from generic labels using LLM analysis.
+        
+        Args:
+            segments: List of transcript segments with generic speaker labels
+            episode_metadata: Episode metadata for context
+            cached_content_name: Optional cached content name
+            
+        Returns:
+            Tuple of (updated_segments, identification_result)
+        """
+        # Lazy import to avoid circular dependencies
+        from ..extraction.speaker_identifier import SpeakerIdentifier
+        
+        # Initialize speaker identifier if not already done
+        if self._speaker_identifier is None:
+            # Use config for speaker DB path if available
+            speaker_db_path = self.config.get('speaker_db_path', './speaker_cache')
+            
+            self._speaker_identifier = SpeakerIdentifier(
+                llm_service=self.llm_service,
+                confidence_threshold=self.config.get('speaker_confidence_threshold', 0.7),
+                use_large_context=True,
+                timeout_seconds=self.config.get('speaker_timeout_seconds', 30),
+                max_segments_for_context=self.config.get('max_segments_for_context', 50),
+                speaker_db_path=speaker_db_path
+            )
+        
+        # Get speaker identification
+        result = self._speaker_identifier.identify_speakers(
+            segments, 
+            episode_metadata,
+            cached_content_name
+        )
+        
+        # Apply identified speakers to segments
+        if result['speaker_mappings']:
+            updated_segments = self._speaker_identifier._map_speakers(
+                segments,
+                result['speaker_mappings']
+            )
+            logger.info(f"Speaker identification complete: {len(result['speaker_mappings'])} speakers identified")
+            return updated_segments, result
+        else:
+            logger.warning("No speaker mappings found, using original segments")
+            return segments, result
