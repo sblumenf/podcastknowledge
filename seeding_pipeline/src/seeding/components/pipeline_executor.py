@@ -99,10 +99,6 @@ class PipelineExecutor:
             # Save segments checkpoint
             self.checkpoint_manager.save_progress(episode_id, "segments", segment_objects)
             
-            # Save rotation state with checkpoint
-            if self.rotation_integration:
-                self.rotation_integration.save_rotation_state_with_checkpoint(episode_id, "segments")
-            
             # Direct schemaless extraction (no mode selection)
             result = self._extract_knowledge_direct(
                 podcast_config, episode, segment_objects, episode_id
@@ -373,10 +369,6 @@ class PipelineExecutor:
             episode_id: Episode identifier
             result: Processing results
         """
-        # Save final rotation state before marking complete
-        if self.rotation_integration:
-            self.rotation_integration.save_rotation_state_with_checkpoint(episode_id, "complete")
-        
         # Mark episode as complete
         self.checkpoint_manager.mark_completed(episode_id, result)
         

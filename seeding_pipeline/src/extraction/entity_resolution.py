@@ -546,12 +546,11 @@ class EntityResolver:
             contribution = ComponentContribution(
                 component_name="entity_resolution",
                 contribution_type="entities_merged",
-                details={
+                metadata={
                     "merge_types": dict(self.resolution_metrics["merge_types"]),
                     "reduction_ratio": 1 - (len(resolved_entities) / len(entities))
                 },
-                count=self.resolution_metrics["merges_performed"],
-                timestamp=kwargs.get('timestamp', '')
+                count=self.resolution_metrics["merges_performed"]
             )
             tracker.track_contribution(contribution)
         

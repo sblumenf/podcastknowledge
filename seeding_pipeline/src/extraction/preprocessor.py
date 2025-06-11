@@ -166,13 +166,12 @@ class TextPreprocessor:
             contribution = ComponentContribution(
                 component_name="text_preprocessor",
                 contribution_type="metadata_injection",
-                details={
+                metadata={
                     "markers_added": self.markers_added,
                     "injection_types": list(set(m.split(':')[0].strip('[') for m in self.markers_added)),
                     "text_cleaned": self.config.clean_transcription_artifacts
                 },
-                count=len(self.markers_added),
-                timestamp=kwargs.get('timestamp', '')
+                count=len(self.markers_added)
             )
             tracker.track_contribution(contribution)
         

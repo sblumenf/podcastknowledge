@@ -23,7 +23,6 @@ from src.seeding import VTTKnowledgeExtractor
 from src.core.config import PipelineConfig
 from src.core.exceptions import PipelineError
 from src.vtt import VTTParser
-from src.seeding.transcript_ingestion import TranscriptIngestionManager
 from src.utils.log_utils import get_logger
 from src.utils.logging_enhanced import setup_enhanced_logging, log_performance_metric, trace_operation, log_batch_progress, get_metrics_collector
 from src.utils.health_check import get_health_checker
@@ -371,7 +370,7 @@ def process_vtt_batch(vtt_files: List[Path], pipeline, checkpoint, args) -> int:
     Args:
         vtt_files: List of VTT file paths to process
         pipeline: VTTKnowledgeExtractor pipeline instance
-        checkpoint: Optional checkpoint manager
+        checkpoint: Unused (kept for compatibility) - checkpointing handled by orchestrator
         args: Command line arguments
         
     Returns:
@@ -425,42 +424,40 @@ def process_vtt_batch(vtt_files: List[Path], pipeline, checkpoint, args) -> int:
                 'file_path': str(file_path)
             }
         
-        # Check if already processed
-        if checkpoint:
-            file_hash = get_file_hash(file_path)
-            if checkpoint.is_vtt_processed(str(file_path), file_hash):
-                return {
-                    'success': False,
-                    'skipped': True,
-                    'error': 'Already processed',
-                    'file_path': str(file_path)
-                }
+        # Checkpoint handling is now done internally by the orchestrator
         
         try:
-            # Create ingestion manager (each thread gets its own)
-            ingestion_manager = TranscriptIngestionManager(
-                pipeline=pipeline,
-                checkpoint=checkpoint
-            )
-            
-            # Process the VTT file
-            result = ingestion_manager.process_vtt_file(
-                vtt_file=str(file_path),
-                metadata={
-                    'source': 'cli',
-                    'file_name': file_path.name,
-                    'file_path': str(file_path),
-                    'processed_at': datetime.now().isoformat()
-                }
-            )
-            
-            if result['success'] and checkpoint:
-                # Save checkpoint
-                checkpoint.mark_vtt_processed(
-                    str(file_path),
-                    file_hash,
-                    result['segments_processed']
+            # Process single file through orchestrator (direct knowledge extraction)
+            try:
+                logger.debug(f"Batch processing: Starting knowledge extraction for {file_path.name}")
+                batch_result = pipeline.process_vtt_files(
+                    vtt_files=[file_path],  # List of Path objects
+                    use_large_context=True
                 )
+                logger.debug(f"Batch processing: Knowledge extraction completed for {file_path.name}")
+                
+                # Transform orchestrator result to CLI expected format
+                if batch_result['success'] and batch_result['files_processed'] > 0:
+                    result = {
+                        'success': True,
+                        'segments_processed': batch_result['total_segments'],
+                        'files_processed': batch_result['files_processed'],
+                        'entities_extracted': batch_result['total_entities'],
+                        'relationships_found': batch_result['total_relationships']
+                    }
+                else:
+                    result = {
+                        'success': False,
+                        'error': '; '.join([err['error'] for err in batch_result.get('errors', [])])
+                    }
+                    
+            except Exception as e:
+                result = {
+                    'success': False,
+                    'error': str(e)
+                }
+            
+            # Checkpoint saving is now handled internally by the orchestrator
             
             result['file_path'] = str(file_path)
             return result
@@ -521,6 +518,7 @@ def process_vtt_batch(vtt_files: List[Path], pipeline, checkpoint, args) -> int:
                     counters['skipped'] += 1
             elif result.get('success'):
                 print(f"  ✓ {file_path.name} - {result.get('segments_processed', 0)} segments")
+                print(f"    - {result.get('entities_extracted', 0)} entities, {result.get('relationships_found', 0)} relationships")
                 with lock:
                     counters['processed'] += 1
             else:
@@ -605,8 +603,21 @@ def process_vtt(args: argparse.Namespace) -> int:
         else:
             config = PipelineConfig()
         
+        # Set checkpoint directory in config to match CLI args
+        if not args.no_checkpoint:
+            checkpoint_dir = Path(args.checkpoint_dir)
+            checkpoint_dir.mkdir(exist_ok=True, parents=True)
+            config.checkpoint_dir = str(checkpoint_dir)
+        
         # Initialize pipeline
-        pipeline = VTTKnowledgeExtractor(config)
+        try:
+            logger.info("Initializing VTTKnowledgeExtractor pipeline...")
+            pipeline = VTTKnowledgeExtractor(config)
+            logger.info("✓ VTTKnowledgeExtractor pipeline initialized successfully")
+        except Exception as e:
+            print(f"Failed to initialize knowledge extraction pipeline: {e}", file=sys.stderr)
+            logger.error(f"Pipeline initialization failed: {e}", exc_info=True)
+            return 1
         
         # Find VTT files
         folder = Path(args.folder)
@@ -629,6 +640,7 @@ def process_vtt(args: argparse.Namespace) -> int:
             return 0
         
         print(f"\nFound {len(vtt_files)} VTT file(s)")
+        logger.info(f"Discovered {len(vtt_files)} VTT files for processing")
         
         # Dry run - just show what would be processed
         if args.dry_run:
@@ -639,19 +651,11 @@ def process_vtt(args: argparse.Namespace) -> int:
                 print(f"  {i}. {file_path.relative_to(folder)} - {status}")
             return 0
         
-        # Initialize checkpoint if enabled
-        checkpoint = None
-        if not args.no_checkpoint:
-            checkpoint_dir = Path(args.checkpoint_dir)
-            checkpoint_dir.mkdir(exist_ok=True, parents=True)
-            checkpoint = ProgressCheckpoint(
-                checkpoint_dir=str(checkpoint_dir),
-                extraction_mode='vtt'
-            )
+        # Checkpoint is now handled internally by the orchestrator
         
         # Use batch processing for multiple files
         if len(vtt_files) > 1 and args.parallel:
-            return process_vtt_batch(vtt_files, pipeline, checkpoint, args)
+            return process_vtt_batch(vtt_files, pipeline, None, args)
         
         # Process files sequentially (existing code)
         processed = 0
@@ -670,43 +674,51 @@ def process_vtt(args: argparse.Namespace) -> int:
                 failed += 1
                 continue
             
-            # Check if already processed (via checkpoint)
-            if checkpoint:
-                file_hash = get_file_hash(file_path)
-                if checkpoint.is_vtt_processed(str(file_path), file_hash):
-                    print(f"  ✓ Already processed (same content)")
-                    skipped += 1
-                    continue
+            # Checkpoint handling is now done internally by the orchestrator
             
             try:
-                # Create ingestion manager
-                ingestion_manager = TranscriptIngestionManager(
-                    pipeline=pipeline,
-                    checkpoint=checkpoint
-                )
-                
-                # Process the VTT file
-                result = ingestion_manager.process_vtt_file(
-                    vtt_file=str(file_path),
-                    metadata={
-                        'source': 'cli',
-                        'file_name': file_path.name,
-                        'file_path': str(file_path),
-                        'processed_at': datetime.now().isoformat()
+                # Process single file through orchestrator (direct knowledge extraction)
+                try:
+                    logger.info(f"Starting knowledge extraction for {file_path.name}")
+                    logger.debug(f"File details: size={file_path.stat().st_size} bytes, path={file_path}")
+                    
+                    result = pipeline.process_vtt_files(
+                        vtt_files=[file_path],  # List of Path objects
+                        use_large_context=True
+                    )
+                    
+                    logger.info(f"Knowledge extraction completed for {file_path.name}: {result.get('success', False)}")
+                    logger.debug(f"Extraction result details: {result}")
+                    
+                    # Transform orchestrator result to CLI expected format
+                    if result['success'] and result['files_processed'] > 0:
+                        cli_result = {
+                            'success': True,
+                            'segments_processed': result['total_segments'],
+                            'files_processed': result['files_processed'],
+                            'entities_extracted': result['total_entities'],
+                            'relationships_found': result['total_relationships']
+                        }
+                    else:
+                        cli_result = {
+                            'success': False,
+                            'error': '; '.join([err['error'] for err in result.get('errors', [])])
+                        }
+                        
+                except Exception as e:
+                    cli_result = {
+                        'success': False,
+                        'error': str(e)
                     }
-                )
+                    
+                # Use transformed result
+                result = cli_result
                 
                 if result['success']:
                     print(f"  ✓ Success - {result['segments_processed']} segments processed")
+                    print(f"    - {result.get('entities_extracted', 0)} entities extracted")
+                    print(f"    - {result.get('relationships_found', 0)} relationships found")
                     processed += 1
-                    
-                    # Save checkpoint
-                    if checkpoint:
-                        checkpoint.mark_vtt_processed(
-                            str(file_path),
-                            file_hash,
-                            result['segments_processed']
-                        )
                 else:
                     print(f"  ✗ Failed: {result.get('error', 'Unknown error')}")
                     failed += 1
@@ -727,6 +739,11 @@ def process_vtt(args: argparse.Namespace) -> int:
         print(f"  Successfully processed: {processed}")
         print(f"  Failed: {failed}")
         print(f"  Skipped (already processed): {skipped}")
+        
+        # Log detailed summary
+        logger.info(f"VTT processing completed: {processed} successful, {failed} failed, {skipped} skipped out of {len(vtt_files)} total files")
+        if processed > 0:
+            logger.info(f"Successfully extracted knowledge from {processed} podcast episodes")
         
         if failed > 0:
             print("\nSome files failed to process. Check logs for details.")
@@ -841,57 +858,6 @@ def checkpoint_clean(args: argparse.Namespace) -> int:
             traceback.print_exc()
         return 1
 
-
-def process_vtt_directory(args: argparse.Namespace) -> int:
-    """Process VTT directory command.
-    
-    Returns:
-        Exit code (0 for success, 1 for failure)
-    """
-    logger = get_logger(__name__)
-    
-    try:
-        vtt_dir = Path(args.vtt_dir)
-        if not vtt_dir.exists():
-            print(f"Error: VTT directory does not exist: {vtt_dir}", file=sys.stderr)
-            return 1
-        
-        # Load configuration
-        config = None
-        if args.config:
-            config = PipelineConfig.from_file(Path(args.config))
-        else:
-            config = PipelineConfig()
-        
-        # Create mock pipeline for TranscriptIngestionManager
-        mock_pipeline = Mock()
-        mock_pipeline.config = config
-        
-        # Initialize ingestion manager
-        manager = TranscriptIngestionManager(mock_pipeline)
-        
-        # Process directory
-        result = manager.ingestion.process_directory(
-            vtt_dir,
-            pattern="*.vtt",
-            recursive=args.recursive,
-            max_files=args.max_files
-        )
-        
-        # Display results
-        print(f"\nProcessing Summary:")
-        print(f"  Total files: {result['total_files']}")
-        print(f"  Processed: {result['processed']}")
-        print(f"  Skipped: {result['skipped']}")
-        print(f"  Errors: {result['errors']}")
-        print(f"  Total segments: {result['total_segments']}")
-        
-        return 0
-        
-    except Exception as e:
-        logger.error(f"VTT directory processing failed: {e}", exc_info=True)
-        print(f"Error: {e}", file=sys.stderr)
-        return 1
 
 
 def health_check(args: argparse.Namespace) -> int:
