@@ -196,16 +196,24 @@ class TranscriptIngestion:
             return {'status': 'skipped', 'reason': 'already_processed'}
         
         try:
-            # Parse VTT file
-            segments = self.vtt_parser.parse_file(vtt_file.path)
+            # Parse VTT file with metadata extraction
+            try:
+                parse_result = self.vtt_parser.parse_file_with_metadata(vtt_file.path)
+                segments = parse_result['segments']
+                vtt_metadata = parse_result['metadata']
+            except AttributeError:
+                # Fallback for older VTT parser without metadata extraction
+                logger.warning("VTT parser doesn't support metadata extraction, using legacy parsing")
+                segments = self.vtt_parser.parse_file(vtt_file.path)
+                vtt_metadata = {}
             
             # Optionally merge short segments
             if getattr(self.config, 'merge_short_segments', True):
                 min_duration = getattr(self.config, 'min_segment_duration', 2.0)
                 segments = self.vtt_parser.merge_short_segments(segments, min_duration)
             
-            # Create episode data
-            episode_data = self._create_episode_data(vtt_file, segments)
+            # Create episode data with metadata
+            episode_data = self._create_episode_data(vtt_file, segments, vtt_metadata)
             
             # Mark as processed
             self._processed_files.add(vtt_file.file_hash)
@@ -215,7 +223,8 @@ class TranscriptIngestion:
                 'file': vtt_file.to_dict(),
                 'episode': episode_data,
                 'segments': segments,
-                'segment_count': len(segments)
+                'segment_count': len(segments),
+                'metadata': vtt_metadata
             }
             
         except Exception as e:
@@ -228,12 +237,14 @@ class TranscriptIngestion:
     
     def _create_episode_data(self, 
                            vtt_file: VTTFile, 
-                           segments: List[TranscriptSegment]) -> Dict[str, Any]:
-        """Create episode data from VTT file and segments.
+                           segments: List[TranscriptSegment],
+                           vtt_metadata: Dict[str, Any]) -> Dict[str, Any]:
+        """Create episode data from VTT file, segments, and metadata.
         
         Args:
             vtt_file: VTT file being processed
             segments: Parsed transcript segments
+            vtt_metadata: Metadata extracted from VTT file
             
         Returns:
             Episode data dictionary
@@ -247,17 +258,31 @@ class TranscriptIngestion:
         # Extract speakers
         speakers = list(set(seg.speaker for seg in segments if seg.speaker))
         
-        return {
+        # Use metadata to enhance episode data
+        episode_data = {
             'id': vtt_file.file_hash[:12],  # Use first 12 chars of hash as ID
-            'title': vtt_file.episode_title,
-            'podcast_name': vtt_file.podcast_name,
-            'duration_seconds': duration,
+            'title': vtt_metadata.get('episode', vtt_file.episode_title),
+            'podcast_name': vtt_metadata.get('podcast', vtt_file.podcast_name),
+            'description': vtt_metadata.get('description', ''),
+            'published_date': vtt_metadata.get('date', ''),
+            'youtube_url': vtt_metadata.get('youtube_url'),
+            'original_url': vtt_metadata.get('original_url'),
+            'duration_seconds': vtt_metadata.get('duration', duration),
             'speaker_count': len(speakers),
             'speakers': speakers,
             'segment_count': len(segments),
             'file_path': str(vtt_file.path),
-            'processed_at': datetime.utcnow().isoformat()
+            'processed_at': datetime.utcnow().isoformat(),
+            'transcript_metadata': vtt_metadata  # Store all metadata
         }
+        
+        # Log if YouTube URL was found
+        if episode_data['youtube_url']:
+            logger.info(f"YouTube URL found for episode: {episode_data['youtube_url']}")
+        else:
+            logger.info("No YouTube URL found in VTT metadata")
+            
+        return episode_data
     
     def process_directory(self,
                          directory: Path,

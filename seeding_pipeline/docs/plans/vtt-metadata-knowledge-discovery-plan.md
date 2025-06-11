@@ -46,7 +46,7 @@ This plan implements comprehensive enhancements to the seeding pipeline that wil
   - Check that existing code doesn't break with new optional fields
 
 ### Task 1.3: Update Transcript Ingestion Process
-- [ ] Task description: Modify ingestion to use metadata from enhanced parser
+- [x] Task description: Modify ingestion to use metadata from enhanced parser
 - Purpose: Flow metadata from VTT files into Episode objects
 - Steps:
   1. Use context7 MCP tool to review ingestion process documentation
