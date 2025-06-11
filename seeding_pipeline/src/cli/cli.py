@@ -1279,8 +1279,8 @@ Examples:
     vtt_parser.add_argument(
         '--folder',
         type=str,
-        required=True,
-        help='Folder containing VTT files'
+        default=os.getenv('VTT_INPUT_DIR', 'data/transcripts'),
+        help='Folder containing VTT files (default: $VTT_INPUT_DIR or data/transcripts)'
     )
     
     vtt_parser.add_argument(
@@ -1293,7 +1293,8 @@ Examples:
     vtt_parser.add_argument(
         '--recursive',
         action='store_true',
-        help='Search for VTT files recursively in subdirectories'
+        default=True,
+        help='Search for VTT files recursively in subdirectories (default: True)'
     )
     
     vtt_parser.add_argument(

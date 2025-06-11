@@ -63,7 +63,7 @@ Create an end-to-end pipeline where the transcriber module outputs VTT files to 
 
 ### Task 3: Configure Seeding Pipeline Module
 
-- [ ] Update seeding pipeline environment configuration
+- [x] Update seeding pipeline environment configuration
   - Purpose: Configure pipeline to read from shared location
   - Steps:
     1. Use context7 MCP tool to review seeding pipeline configuration
@@ -73,7 +73,7 @@ Create an end-to-end pipeline where the transcriber module outputs VTT files to 
     5. Add `PROCESSED_DIR=/data/processed`
   - Validation: Environment variables are set correctly
 
-- [ ] Update seeding pipeline input paths
+- [x] Update seeding pipeline input paths
   - Purpose: Ensure pipeline reads from correct location
   - Steps:
     1. Use context7 MCP tool for CLI patterns
