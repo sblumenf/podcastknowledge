@@ -6,3 +6,9 @@ from .gap_detection import (
     detect_structural_gaps,
     run_gap_detection
 )
+
+from .missing_links import (
+    find_missing_links,
+    calculate_connection_potential,
+    run_missing_link_analysis
+)
