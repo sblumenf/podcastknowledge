@@ -12,3 +12,9 @@ from .missing_links import (
     calculate_connection_potential,
     run_missing_link_analysis
 )
+
+from .diversity_metrics import (
+    update_diversity_metrics,
+    get_diversity_insights,
+    run_diversity_analysis
+)
