@@ -7,7 +7,12 @@ from typing import List, Dict, Any, Optional, Tuple, Iterator
 import logging
 import re
 import gc
-import psutil
+import json
+
+try:
+    import psutil
+except ImportError:
+    psutil = None
 
 from src.core.exceptions import ValidationError
 from src.core.interfaces import TranscriptSegment
@@ -57,13 +62,13 @@ class VTTParser:
     
     def _log_memory_usage(self, stage: str):
         """Log current memory usage."""
-        if self.enable_memory_monitoring:
+        if self.enable_memory_monitoring and psutil:
             try:
                 process = psutil.Process()
                 memory_mb = process.memory_info().rss / 1024 / 1024
                 logger.info(f"Memory usage at {stage}: {memory_mb:.2f} MB")
             except:
-                pass  # psutil not available
+                pass  # Error getting memory info
     
     def parse_file(self, file_path: Path) -> List[TranscriptSegment]:
         """Parse a VTT file and return transcript segments.
@@ -95,6 +100,31 @@ class VTTParser:
             logger.info(f"Using streaming parser for large file ({file_size_mb:.1f} MB)")
             return list(self.parse_file_streaming(file_path))
     
+    def parse_file_with_metadata(self, file_path: Path) -> Dict[str, Any]:
+        """Parse a VTT file and return both metadata and transcript segments.
+        
+        Args:
+            file_path: Path to the VTT file
+            
+        Returns:
+            Dict containing 'metadata' and 'segments' keys
+            
+        Raises:
+            ValidationError: If file format is invalid
+        """
+        if not file_path.exists():
+            raise ValidationError(f"VTT file not found: {file_path}")
+        
+        # For now, always use full parsing for metadata extraction
+        # TODO: Implement streaming metadata extraction for large files
+        try:
+            with open(file_path, 'r', encoding='utf-8') as f:
+                content = f.read()
+        except Exception as e:
+            raise ValidationError(f"Failed to read VTT file: {e}")
+        
+        return self.parse_content_with_metadata(content)
+    
     def parse_content(self, content: str) -> List[TranscriptSegment]:
         """Parse VTT content and return transcript segments.
         
@@ -116,6 +146,36 @@ class VTTParser:
         
         # Convert to transcript segments
         return self._convert_to_segments(self.cues)
+    
+    def parse_content_with_metadata(self, content: str) -> Dict[str, Any]:
+        """Parse VTT content and return both metadata and transcript segments.
+        
+        Args:
+            content: VTT file content as string
+            
+        Returns:
+            Dict containing 'metadata' and 'segments' keys
+            
+        Raises:
+            ValidationError: If content format is invalid
+        """
+        # Validate VTT header
+        if not content.strip().startswith('WEBVTT'):
+            raise ValidationError("Invalid VTT file: Missing WEBVTT header")
+        
+        # Extract metadata from NOTE blocks
+        metadata = self._parse_note_blocks(content)
+        
+        # Parse cues
+        self.cues = self._parse_cues(content)
+        
+        # Convert to transcript segments
+        segments = self._convert_to_segments(self.cues)
+        
+        return {
+            'metadata': metadata,
+            'segments': segments
+        }
     
     def _parse_cues(self, content: str) -> List[VTTCue]:
         """Parse VTT cues from content.
@@ -252,6 +312,75 @@ class VTTParser:
             # Return empty string for empty speaker tags
             return speaker if speaker else ""
         return None
+    
+    def _parse_note_blocks(self, content: str) -> Dict[str, Any]:
+        """Parse NOTE blocks from VTT content to extract metadata.
+        
+        Args:
+            content: VTT file content
+            
+        Returns:
+            Dictionary of extracted metadata
+        """
+        metadata = {}
+        lines = content.strip().split('\n')
+        
+        i = 0
+        # Skip WEBVTT header
+        while i < len(lines) and lines[i].strip().startswith('WEBVTT'):
+            i += 1
+        
+        # Look for NOTE blocks
+        while i < len(lines):
+            line = lines[i].strip()
+            
+            # Stop when we hit the first timestamp
+            if self._is_timestamp_line(line):
+                break
+            
+            # Look for NOTE blocks
+            if line.startswith('NOTE'):
+                note_type = line[4:].strip()  # Get text after "NOTE"
+                i += 1
+                
+                # Collect NOTE content until empty line
+                note_content = []
+                while i < len(lines) and lines[i].strip() and not lines[i].strip().startswith('NOTE'):
+                    note_content.append(lines[i])
+                    i += 1
+                
+                # Process based on note type
+                if note_type == 'JSON Metadata' and note_content:
+                    # Parse JSON metadata block
+                    try:
+                        json_str = '\n'.join(note_content)
+                        json_data = json.loads(json_str)
+                        metadata.update(json_data)
+                    except json.JSONDecodeError as e:
+                        logger.warning(f"Failed to parse JSON metadata: {e}")
+                
+                elif note_content:
+                    # Parse human-readable metadata
+                    for content_line in note_content:
+                        # Look for patterns like "YouTube URL: <url>"
+                        if ':' in content_line:
+                            key, value = content_line.split(':', 1)
+                            key = key.strip().lower().replace(' ', '_')
+                            value = value.strip()
+                            
+                            # Special handling for known fields
+                            if key == 'youtube_url' and 'youtube_url' not in metadata:
+                                metadata['youtube_url'] = value
+                            elif key == 'description' and 'description' not in metadata:
+                                metadata['description'] = value
+                            elif key == 'original_url' and 'original_url' not in metadata:
+                                metadata['original_url'] = value
+                            elif key not in metadata:
+                                metadata[key] = value
+            else:
+                i += 1
+        
+        return metadata
     
     def _convert_to_segments(self, cues: List[VTTCue]) -> List[TranscriptSegment]:
         """Convert VTT cues to transcript segments.
