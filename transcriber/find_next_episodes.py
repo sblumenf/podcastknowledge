@@ -7,6 +7,7 @@ from datetime import datetime
 from src.feed_parser import parse_feed
 from src.utils.logging import setup_logging
 from src.progress_tracker import ProgressTracker
+from src.utils.title_utils import normalize_title, extract_title_from_filename
 
 def get_transcribed_episodes():
     """Get list of already transcribed episode titles."""
@@ -26,14 +27,12 @@ def get_transcribed_episodes():
             if podcast_dir.is_dir():
                 # Check for VTT files
                 for vtt_file in podcast_dir.glob("*.vtt"):
-                    # Extract title from filename (format: YYYY-MM-DD_Title.vtt)
-                    filename = vtt_file.stem
-                    if '_' in filename:
-                        # Split on first underscore to separate date from title
-                        parts = filename.split('_', 1)
-                        if len(parts) == 2:
-                            title = parts[1].replace('_', ' ').replace('&amp;', '&')
-                            transcribed.add(title)
+                    # Extract title from filename using the proper utility function
+                    extracted_title = extract_title_from_filename(vtt_file.name)
+                    if extracted_title:
+                        # Normalize the extracted title for consistent comparison
+                        normalized_title = normalize_title(extracted_title)
+                        transcribed.add(normalized_title)
     
     return transcribed
 
@@ -53,7 +52,9 @@ def find_next_episodes_to_transcribe(feed_url, count=3):
     # Filter out trailers and already transcribed
     non_trailer_episodes = []
     for ep in episodes:
-        if 'trailer' not in ep.title.lower() and ep.title not in transcribed:
+        # Normalize episode title for consistent comparison
+        normalized_ep_title = normalize_title(ep.title)
+        if 'trailer' not in ep.title.lower() and normalized_ep_title not in transcribed:
             non_trailer_episodes.append(ep)
     
     print(f"Non-trailer, not-yet-transcribed episodes: {len(non_trailer_episodes)}")

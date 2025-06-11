@@ -77,12 +77,12 @@ The solution will rebuild the progress tracker from existing VTT files using nor
 **Purpose**: Ensure episode discovery uses normalized title matching
 
 **Steps**:
-- [ ] Use context7 MCP tool to review current find_next_episodes implementation
-- [ ] Update `find_next_episodes.py` to use normalized titles when:
+- [x] Use context7 MCP tool to review current find_next_episodes implementation
+- [x] Update `find_next_episodes.py` to use normalized titles when:
   - Extracting titles from VTT filenames
   - Comparing with progress tracker data
   - Comparing with RSS feed episode titles
-- [ ] Ensure both filesystem and progress tracker checks use normalization
+- [x] Ensure both filesystem and progress tracker checks use normalization
 
 **Validation**: Script correctly identifies already-transcribed episodes and shows accurate counts
 
