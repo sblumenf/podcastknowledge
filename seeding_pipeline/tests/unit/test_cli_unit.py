@@ -10,7 +10,7 @@ import pytest
 
 from src.cli.cli import (
     load_podcast_configs, seed_podcasts, health_check, validate_config,
-    process_vtt_directory, check_status, export_data
+    check_status, export_data
 )
 from src.core.config import PipelineConfig
 from src.core.exceptions import PipelineError
@@ -408,51 +408,6 @@ class TestProcessVTTDirectory:
         args.verbose = False
         return args
     
-    @patch('src.cli.cli.TranscriptIngestionManager')
-    @patch('src.cli.cli.PipelineConfig')
-    @patch('src.cli.cli.get_logger')
-    @patch('pathlib.Path.exists')
-    def test_process_vtt_directory_success(self, mock_exists, mock_logger, mock_config, mock_manager, mock_args):
-        """Test successful VTT directory processing."""
-        mock_exists.return_value = True
-        
-        mock_ingestion = Mock()
-        mock_manager.return_value = mock_ingestion
-        mock_ingestion.process_directory.return_value = {
-            'total_files': 10,
-            'processed': 8,
-            'skipped': 1,
-            'errors': 1,
-            'total_segments': 500
-        }
-        
-        result = process_vtt_directory(mock_args)
-        
-        assert result == 0
-        mock_ingestion.process_directory.assert_called_once()
-    
-    @patch('src.cli.cli.get_logger')
-    @patch('pathlib.Path.exists')
-    def test_process_vtt_directory_not_found(self, mock_exists, mock_logger, mock_args):
-        """Test VTT directory processing with non-existent directory."""
-        mock_exists.return_value = False
-        
-        result = process_vtt_directory(mock_args)
-        
-        assert result == 1
-    
-    @patch('src.cli.cli.TranscriptIngestionManager')
-    @patch('src.cli.cli.PipelineConfig')
-    @patch('src.cli.cli.get_logger')
-    @patch('pathlib.Path.exists')
-    def test_process_vtt_directory_exception(self, mock_exists, mock_logger, mock_config, mock_manager, mock_args):
-        """Test VTT directory processing with exception."""
-        mock_exists.return_value = True
-        mock_manager.side_effect = Exception("Processing error")
-        
-        result = process_vtt_directory(mock_args)
-        
-        assert result == 1
 
 
 class TestCheckStatus:

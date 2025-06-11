@@ -65,53 +65,6 @@ class TestCLI:
     
     @patch('src.cli.cli.PipelineConfig')
     @patch('src.cli.cli.VTTKnowledgeExtractor')
-    @patch('src.cli.cli.TranscriptIngestionManager')
-    def test_process_vtt_single_file(self, mock_ingestion_class, mock_pipeline_class, mock_config_class):
-        """Test processing single VTT file."""
-        # Create mock config
-        mock_config = Mock()
-        mock_config_class.return_value = mock_config
-        
-        # Create mock pipeline instance
-        mock_pipeline = Mock()
-        mock_pipeline_class.return_value = mock_pipeline
-        
-        # Create mock ingestion manager
-        mock_ingestion = Mock()
-        mock_ingestion.process_vtt_file.return_value = {
-            'success': True,
-            'segments_processed': 10
-        }
-        mock_ingestion_class.return_value = mock_ingestion
-        
-        # Create test VTT file
-        temp_dir = tempfile.mkdtemp()
-        test_file = Path(temp_dir) / 'test.vtt'
-        test_file.write_text('WEBVTT\n\n00:00:00.000 --> 00:00:05.000\nTest content')
-        
-        # Create args
-        args = Mock()
-        args.config = None
-        args.folder = temp_dir
-        args.pattern = '*.vtt'
-        args.recursive = False
-        args.dry_run = False
-        args.skip_errors = False
-        args.no_checkpoint = True
-        args.checkpoint_dir = 'checkpoints'
-        args.verbose = False
-        
-        # Run process_vtt
-        exit_code = process_vtt(args)
-        
-        # Verify
-        assert exit_code == 0
-        mock_pipeline_class.assert_called_once()
-        mock_ingestion_class.assert_called_once()
-        mock_pipeline.cleanup.assert_called_once()
-    
-    @patch('src.cli.cli.PipelineConfig')
-    @patch('src.cli.cli.VTTKnowledgeExtractor')
     def test_process_vtt_dry_run(self, mock_pipeline_class, mock_config_class):
         """Test dry run mode for VTT processing."""
         # Create mock config

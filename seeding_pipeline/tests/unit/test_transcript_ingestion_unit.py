@@ -9,7 +9,7 @@ import json
 import pytest
 
 from src.seeding.transcript_ingestion import (
-    VTTFile, TranscriptIngestion, TranscriptIngestionManager
+    VTTFile, TranscriptIngestion
 )
 from src.core.config import PipelineConfig
 from src.core.exceptions import ValidationError
@@ -482,100 +482,3 @@ class TestTranscriptIngestion:
         
         assert result == "hash123"
 
-
-class TestTranscriptIngestionManager:
-    """Test TranscriptIngestionManager functionality."""
-    
-    @pytest.fixture
-    def mock_pipeline(self):
-        """Create mock pipeline."""
-        pipeline = Mock()
-        pipeline.config = Mock(spec=PipelineConfig)
-        return pipeline
-    
-    @pytest.fixture
-    def manager(self, mock_pipeline):
-        """Create TranscriptIngestionManager instance."""
-        return TranscriptIngestionManager(mock_pipeline)
-    
-    def test_initialization(self, manager, mock_pipeline):
-        """Test manager initialization."""
-        assert manager.pipeline == mock_pipeline
-        assert manager.checkpoint is None
-        assert isinstance(manager.ingestion, TranscriptIngestion)
-    
-    def test_initialization_with_checkpoint(self, mock_pipeline):
-        """Test manager initialization with checkpoint."""
-        checkpoint = Mock()
-        manager = TranscriptIngestionManager(mock_pipeline, checkpoint)
-        
-        assert manager.checkpoint == checkpoint
-    
-    def test_process_vtt_file_success(self, manager):
-        """Test processing VTT file successfully."""
-        mock_vtt_file = Mock(spec=VTTFile)
-        segments = [Mock(), Mock()]
-        
-        with patch.object(manager.ingestion, '_create_vtt_file', return_value=mock_vtt_file):
-            with patch.object(manager.ingestion, 'process_vtt_file') as mock_process:
-                mock_process.return_value = {
-                    'status': 'success',
-                    'segment_count': 2,
-                    'segments': segments,
-                    'episode': {'title': 'Test'}
-                }
-                
-                result = manager.process_vtt_file("/test.vtt")
-        
-        assert result['success'] is True
-        assert result['segments_processed'] == 2
-        assert result['segments'] == segments
-        assert result['episode'] == {'title': 'Test'}
-    
-    def test_process_vtt_file_create_error(self, manager):
-        """Test processing when VTT file creation fails."""
-        with patch.object(manager.ingestion, '_create_vtt_file', return_value=None):
-            result = manager.process_vtt_file("/test.vtt")
-        
-        assert result['success'] is False
-        assert result['error'] == 'Failed to create VTTFile object'
-    
-    def test_process_vtt_file_skipped(self, manager):
-        """Test processing skipped file."""
-        mock_vtt_file = Mock(spec=VTTFile)
-        
-        with patch.object(manager.ingestion, '_create_vtt_file', return_value=mock_vtt_file):
-            with patch.object(manager.ingestion, 'process_vtt_file') as mock_process:
-                mock_process.return_value = {
-                    'status': 'skipped',
-                    'reason': 'already_processed'
-                }
-                
-                result = manager.process_vtt_file("/test.vtt")
-        
-        assert result['success'] is False
-        assert "Skipped: already_processed" in result['error']
-    
-    def test_process_vtt_file_error(self, manager):
-        """Test processing with error."""
-        mock_vtt_file = Mock(spec=VTTFile)
-        
-        with patch.object(manager.ingestion, '_create_vtt_file', return_value=mock_vtt_file):
-            with patch.object(manager.ingestion, 'process_vtt_file') as mock_process:
-                mock_process.return_value = {
-                    'status': 'error',
-                    'error': 'Parse failed'
-                }
-                
-                result = manager.process_vtt_file("/test.vtt")
-        
-        assert result['success'] is False
-        assert result['error'] == 'Parse failed'
-    
-    def test_process_vtt_file_exception(self, manager):
-        """Test processing with exception."""
-        with patch.object(manager.ingestion, '_create_vtt_file', side_effect=Exception("Test error")):
-            result = manager.process_vtt_file("/test.vtt")
-        
-        assert result['success'] is False
-        assert result['error'] == "Test error"

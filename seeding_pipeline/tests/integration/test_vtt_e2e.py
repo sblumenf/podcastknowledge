@@ -13,7 +13,6 @@ from src.core.config import PipelineConfig
 from src.core.extraction_interface import Entity, EntityType, Relationship, RelationshipType
 from src.core.interfaces import LLMProvider, GraphProvider, EmbeddingProvider
 from src.seeding.orchestrator import VTTKnowledgeExtractor
-from src.seeding.transcript_ingestion import TranscriptIngestionManager
 from src.services.embeddings import EmbeddingsService
 from src.services.llm import LLMService
 from src.storage.graph_storage import GraphStorageService
@@ -192,45 +191,6 @@ class TestVTTEndToEnd:
             'graph': graph_provider,
             'embeddings': embedding_provider
         }
-    
-    @pytest.mark.skip(reason="Complex API mismatch - requires major refactoring")
-    @patch('src.factories.provider_factory.ProviderFactory')
-    def test_single_vtt_file_processing(self, mock_factory_class, mock_config, mock_providers, sample_vtt_files):
-        """Test processing a single VTT file end-to-end."""
-        # Setup factory mock
-        mock_factory = Mock()
-        mock_factory_class.return_value = mock_factory
-        mock_factory.get_provider.side_effect = lambda ptype: {
-            'llm': mock_providers['llm'],
-            'graph': mock_providers['graph'],
-            'embeddings': mock_providers['embeddings']
-        }.get(ptype)
-        
-        # Create pipeline
-        pipeline = VTTKnowledgeExtractor(mock_config)
-        pipeline.graph_provider = mock_providers['graph']
-        pipeline.llm_provider = mock_providers['llm']
-        pipeline.embedding_provider = mock_providers['embeddings']
-        
-        # Process single VTT file
-        vtt_file = sample_vtt_files[0]  # AI healthcare episode
-        ingestion_manager = TranscriptIngestionManager(pipeline=pipeline)
-        
-        # Mock the processing to avoid full pipeline execution
-        with patch.object(ingestion_manager, 'process_vtt_file') as mock_process:
-            mock_process.return_value = {
-                'success': True,
-                'segments_processed': 6,
-                'entities_extracted': 6,
-                'insights_extracted': 2
-            }
-            
-            result = ingestion_manager.process_vtt_file(str(vtt_file))
-            
-            assert result['success']
-            assert result['segments_processed'] == 6
-            assert result['entities_extracted'] == 6
-            assert result['insights_extracted'] == 2
     
     def test_vtt_to_graph_entities(self, mock_providers):
         """Test that VTT content creates proper graph entities."""

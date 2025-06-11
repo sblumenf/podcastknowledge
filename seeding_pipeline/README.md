@@ -80,26 +80,60 @@ pip install -r requirements.txt
 
 #### Process a single VTT file:
 ```bash
-python cli.py process-vtt --file transcript.vtt
+# Put the VTT file in a folder and use the folder pattern
+python -m src.cli.cli process-vtt --folder /path/to/folder --pattern "specific_file.vtt"
 ```
 
 #### Process a folder of VTT files:
 ```bash
-python cli.py process-vtt --folder transcripts/ --pattern "*.vtt"
+python -m src.cli.cli process-vtt --folder transcripts/ --pattern "*.vtt"
 ```
 
 #### Process with additional options:
 ```bash
-python cli.py process-vtt \
+python -m src.cli.cli process-vtt \
     --folder transcripts/ \
+    --pattern "*.vtt" \
     --recursive \
     --skip-errors \
-    --checkpoint-enabled
+    --no-checkpoint
 ```
 
 #### Dry run to preview what will be processed:
 ```bash
-python cli.py process-vtt --folder transcripts/ --dry-run
+python -m src.cli.cli process-vtt --folder transcripts/ --pattern "*.vtt" --dry-run
+```
+
+#### Expected Output:
+```
+Scanning for VTT files in: transcripts/
+  Pattern: *.vtt
+  Recursive: False
+
+Found 3 VTT file(s)
+
+Processing VTT files...
+
+[1/3] Processing: episode_001.vtt
+  ✓ Success: 45 segments, 12 entities, 8 quotes extracted
+
+[2/3] Processing: episode_002.vtt
+  ✓ Success: 67 segments, 18 entities, 15 quotes extracted
+
+[3/3] Processing: episode_003.vtt
+  ✓ Success: 52 segments, 14 entities, 11 quotes extracted
+
+==================================================
+Processing Summary:
+  Total files found: 3
+  Successfully processed: 3
+  Failed: 0
+  Skipped (already processed): 0
+
+Knowledge extraction completed successfully!
+Total entities: 44
+Total quotes: 34
+Total segments: 164
 ```
 
 ## VTT Format Requirements
@@ -125,20 +159,33 @@ WEBVTT
 
 ## Architecture
 
+The pipeline follows a streamlined architecture with direct integration between components:
+
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                          CLI Interface                            │
+│                    CLI Interface (process-vtt)                   │
+│                    python -m src.cli.cli                         │
+└──────────────────────┬────────────────────────────────────────────┘
+                       │ Calls directly
+┌─────────────────────────────────────────────────────────────────┐
+│                  VTTKnowledgeExtractor                           │
+│                  (Main Orchestrator)                             │
 ├─────────────────────────────────────────────────────────────────┤
-│                   VTT Knowledge Extractor                         │
-├─────────────────────────────────────────────────────────────────┤
-│   VTT Parser    │   Knowledge    │    Entity      │   Utility    │
-│ & Segmentation  │  Extraction    │  Resolution    │  Functions   │
-├─────────────────────────────────────────────────────────────────┤
-│                      Direct Services                              │
-│      LLM Service    │    Graph Storage   │  Embeddings Service  │
-├─────────────────────────────────────────────────────────────────┤
-│                    Core Models & Config                           │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌───────────┐ │
+│  │ VTT Parser  │  │ Knowledge   │  │   Entity    │  │   Neo4j   │ │
+│  │     &       │→ │ Extraction  │→ │ Resolution  │→ │ Storage   │ │
+│  │Segmentation │  │   (LLM)     │  │             │  │ Service   │ │
+│  └─────────────┘  └─────────────┘  └─────────────┘  └───────────┘ │
 └─────────────────────────────────────────────────────────────────┘
+
+Flow:
+1. CLI discovers and validates VTT files
+2. VTTKnowledgeExtractor orchestrates the full pipeline:
+   - Parses VTT files into segments
+   - Calls LLM services for knowledge extraction
+   - Resolves entities and relationships
+   - Stores results in Neo4j graph database
+3. Returns processing summary to CLI
 ```
 
 ## Requirements
@@ -259,6 +306,133 @@ response = requests.post(
 - **Processing Speed**: ~10-20 segments/second (varies by LLM)
 - **Batch Processing**: 100 files in <10 minutes typical
 - **Graph Size**: Optimized for millions of nodes/relationships
+
+## Troubleshooting
+
+### Common Issues
+
+#### ❌ "No VTT files found"
+- **Cause**: Incorrect folder path or pattern
+- **Solution**: 
+  ```bash
+  # Check if folder exists and contains VTT files
+  ls -la /path/to/folder/*.vtt
+  # Use absolute paths if relative paths fail
+  python -m src.cli.cli process-vtt --folder "$(pwd)/transcripts" --pattern "*.vtt"
+  ```
+
+#### ❌ "Failed to make LLM call: API_KEY_INVALID"
+- **Cause**: Missing or invalid API key
+- **Solution**:
+  ```bash
+  # Set API key environment variable
+  export GOOGLE_API_KEY="your_actual_api_key_here"
+  # Or create .env file with:
+  echo "GOOGLE_API_KEY=your_actual_api_key_here" > .env
+  ```
+
+#### ❌ "NoneType object has no attribute 'run'"
+- **Cause**: Neo4j connection failed
+- **Solution**:
+  ```bash
+  # Check if Neo4j is running
+  docker ps | grep neo4j
+  # Start Neo4j if not running
+  docker start neo4j
+  # Verify connection settings in .env file
+  ```
+
+#### ❌ "Invalid timestamp format"
+- **Cause**: Malformed VTT file timestamps
+- **Solution**: VTT files must use format `HH:MM:SS.mmm` (e.g., `00:01:23.456`)
+  ```vtt
+  # ✓ Correct format
+  00:00:00.000 --> 00:00:05.000
+  
+  # ❌ Incorrect format  
+  00:00.000 --> 00:05.000
+  ```
+
+#### ⚠️ Processing runs too fast (no LLM calls)
+- **Symptoms**: Processing completes in seconds, no entities extracted
+- **Cause**: Pipeline bypassed knowledge extraction
+- **Verification**: Look for log entries showing LLM API calls
+- **Solution**: This was the original issue fixed in this pipeline
+
+### Debugging Tips
+
+1. **Enable verbose logging**:
+   ```bash
+   python -m src.cli.cli process-vtt --folder transcripts/ --pattern "*.vtt" --verbose
+   ```
+
+2. **Check processing logs**: Look for LLM API call logs to verify extraction is happening
+
+3. **Verify Neo4j data**: Use the queries below to check if data was stored
+
+## Neo4j Query Examples
+
+Once processing completes, you can query the knowledge graph in Neo4j:
+
+### View Processed Episodes
+```cypher
+// List all episodes
+MATCH (e:Episode) 
+RETURN e.title, e.entity_count, e.quote_count, e.segment_count
+ORDER BY e.title;
+```
+
+### Find Entities by Type
+```cypher
+// Find all person entities
+MATCH (p:Person) 
+RETURN p.name, p.confidence, p.episode_id
+ORDER BY p.confidence DESC;
+
+// Find all concept entities
+MATCH (c:Concept) 
+RETURN c.name, c.confidence
+ORDER BY c.confidence DESC;
+```
+
+### Explore Relationships
+```cypher
+// Find entities mentioned in episodes
+MATCH (episode:Episode)-[:MENTIONS]->(entity)
+RETURN episode.title, entity.name, entity.type
+ORDER BY episode.title;
+```
+
+### Search for Specific Topics
+```cypher
+// Find episodes mentioning "AI" or "artificial intelligence"
+MATCH (episode:Episode)-[:MENTIONS]->(entity)
+WHERE toLower(entity.name) CONTAINS "ai" 
+   OR toLower(entity.name) CONTAINS "artificial intelligence"
+RETURN DISTINCT episode.title, entity.name;
+```
+
+### Get Episode Statistics
+```cypher
+// Processing statistics by episode
+MATCH (e:Episode)
+OPTIONAL MATCH (e)-[:MENTIONS]->(entity)
+OPTIONAL MATCH (e)-[:CONTAINS_QUOTE]->(quote:Quote)
+RETURN e.title, 
+       e.segment_count as segments,
+       count(DISTINCT entity) as entities,
+       count(DISTINCT quote) as quotes
+ORDER BY entities DESC;
+```
+
+### Find Related Content
+```cypher
+// Find episodes that share common entities
+MATCH (e1:Episode)-[:MENTIONS]->(entity)<-[:MENTIONS]-(e2:Episode)
+WHERE e1 <> e2
+RETURN e1.title, e2.title, entity.name as shared_entity
+ORDER BY e1.title, e2.title;
+```
 
 ## Development
 
