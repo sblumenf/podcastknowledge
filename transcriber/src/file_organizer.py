@@ -59,12 +59,15 @@ class FileOrganizer:
             env_dir = os.getenv('TRANSCRIPT_OUTPUT_DIR')
             if env_dir:
                 self.base_dir = Path(env_dir)
+                logger.info(f"Using TRANSCRIPT_OUTPUT_DIR: {self.base_dir}")
             elif config:
                 # Fall back to config if available
                 self.base_dir = Path(config.output.default_dir)
+                logger.info(f"Using config output directory: {self.base_dir}")
             else:
                 # Fall back to old env var or default
                 self.base_dir = Path(os.getenv('PODCAST_OUTPUT_DIR', 'data/transcripts'))
+                logger.info(f"Using fallback output directory: {self.base_dir}")
         
         # Only create directory if it's not a test path
         if not str(self.base_dir).startswith('/test'):
