@@ -29,7 +29,7 @@ This plan implements comprehensive enhancements to the seeding pipeline that wil
   - Ensure backward compatibility with VTT files without metadata
 
 ### Task 1.2: Update Episode Data Model
-- [ ] Task description: Add YouTube URL and metadata fields to Episode model
+- [x] Task description: Add YouTube URL and metadata fields to Episode model
 - Purpose: Enable storage of extracted metadata in the data structure
 - Steps:
   1. Use context7 MCP tool to review data model documentation
