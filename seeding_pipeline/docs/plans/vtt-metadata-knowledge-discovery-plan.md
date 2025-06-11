@@ -64,7 +64,7 @@ This plan implements comprehensive enhancements to the seeding pipeline that wil
   - Check logs show metadata extraction status
 
 ### Task 1.4: Enhance Neo4j Storage for Metadata
-- [ ] Task description: Update graph storage to persist YouTube URLs and metadata
+- [x] Task description: Update graph storage to persist YouTube URLs and metadata
 - Purpose: Store enriched metadata in the knowledge graph
 - Steps:
   1. Use context7 MCP tool to review Neo4j schema documentation

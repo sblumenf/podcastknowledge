@@ -99,7 +99,8 @@ class StorageCoordinator:
             'description': episode.get('description', ''),
             'published_date': episode.get('published_date', ''),
             'duration': episode.get('duration', ''),
-            'audio_url': episode.get('audio_url', '')
+            'audio_url': episode.get('audio_url', ''),
+            'youtube_url': episode.get('youtube_url', '')
         }
         
         # Add episode flow data if available
