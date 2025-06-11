@@ -10,7 +10,6 @@ from src.core.interfaces import TranscriptSegment
 from src.core.models import Podcast, Episode, Segment
 from src.utils.log_utils import get_logger
 from src.utils.memory import cleanup_memory
-from src.seeding.components.rotation_checkpoint_integration import RotationCheckpointIntegration
 def add_span_attributes(attributes: Dict[str, Any]) -> None:
     """Mock implementation for tracing/observability attributes."""
     # This is a placeholder for actual tracing implementation
@@ -64,14 +63,7 @@ class PipelineExecutor:
         self.entity_resolver = provider_coordinator.entity_resolver
         self.segmenter = provider_coordinator.segmenter
         
-        # Set up rotation checkpoint integration if key rotation is enabled
-        self.rotation_integration = None
-        if hasattr(self.llm_service, 'key_rotation_manager') and self.llm_service.key_rotation_manager:
-            self.rotation_integration = RotationCheckpointIntegration(
-                checkpoint_manager, 
-                self.llm_service.key_rotation_manager
-            )
-            logger.info("Initialized rotation checkpoint integration")
+        # No longer using rotation checkpoint integration since we simplified to single API key
     
     def process_vtt_segments(self,
                            podcast_config: Dict[str, Any],

@@ -7,7 +7,7 @@ import google.generativeai as genai
 import numpy as np
 
 from src.core.exceptions import ProviderError, RateLimitError
-from src.utils.key_rotation_manager import KeyRotationManager
+from src.utils.api_key import get_gemini_api_key
 
 logger = logging.getLogger(__name__)
 
@@ -15,36 +15,29 @@ logger = logging.getLogger(__name__)
 class GeminiEmbeddingsService:
     """Gemini API-based embeddings service using text-embedding-004."""
     
-    def __init__(self, key_rotation_manager: KeyRotationManager, 
+    def __init__(self, api_key: Optional[str] = None,
                  model_name: str = 'models/text-embedding-004',
                  batch_size: int = 100):
-        """Initialize Gemini embeddings service with key rotation support.
+        """Initialize Gemini embeddings service.
         
         Args:
-            key_rotation_manager: KeyRotationManager instance for API key rotation
+            api_key: Gemini API key (uses environment if not provided)
             model_name: Embedding model name (default: models/text-embedding-004)
             batch_size: Batch size for processing multiple texts
         """
-        if not key_rotation_manager:
-            raise ValueError("KeyRotationManager is required")
-            
-        self.key_rotation_manager = key_rotation_manager
+        self.api_key = api_key or get_gemini_api_key()
         self.model_name = model_name
         self.batch_size = batch_size
         self.dimension = 768  # text-embedding-004 dimension
-        self._current_api_key = None
+        self._configured = False
         
         logger.info(f"Initialized GeminiEmbeddingsService with model: {self.model_name}")
         
-    def _ensure_configured(self, api_key: str) -> None:
-        """Ensure the Gemini API is configured with the given API key.
-        
-        Args:
-            api_key: API key to configure
-        """
-        if self._current_api_key != api_key:
-            genai.configure(api_key=api_key)
-            self._current_api_key = api_key
+    def _ensure_configured(self) -> None:
+        """Ensure the Gemini API is configured."""
+        if not self._configured:
+            genai.configure(api_key=self.api_key)
+            self._configured = True
             
     def generate_embedding(self, text: str) -> List[float]:
         """Generate embedding for a single text.
@@ -67,15 +60,9 @@ class GeminiEmbeddingsService:
         # Clean text
         cleaned_text = text.replace("\n", " ").strip()
         
-        # Estimate tokens (characters for Gemini embeddings)
-        estimated_tokens = len(cleaned_text)
-        
         try:
-            # Get next available API key
-            api_key, key_index = self.key_rotation_manager.get_next_key(self.model_name)
-            
-            # Configure API with this key
-            self._ensure_configured(api_key)
+            # Configure API
+            self._ensure_configured()
             
             # Generate embedding
             response = genai.embed_content(
@@ -84,10 +71,6 @@ class GeminiEmbeddingsService:
                 task_type="retrieval_document"
             )
             
-            # Report success to rotation manager
-            self.key_rotation_manager.mark_key_success(key_index)
-            self.key_rotation_manager.update_key_usage(key_index, estimated_tokens, self.model_name)
-            
             # Extract embedding
             if 'embedding' in response:
                 return response['embedding']
@@ -95,15 +78,6 @@ class GeminiEmbeddingsService:
                 raise ValueError("No embedding in response")
                 
         except Exception as e:
-            # Report failure to rotation manager if we have a key index
-            if 'key_index' in locals():
-                self.key_rotation_manager.mark_key_failure(key_index, str(e))
-            
-            # Check if it's a key rotation exception (no keys available)
-            if "No API keys available" in str(e):
-                logger.error("All API keys exhausted for embeddings")
-                raise RateLimitError("gemini", "All API keys have exceeded their quotas")
-            
             error_msg = str(e).lower()
             if "quota" in error_msg or "rate" in error_msg or "resource exhausted" in error_msg:
                 raise RateLimitError("gemini", f"Gemini rate limit error: {e}")
@@ -149,15 +123,9 @@ class GeminiEmbeddingsService:
             non_empty_texts = [t for t in cleaned_batch if t]
             
             if non_empty_texts:
-                # Estimate tokens
-                estimated_tokens = sum(len(t) for t in non_empty_texts)
-                
                 try:
-                    # Get next available API key
-                    api_key, key_index = self.key_rotation_manager.get_next_key(self.model_name)
-                    
-                    # Configure API with this key
-                    self._ensure_configured(api_key)
+                    # Configure API
+                    self._ensure_configured()
                     
                     # Generate embeddings for non-empty texts
                     response = genai.embed_content(
@@ -165,10 +133,6 @@ class GeminiEmbeddingsService:
                         content=non_empty_texts,
                         task_type="retrieval_document"
                     )
-                    
-                    # Report success to rotation manager
-                    self.key_rotation_manager.mark_key_success(key_index)
-                    self.key_rotation_manager.update_key_usage(key_index, estimated_tokens, self.model_name)
                     
                     # Extract embeddings
                     if 'embedding' in response:
@@ -180,15 +144,6 @@ class GeminiEmbeddingsService:
                         raise ValueError("No embeddings in response")
                         
                 except Exception as e:
-                    # Report failure to rotation manager if we have a key index
-                    if 'key_index' in locals():
-                        self.key_rotation_manager.mark_key_failure(key_index, str(e))
-                    
-                    # Check if it's a key rotation exception (no keys available)
-                    if "No API keys available" in str(e):
-                        logger.error("All API keys exhausted for batch embeddings")
-                        raise RateLimitError("gemini", "All API keys have exceeded their quotas")
-                    
                     error_msg = str(e).lower()
                     if "quota" in error_msg or "rate" in error_msg or "resource exhausted" in error_msg:
                         raise RateLimitError("gemini", f"Gemini rate limit error: {e}")

@@ -12,28 +12,24 @@ from .llm_gemini_direct import GeminiDirectService
 from .llm_factory import LLMServiceFactory, LLMServiceType
 from .cache_manager import CacheManager
 from .cached_prompt_service import CachedPromptService
-from src.utils.key_rotation_manager import create_key_rotation_manager
-from src.utils.rotation_state_manager import RotationStateManager
 
 logger = logging.getLogger(__name__)
 
 
 def create_gemini_services(
+    api_key: Optional[str] = None,
     llm_model: str = 'gemini-2.5-flash',
     embeddings_model: str = 'models/text-embedding-004',
     temperature: float = 0.7,
     max_tokens: int = 4096,
     embeddings_batch_size: int = 100,
     enable_cache: bool = True,
-    cache_ttl: int = 3600,
-    state_dir: Optional[Path] = None
+    cache_ttl: int = 3600
 ) -> Tuple[LLMService, GeminiEmbeddingsService]:
-    """Create LLM and embeddings services with shared API key rotation.
-    
-    This factory function ensures both services share the same KeyRotationManager
-    instance for coordinated quota tracking across all Gemini API calls.
+    """Create LLM and embeddings services.
     
     Args:
+        api_key: Gemini API key (uses environment if not provided)
         llm_model: Model name for LLM service (default: gemini-2.5-flash)
         embeddings_model: Model name for embeddings (default: models/text-embedding-004)
         temperature: Generation temperature for LLM (default: 0.7)
@@ -41,7 +37,6 @@ def create_gemini_services(
         embeddings_batch_size: Batch size for embeddings (default: 100)
         enable_cache: Enable response caching for LLM (default: True)
         cache_ttl: Cache time-to-live in seconds (default: 3600)
-        state_dir: Directory for rotation state files (default: uses env or 'data')
         
     Returns:
         Tuple of (LLMService, GeminiEmbeddingsService)
@@ -49,27 +44,11 @@ def create_gemini_services(
     Raises:
         ValueError: If no API keys are found in environment
     """
-    # Ensure state persistence is configured
-    if state_dir is None:
-        state_dir = RotationStateManager.get_state_directory()
-    
-    if not RotationStateManager.ensure_state_persistence():
-        logger.warning("Failed to ensure state persistence for API key rotation")
-    
-    # Create shared key rotation manager
-    key_rotation_manager = create_key_rotation_manager(state_dir)
-    
-    if not key_rotation_manager:
-        raise ValueError(
-            "No API keys found in environment. Please set one of: "
-            "GOOGLE_API_KEY, GEMINI_API_KEY, or GEMINI_API_KEY_1 through GEMINI_API_KEY_9"
-        )
-    
-    logger.info(f"Creating Gemini services with {key_rotation_manager.get_status_summary()['total_keys']} API keys")
+    logger.info("Creating Gemini services")
     
     # Create LLM service using factory
     llm_service = LLMServiceFactory.create_service(
-        key_rotation_manager=key_rotation_manager,
+        api_key=api_key,
         model_name=llm_model,
         temperature=temperature,
         max_tokens=max_tokens,
@@ -77,35 +56,35 @@ def create_gemini_services(
         cache_ttl=cache_ttl
     )
     
-    # Create embeddings service with shared rotation manager
+    # Create embeddings service
     embeddings_service = GeminiEmbeddingsService(
-        key_rotation_manager=key_rotation_manager,
+        api_key=api_key,
         model_name=embeddings_model,
         batch_size=embeddings_batch_size
     )
     
-    logger.info("Initialized LLM and embeddings services with shared API key rotation")
+    logger.info("Initialized LLM and embeddings services")
     
     return llm_service, embeddings_service
 
 
 def create_llm_service_only(
+    api_key: Optional[str] = None,
     model_name: str = 'gemini-2.5-flash',
     temperature: float = 0.7,
     max_tokens: int = 4096,
     enable_cache: bool = True,
-    cache_ttl: int = 3600,
-    state_dir: Optional[Path] = None
+    cache_ttl: int = 3600
 ) -> LLMService:
-    """Create only the LLM service with API key rotation.
+    """Create only the LLM service.
     
     Args:
+        api_key: Gemini API key (uses environment if not provided)
         model_name: Model name for LLM service (default: gemini-2.5-flash)
         temperature: Generation temperature (default: 0.7)
         max_tokens: Maximum output tokens (default: 4096)
         enable_cache: Enable response caching (default: True)
         cache_ttl: Cache time-to-live in seconds (default: 3600)
-        state_dir: Directory for rotation state files (default: uses env or 'data')
         
     Returns:
         LLMService instance
@@ -113,16 +92,8 @@ def create_llm_service_only(
     Raises:
         ValueError: If no API keys are found in environment
     """
-    key_rotation_manager = create_key_rotation_manager(state_dir)
-    
-    if not key_rotation_manager:
-        raise ValueError(
-            "No API keys found in environment. Please set one of: "
-            "GOOGLE_API_KEY, GEMINI_API_KEY, or GEMINI_API_KEY_1 through GEMINI_API_KEY_9"
-        )
-    
     return LLMServiceFactory.create_service(
-        key_rotation_manager=key_rotation_manager,
+        api_key=api_key,
         model_name=model_name,
         temperature=temperature,
         max_tokens=max_tokens,
@@ -132,16 +103,16 @@ def create_llm_service_only(
 
 
 def create_embeddings_service_only(
+    api_key: Optional[str] = None,
     model_name: str = 'models/text-embedding-004',
-    batch_size: int = 100,
-    state_dir: Optional[Path] = None
+    batch_size: int = 100
 ) -> GeminiEmbeddingsService:
-    """Create only the embeddings service with API key rotation.
+    """Create only the embeddings service.
     
     Args:
+        api_key: Gemini API key (uses environment if not provided)
         model_name: Model name for embeddings (default: models/text-embedding-004)
         batch_size: Batch size for embeddings (default: 100)
-        state_dir: Directory for rotation state files (default: uses env or 'data')
         
     Returns:
         GeminiEmbeddingsService instance
@@ -149,16 +120,8 @@ def create_embeddings_service_only(
     Raises:
         ValueError: If no API keys are found in environment
     """
-    key_rotation_manager = create_key_rotation_manager(state_dir)
-    
-    if not key_rotation_manager:
-        raise ValueError(
-            "No API keys found in environment. Please set one of: "
-            "GOOGLE_API_KEY, GEMINI_API_KEY, or GEMINI_API_KEY_1 through GEMINI_API_KEY_9"
-        )
-    
     return GeminiEmbeddingsService(
-        key_rotation_manager=key_rotation_manager,
+        api_key=api_key,
         model_name=model_name,
         batch_size=batch_size
     )

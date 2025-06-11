@@ -1,194 +1,235 @@
-# API Key Rotation Migration Guide
+# API Key Simplification - Rotation System Removal
 
-This guide describes how to migrate from the previous fallback-based API key system to the new rotation-based system in the seeding pipeline.
+This guide describes the simplification of the API key system from a complex rotation-based approach to a single paid tier API key.
 
 ## Overview
 
-The seeding pipeline now uses the same sophisticated API key rotation system as the transcriber module, providing:
-- Round-robin key rotation
-- Per-key quota tracking
-- Model-specific rate limits
-- Coordinated usage between LLM and embeddings services
-- State persistence for recovery
+The seeding pipeline has been simplified to use a single paid tier API key instead of the complex rotation system. This change provides:
+- Simplified architecture with fewer moving parts
+- Easier debugging and maintenance  
+- No state management or persistence complexity
+- Direct API key usage without abstraction layers
 
-## Migration Steps
+## Migration from Rotation System
 
-### 1. Environment Variable Setup
+### Environment Variable Changes
 
-The new system supports multiple API keys through environment variables:
-
+**OLD (Multiple Keys with Rotation):**
 ```bash
-# Option 1: Single key (backward compatible)
-export GOOGLE_API_KEY=your_api_key
-
-# Option 2: Multiple keys for rotation
+# Old system supported multiple keys
 export GEMINI_API_KEY_1=first_api_key
-export GEMINI_API_KEY_2=second_api_key
+export GEMINI_API_KEY_2=second_api_key  
 export GEMINI_API_KEY_3=third_api_key
-# ... up to GEMINI_API_KEY_9
-
-# Option 3: Mix of both (GOOGLE_API_KEY is used first)
-export GOOGLE_API_KEY=primary_key
-export GEMINI_API_KEY_1=backup_key_1
-export GEMINI_API_KEY_2=backup_key_2
 ```
 
-### 2. Configuration Updates
-
-No changes required to existing configuration files. The system automatically detects and uses available keys.
-
-### 3. State Directory Configuration
-
-The rotation state is stored in a persistent file. Configure the location:
-
+**NEW (Single Paid Tier Key):**
 ```bash
-# Option 1: Dedicated state directory
-export STATE_DIR=/path/to/state/directory
+# New system uses a single paid tier API key
+export GEMINI_API_KEY=your_paid_tier_api_key
 
-# Option 2: Co-locate with checkpoints (recommended)
-export CHECKPOINT_DIR=/path/to/checkpoints
-# State will be stored in CHECKPOINT_DIR/rotation_state/
-
-# Option 3: Default (uses ./data directory)
-# No configuration needed
+# Backward compatibility maintained
+export GOOGLE_API_KEY=your_paid_tier_api_key  # Also supported
 ```
 
-### 4. Code Changes
+### Code Changes
 
-#### Direct Service Initialization (Old Way)
+#### Service Initialization
 
 ```python
-# OLD: Direct initialization with single API key
-from src.services import LLMService, EmbeddingsService
+# OLD: Required KeyRotationManager
+from src.utils.key_rotation_manager import create_key_rotation_manager
+from src.services import LLMService, GeminiEmbeddingsService
 
-llm_service = LLMService(
-    api_key=api_key,
-    model_name="gemini-2.5-flash"
-)
-
-embeddings_service = EmbeddingsService(
-    api_key=api_key,
-    model_name="models/text-embedding-004"
-)
+key_manager = create_key_rotation_manager()
+llm_service = LLMService(key_rotation_manager=key_manager)
+embeddings_service = GeminiEmbeddingsService(key_rotation_manager=key_manager)
 ```
 
-#### Factory Function Initialization (New Way)
+```python
+# NEW: Direct API key usage
+from src.services import LLMService, GeminiEmbeddingsService
+
+llm_service = LLMService()  # Uses GEMINI_API_KEY from environment
+embeddings_service = GeminiEmbeddingsService()  # Uses same key
+
+# Or pass explicitly
+llm_service = LLMService(api_key="your_api_key")
+embeddings_service = GeminiEmbeddingsService(api_key="your_api_key")
+```
+
+#### Factory Functions (Recommended)
 
 ```python
-# NEW: Use factory functions for automatic rotation
+# OLD: Factory with rotation manager
 from src.services import create_gemini_services
 
-# Both services share the same rotation manager
 llm_service, embeddings_service = create_gemini_services(
-    llm_model="gemini-2.5-flash",
-    embeddings_model="models/text-embedding-004"
+    state_dir="/path/to/state"  # Required for rotation state
 )
-
-# Or create services individually
-from src.services import create_llm_service_only, create_embeddings_service_only
-
-llm_service = create_llm_service_only(model_name="gemini-2.5-flash")
-embeddings_service = create_embeddings_service_only(model_name="models/text-embedding-004")
 ```
-
-### 5. Rate Limit Status
-
-Check the status of your API keys:
 
 ```python
-# Get rotation status
-status = llm_service.get_rate_limit_status()
-print(f"Total keys: {status['total_keys']}")
-print(f"Available keys: {status['available_keys']}")
+# NEW: Simplified factory
+from src.services import create_gemini_services
 
-# Detailed key states
-for key_state in status['key_states']:
-    print(f"{key_state['name']}: {key_state['status']}")
+llm_service, embeddings_service = create_gemini_services()
+# Or with explicit API key
+llm_service, embeddings_service = create_gemini_services(
+    api_key="your_api_key"
+)
 ```
 
-## Behavior Changes
+## Removed Components
+
+The following files and functionality have been removed:
+
+### Files Deleted
+- `src/utils/key_rotation_manager.py`
+- `src/utils/rotation_state_manager.py` 
+- `src/seeding/components/rotation_checkpoint_integration.py`
+- `tests/unit/test_key_rotation_manager.py`
+- `tests/unit/test_rotation_state_manager.py`
+- `tests/unit/test_services_rotation_integration.py`
+
+### Features Removed
+- Round-robin key rotation
+- Per-key quota tracking
+- Rotation state persistence
+- Multiple API key support
+- Rate limit coordination between keys
+- Checkpoint integration with rotation state
+
+### Methods Removed
+- `llm_service.get_rate_limit_status()`
+- `KeyRotationManager` class
+- `RotationStateManager` class
+- `RotationCheckpointIntegration` class
+
+## Benefits of Simplification
+
+### Reduced Complexity
+- **Before**: 1000+ lines of rotation logic, state management, and coordination
+- **After**: Simple environment variable lookup
+
+### Easier Debugging
+- **Before**: Complex error scenarios with multiple keys and state files
+- **After**: Direct API calls with clear error messages
+
+### No State Management
+- **Before**: Persistent state files, daily resets, quota tracking
+- **After**: Stateless service initialization
+
+### Faster Performance
+- **Before**: Key selection overhead, state persistence, coordination delays
+- **After**: Direct API initialization
+
+## Error Handling Changes
 
 ### Rate Limiting
-- **Old**: Single API key with circuit breaker pattern
-- **New**: Round-robin rotation across multiple keys
-
-### Quota Exhaustion
-- **Old**: Fallback to different API keys when primary fails
-- **New**: Automatic rotation to next available key
-
-### Error Handling
-- **Old**: RateLimitError when single key exhausted
-- **New**: RateLimitError only when ALL keys exhausted
-
-### State Persistence
-- **Old**: No state persistence
-- **New**: Rotation state saved to disk, survives restarts
-
-## Rollback Plan
-
-If you need to rollback to the old system:
-
-1. Set only `GOOGLE_API_KEY` environment variable
-2. The rotation system will work with a single key
-3. Behavior will be similar to the old system
-
-## Monitoring
-
-Monitor the rotation system:
+```python
+# OLD: Complex rotation on rate limits
+try:
+    response = llm_service.complete(prompt)
+except RateLimitError as e:
+    # System would try next key automatically
+    pass
+```
 
 ```python
-# Check rotation metrics
-from src.utils.rotation_state_manager import RotationStateManager
-
-metrics = RotationStateManager.get_rotation_metrics()
-print(f"State directory: {metrics['state_directory']}")
-print(f"State file exists: {metrics['state_file_exists']}")
+# NEW: Direct rate limit handling
+try:
+    response = llm_service.complete(prompt)
+except RateLimitError as e:
+    # Handle rate limit with paid tier limits
+    # Much higher limits with paid tier
+    pass
 ```
+
+### Error Messages
+- **OLD**: "All API keys have exceeded their quotas"
+- **NEW**: "Gemini rate limit error: [specific error]"
+
+## Configuration Updates
+
+### Environment Variables
+Only one environment variable needed:
+```bash
+export GEMINI_API_KEY=your_paid_tier_api_key
+```
+
+### No State Directory Needed
+Remove these configurations:
+```bash
+# No longer needed
+unset STATE_DIR
+unset CHECKPOINT_DIR  # Only used for checkpoints now
+```
+
+## Testing the New System
+
+```python
+# Test API key configuration
+from src.utils.api_key import get_gemini_api_key
+
+try:
+    api_key = get_gemini_api_key()
+    print("✓ API key configured correctly")
+except ValueError as e:
+    print(f"✗ API key missing: {e}")
+
+# Test service creation
+from src.services import create_gemini_services
+
+try:
+    llm_service, embeddings_service = create_gemini_services()
+    print("✓ Services created successfully")
+except Exception as e:
+    print(f"✗ Service creation failed: {e}")
+```
+
+## Paid Tier Benefits
+
+With a paid tier API key, you get:
+- **Higher Rate Limits**: No need for rotation
+- **Better Performance**: Direct API access
+- **Simplified Billing**: Single key tracking
+- **Reliable Service**: Production-grade SLA
 
 ## Troubleshooting
 
-### No API Keys Found
+### API Key Not Found
 ```
-ValueError: No API keys found in environment. Please set one of: GOOGLE_API_KEY, GEMINI_API_KEY, or GEMINI_API_KEY_1 through GEMINI_API_KEY_9
+ValueError: No API key found. Please set GEMINI_API_KEY or GOOGLE_API_KEY environment variable with your paid tier API key.
 ```
-**Solution**: Set at least one API key environment variable
+**Solution**: Set the environment variable with your paid tier API key
 
-### State Directory Not Writable
+### Import Errors
 ```
-WARNING: Failed to ensure state persistence for API key rotation
+ImportError: No module named 'src.utils.key_rotation_manager'
 ```
-**Solution**: Ensure STATE_DIR or CHECKPOINT_DIR is writable
+**Solution**: Update imports to use new simplified services
 
-### All Keys Exhausted
+### Old Rate Limit Methods
 ```
-RateLimitError: All API keys have exceeded their quotas
+AttributeError: 'LLMService' object has no attribute 'get_rate_limit_status'
 ```
-**Solution**: Wait for quota reset or add more API keys
+**Solution**: Remove calls to rotation-specific methods
 
-## Best Practices
+## Migration Checklist
 
-1. **Use Multiple Keys**: Distribute load across 3-5 API keys
-2. **Monitor Usage**: Check key status regularly
-3. **Set State Directory**: Use persistent storage for state files
-4. **Coordinate Services**: Use factory functions to share rotation
-5. **Handle Errors**: Catch RateLimitError when all keys exhausted
-
-## Testing
-
-Run the rotation tests:
-
-```bash
-# Unit tests
-pytest tests/unit/test_key_rotation_manager.py
-pytest tests/unit/test_services_rotation_integration.py
-
-# Integration tests
-pytest tests/integration -k rotation
-```
+- [ ] Update environment variables to use single GEMINI_API_KEY
+- [ ] Remove multiple API key environment variables  
+- [ ] Update service initialization code
+- [ ] Remove rotation-specific method calls
+- [ ] Test with paid tier API key
+- [ ] Remove state directory configurations
+- [ ] Update deployment scripts
+- [ ] Verify error handling works correctly
 
 ## Support
 
-For issues or questions:
-- Check logs for rotation status messages
-- Review state file at `STATE_DIR/.key_rotation_state.json`
+For issues:
+- Ensure paid tier API key is properly set
+- Check API key has sufficient quota
+- Verify environment variable name is correct (GEMINI_API_KEY)
 - Enable debug logging: `export LOG_LEVEL=DEBUG`

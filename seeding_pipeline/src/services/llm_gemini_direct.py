@@ -9,7 +9,7 @@ from datetime import datetime, timedelta
 from src.core.exceptions import ProviderError, RateLimitError
 from src.utils.retry import ExponentialBackoff
 from src.utils.metrics import get_pipeline_metrics
-from src.utils.key_rotation_manager import KeyRotationManager
+from src.utils.api_key import get_gemini_api_key
 
 logger = logging.getLogger(__name__)
 
@@ -18,7 +18,7 @@ class GeminiDirectService:
     """Direct Gemini API service with native caching support."""
     
     def __init__(self, 
-                 key_rotation_manager: KeyRotationManager, 
+                 api_key: Optional[str] = None,
                  model_name: str = 'gemini-2.5-flash-001',
                  temperature: float = 0.7,
                  max_tokens: int = 4096,
@@ -27,17 +27,14 @@ class GeminiDirectService:
         """Initialize Gemini Direct service with caching support.
         
         Args:
-            key_rotation_manager: KeyRotationManager instance for API key rotation
+            api_key: Gemini API key (uses environment if not provided)
             model_name: Model to use (default: gemini-2.5-flash-001)
             temperature: Generation temperature (default: 0.7)
             max_tokens: Maximum output tokens (default: 4096)
             enable_cache: Enable response caching (default: True)
             cache_ttl: Cache time-to-live in seconds (default: 3600)
         """
-        if not key_rotation_manager:
-            raise ValueError("KeyRotationManager is required")
-            
-        self.key_rotation_manager = key_rotation_manager
+        self.api_key = api_key or get_gemini_api_key()
         self.model_name = model_name
         self.temperature = temperature
         self.max_tokens = max_tokens
@@ -51,19 +48,13 @@ class GeminiDirectService:
         
         # Client will be initialized on first use
         self.client = None
-        self._current_api_key = None
         
         # Resilience features
         self.backoff = ExponentialBackoff(base=2.0, max_delay=60.0)
         
-    def _ensure_client(self, api_key: str) -> None:
-        """Ensure the Gemini client is initialized with the given API key.
-        
-        Args:
-            api_key: API key to use for client initialization
-        """
-        # Only reinitialize if API key changed
-        if self.client is not None and self._current_api_key == api_key:
+    def _ensure_client(self) -> None:
+        """Ensure the Gemini client is initialized."""
+        if self.client is not None:
             return
             
         try:
@@ -76,8 +67,7 @@ class GeminiDirectService:
             )
             
         # Initialize client with API key
-        self.client = genai.Client(api_key=api_key)
-        self._current_api_key = api_key
+        self.client = genai.Client(api_key=self.api_key)
         
         # Import types after client initialization
         global types
@@ -143,9 +133,8 @@ class GeminiDirectService:
                 del self._context_cache[cache_key]
         
         try:
-            # Get API key for cache creation
-            api_key, key_index = self.key_rotation_manager.get_next_key(self.model_name)
-            self._ensure_client(api_key)
+            # Ensure client is initialized
+            self._ensure_client()
             
             # Prepare cache configuration
             cache_config = types.CreateCachedContentConfig(
@@ -175,16 +164,11 @@ class GeminiDirectService:
                 'created': datetime.now()
             }
             
-            # Report success
-            self.key_rotation_manager.mark_key_success(key_index)
-            
             logger.info(f"Created cache for episode {episode_id}: {cached_content.name}")
             return cached_content.name
             
         except Exception as e:
             logger.error(f"Failed to create cache for episode {episode_id}: {e}")
-            if 'key_index' in locals():
-                self.key_rotation_manager.mark_key_failure(key_index, str(e))
             return None
             
     def complete(self, prompt: str, cached_content_name: Optional[str] = None) -> str:
@@ -198,7 +182,7 @@ class GeminiDirectService:
             Generated completion text
             
         Raises:
-            RateLimitError: If all API keys are exhausted
+            RateLimitError: If rate limits are exceeded
             ProviderError: If API call fails after all retries
         """
         # Get metrics instance
@@ -212,8 +196,8 @@ class GeminiDirectService:
             metrics.record_api_call(self.provider, success=True, latency=0)
             return cached_response
         
-        # Estimate tokens
-        estimated_tokens = int(len(prompt.split()) * 1.3)
+        # Ensure client is initialized
+        self._ensure_client()
         
         # Try with exponential backoff
         self.backoff.reset()
@@ -221,12 +205,6 @@ class GeminiDirectService:
         
         for attempt in range(3):  # Max 3 attempts
             try:
-                # Get next available API key
-                api_key, key_index = self.key_rotation_manager.get_next_key(self.model_name)
-                
-                # Ensure client is initialized
-                self._ensure_client(api_key)
-                
                 # Prepare generation config
                 config_params = {
                     'temperature': self.temperature,
@@ -249,10 +227,6 @@ class GeminiDirectService:
                 # Extract text from response
                 result = response.text
                 
-                # Report success
-                self.key_rotation_manager.mark_key_success(key_index)
-                self.key_rotation_manager.update_key_usage(key_index, estimated_tokens, self.model_name)
-                
                 # Cache successful response
                 self._cache_response(cache_key, result)
                 
@@ -265,19 +239,10 @@ class GeminiDirectService:
             except Exception as e:
                 last_exception = e
                 
-                # Check if it's a key rotation exception
-                if "No API keys available" in str(e):
-                    logger.error("All API keys exhausted")
-                    raise RateLimitError("gemini", "All API keys have exceeded their quotas")
-                
-                # Report failure
-                if 'key_index' in locals():
-                    self.key_rotation_manager.mark_key_failure(key_index, str(e))
-                
                 # Check if it's a rate limit error
                 if "quota" in str(e).lower() or "rate" in str(e).lower():
-                    logger.warning(f"Rate limit hit on attempt {attempt + 1}, trying next key...")
-                    continue
+                    logger.warning(f"Rate limit hit on attempt {attempt + 1}")
+                    raise RateLimitError("gemini", f"Gemini rate limit error: {e}")
                     
                 # Other errors - retry with backoff
                 if attempt < 2:
@@ -314,9 +279,8 @@ class GeminiDirectService:
         temp = temperature if temperature is not None else self.temperature
         tokens = max_tokens if max_tokens is not None else self.max_tokens
         
-        # Get API key
-        api_key, key_index = self.key_rotation_manager.get_next_key(self.model_name)
-        self._ensure_client(api_key)
+        # Ensure client is initialized
+        self._ensure_client()
         
         try:
             # Prepare generation config
@@ -337,24 +301,15 @@ class GeminiDirectService:
                 config=config
             )
             
-            # Report success
-            estimated_tokens = int(len(prompt.split()) * 1.3)
-            self.key_rotation_manager.mark_key_success(key_index)
-            self.key_rotation_manager.update_key_usage(key_index, estimated_tokens, self.model_name)
-            
             return {
                 'content': response.text,
                 'model': self.model_name,
                 'temperature': temp,
                 'max_tokens': tokens,
-                'cached_content': cached_content_name,
-                'usage': {'estimated_tokens': estimated_tokens}
+                'cached_content': cached_content_name
             }
             
         except Exception as e:
-            if 'key_index' in locals():
-                self.key_rotation_manager.mark_key_failure(key_index, str(e))
-                
             if "quota" in str(e).lower() or "rate" in str(e).lower():
                 raise RateLimitError(f"Gemini rate limit error: {e}")
             raise ProviderError("gemini", f"Gemini completion failed: {e}")

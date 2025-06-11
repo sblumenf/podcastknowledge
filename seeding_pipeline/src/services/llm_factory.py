@@ -1,11 +1,10 @@
-"""Factory for creating LLM services with gradual migration support."""
+"""Factory for creating LLM services."""
 
 import logging
 import os
 from typing import Union, Optional
 from enum import Enum
 
-from src.utils.key_rotation_manager import KeyRotationManager
 from src.services.llm import LLMService
 from src.services.llm_gemini_direct import GeminiDirectService
 from src.services.cache_manager import CacheManager
@@ -26,7 +25,7 @@ class LLMServiceFactory:
     
     @staticmethod
     def create_service(
-        key_rotation_manager: KeyRotationManager,
+        api_key: Optional[str] = None,
         service_type: Optional[str] = None,
         model_name: str = 'gemini-2.5-flash',
         temperature: float = 0.7,
@@ -38,7 +37,7 @@ class LLMServiceFactory:
         """Create an LLM service instance.
         
         Args:
-            key_rotation_manager: KeyRotationManager instance
+            api_key: Gemini API key (uses environment if not provided)
             service_type: Type of service to create (defaults to env var or langchain)
             model_name: Model to use
             temperature: Generation temperature
@@ -74,7 +73,7 @@ class LLMServiceFactory:
         # Create service based on type
         if service_type == LLMServiceType.LANGCHAIN:
             return LLMService(
-                key_rotation_manager=key_rotation_manager,
+                api_key=api_key,
                 model_name=model_name,
                 temperature=temperature,
                 max_tokens=max_tokens,
@@ -84,7 +83,7 @@ class LLMServiceFactory:
             
         elif service_type == LLMServiceType.GEMINI_DIRECT:
             return GeminiDirectService(
-                key_rotation_manager=key_rotation_manager,
+                api_key=api_key,
                 model_name=model_name,
                 temperature=temperature,
                 max_tokens=max_tokens,
@@ -95,7 +94,7 @@ class LLMServiceFactory:
         elif service_type == LLMServiceType.GEMINI_CACHED:
             # Create base service
             base_service = GeminiDirectService(
-                key_rotation_manager=key_rotation_manager,
+                api_key=api_key,
                 model_name=model_name,
                 temperature=temperature,
                 max_tokens=max_tokens,

@@ -1,4 +1,4 @@
-"""Direct LLM service for Gemini API interaction with API key rotation."""
+"""Direct LLM service for Gemini API interaction."""
 
 from typing import Dict, Any, Optional, List
 import logging
@@ -10,32 +10,29 @@ from datetime import datetime
 from src.core.exceptions import ProviderError, RateLimitError
 from src.utils.retry import ExponentialBackoff
 from src.utils.metrics import get_pipeline_metrics
-from src.utils.key_rotation_manager import KeyRotationManager
+from src.utils.api_key import get_gemini_api_key
 
 logger = logging.getLogger(__name__)
 
 
 class LLMService:
-    """Direct Gemini LLM service with API key rotation."""
+    """Direct Gemini LLM service."""
     
-    def __init__(self, key_rotation_manager: KeyRotationManager, 
+    def __init__(self, api_key: Optional[str] = None,
                  model_name: str = 'gemini-2.5-flash', 
                  temperature: float = 0.7, max_tokens: int = 4096,
                  enable_cache: bool = True, cache_ttl: int = 3600):
-        """Initialize LLM service with key rotation support.
+        """Initialize LLM service.
         
         Args:
-            key_rotation_manager: KeyRotationManager instance for API key rotation
+            api_key: Gemini API key (uses environment if not provided)
             model_name: Model to use (default: gemini-2.5-flash)
             temperature: Generation temperature (default: 0.7)
             max_tokens: Maximum output tokens (default: 4096)
             enable_cache: Enable response caching (default: True)
             cache_ttl: Cache time-to-live in seconds (default: 3600)
         """
-        if not key_rotation_manager:
-            raise ValueError("KeyRotationManager is required")
-            
-        self.key_rotation_manager = key_rotation_manager
+        self.api_key = api_key or get_gemini_api_key()
         self.model_name = model_name
         self.temperature = temperature
         self.max_tokens = max_tokens
@@ -48,12 +45,11 @@ class LLMService:
         self.cache_ttl = cache_ttl
         self._response_cache = {} if enable_cache else None
         
-    def _ensure_client(self, api_key: str) -> None:
-        """Ensure the Gemini client is initialized with the given API key.
-        
-        Args:
-            api_key: API key to use for client initialization
-        """
+    def _ensure_client(self) -> None:
+        """Ensure the Gemini client is initialized."""
+        if self.client is not None:
+            return
+            
         try:
             from langchain_google_genai import ChatGoogleGenerativeAI
         except ImportError:
@@ -64,7 +60,7 @@ class LLMService:
             
         self.client = ChatGoogleGenerativeAI(
             model=self.model_name,
-            google_api_key=api_key,
+            google_api_key=self.api_key,
             temperature=self.temperature,
             max_output_tokens=self.max_tokens,
         )
@@ -100,7 +96,7 @@ class LLMService:
             
 
     def complete(self, prompt: str) -> str:
-        """Generate completion with API key rotation.
+        """Generate completion.
         
         Args:
             prompt: Input prompt text
@@ -109,7 +105,7 @@ class LLMService:
             Generated completion text
             
         Raises:
-            RateLimitError: If all API keys are exhausted
+            RateLimitError: If rate limits are exceeded
             ProviderError: If API call fails after all retries
         """
         # Get metrics instance
@@ -124,8 +120,8 @@ class LLMService:
             metrics.record_api_call(self.provider, success=True, latency=0)
             return cached_response
         
-        # Estimate tokens (rough approximation)
-        estimated_tokens = int(len(prompt.split()) * 1.3)
+        # Ensure client is initialized
+        self._ensure_client()
         
         # Try with exponential backoff
         self.backoff.reset()
@@ -133,12 +129,6 @@ class LLMService:
         
         for attempt in range(3):  # Max 3 attempts
             try:
-                # Get next available API key
-                api_key, key_index = self.key_rotation_manager.get_next_key(self.model_name)
-                
-                # Ensure client is initialized with this key
-                self._ensure_client(api_key)
-                
                 # Make the request
                 response = self.client.invoke(prompt)
                 
@@ -147,10 +137,6 @@ class LLMService:
                     result = response.content
                 else:
                     result = str(response)
-                
-                # Report success to rotation manager
-                self.key_rotation_manager.mark_key_success(key_index)
-                self.key_rotation_manager.update_key_usage(key_index, estimated_tokens, self.model_name)
                 
                 # Cache successful response
                 self._cache_response(cache_key, result)
@@ -164,19 +150,10 @@ class LLMService:
             except Exception as e:
                 last_exception = e
                 
-                # Check if it's a key rotation exception (no keys available)
-                if "No API keys available" in str(e):
-                    logger.error("All API keys exhausted")
-                    raise RateLimitError("gemini", "All API keys have exceeded their quotas")
-                
-                # Report failure to rotation manager if we have a key index
-                if 'key_index' in locals():
-                    self.key_rotation_manager.mark_key_failure(key_index, str(e))
-                
                 # Check if it's a rate limit error
                 if "quota" in str(e).lower() or "rate" in str(e).lower():
-                    logger.warning(f"Rate limit hit on attempt {attempt + 1}, trying next key...")
-                    continue
+                    logger.warning(f"Rate limit hit on attempt {attempt + 1}")
+                    raise RateLimitError("gemini", f"Gemini rate limit error: {e}")
                     
                 # Other errors - retry with backoff
                 if attempt < 2:
@@ -209,27 +186,17 @@ class LLMService:
         temp = temperature if temperature is not None else self.temperature
         tokens = max_tokens if max_tokens is not None else self.max_tokens
         
-        # Estimate tokens
-        estimated_tokens = int(len(prompt.split()) * 1.3)
-        
         try:
-            # Get next available API key
-            api_key, key_index = self.key_rotation_manager.get_next_key(self.model_name)
-            
             # Create client with custom settings
             from langchain_google_genai import ChatGoogleGenerativeAI
             temp_client = ChatGoogleGenerativeAI(
                 model=self.model_name,
-                google_api_key=api_key,
+                google_api_key=self.api_key,
                 temperature=temp,
                 max_output_tokens=tokens,
             )
             
             response = temp_client.invoke(prompt)
-            
-            # Report success to rotation manager
-            self.key_rotation_manager.mark_key_success(key_index)
-            self.key_rotation_manager.update_key_usage(key_index, estimated_tokens, self.model_name)
             
             content = response.content if hasattr(response, 'content') else str(response)
             
@@ -237,15 +204,10 @@ class LLMService:
                 'content': content,
                 'model': self.model_name,
                 'temperature': temp,
-                'max_tokens': tokens,
-                'usage': {'estimated_tokens': estimated_tokens}
+                'max_tokens': tokens
             }
             
         except Exception as e:
-            # Report failure to rotation manager if we have a key index
-            if 'key_index' in locals():
-                self.key_rotation_manager.mark_key_failure(key_index, str(e))
-                
             if "quota" in str(e).lower() or "rate" in str(e).lower():
                 raise RateLimitError(f"Gemini rate limit error: {e}")
             raise ProviderError("gemini", f"Gemini completion failed: {e}")
@@ -277,11 +239,3 @@ class LLMService:
                 time.sleep(0.1)
                 
         return results
-        
-    def get_rate_limit_status(self) -> Dict[str, Any]:
-        """Get current rate limit status from key rotation manager.
-        
-        Returns:
-            Dict with rate limit information
-        """
-        return self.key_rotation_manager.get_status_summary()
