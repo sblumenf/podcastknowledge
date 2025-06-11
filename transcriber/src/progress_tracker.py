@@ -13,6 +13,7 @@ from datetime import datetime
 from enum import Enum
 
 from src.utils.logging import get_logger
+from src.utils.title_utils import normalize_title
 
 logger = get_logger(__name__)
 
@@ -99,31 +100,37 @@ class ProgressTracker:
         
         Args:
             podcast_name: Name of the podcast
-            episode_title: Title of the episode
+            episode_title: Title of the episode (will be normalized before comparison)
             
         Returns:
             True if episode has been transcribed, False otherwise
         """
+        # Normalize the title for consistent comparison
+        normalized_title = normalize_title(episode_title)
+        
         with self._lock:
             if podcast_name not in self._progress_data:
                 return False
-            return episode_title in self._progress_data[podcast_name]
+            return normalized_title in self._progress_data[podcast_name]
     
     def mark_episode_transcribed(self, podcast_name: str, episode_title: str, date: str) -> None:
         """Mark an episode as transcribed.
         
         Args:
             podcast_name: Name of the podcast
-            episode_title: Title of the episode
+            episode_title: Title of the episode (will be normalized before storage)
             date: Date string (for logging purposes, not stored)
         """
+        # Normalize the title for consistent storage
+        normalized_title = normalize_title(episode_title)
+        
         with self._lock:
             if podcast_name not in self._progress_data:
                 self._progress_data[podcast_name] = []
             
-            if episode_title not in self._progress_data[podcast_name]:
-                self._progress_data[podcast_name].append(episode_title)
-                logger.info(f"Marked as transcribed: {podcast_name} - {episode_title} ({date})")
+            if normalized_title not in self._progress_data[podcast_name]:
+                self._progress_data[podcast_name].append(normalized_title)
+                logger.info(f"Marked as transcribed: {podcast_name} - {normalized_title} ({date})")
                 
                 # Save immediately to persist progress
                 self.save_progress()
@@ -163,21 +170,24 @@ class ProgressTracker:
         
         Args:
             podcast_name: Name of the podcast
-            episode_title: Title of the episode
+            episode_title: Title of the episode (will be normalized before removal)
             
         Returns:
             True if episode was removed, False if not found
         """
+        # Normalize the title for consistent lookup
+        normalized_title = normalize_title(episode_title)
+        
         with self._lock:
-            if podcast_name in self._progress_data and episode_title in self._progress_data[podcast_name]:
-                self._progress_data[podcast_name].remove(episode_title)
+            if podcast_name in self._progress_data and normalized_title in self._progress_data[podcast_name]:
+                self._progress_data[podcast_name].remove(normalized_title)
                 
                 # Remove podcast if no episodes left
                 if not self._progress_data[podcast_name]:
                     del self._progress_data[podcast_name]
                 
                 self.save_progress()
-                logger.info(f"Removed from progress: {podcast_name} - {episode_title}")
+                logger.info(f"Removed from progress: {podcast_name} - {normalized_title}")
                 return True
             return False
     

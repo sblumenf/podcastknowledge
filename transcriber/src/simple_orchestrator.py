@@ -11,6 +11,7 @@ from typing import Dict, List, Optional, Any
 from datetime import datetime
 
 from src.utils.logging import get_logger
+from src.utils.title_utils import normalize_title
 from src.progress_tracker import ProgressTracker
 from src.deepgram_client import DeepgramClient
 from src.vtt_formatter import VTTFormatter

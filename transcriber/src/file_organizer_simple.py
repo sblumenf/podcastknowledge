@@ -12,6 +12,7 @@ from datetime import datetime
 
 from src.utils.logging import get_logger
 from src.config import Config
+from src.utils.title_utils import normalize_title, make_filename_safe
 
 logger = get_logger('file_organizer')
 
@@ -118,9 +119,10 @@ class SimpleFileOrganizer:
         else:
             pub_date = datetime.now().strftime('%Y-%m-%d')
         
-        # Sanitize components
+        # Normalize and sanitize components for consistent filename generation
         clean_podcast = self.sanitize_filename(podcast_name)
-        clean_title = self.sanitize_filename(episode.title)
+        normalized_title = normalize_title(episode.title)
+        clean_title = make_filename_safe(normalized_title)
         
         # Create filename based on config pattern or default
         if self.config and hasattr(self.config.output, 'naming_pattern'):

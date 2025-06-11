@@ -41,11 +41,11 @@ The solution will rebuild the progress tracker from existing VTT files using nor
 **Purpose**: Ensure progress tracker uses normalized titles for all operations
 
 **Steps**:
-- [ ] Use context7 MCP tool to review progress tracker implementation
-- [ ] Modify `src/progress_tracker.py` to import and use `normalize_title()`
-- [ ] Update `mark_episode_transcribed()` to normalize title before storage
-- [ ] Update `is_episode_transcribed()` to normalize title before comparison
-- [ ] Update `get_transcribed_episodes()` to return normalized titles
+- [x] Use context7 MCP tool to review progress tracker implementation
+- [x] Modify `src/progress_tracker.py` to import and use `normalize_title()`
+- [x] Update `mark_episode_transcribed()` to normalize title before storage
+- [x] Update `is_episode_transcribed()` to normalize title before comparison
+- [x] Update `get_transcribed_episodes()` to return normalized titles
 
 **Validation**: Progress tracker operations work with both normalized and raw titles
 
@@ -53,10 +53,10 @@ The solution will rebuild the progress tracker from existing VTT files using nor
 **Purpose**: Ensure episode identification uses normalized titles
 
 **Steps**:
-- [ ] Use context7 MCP tool to review episode matching in orchestrator
-- [ ] Update `src/simple_orchestrator.py` to use normalized titles in episode checks
-- [ ] Update any episode comparison logic to use normalized titles
-- [ ] Ensure YouTube URL matching also uses normalized titles
+- [x] Use context7 MCP tool to review episode matching in orchestrator
+- [x] Update `src/simple_orchestrator.py` to use normalized titles in episode checks
+- [x] Update any episode comparison logic to use normalized titles
+- [x] Ensure YouTube URL matching also uses normalized titles
 
 **Validation**: Orchestrator correctly identifies already-transcribed episodes
 
@@ -64,10 +64,10 @@ The solution will rebuild the progress tracker from existing VTT files using nor
 **Purpose**: Ensure file naming uses normalized titles for consistency
 
 **Steps**:
-- [ ] Use context7 MCP tool to review file organization logic
-- [ ] Update filename generation in `src/file_organizer_simple.py` to use normalized titles
-- [ ] Ensure filesystem-safe character conversion still works
-- [ ] Update filename parsing logic to normalize extracted titles
+- [x] Use context7 MCP tool to review file organization logic
+- [x] Update filename generation in `src/file_organizer_simple.py` to use normalized titles
+- [x] Ensure filesystem-safe character conversion still works
+- [x] Update filename parsing logic to normalize extracted titles
 
 **Validation**: Generated filenames are consistent and parsing works correctly
 
