@@ -50,3 +50,24 @@ rate_limits:
 features:
   enable_checkpoints: true
   enable_entity_resolution: true
+
+# YouTube Search Configuration
+youtube_search:
+  enabled: true
+  # API key from environment variable: YOUTUBE_API_KEY
+  max_results: 5
+  confidence_threshold: 0.7
+  rate_limit_delay: 1.0  # seconds between searches
+
+# Knowledge Discovery Configuration
+knowledge_discovery:
+  enabled: true
+  gap_detection:
+    min_gap_score: 0.5
+    cooccurrence_threshold: 0.3
+  missing_links:
+    min_connection_score: 0.3
+    max_suggestions: 10
+  diversity_metrics:
+    history_retention_days: 30
+    trend_threshold: 0.05

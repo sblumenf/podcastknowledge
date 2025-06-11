@@ -48,6 +48,7 @@ class PipelineConfig:
     google_api_key: Optional[str] = field(default_factory=lambda: os.environ.get("GOOGLE_API_KEY"))
     openai_api_key: Optional[str] = field(default_factory=lambda: os.environ.get("OPENAI_API_KEY"))
     hf_token: Optional[str] = field(default_factory=lambda: os.environ.get("HF_TOKEN"))
+    youtube_api_key: Optional[str] = field(default_factory=lambda: os.environ.get("YOUTUBE_API_KEY"))
     
     # Embedding Settings
     embedding_dimensions: int = 768  # Gemini text-embedding-004 dimensions
@@ -83,6 +84,15 @@ class PipelineConfig:
     entity_resolution_threshold: float = field(default_factory=lambda: float(os.environ.get("ENTITY_RESOLUTION_THRESHOLD", "0.85")))
     max_properties_per_node: int = field(default_factory=lambda: int(os.environ.get("MAX_PROPERTIES_PER_NODE", "50")))
     relationship_normalization: bool = field(default_factory=lambda: os.environ.get("RELATIONSHIP_NORMALIZATION", "true").lower() == "true")
+    
+    # YouTube Search Settings
+    youtube_search_enabled: bool = field(default_factory=lambda: os.environ.get("YOUTUBE_SEARCH_ENABLED", "true").lower() == "true")
+    youtube_search_max_results: int = field(default_factory=lambda: int(os.environ.get("YOUTUBE_SEARCH_MAX_RESULTS", "5")))
+    youtube_search_confidence_threshold: float = field(default_factory=lambda: float(os.environ.get("YOUTUBE_SEARCH_CONFIDENCE_THRESHOLD", "0.7")))
+    youtube_search_rate_limit_delay: float = field(default_factory=lambda: float(os.environ.get("YOUTUBE_SEARCH_RATE_LIMIT_DELAY", "1.0")))
+    
+    # Knowledge Discovery Settings
+    enable_knowledge_discovery: bool = field(default_factory=lambda: os.environ.get("ENABLE_KNOWLEDGE_DISCOVERY", "true").lower() == "true")
     
     def __post_init__(self):
         """Convert string paths to Path objects and validate configuration."""
@@ -147,7 +157,7 @@ class PipelineConfig:
         config_dict = {}
         for key, value in self.__dict__.items():
             # Skip sensitive fields
-            if key in ["neo4j_password", "google_api_key", "openai_api_key", "hf_token"]:
+            if key in ["neo4j_password", "google_api_key", "openai_api_key", "hf_token", "youtube_api_key"]:
                 config_dict[key] = "***" if value else None
             elif isinstance(value, Path):
                 config_dict[key] = str(value)

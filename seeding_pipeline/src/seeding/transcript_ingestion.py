@@ -7,6 +7,7 @@ from typing import Dict, Any, List, Optional, Union, Set, Tuple
 import hashlib
 import json
 import logging
+import os
 
 from src.core.config import PipelineConfig
 from src.core.exceptions import ValidationError, PipelineError
@@ -14,6 +15,11 @@ from src.core.interfaces import TranscriptSegment
 from src.core.models import Podcast, Episode
 from src.utils.log_utils import get_logger
 from src.vtt import VTTParser
+try:
+    from src.utils.youtube_search import YouTubeSearcher
+except ImportError:
+    YouTubeSearcher = None
+    
 logger = get_logger(__name__)
 
 
@@ -48,6 +54,22 @@ class TranscriptIngestion:
         self.config = config
         self.vtt_parser = VTTParser()
         self._processed_files: Set[str] = set()
+        
+        # Initialize YouTube searcher if enabled
+        self.youtube_searcher = None
+        if getattr(config, 'youtube_search_enabled', False):
+            if YouTubeSearcher:
+                try:
+                    api_key = getattr(config, 'youtube_api_key', None) or os.environ.get('YOUTUBE_API_KEY')
+                    if api_key:
+                        self.youtube_searcher = YouTubeSearcher(api_key)
+                        logger.info("YouTube search enabled for missing URLs")
+                    else:
+                        logger.warning("YouTube search enabled but no API key found")
+                except Exception as e:
+                    logger.warning(f"Failed to initialize YouTube searcher: {e}")
+            else:
+                logger.warning("YouTube search enabled but youtube_search module not available")
     
     def scan_directory(self, 
                       directory: Path, 
@@ -196,16 +218,24 @@ class TranscriptIngestion:
             return {'status': 'skipped', 'reason': 'already_processed'}
         
         try:
-            # Parse VTT file
-            segments = self.vtt_parser.parse_file(vtt_file.path)
+            # Parse VTT file with metadata extraction
+            try:
+                parse_result = self.vtt_parser.parse_file_with_metadata(vtt_file.path)
+                segments = parse_result['segments']
+                vtt_metadata = parse_result['metadata']
+            except AttributeError:
+                # Fallback for older VTT parser without metadata extraction
+                logger.warning("VTT parser doesn't support metadata extraction, using legacy parsing")
+                segments = self.vtt_parser.parse_file(vtt_file.path)
+                vtt_metadata = {}
             
             # Optionally merge short segments
             if getattr(self.config, 'merge_short_segments', True):
                 min_duration = getattr(self.config, 'min_segment_duration', 2.0)
                 segments = self.vtt_parser.merge_short_segments(segments, min_duration)
             
-            # Create episode data
-            episode_data = self._create_episode_data(vtt_file, segments)
+            # Create episode data with metadata
+            episode_data = self._create_episode_data(vtt_file, segments, vtt_metadata)
             
             # Mark as processed
             self._processed_files.add(vtt_file.file_hash)
@@ -215,7 +245,8 @@ class TranscriptIngestion:
                 'file': vtt_file.to_dict(),
                 'episode': episode_data,
                 'segments': segments,
-                'segment_count': len(segments)
+                'segment_count': len(segments),
+                'metadata': vtt_metadata
             }
             
         except Exception as e:
@@ -228,12 +259,14 @@ class TranscriptIngestion:
     
     def _create_episode_data(self, 
                            vtt_file: VTTFile, 
-                           segments: List[TranscriptSegment]) -> Dict[str, Any]:
-        """Create episode data from VTT file and segments.
+                           segments: List[TranscriptSegment],
+                           vtt_metadata: Dict[str, Any]) -> Dict[str, Any]:
+        """Create episode data from VTT file, segments, and metadata.
         
         Args:
             vtt_file: VTT file being processed
             segments: Parsed transcript segments
+            vtt_metadata: Metadata extracted from VTT file
             
         Returns:
             Episode data dictionary
@@ -247,17 +280,50 @@ class TranscriptIngestion:
         # Extract speakers
         speakers = list(set(seg.speaker for seg in segments if seg.speaker))
         
-        return {
+        # Use metadata to enhance episode data
+        episode_data = {
             'id': vtt_file.file_hash[:12],  # Use first 12 chars of hash as ID
-            'title': vtt_file.episode_title,
-            'podcast_name': vtt_file.podcast_name,
-            'duration_seconds': duration,
+            'title': vtt_metadata.get('episode', vtt_file.episode_title),
+            'podcast_name': vtt_metadata.get('podcast', vtt_file.podcast_name),
+            'description': vtt_metadata.get('description', ''),
+            'published_date': vtt_metadata.get('date', ''),
+            'youtube_url': vtt_metadata.get('youtube_url'),
+            'original_url': vtt_metadata.get('original_url'),
+            'duration_seconds': vtt_metadata.get('duration', duration),
             'speaker_count': len(speakers),
             'speakers': speakers,
             'segment_count': len(segments),
             'file_path': str(vtt_file.path),
-            'processed_at': datetime.utcnow().isoformat()
+            'processed_at': datetime.utcnow().isoformat(),
+            'transcript_metadata': vtt_metadata  # Store all metadata
         }
+        
+        # Log if YouTube URL was found
+        if episode_data['youtube_url']:
+            logger.info(f"YouTube URL found for episode: {episode_data['youtube_url']}")
+        else:
+            logger.info("No YouTube URL found in VTT metadata")
+            
+            # Try to find YouTube URL using search if enabled
+            if self.youtube_searcher:
+                logger.info(f"Searching for YouTube URL for episode: {episode_data['title']}")
+                try:
+                    youtube_url = self.youtube_searcher.search_youtube_url(
+                        podcast_name=episode_data['podcast_name'],
+                        episode_title=episode_data['title'],
+                        published_date=episode_data.get('published_date')
+                    )
+                    
+                    if youtube_url:
+                        episode_data['youtube_url'] = youtube_url
+                        logger.info(f"Found YouTube URL via search: {youtube_url}")
+                    else:
+                        logger.info("YouTube search did not find a suitable match")
+                        
+                except Exception as e:
+                    logger.warning(f"YouTube search failed: {e}")
+            
+        return episode_data
     
     def process_directory(self,
                          directory: Path,

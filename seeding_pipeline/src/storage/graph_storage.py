@@ -541,6 +541,7 @@ class GraphStorageService:
                 "CREATE INDEX IF NOT EXISTS FOR (p:Podcast) ON (p.title)",
                 "CREATE INDEX IF NOT EXISTS FOR (e:Episode) ON (e.title)",
                 "CREATE INDEX IF NOT EXISTS FOR (e:Episode) ON (e.published_date)",
+                "CREATE INDEX IF NOT EXISTS FOR (e:Episode) ON (e.youtube_url)",
                 "CREATE INDEX IF NOT EXISTS FOR (s:Segment) ON (s.speaker)",
                 "CREATE INDEX IF NOT EXISTS FOR (s:Segment) ON (s.start_time)",
                 "CREATE INDEX IF NOT EXISTS FOR (en:Entity) ON (en.name)",

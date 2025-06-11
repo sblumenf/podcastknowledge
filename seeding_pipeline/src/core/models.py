@@ -103,11 +103,13 @@ class Episode:
     description: str
     published_date: str
     audio_url: Optional[str] = None
+    youtube_url: Optional[str] = None
     duration: Optional[int] = None  # in seconds
     episode_number: Optional[int] = None
     season_number: Optional[int] = None
     processed_timestamp: Optional[datetime] = None
     guests: List[str] = field(default_factory=list)
+    transcript_metadata: Optional[Dict[str, Any]] = None
     
     # Complexity metrics
     avg_complexity: Optional[float] = None
@@ -139,6 +141,7 @@ class Episode:
             "description": self.description,
             "published_date": self.published_date,
             "audio_url": self.audio_url,
+            "youtube_url": self.youtube_url,
             "duration": self.duration,
             "episode_number": self.episode_number,
             "season_number": self.season_number
