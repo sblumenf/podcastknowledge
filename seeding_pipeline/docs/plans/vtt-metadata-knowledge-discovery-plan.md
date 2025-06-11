@@ -324,7 +324,7 @@ This plan implements comprehensive enhancements to the seeding pipeline that wil
   - Check all export formats work
 
 ### Task 4.2: Add Report CLI Commands
-- [ ] Task description: Expose report generation through CLI
+- [x] Task description: Expose report generation through CLI
 - Purpose: Allow users to generate reports on demand
 - Steps:
   1. Use context7 MCP tool to review CLI patterns

@@ -1086,6 +1086,123 @@ def minimal_process(args: argparse.Namespace) -> int:
         sys.argv = original_argv
 
 
+def generate_gap_report_command(args: argparse.Namespace) -> int:
+    """Handle gap report generation command."""
+    logger = get_logger(__name__)
+    
+    try:
+        # Get Neo4j connection from config
+        config = PipelineConfig.from_file(Path(args.config)) if args.config else PipelineConfig()
+        
+        # Import Neo4j driver
+        from neo4j import GraphDatabase
+        
+        # Create Neo4j driver
+        driver = GraphDatabase.driver(
+            config.neo4j_uri,
+            auth=(config.neo4j_username, config.neo4j_password)
+        )
+        
+        # Import report generation functions
+        from src.reports import (
+            generate_gap_report,
+            export_to_json,
+            export_to_markdown,
+            export_to_csv
+        )
+        
+        # Generate report
+        with driver.session() as session:
+            report = generate_gap_report(args.podcast, session)
+        
+        # Export in requested format
+        output_path = Path(args.output) if args.output else None
+        
+        if args.format == 'json':
+            output = export_to_json(report, output_path)
+        elif args.format == 'csv':
+            output = export_to_csv(report, output_path)
+        else:  # markdown
+            output = export_to_markdown(report, output_path)
+        
+        # Print to stdout if no output file specified
+        if not output_path:
+            print(output)
+        else:
+            print(f"Report generated: {output_path}")
+        
+        return 0
+        
+    except Exception as e:
+        logger.error(f"Gap report generation failed: {e}", exc_info=True)
+        print(f"Error: {e}", file=sys.stderr)
+        return 1
+    finally:
+        if 'driver' in locals():
+            driver.close()
+
+
+def generate_content_intelligence_command(args: argparse.Namespace) -> int:
+    """Handle content intelligence report generation command."""
+    logger = get_logger(__name__)
+    
+    try:
+        # Get Neo4j connection from config
+        config = PipelineConfig.from_file(Path(args.config)) if args.config else PipelineConfig()
+        
+        # Import Neo4j driver
+        from neo4j import GraphDatabase
+        
+        # Create Neo4j driver
+        driver = GraphDatabase.driver(
+            config.neo4j_uri,
+            auth=(config.neo4j_username, config.neo4j_password)
+        )
+        
+        # Import report generation functions
+        from src.reports import (
+            generate_content_intelligence_report,
+            export_to_json,
+            export_to_markdown,
+            export_to_csv
+        )
+        
+        # Generate report
+        with driver.session() as session:
+            report = generate_content_intelligence_report(
+                args.podcast,
+                session,
+                min_gap_score=args.min_gap_score,
+                episode_range=args.episode_range if hasattr(args, 'episode_range') else None
+            )
+        
+        # Export in requested format
+        output_path = Path(args.output) if args.output else None
+        
+        if args.format == 'json':
+            output = export_to_json(report, output_path)
+        elif args.format == 'csv':
+            output = export_to_csv(report, output_path)
+        else:  # markdown
+            output = export_to_markdown(report, output_path)
+        
+        # Print to stdout if no output file specified
+        if not output_path:
+            print(output)
+        else:
+            print(f"Report generated: {output_path}")
+        
+        return 0
+        
+    except Exception as e:
+        logger.error(f"Content intelligence report generation failed: {e}", exc_info=True)
+        print(f"Error: {e}", file=sys.stderr)
+        return 1
+    finally:
+        if 'driver' in locals():
+            driver.close()
+
+
 def main() -> int:
     """Main CLI entry point."""
     parser = argparse.ArgumentParser(
@@ -1113,6 +1230,12 @@ Examples:
   
   # Clean checkpoints
   %(prog)s checkpoint-clean --force
+  
+  # Generate gap analysis report
+  %(prog)s generate-gap-report --podcast "My Podcast" --format markdown --output gap_report.md
+  
+  # Generate comprehensive intelligence report
+  %(prog)s generate-content-intelligence --podcast "My Podcast" --format json --output report.json
         """
     )
     
@@ -1288,6 +1411,80 @@ Examples:
         help='Parse and validate VTT file without processing'
     )
     
+    # Gap report command
+    gap_parser = subparsers.add_parser(
+        'generate-gap-report',
+        help='Generate knowledge gap analysis report for a podcast'
+    )
+    
+    gap_parser.add_argument(
+        '--podcast',
+        type=str,
+        required=True,
+        help='Name of the podcast to analyze'
+    )
+    
+    gap_parser.add_argument(
+        '--format',
+        type=str,
+        choices=['json', 'markdown', 'csv'],
+        default='markdown',
+        help='Output format (default: markdown)'
+    )
+    
+    gap_parser.add_argument(
+        '--output',
+        type=str,
+        help='Output file path (default: stdout)'
+    )
+    
+    gap_parser.add_argument(
+        '--min-gap-score',
+        type=float,
+        default=0.5,
+        help='Minimum gap score to include (default: 0.5)'
+    )
+    
+    # Content intelligence report command
+    intelligence_parser = subparsers.add_parser(
+        'generate-content-intelligence',
+        help='Generate comprehensive content intelligence report'
+    )
+    
+    intelligence_parser.add_argument(
+        '--podcast',
+        type=str,
+        required=True,
+        help='Name of the podcast to analyze'
+    )
+    
+    intelligence_parser.add_argument(
+        '--format',
+        type=str,
+        choices=['json', 'markdown', 'csv'],
+        default='markdown',
+        help='Output format (default: markdown)'
+    )
+    
+    intelligence_parser.add_argument(
+        '--output',
+        type=str,
+        help='Output file path (default: stdout)'
+    )
+    
+    intelligence_parser.add_argument(
+        '--episode-range',
+        type=int,
+        help='Limit analysis to last N episodes'
+    )
+    
+    intelligence_parser.add_argument(
+        '--min-gap-score',
+        type=float,
+        default=0.5,
+        help='Minimum gap score to include (default: 0.5)'
+    )
+    
     # Parse arguments
     args = parser.parse_args()
     
@@ -1312,6 +1509,10 @@ Examples:
         return health_check(args)
     elif args.command == 'minimal':
         return minimal_process(args)
+    elif args.command == 'generate-gap-report':
+        return generate_gap_report_command(args)
+    elif args.command == 'generate-content-intelligence':
+        return generate_content_intelligence_command(args)
     else:
         parser.print_help()
         return 1
