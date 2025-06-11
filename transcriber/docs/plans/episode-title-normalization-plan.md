@@ -92,13 +92,13 @@ The solution will rebuild the progress tracker from existing VTT files using nor
 **Purpose**: Rebuild progress tracker with normalized titles from existing VTT files
 
 **Steps**:
-- [ ] Use context7 MCP tool to review existing migration script functionality
-- [ ] Update or create new migration script that:
+- [x] Use context7 MCP tool to review existing migration script functionality
+- [x] Update or create new migration script that:
   - Scans all existing VTT files
   - Extracts episode titles and normalizes them
   - Rebuilds progress tracker with normalized titles
   - Clears any existing "Unknown Podcast" entries
-- [ ] Add dry-run mode to preview changes
+- [x] Add dry-run mode to preview changes
 
 **Validation**: Migration script correctly processes all existing VTT files
 
@@ -106,10 +106,10 @@ The solution will rebuild the progress tracker from existing VTT files using nor
 **Purpose**: Clean up current progress tracker data
 
 **Steps**:
-- [ ] Use context7 MCP tool to review current progress tracker state
-- [ ] Backup current progress tracker file
-- [ ] Run migration script to rebuild with normalized titles
-- [ ] Verify all existing episodes are properly tracked
+- [x] Use context7 MCP tool to review current progress tracker state
+- [x] Backup current progress tracker file
+- [x] Run migration script to rebuild with normalized titles
+- [x] Verify all existing episodes are properly tracked
 
 **Validation**: Progress tracker contains all existing episodes with normalized titles
 

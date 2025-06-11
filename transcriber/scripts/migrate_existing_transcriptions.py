@@ -19,12 +19,13 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from src.progress_tracker import ProgressTracker
 from src.utils.logging import setup_logging, get_logger
+from src.utils.title_utils import normalize_title, extract_title_from_filename
 
 logger = get_logger(__name__)
 
 
 def extract_episode_info(vtt_path: Path) -> tuple[str, str]:
-    """Extract episode title and date from VTT filename.
+    """Extract episode title and date from VTT filename using proper normalization.
     
     Expected format: YYYY-MM-DD_Episode_Title.vtt
     
@@ -32,23 +33,34 @@ def extract_episode_info(vtt_path: Path) -> tuple[str, str]:
         vtt_path: Path to VTT file
         
     Returns:
-        Tuple of (episode_title, date_string)
+        Tuple of (normalized_episode_title, date_string)
     """
-    filename = vtt_path.stem  # Remove .vtt extension
+    filename = vtt_path.name  # Use full filename including extension
     
-    # Try to extract date from beginning of filename
-    date_pattern = r'^(\d{4}-\d{2}-\d{2})_(.+)$'
-    match = re.match(date_pattern, filename)
+    # Use the proper title extraction utility
+    episode_title = extract_title_from_filename(filename)
     
-    if match:
-        date_str = match.group(1)
-        episode_title = match.group(2).replace('_', ' ')
+    if episode_title:
+        # Normalize the extracted title for consistent storage
+        normalized_title = normalize_title(episode_title)
+        
+        # Extract date from filename
+        stem = vtt_path.stem
+        date_pattern = r'^(\d{4}-\d{2}-\d{2})_'
+        match = re.match(date_pattern, stem)
+        
+        if match:
+            date_str = match.group(1)
+        else:
+            # No date in filename, use file modification time
+            date_str = datetime.fromtimestamp(vtt_path.stat().st_mtime).strftime('%Y-%m-%d')
+        
+        return normalized_title, date_str
     else:
-        # No date in filename, use file modification time
+        # Fallback for files that don't match expected format
         date_str = datetime.fromtimestamp(vtt_path.stat().st_mtime).strftime('%Y-%m-%d')
-        episode_title = filename.replace('_', ' ')
-    
-    return episode_title, date_str
+        fallback_title = normalize_title(vtt_path.stem.replace('_', ' '))
+        return fallback_title, date_str
 
 
 def scan_output_directory(output_dir: Path) -> dict[str, list[tuple[str, str]]]:
@@ -93,17 +105,29 @@ def scan_output_directory(output_dir: Path) -> dict[str, list[tuple[str, str]]]:
 
 
 def migrate_to_progress_tracker(transcriptions: dict[str, list[tuple[str, str]]], 
-                               progress_file: str) -> None:
+                               progress_file: str, dry_run: bool = False) -> None:
     """Migrate existing transcriptions to progress tracker format.
     
     Args:
         transcriptions: Dictionary of podcast -> episode info
         progress_file: Path to progress tracking file
+        dry_run: If True, only show what would be migrated without making changes
     """
+    if dry_run:
+        logger.info("DRY RUN MODE - No changes will be made")
+        total_episodes = 0
+        for podcast_name, episodes in transcriptions.items():
+            logger.info(f"Would migrate {len(episodes)} episodes for {podcast_name}:")
+            for episode_title, date_str in episodes:
+                logger.info(f"  - {episode_title} ({date_str})")
+                total_episodes += 1
+        logger.info(f"Would migrate {total_episodes} episodes across {len(transcriptions)} podcasts")
+        return
+    
     # Initialize progress tracker
     tracker = ProgressTracker(progress_file)
     
-    # Clear any existing data (in case of re-run)
+    # Clear any existing data (in case of re-run)  
     existing_podcasts = tracker.get_all_podcasts()
     for podcast in existing_podcasts:
         tracker.clear_podcast(podcast)
@@ -173,17 +197,17 @@ def main():
         episodes = transcriptions[podcast_name]
         print(f"  {podcast_name}: {len(episodes)} episodes")
     
+    # Perform migration (or dry run)
     if args.dry_run:
-        print("\nDry run mode - no changes made")
-        return 0
-    
-    # Perform migration
-    print(f"\nMigrating to progress file: {args.progress_file}")
-    migrate_to_progress_tracker(transcriptions, args.progress_file)
-    
-    print("\nMigration complete!")
-    print(f"Progress tracking file created: {args.progress_file}")
-    print("\nYou can now use the transcription system and it will skip these episodes.")
+        print(f"\nDry run - showing what would be migrated to: {args.progress_file}")
+        migrate_to_progress_tracker(transcriptions, args.progress_file, dry_run=True)
+        print("\nDry run complete - no changes made")
+    else:
+        print(f"\nMigrating to progress file: {args.progress_file}")
+        migrate_to_progress_tracker(transcriptions, args.progress_file, dry_run=False)
+        print("\nMigration complete!")
+        print(f"Progress tracking file created: {args.progress_file}")
+        print("\nYou can now use the transcription system and it will skip these episodes.")
     
     return 0
 
