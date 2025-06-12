@@ -1,0 +1,81 @@
+{
+  "timestamp": "2025-05-31T15:31:51.877981",
+  "vtt_file": "/home/sergeblumenfeld/podcastknowledge/seeding_pipeline/tests/fixtures/vtt_samples/standard.vtt",
+  "file_size_bytes": 9010,
+  "measurements": {
+    "vtt_parsing": {
+      "success": true,
+      "parse_time_seconds": 0.0013,
+      "segments_parsed": 100,
+      "total_text_length": 5802,
+      "parsing_rate_chars_per_second": 4321674.98,
+      "memory_start": {
+        "tracemalloc_current_mb": 0.0,
+        "tracemalloc_peak_mb": 0.0,
+        "max_memory_kb": 14720,
+        "user_time": 0.070815,
+        "system_time": 0.019056999999999998
+      },
+      "memory_end": {
+        "tracemalloc_current_mb": 0.03,
+        "tracemalloc_peak_mb": 0.06,
+        "max_memory_kb": 14848,
+        "user_time": 0.072166,
+        "system_time": 0.019056999999999998
+      }
+    },
+    "knowledge_extraction": {
+      "success": true,
+      "extraction_time_seconds": 0.0034,
+      "segments_processed": 100,
+      "entities_extracted": 200,
+      "quotes_extracted": 100,
+      "extraction_rate_segments_per_second": 29835.71,
+      "memory_start": {
+        "tracemalloc_current_mb": 0.0,
+        "tracemalloc_peak_mb": 0.0,
+        "max_memory_kb": 14848,
+        "user_time": 0.07249799999999999,
+        "system_time": 0.019056999999999998
+      },
+      "memory_end": {
+        "tracemalloc_current_mb": 0.04,
+        "tracemalloc_peak_mb": 0.05,
+        "max_memory_kb": 14848,
+        "user_time": 0.075815,
+        "system_time": 0.019056999999999998
+      }
+    },
+    "neo4j_writes": {
+      "success": true,
+      "total_write_time_seconds": 0.1249,
+      "operations_count": 54,
+      "entities_written": 200,
+      "quotes_written": 100,
+      "relationships_written": 300,
+      "write_rate_operations_per_second": 432.2,
+      "memory_start": {
+        "tracemalloc_current_mb": 0.0,
+        "tracemalloc_peak_mb": 0.0,
+        "max_memory_kb": 14848,
+        "user_time": 0.076282,
+        "system_time": 0.019056999999999998
+      },
+      "memory_end": {
+        "tracemalloc_current_mb": 0.0,
+        "tracemalloc_peak_mb": 0.0,
+        "max_memory_kb": 14848,
+        "user_time": 0.076516,
+        "system_time": 0.019056999999999998
+      },
+      "note": "Simulated writes - actual Neo4j performance may vary"
+    },
+    "total_pipeline_time_seconds": 0.1296
+  },
+  "memory_usage": {},
+  "system_info": {
+    "python_version": "3.11.2 (main, Apr 28 2025, 14:11:48) [GCC 12.2.0]",
+    "platform": "linux",
+    "cpu_count": 4
+  }
+}

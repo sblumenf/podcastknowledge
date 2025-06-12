@@ -1,0 +1,33 @@
+{
+  "fixed_tests": [
+    {
+      "test_file": "tests/integration/test_failure_recovery.py",
+      "issue": "SyntaxError - malformed import statement",
+      "fix": "Fixed multiline import statement syntax"
+    },
+    {
+      "test_file": "tests/unit/test_schemaless_adapter_unit.py", 
+      "issue": "SyntaxError - malformed import statement",
+      "fix": "Fixed multiline import statement syntax"
+    }
+  ],
+  "tests_already_working": [
+    "tests/e2e/test_vtt_pipeline_e2e.py",
+    "tests/unit/test_logging_utils.py",
+    "tests/api/test_health.py",
+    "tests/integration/test_vtt_e2e.py"
+  ],
+  "tests_not_found": [
+    "tests/api/test_v1_api.py",
+    "tests/e2e/test_e2e_scenarios.py",
+    "tests/performance/load_test.py",
+    "tests/performance/test_performance_regression.py",
+    "tests/unit/test_retry_comprehensive.py"
+  ],
+  "summary": {
+    "total_rename_fixes": 7,
+    "actually_fixed": 2,
+    "already_working": 4,
+    "missing_files": 5
+  }
+}

@@ -8,19 +8,19 @@ This test suite covers:
 - Edge cases and error scenarios
 """
 
+from contextlib import AbstractContextManager
 from typing import Dict, Any, List, Optional
 from unittest import mock
+
 import pytest
-from contextlib import AbstractContextManager
 
 from src.core.interfaces import (
     # Protocols
     HealthCheckable, AudioProvider, LLMProvider, GraphProvider, 
     EmbeddingProvider, KnowledgeExtractor,
     # Dataclasses
-    DiarizationSegment, TranscriptSegment, LLMResponse,
-    ExtractedEntity, ExtractedInsight, ExtractedQuote,
-    # Context managers
+    TranscriptSegment, LLMResponse, ExtractedEntity, ExtractedInsight, ExtractedQuote,
+    # Context Managers
     Neo4jManager
 )
 
@@ -74,41 +74,7 @@ class TestHealthCheckableProtocol:
         assert unhealthy.health_check()["status"] == "unhealthy"
 
 
-class TestDiarizationSegment:
-    """Test DiarizationSegment dataclass."""
-    
-    def test_diarization_segment_creation_minimal(self):
-        """Test creating diarization segment with required fields."""
-        segment = DiarizationSegment(
-            speaker="speaker1",
-            start_time=0.0,
-            end_time=10.0
-        )
-        
-        assert segment.speaker == "speaker1"
-        assert segment.start_time == 0.0
-        assert segment.end_time == 10.0
-        assert segment.confidence is None
-    
-    def test_diarization_segment_creation_full(self):
-        """Test creating diarization segment with all fields."""
-        segment = DiarizationSegment(
-            speaker="speaker2",
-            start_time=10.0,
-            end_time=20.0,
-            confidence=0.95
-        )
-        
-        assert segment.confidence == 0.95
-    
-    def test_diarization_segment_equality(self):
-        """Test diarization segment equality."""
-        seg1 = DiarizationSegment("speaker1", 0.0, 10.0, 0.9)
-        seg2 = DiarizationSegment("speaker1", 0.0, 10.0, 0.9)
-        seg3 = DiarizationSegment("speaker2", 0.0, 10.0, 0.9)
-        
-        assert seg1 == seg2
-        assert seg1 != seg3
+# DiarizationSegment tests removed as the class no longer exists
 
 
 class TestTranscriptSegment:
@@ -150,61 +116,30 @@ class TestAudioProvider:
     
     def test_audio_provider_implementation(self):
         """Test implementing AudioProvider protocol."""
-        class TestAudioProvider:
-            def transcribe(self, audio_path: str) -> List[TranscriptSegment]:
-                return [
-                    TranscriptSegment(
-                        id="seg1",
-                        text="Test transcription",
-                        start_time=0.0,
-                        end_time=5.0
-                    )
-                ]
+        class TestAudioProvider(AudioProvider):
+            def download_audio(self, url: str, output_path: str) -> str:
+                return output_path
             
-            def diarize(self, audio_path: str) -> List[DiarizationSegment]:
-                return [
-                    DiarizationSegment(
-                        speaker="speaker1",
-                        start_time=0.0,
-                        end_time=5.0,
-                        confidence=0.9
-                    )
-                ]
+            def get_audio_duration(self, file_path: str) -> float:
+                return 120.5  # 2 minutes and 0.5 seconds
             
-            def align_transcript_with_diarization(
-                self,
-                transcript_segments: List[TranscriptSegment],
-                diarization_segments: List[DiarizationSegment]
-            ) -> List[TranscriptSegment]:
-                # Simple alignment implementation
-                for ts in transcript_segments:
-                    for ds in diarization_segments:
-                        if ts.start_time >= ds.start_time and ts.end_time <= ds.end_time:
-                            ts.speaker = ds.speaker
-                return transcript_segments
-            
-            def health_check(self) -> Dict[str, Any]:
-                return {"status": "healthy", "details": {}, "timestamp": "now"}
+            def validate_audio_format(self, file_path: str) -> bool:
+                return file_path.endswith(('.mp3', '.wav', '.m4a'))
         
-        provider: AudioProvider = TestAudioProvider()
+        provider = TestAudioProvider()
         
-        # Test transcribe
-        transcripts = provider.transcribe("test.mp3")
-        assert len(transcripts) == 1
-        assert transcripts[0].text == "Test transcription"
+        # Test download_audio
+        result = provider.download_audio("http://example.com/test.mp3", "/tmp/test.mp3")
+        assert result == "/tmp/test.mp3"
         
-        # Test diarize
-        diarizations = provider.diarize("test.mp3")
-        assert len(diarizations) == 1
-        assert diarizations[0].speaker == "speaker1"
+        # Test get_audio_duration
+        duration = provider.get_audio_duration("/tmp/test.mp3")
+        assert duration == 120.5
         
-        # Test alignment
-        aligned = provider.align_transcript_with_diarization(transcripts, diarizations)
-        assert aligned[0].speaker == "speaker1"
-        
-        # Test health check
-        health = provider.health_check()
-        assert health["status"] == "healthy"
+        # Test validate_audio_format
+        assert provider.validate_audio_format("/tmp/test.mp3") is True
+        assert provider.validate_audio_format("/tmp/test.wav") is True
+        assert provider.validate_audio_format("/tmp/test.txt") is False
 
 
 class TestLLMResponse:
@@ -355,13 +290,13 @@ class TestEmbeddingProvider:
             def generate_embedding(self, text: str) -> List[float]:
                 # Simulate embedding generation
                 # Return a vector of fixed dimension based on text length
-                return [0.1 * i for i in range(384)]  # 384-dimensional embedding
+                return [0.1 * i for i in range(768)]  # 768-dimensional embedding
             
             def generate_embeddings_batch(self, texts: List[str]) -> List[List[float]]:
                 return [self.generate_embedding(text) for text in texts]
             
             def get_embedding_dimension(self) -> int:
-                return 384
+                return 768
             
             def health_check(self) -> Dict[str, Any]:
                 return {"status": "healthy", "details": {}, "timestamp": "now"}
@@ -370,17 +305,17 @@ class TestEmbeddingProvider:
         
         # Test single embedding
         embedding = provider.generate_embedding("Test text")
-        assert len(embedding) == 384
+        assert len(embedding) == 768
         assert all(isinstance(x, float) for x in embedding)
         
         # Test batch embeddings
         texts = ["Text 1", "Text 2", "Text 3"]
         embeddings = provider.generate_embeddings_batch(texts)
         assert len(embeddings) == 3
-        assert all(len(emb) == 384 for emb in embeddings)
+        assert all(len(emb) == 768 for emb in embeddings)
         
         # Test embedding dimension
-        assert provider.get_embedding_dimension() == 384
+        assert provider.get_embedding_dimension() == 768
 
 
 class TestExtractedEntities:
@@ -627,27 +562,21 @@ class TestProtocolCompliance:
         assert health["status"] == "healthy"
     
     def test_protocol_with_optional_methods(self):
-        """Test protocol implementation with optional methods."""
-        class MinimalAudioProvider:
+        """Test protocol implementation with minimal methods."""
+        class MinimalAudioProvider(AudioProvider):
             """Minimal implementation of AudioProvider."""
             
-            def transcribe(self, audio_path: str) -> List[TranscriptSegment]:
-                return []
+            def download_audio(self, url: str, output_path: str) -> str:
+                return output_path
             
-            def diarize(self, audio_path: str) -> List[DiarizationSegment]:
-                return []
+            def get_audio_duration(self, file_path: str) -> float:
+                return 0.0
             
-            def align_transcript_with_diarization(
-                self,
-                transcript_segments: List[TranscriptSegment],
-                diarization_segments: List[DiarizationSegment]
-            ) -> List[TranscriptSegment]:
-                return transcript_segments
-            
-            def health_check(self) -> Dict[str, Any]:
-                return {"status": "healthy", "details": {}, "timestamp": "now"}
+            def validate_audio_format(self, file_path: str) -> bool:
+                return True
         
         # Should be valid AudioProvider
-        provider: AudioProvider = MinimalAudioProvider()
-        assert provider.transcribe("test.mp3") == []
-        assert provider.diarize("test.mp3") == []
+        provider = MinimalAudioProvider()
+        assert provider.download_audio("test.mp3", "/tmp/test.mp3") == "/tmp/test.mp3"
+        assert provider.get_audio_duration("test.mp3") == 0.0
+        assert provider.validate_audio_format("test.mp3") is True

@@ -1,0 +1,65 @@
+# Transcriber Configuration
+# Specific settings for podcast transcription
+
+# API Configuration
+api:
+  timeout: 300
+  
+  # Daily quota settings
+  quota:
+    max_episodes_per_day: 12
+    max_requests_per_key: 25
+    max_tokens_per_key: 1000000
+
+# Processing Configuration
+processing:
+  # Sequential processing only (due to rate limits)
+  parallel_workers: 1
+  checkpoint_enabled: true
+  
+  # Episode length limits (in minutes)
+  max_episode_length: 60
+
+# Output Configuration
+output:
+  # Default output directory
+  default_dir: "data/transcripts"
+  
+  # File naming patterns
+  naming:
+    pattern: "{podcast_name}/{date}_{episode_title}.vtt"
+    sanitize_filenames: true
+    max_filename_length: 200
+  
+  # VTT format settings
+  vtt:
+    include_metadata: true
+    speaker_voice_tags: true
+    timestamp_precision: 3  # milliseconds
+
+# Security Configuration
+security:
+  # Environment variable names for API keys
+  api_key_vars:
+    - "GEMINI_API_KEY_1"
+    - "GEMINI_API_KEY_2"
+  
+  # Key rotation settings
+  rotation:
+    strategy: "round_robin"
+    fail_over_enabled: true
+
+# YouTube Search Configuration
+youtube_search:
+  enabled: true
+  method: "rss_only"
+  cache_results: true
+  fuzzy_match_threshold: 0.85
+  duration_tolerance: 0.1
+  max_search_results: 5
+
+# Transcript Validation Configuration
+validation:
+  min_coverage_ratio: 0.85
+  max_continuation_attempts: 10
+  enabled: true

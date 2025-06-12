@@ -1,22 +1,22 @@
 """Enhanced checkpoint management for resumable podcast processing."""
 
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta
+from enum import Enum
+from pathlib import Path
+from threading import Lock
+from typing import Any, Dict, List, Optional, Tuple, Union
+import hashlib
+import json
+import logging
 import os
 import pickle
-import gzip
-import json
 import shutil
 import time
-import logging
-from datetime import datetime, timedelta
-from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, Union
-from dataclasses import dataclass, field
-from enum import Enum
-from threading import Lock
-import hashlib
+
+import gzip
 
 from src.utils.resources import ProgressCheckpoint as BaseProgressCheckpoint
-
 logger = logging.getLogger(__name__)
 
 
@@ -714,3 +714,174 @@ class ProgressCheckpoint(BaseProgressCheckpoint):
                 'count': len(entry['new_types'])
             })
         return timeline
+    
+    # VTT File Tracking Methods
+    def mark_vtt_processed(self, vtt_file: str, file_hash: str, segments_processed: int) -> None:
+        """Mark a VTT file as processed with its hash for change detection.
+        
+        Args:
+            vtt_file: Path to the VTT file
+            file_hash: MD5 hash of the file content
+            segments_processed: Number of segments processed from the file
+        """
+        vtt_checkpoint_file = os.path.join(self.checkpoint_dir, 'vtt_processed.json')
+        
+        # Load existing data
+        vtt_data = {}
+        if os.path.exists(vtt_checkpoint_file):
+            try:
+                with open(vtt_checkpoint_file, 'r') as f:
+                    vtt_data = json.load(f)
+            except Exception as e:
+                logger.warning(f"Failed to load VTT checkpoint: {e}")
+                vtt_data = {}
+        
+        # Update with new file
+        vtt_data[vtt_file] = {
+            'hash': file_hash,
+            'processed_at': datetime.now().isoformat(),
+            'segments': segments_processed
+        }
+        
+        # Save updated data
+        try:
+            with open(vtt_checkpoint_file, 'w') as f:
+                json.dump(vtt_data, f, indent=2)
+        except Exception as e:
+            logger.error(f"Failed to save VTT checkpoint: {e}")
+    
+    def is_vtt_processed(self, vtt_file: str, file_hash: str) -> bool:
+        """Check if a VTT file has been processed with the same content.
+        
+        Args:
+            vtt_file: Path to the VTT file
+            file_hash: MD5 hash of the current file content
+            
+        Returns:
+            True if file has been processed with same hash
+        """
+        vtt_checkpoint_file = os.path.join(self.checkpoint_dir, 'vtt_processed.json')
+        
+        if not os.path.exists(vtt_checkpoint_file):
+            return False
+        
+        try:
+            with open(vtt_checkpoint_file, 'r') as f:
+                vtt_data = json.load(f)
+                
+            if vtt_file in vtt_data:
+                # Check if hash matches (file unchanged)
+                return vtt_data[vtt_file].get('hash') == file_hash
+                
+        except Exception as e:
+            logger.warning(f"Failed to check VTT checkpoint: {e}")
+        
+        return False
+    
+    def get_processed_vtt_files(self) -> List[Dict[str, Any]]:
+        """Get list of all processed VTT files.
+        
+        Returns:
+            List of processed file information
+        """
+        vtt_checkpoint_file = os.path.join(self.checkpoint_dir, 'vtt_processed.json')
+        
+        if not os.path.exists(vtt_checkpoint_file):
+            return []
+        
+        try:
+            with open(vtt_checkpoint_file, 'r') as f:
+                vtt_data = json.load(f)
+                
+            # Convert to list format
+            processed_files = []
+            for file_path, info in vtt_data.items():
+                processed_files.append({
+                    'file': file_path,
+                    'hash': info.get('hash'),
+                    'processed_at': info.get('processed_at'),
+                    'segments': info.get('segments', 0)
+                })
+                
+            return processed_files
+            
+        except Exception as e:
+            logger.error(f"Failed to get VTT files: {e}")
+            return []
+    
+    def clear_vtt_checkpoint(self, vtt_file: Optional[str] = None) -> bool:
+        """Clear VTT checkpoint data.
+        
+        Args:
+            vtt_file: Specific file to clear, or None to clear all
+            
+        Returns:
+            True if successful
+        """
+        vtt_checkpoint_file = os.path.join(self.checkpoint_dir, 'vtt_processed.json')
+        
+        if not os.path.exists(vtt_checkpoint_file):
+            return True
+        
+        try:
+            if vtt_file is None:
+                # Clear all
+                os.remove(vtt_checkpoint_file)
+                logger.info("Cleared all VTT checkpoints")
+            else:
+                # Clear specific file
+                with open(vtt_checkpoint_file, 'r') as f:
+                    vtt_data = json.load(f)
+                
+                if vtt_file in vtt_data:
+                    del vtt_data[vtt_file]
+                    
+                    with open(vtt_checkpoint_file, 'w') as f:
+                        json.dump(vtt_data, f, indent=2)
+                    
+                    logger.info(f"Cleared checkpoint for {vtt_file}")
+            
+            return True
+            
+        except Exception as e:
+            logger.error(f"Failed to clear VTT checkpoint: {e}")
+            return False
+    
+    def mark_episode_complete(self, episode_id: str, metadata: Optional[Dict[str, Any]] = None) -> None:
+        """Mark an episode as complete.
+        
+        Args:
+            episode_id: Episode identifier
+            metadata: Optional metadata about the completion
+        """
+        completion_data = {
+            'episode_id': episode_id,
+            'completed_at': datetime.now().isoformat(),
+            'metadata': metadata or {}
+        }
+        
+        # Save completion checkpoint
+        self.save_episode_progress(episode_id, 'completed', completion_data)
+        logger.info(f"Marked episode {episode_id} as complete")
+    
+    def get_completed_episodes(self) -> List[str]:
+        """Get list of completed episode IDs.
+        
+        Returns:
+            List of episode IDs that have been marked complete
+        """
+        completed_episodes = []
+        
+        # Check episodes directory for completed checkpoints
+        if os.path.exists(self.episodes_dir):
+            for filename in os.listdir(self.episodes_dir):
+                if '_completed' in filename and (filename.endswith('.pkl') or filename.endswith('.pkl.gz') or filename.endswith('.ckpt.gz')):
+                    # Extract episode ID from filename
+                    # Handle different formats: episode_ID_completed.pkl, ID_completed.ckpt.gz, etc.
+                    if filename.startswith('episode_'):
+                        episode_id = filename.replace('episode_', '').split('_completed')[0]
+                    else:
+                        episode_id = filename.split('_completed')[0]
+                    completed_episodes.append(episode_id)
+        
+        return completed_episodes

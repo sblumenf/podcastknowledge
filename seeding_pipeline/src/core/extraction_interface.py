@@ -5,10 +5,60 @@ This module defines the protocol that both fixed schema and schemaless
 extraction modes must implement, enabling seamless switching between modes.
 """
 
-from typing import Protocol, List, Dict, Any, Optional
 from dataclasses import dataclass
+from enum import Enum
+from typing import Protocol, List, Dict, Any, Optional
+class EntityType(Enum):
+    """Types of entities that can be extracted."""
+    PERSON = "person"
+    ORGANIZATION = "organization"
+    TOPIC = "topic"
+    CONCEPT = "concept"
+    LOCATION = "location"
+    PRODUCT = "product"
+    EVENT = "event"
+    OTHER = "other"
 
 
+class InsightType(Enum):
+    """Types of insights that can be extracted."""
+    KEY_POINT = "key_point"
+    SUMMARY = "summary"
+    OPINION = "opinion"
+    FACT = "fact"
+    PREDICTION = "prediction"
+    RECOMMENDATION = "recommendation"
+    OTHER = "other"
+
+
+class QuoteType(Enum):
+    """Types of quotes that can be extracted."""
+    NOTABLE = "notable"
+    CONTROVERSIAL = "controversial"
+    INSIGHTFUL = "insightful"
+    HUMOROUS = "humorous"
+    TECHNICAL = "technical"
+    OTHER = "other"
+
+
+class RelationshipType(Enum):
+    """Types of relationships between entities."""
+    MENTIONS = "mentions"
+    DISCUSSES = "discusses"
+    WORKS_FOR = "works_for"
+    CREATED_BY = "created_by"
+    RELATED_TO = "related_to"
+    DISAGREES_WITH = "disagrees_with"
+    AGREES_WITH = "agrees_with"
+    OTHER = "other"
+
+
+class ComplexityLevel(Enum):
+    """Complexity levels for content."""
+    LOW = "low"
+    MEDIUM = "medium"
+    HIGH = "high"
+    VERY_HIGH = "very_high"
 @dataclass
 class Segment:
     """Represents a transcript segment."""

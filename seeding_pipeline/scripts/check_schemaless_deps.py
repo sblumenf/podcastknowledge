@@ -75,10 +75,10 @@ def check_adapters():
 def check_components():
     """Check if all schemaless components can be imported."""
     components = [
-        ("SegmentPreprocessor", "src.processing.schemaless_preprocessor"),
-        ("SchemalessEntityResolver", "src.processing.schemaless_entity_resolution"),
+        ("TextPreprocessor", "src.processing.preprocessor"),
+        ("EntityResolver", "src.processing.entity_resolution"),
         ("SchemalessMetadataEnricher", "src.providers.graph.metadata_enricher"),
-        ("SchemalessQuoteExtractor", "src.processing.schemaless_quote_extractor"),
+        ("KnowledgeExtractor", "src.processing.extraction"),
         ("SchemalessNeo4jProvider", "src.providers.graph.schemaless_neo4j"),
     ]
     

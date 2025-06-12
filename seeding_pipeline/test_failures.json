@@ -1,0 +1,113 @@
+{
+  "summary": {
+    "total_tests_collected": 445,
+    "total_errors": 59,
+    "tests_passed": 0,
+    "tests_failed": 0,
+    "tests_skipped": 0,
+    "collection_interrupted": true,
+    "timestamp": "2025-05-31T16:37:00"
+  },
+  "failures": [
+    {
+      "test": "tests/test_cli.py",
+      "error_type": "import",
+      "severity": "high",
+      "blocks_e2e": true,
+      "error_detail": "Module import error",
+      "fix_strategy": "Update imports to match current codebase structure"
+    },
+    {
+      "test": "tests/test_component_baselines.py",
+      "error_type": "import",
+      "severity": "high", 
+      "blocks_e2e": true,
+      "error_detail": "ImportError: cannot import name 'PodcastKnowledgePipeline' from 'src.seeding'",
+      "fix_strategy": "Remove or update reference to removed PodcastKnowledgePipeline class"
+    },
+    {
+      "test": "tests/api/test_health.py",
+      "error_type": "import",
+      "severity": "medium",
+      "blocks_e2e": false,
+      "error_detail": "ImportError: cannot import name 'ComponentHealth' from 'src.api.health'",
+      "fix_strategy": "Update to use current health check implementation"
+    },
+    {
+      "test": "tests/api/test_v1_api.py",
+      "error_type": "import",
+      "severity": "high",
+      "blocks_e2e": true,
+      "error_detail": "ImportError: cannot import name 'seed_podcast' from 'src.api.v1'",
+      "fix_strategy": "Update to match current API structure"
+    },
+    {
+      "test": "tests/e2e/test_e2e_scenarios.py",
+      "error_type": "import",
+      "severity": "critical",
+      "blocks_e2e": true,
+      "error_detail": "ImportError: cannot import name 'seed_podcast' from 'src.api.v1'",
+      "fix_strategy": "Critical - E2E tests need complete rewrite for current API"
+    },
+    {
+      "test": "tests/unit/test_logging.py",
+      "error_type": "import",
+      "severity": "medium",
+      "blocks_e2e": false,
+      "error_detail": "ImportError: cannot import name 'StructuredLogger' from 'src.utils.logging'",
+      "fix_strategy": "Update to use current logging implementation"
+    },
+    {
+      "test": "tests/integration/test_orchestrator.py",
+      "error_type": "import",
+      "severity": "critical",
+      "blocks_e2e": true,
+      "error_detail": "Module import error - orchestrator tests",
+      "fix_strategy": "Update orchestrator tests for current implementation"
+    },
+    {
+      "test": "tests/integration/test_schemaless_pipeline.py",
+      "error_type": "import",
+      "severity": "critical",
+      "blocks_e2e": true,
+      "error_detail": "Module import error - pipeline tests",
+      "fix_strategy": "Critical - Core pipeline tests need updating"
+    },
+    {
+      "test": "tests/integration/test_vtt_e2e.py",
+      "error_type": "import",
+      "severity": "critical",
+      "blocks_e2e": true,
+      "error_detail": "Module import error - VTT E2E tests",
+      "fix_strategy": "Critical - VTT processing E2E tests need updating"
+    },
+    {
+      "test": "Multiple unit tests (59 total)",
+      "error_type": "import",
+      "severity": "high",
+      "blocks_e2e": false,
+      "error_detail": "Various import errors due to refactored codebase",
+      "fix_strategy": "Systematic update of all test imports"
+    }
+  ],
+  "root_causes": {
+    "primary": "Test suite has not been updated after simplified architecture refactoring",
+    "details": [
+      "Removed classes: PodcastKnowledgePipeline, ComponentHealth, StructuredLogger",
+      "Changed API structure: seed_podcast function no longer exists",
+      "Tests reference old module structure and removed components"
+    ]
+  },
+  "recommendations": {
+    "immediate": [
+      "Fix critical E2E test imports to enable pipeline testing",
+      "Update API test imports to match current structure",
+      "Focus on tests that block VTT->Neo4j pipeline validation"
+    ],
+    "systematic": [
+      "Audit all test files for outdated imports",
+      "Create new E2E tests for simplified architecture",
+      "Remove tests for deleted components"
+    ]
+  }
+}

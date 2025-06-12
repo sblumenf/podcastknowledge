@@ -5,17 +5,20 @@ Provides Prometheus-compatible metrics for monitoring performance,
 success rates, and resource usage.
 """
 
-import time
-import psutil
-from datetime import datetime
-from typing import Dict, Any, Optional, List, Callable
 from collections import defaultdict
-from functools import wraps
-import threading
+from datetime import datetime
 from enum import Enum
+from functools import wraps
+from typing import Dict, Any, Optional, List, Callable
+import threading
+import time
 
-from ..utils.logging import get_logger
-
+from ..utils.log_utils import get_logger
+try:
+    import psutil
+except ImportError:
+    # Use mock psutil if real one not available
+    from tests.utils import mock_psutil as psutil
 logger = get_logger(__name__)
 
 

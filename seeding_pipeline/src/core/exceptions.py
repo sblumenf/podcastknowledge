@@ -1,5 +1,5 @@
 """
-Custom exceptions for the podcast knowledge pipeline.
+Custom exceptions for the VTT knowledge pipeline.
 
 This module defines the exception hierarchy used throughout the system.
 Each exception includes severity levels to guide error handling strategies.
@@ -7,8 +7,6 @@ Each exception includes severity levels to guide error handling strategies.
 
 from enum import Enum
 from typing import Optional, Any
-
-
 class ErrorSeverity(Enum):
     """Error severity levels for guiding error handling."""
     CRITICAL = "critical"  # System must stop
@@ -16,9 +14,9 @@ class ErrorSeverity(Enum):
     INFO = "info"         # Informational, no action needed
 
 
-class PodcastProcessingError(Exception):
+class VTTProcessingError(Exception):
     """
-    Base exception for all podcast processing errors.
+    Base exception for all VTT processing errors.
     
     Attributes:
         message: Error description
@@ -45,7 +43,7 @@ class PodcastProcessingError(Exception):
         return base
 
 
-class DatabaseConnectionError(PodcastProcessingError):
+class DatabaseConnectionError(VTTProcessingError):
     """
     Raised when Neo4j connection fails.
     
@@ -57,7 +55,7 @@ class DatabaseConnectionError(PodcastProcessingError):
         super().__init__(message, ErrorSeverity.CRITICAL, details)
 
 
-class AudioProcessingError(PodcastProcessingError):
+class AudioProcessingError(VTTProcessingError):
     """
     Raised when audio transcription or diarization fails.
     
@@ -74,7 +72,7 @@ class AudioProcessingError(PodcastProcessingError):
         super().__init__(message, severity, details)
 
 
-class LLMProcessingError(PodcastProcessingError):
+class LLMProcessingError(VTTProcessingError):
     """
     Raised when LLM processing fails.
     
@@ -91,7 +89,7 @@ class LLMProcessingError(PodcastProcessingError):
         super().__init__(message, severity, details)
 
 
-class ConfigurationError(PodcastProcessingError):
+class ConfigurationError(VTTProcessingError):
     """
     Raised when configuration is invalid.
     
@@ -103,7 +101,7 @@ class ConfigurationError(PodcastProcessingError):
         super().__init__(message, ErrorSeverity.CRITICAL, details)
 
 
-class PipelineError(PodcastProcessingError):
+class PipelineError(VTTProcessingError):
     """
     Raised when pipeline processing fails.
     
@@ -121,7 +119,7 @@ class PipelineError(PodcastProcessingError):
 
 
 # Additional specific exceptions for better error handling
-class ValidationError(PodcastProcessingError):
+class ValidationError(VTTProcessingError):
     """
     Raised when input validation fails.
     
@@ -144,7 +142,7 @@ class ValidationError(PodcastProcessingError):
         super().__init__(message, ErrorSeverity.WARNING, details)
 
 
-class ProviderError(PodcastProcessingError):
+class ProviderError(VTTProcessingError):
     """
     Base exception for provider-specific errors.
     
@@ -165,7 +163,7 @@ class ProviderError(PodcastProcessingError):
         super().__init__(message, severity, details)
 
 
-class CriticalError(PodcastProcessingError):
+class CriticalError(VTTProcessingError):
     """
     Raised for unrecoverable errors that require immediate termination.
     
@@ -176,7 +174,7 @@ class CriticalError(PodcastProcessingError):
         super().__init__(message, ErrorSeverity.CRITICAL, details)
 
 
-class ExtractionError(PodcastProcessingError):
+class ExtractionError(VTTProcessingError):
     """
     Raised when knowledge extraction fails.
     
@@ -216,7 +214,7 @@ class RateLimitError(ProviderError):
         super().__init__(provider_name, message, ErrorSeverity.WARNING, details)
 
 
-class TimeoutError(PodcastProcessingError):
+class TimeoutError(VTTProcessingError):
     """
     Raised when an operation exceeds its time limit.
     
@@ -240,7 +238,7 @@ class TimeoutError(PodcastProcessingError):
         super().__init__(message, ErrorSeverity.WARNING, details)
 
 
-class ResourceError(PodcastProcessingError):
+class ResourceError(VTTProcessingError):
     """
     Raised when system resources are exhausted.
     
@@ -262,7 +260,7 @@ class ResourceError(PodcastProcessingError):
         super().__init__(message, ErrorSeverity.CRITICAL, details)
 
 
-class DataIntegrityError(PodcastProcessingError):
+class DataIntegrityError(VTTProcessingError):
     """
     Raised when data consistency or integrity issues are detected.
     
@@ -288,10 +286,11 @@ class DataIntegrityError(PodcastProcessingError):
 
 # Aliases for backward compatibility
 ConnectionError = DatabaseConnectionError
-PodcastKGError = PodcastProcessingError  # Legacy name
+PodcastKGError = VTTProcessingError  # Legacy name for backward compatibility
+PodcastProcessingError = VTTProcessingError  # Legacy name for backward compatibility
 
 # Additional specific exceptions
-class ParsingError(PodcastProcessingError):
+class ParsingError(VTTProcessingError):
     """
     Raised when parsing fails (e.g., feed parsing, JSON parsing).
     
@@ -307,7 +306,7 @@ class ParsingError(PodcastProcessingError):
         super().__init__(message, severity, details)
 
 
-class CheckpointError(PodcastProcessingError):
+class CheckpointError(VTTProcessingError):
     """
     Raised when checkpoint operations fail.
     
@@ -323,7 +322,7 @@ class CheckpointError(PodcastProcessingError):
         super().__init__(message, severity, details)
 
 
-class BatchProcessingError(PodcastProcessingError):
+class BatchProcessingError(VTTProcessingError):
     """
     Raised when batch processing fails.
     
@@ -343,20 +342,19 @@ class BatchProcessingError(PodcastProcessingError):
 """
 Exception Usage Guidelines:
 
-1. PodcastProcessingError - Base exception, rarely used directly
+1. VTTProcessingError - Base exception, rarely used directly
 2. ConfigurationError - Invalid config, missing required settings
 3. ValidationError - Invalid input data, failed validation rules
 4. DatabaseConnectionError - Neo4j connection failures
-5. AudioProcessingError - Transcription, diarization failures
-6. LLMProcessingError - LLM API failures, response parsing errors
-7. ExtractionError - Entity/insight/quote extraction failures
-8. ProviderError - Generic provider failures, use specific types when possible
-9. RateLimitError - API rate limit exceeded (subclass of ProviderError)
-10. TimeoutError - Operation timeout exceeded
-11. ResourceError - Memory, disk, or other resource exhaustion
-12. DataIntegrityError - Data consistency or corruption issues
-13. PipelineError - Overall pipeline processing failures
-14. CriticalError - Unrecoverable errors requiring shutdown
+5. LLMProcessingError - LLM API failures, response parsing errors
+6. ExtractionError - Entity/insight/quote extraction failures
+7. ProviderError - Generic provider failures, use specific types when possible
+8. RateLimitError - API rate limit exceeded (subclass of ProviderError)
+9. TimeoutError - Operation timeout exceeded
+10. ResourceError - Memory, disk, or other resource exhaustion
+11. DataIntegrityError - Data consistency or corruption issues
+12. PipelineError - Overall pipeline processing failures
+13. CriticalError - Unrecoverable errors requiring shutdown
 
 Severity Guidelines:
 - CRITICAL: System must stop, requires intervention

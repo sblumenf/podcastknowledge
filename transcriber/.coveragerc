@@ -1,0 +1,77 @@
+[run]
+# Source code to measure
+source = src
+
+# Patterns to omit from coverage
+omit = 
+    */tests/*
+    */test_*
+    */__pycache__/*
+    */venv/*
+    */env/*
+    */.venv/*
+    setup.py
+    */fixtures/*
+    
+# Enable branch coverage
+branch = True
+
+# Data file name
+data_file = .coverage
+
+# Enable parallel coverage collection
+parallel = True
+
+[report]
+# Minimum coverage percentage required
+fail_under = 60
+
+# Precision of coverage percentage
+precision = 2
+
+# Skip files with no executable code
+skip_empty = True
+
+# Exclude patterns from report
+exclude_lines =
+    # Standard pragma
+    pragma: no cover
+    
+    # Debug-only code
+    def __repr__
+    if self\.debug
+    
+    # Defensive programming
+    raise AssertionError
+    raise NotImplementedError
+    
+    # Non-runnable code
+    if 0:
+    if False:
+    if __name__ == .__main__.:
+    
+    # Type checking blocks
+    if TYPE_CHECKING:
+    
+    # Abstract methods
+    @abstract
+    @abc.abstractmethod
+
+# Ignore errors if source code is missing
+ignore_errors = True
+
+[html]
+# Directory for HTML coverage report
+directory = htmlcov
+
+# Title for the report
+title = Podcast Transcriber Coverage Report
+
+[xml]
+# Output file for XML coverage report
+output = coverage.xml
+
+[json]
+# Output file for JSON coverage report
+output = coverage.json
+pretty_print = True

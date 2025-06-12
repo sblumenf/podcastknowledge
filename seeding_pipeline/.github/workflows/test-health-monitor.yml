@@ -1,0 +1,88 @@
+name: VTT Test Health Monitor
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+  schedule:
+    # Run daily at 2 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+
+jobs:
+  test-health:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.9', '3.10', '3.11']
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+    
+    - name: Cache pip packages
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements*.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements-test-vtt.txt
+    
+    - name: Run VTT test health monitor
+      id: health_check
+      run: |
+        python scripts/monitor_test_health.py
+      continue-on-error: true
+    
+    - name: Upload test results
+      if: always()
+      uses: actions/upload-artifact@v3
+      with:
+        name: test-results-${{ matrix.python-version }}
+        path: test_results/
+    
+    - name: Upload coverage reports
+      if: always()
+      uses: codecov/codecov-action@v3
+      with:
+        directory: ./test_results
+        flags: vtt-tests
+        name: vtt-coverage-${{ matrix.python-version }}
+    
+    - name: Check for flaky tests (weekly)
+      if: github.event_name == 'schedule' && matrix.python-version == '3.11'
+      run: |
+        python scripts/monitor_test_health.py --detect-flaky
+    
+    - name: Comment PR with test health
+      if: github.event_name == 'pull_request'
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const fs = require('fs');
+          const reports = fs.readdirSync('test_results').filter(f => f.startsWith('health_report_'));
+          if (reports.length > 0) {
+            const latestReport = reports.sort().pop();
+            const content = fs.readFileSync(`test_results/${latestReport}`, 'utf8');
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: content
+            });
+          }
+    
+    - name: Fail if tests unhealthy
+      if: steps.health_check.outcome == 'failure'
+      run: exit 1

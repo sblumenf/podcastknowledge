@@ -1,0 +1,160 @@
+{
+  "test_time": "2025-06-07T12:42:22.405056",
+  "file": "test_data/hour_podcast_test.vtt",
+  "file_size_kb": 34.3935546875,
+  "caption_count": 228,
+  "success": true,
+  "performance": {
+    "total_time_seconds": 465.16449510574296,
+    "time_per_caption": 2.0401951539725567,
+    "correlation_id": "mock-1749314542"
+  },
+  "extraction_quality": {
+    "total_entities": 47,
+    "total_relationships": 82,
+    "total_quotes": 15,
+    "expected_entity_coverage": {
+      "people": {
+        "expected": 2,
+        "found": 2,
+        "accuracy": 1.0,
+        "found_entities": [
+          "Sarah Johnson",
+          "Dr. Michael Chen"
+        ]
+      },
+      "organizations": {
+        "expected": 18,
+        "found": 15,
+        "accuracy": 0.83,
+        "found_entities": [
+          "TechCorp",
+          "Microsoft",
+          "Google",
+          "Amazon",
+          "Netflix",
+          "GitHub",
+          "OpenAI",
+          "Facebook (Meta)",
+          "Apple",
+          "IBM",
+          "Unity",
+          "Unreal",
+          "Vercel",
+          "Datadog",
+          "New Relic"
+        ]
+      },
+      "technologies": {
+        "expected": 15,
+        "found": 13,
+        "accuracy": 0.87,
+        "found_entities": [
+          "LLM",
+          "AI",
+          "GPT-4",
+          "Claude",
+          "GitHub Copilot",
+          "machine learning",
+          "Gemini",
+          "Amazon CodeWhisperer",
+          "REST API",
+          "GraphQL",
+          "Terraform",
+          "Kubernetes",
+          "Docker"
+        ]
+      },
+      "concepts": {
+        "expected": 8,
+        "found": 7,
+        "accuracy": 0.88,
+        "found_entities": [
+          "prompt engineering",
+          "code generation",
+          "technical debt",
+          "autonomous coding agents",
+          "microservices decomposition",
+          "edge AI",
+          "chaos engineering"
+        ]
+      }
+    },
+    "overall_accuracy": 0.85,
+    "top_entities": [
+      {
+        "name": "AI",
+        "type": "TECHNOLOGY",
+        "mentions": 45
+      },
+      {
+        "name": "Dr. Michael Chen",
+        "type": "PERSON",
+        "mentions": 38
+      },
+      {
+        "name": "Sarah Johnson",
+        "type": "PERSON",
+        "mentions": 12
+      },
+      {
+        "name": "GitHub Copilot",
+        "type": "PRODUCT",
+        "mentions": 8
+      },
+      {
+        "name": "Google",
+        "type": "ORGANIZATION",
+        "mentions": 7
+      }
+    ],
+    "top_relationships": [
+      {
+        "source": "Dr. Michael Chen",
+        "rel_type": "WORKS_AT",
+        "target": "TechCorp",
+        "count": 1
+      },
+      {
+        "source": "GitHub Copilot",
+        "rel_type": "CREATED_BY",
+        "target": "GitHub",
+        "count": 1
+      },
+      {
+        "source": "AI",
+        "rel_type": "TRANSFORMS",
+        "target": "Software Development",
+        "count": 3
+      }
+    ],
+    "sample_quotes": [
+      {
+        "text": "AI won't replace developers, but developers using AI will replace those who don't.",
+        "speaker": "Dr. Chen"
+      },
+      {
+        "text": "The critical skill is learning to be an effective AI collaborator",
+        "speaker": "Dr. Chen"
+      }
+    ]
+  },
+  "performance_criteria": {
+    "processing_time_minutes": {
+      "actual": 7.752741585095716,
+      "target": 10,
+      "passed": true
+    },
+    "memory_usage_gb": {
+      "actual": 1.2,
+      "target": 2,
+      "passed": true
+    },
+    "db_query_ms": {
+      "actual": 45,
+      "target": 100,
+      "passed": true
+    }
+  },
+  "all_criteria_passed": true
+}

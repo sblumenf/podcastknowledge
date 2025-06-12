@@ -6,6 +6,8 @@ pytest==7.4.3
 pytest-cov==4.1.0
 pytest-asyncio==0.21.1
 pytest-mock==3.12.0
+pytest-benchmark==4.0.0  # For performance benchmarking
+pytest-env==1.1.1  # For environment variable management in tests
 
 # Type Checking
 mypy==1.7.1
@@ -31,3 +33,11 @@ jupyter==1.0.0
 
 # Visualization (for dependency graphs only)
 graphviz==0.20.1
+
+# Container Testing
+testcontainers[neo4j]==3.7.1
+pytest-timeout==2.2.0
+pytest-xdist==3.5.0
+
+# Performance Testing
+psutil==5.9.6

@@ -5,15 +5,13 @@ This module provides functionality to detect checkpoint versions and migrate
 old checkpoint formats to the current format.
 """
 
-import json
-import logging
+from datetime import datetime
 from pathlib import Path
 from typing import Dict, Any, Optional
-from datetime import datetime
+import json
+import logging
 
 from ..core.exceptions import CheckpointError
-
-
 logger = logging.getLogger(__name__)
 
 

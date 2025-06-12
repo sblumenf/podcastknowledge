@@ -9,7 +9,6 @@ from .interfaces import (
     KnowledgeExtractor,
     Neo4jManager,
     # Data classes
-    DiarizationSegment,
     TranscriptSegment,
     LLMResponse,
     ExtractedEntity,
@@ -83,7 +82,6 @@ __all__ = [
     "KnowledgeExtractor",
     "Neo4jManager",
     # Interface data classes
-    "DiarizationSegment",
     "TranscriptSegment",
     "LLMResponse",
     "ExtractedEntity",

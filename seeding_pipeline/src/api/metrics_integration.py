@@ -8,8 +8,6 @@ components of the podcast knowledge graph pipeline.
 from typing import Dict, Any
 
 from .metrics import get_metrics_collector, track_duration, track_provider_call
-
-
 # Example: Orchestrator integration
 def process_episode_with_metrics(episode_data: Dict[str, Any]) -> Dict[str, Any]:
     """Process an episode with full metrics tracking."""

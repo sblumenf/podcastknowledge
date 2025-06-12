@@ -1,0 +1,24 @@
+# Core Dependencies
+neo4j==5.14.0
+python-dotenv==1.0.0
+numpy==1.24.3
+scipy==1.11.4
+networkx==3.1
+
+# LLM and AI (API-based only)
+langchain==0.1.0
+langchain-google-genai==0.0.5
+openai==1.6.1
+google-generativeai==0.3.2
+
+# Data Processing
+tqdm==4.66.1
+
+# Utilities
+psutil==5.9.6
+PyYAML==6.0.1
+
+# API
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+pydantic==2.5.0

@@ -1,0 +1,195 @@
+name: Test Coverage
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  # Memory optimization settings
+  PYTHONUNBUFFERED: 1
+  PYTEST_TIMEOUT: 300
+  # Limit parallel execution to avoid memory issues
+  PYTEST_XDIST_WORKER_COUNT: 2
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.8", "3.9", "3.10", "3.11"]
+        test-group: ["unit", "integration", "e2e", "performance"]
+        exclude:
+          # Skip memory-intensive tests on older Python versions
+          - python-version: "3.8"
+            test-group: "performance"
+          - python-version: "3.8"
+            test-group: "e2e"
+
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+        cache: 'pip'
+    
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libxml2-dev libxslt-dev
+        # Install memory monitoring tools
+        pip install memory_profiler psutil
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install -r requirements-dev.txt
+        pip install pytest-xdist  # For parallel test execution
+    
+    - name: Run ${{ matrix.test-group }} tests
+      env:
+        GEMINI_API_KEY_1: ${{ secrets.GEMINI_API_KEY_1 || 'test_key_1' }}
+        GEMINI_API_KEY_2: ${{ secrets.GEMINI_API_KEY_2 || 'test_key_2' }}
+        PODCAST_TEST_MODE: true
+      run: |
+        # Memory-efficient test execution by group
+        if [ "${{ matrix.test-group }}" = "unit" ]; then
+          pytest -m unit --cov=src --cov-report=xml --cov-report=term -v
+        elif [ "${{ matrix.test-group }}" = "integration" ]; then
+          pytest -m integration --cov=src --cov-report=xml --cov-report=term -v --tb=short
+        elif [ "${{ matrix.test-group }}" = "e2e" ]; then
+          # Run E2E tests one at a time to avoid memory issues
+          pytest -m e2e --cov=src --cov-report=xml --cov-report=term -v --tb=short -x
+        elif [ "${{ matrix.test-group }}" = "performance" ]; then
+          # Run performance tests with memory monitoring
+          pytest -m performance --cov=src --cov-report=xml --cov-report=term -v --tb=short --durations=10
+        fi
+    
+    - name: Upload coverage reports
+      if: matrix.test-group == 'unit'  # Only upload once to avoid duplicates
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage.xml
+        flags: unittests
+        name: codecov-${{ matrix.python-version }}
+        fail_ci_if_error: false  # Don't fail if codecov is down
+
+  coverage-check:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+        cache: 'pip'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install -r requirements-dev.txt
+        pip install coverage-badge
+    
+    - name: Download coverage data
+      uses: actions/download-artifact@v3
+      with:
+        name: coverage-data
+        path: .coverage-data
+    
+    - name: Combine coverage data
+      run: |
+        pip install coverage
+        coverage combine .coverage-data/.coverage.*
+        coverage report --fail-under=85
+        coverage html
+    
+    - name: Generate coverage badge
+      run: |
+        coverage-badge -f -o coverage.svg
+    
+    - name: Upload coverage HTML report
+      uses: actions/upload-artifact@v3
+      with:
+        name: coverage-html-report
+        path: htmlcov/
+        retention-days: 7
+    
+    - name: Comment PR with coverage
+      if: github.event_name == 'pull_request'
+      uses: py-cov-action/python-coverage-comment-action@v3
+      with:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        MINIMUM_GREEN: 85
+        MINIMUM_ORANGE: 70
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+        cache: 'pip'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install flake8 black isort mypy
+    
+    - name: Run linters
+      run: |
+        flake8 src tests --max-line-length=100 --extend-ignore=E203,W503
+        black --check src tests --line-length=100
+        isort --check-only src tests --profile=black --line-length=100
+        mypy src --ignore-missing-imports
+
+  memory-test:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+        cache: 'pip'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install -r requirements-dev.txt
+        pip install memory_profiler psutil
+    
+    - name: Run memory profiling on sample tests
+      run: |
+        # Run a subset of tests with memory profiling
+        python -m memory_profiler tests/test_config.py
+        python -m memory_profiler tests/test_progress_tracker.py
+    
+    - name: Check memory usage
+      run: |
+        # Simple memory check script
+        python -c "
+        import psutil
+        import os
+        
+        process = psutil.Process(os.getpid())
+        memory_mb = process.memory_info().rss / 1024 / 1024
+        print(f'Current memory usage: {memory_mb:.2f} MB')
+        
+        if memory_mb > 500:
+            print('WARNING: High memory usage detected!')
+            exit(1)
+        "

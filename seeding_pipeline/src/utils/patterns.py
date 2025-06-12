@@ -1,12 +1,11 @@
 """Pattern matching utilities for efficient text analysis."""
 
-import re
-import logging
-from typing import List, Dict, Any, Pattern, Optional, Tuple
+from collections import defaultdict
 from dataclasses import dataclass, field
 from functools import lru_cache
-from collections import defaultdict
-
+from typing import List, Dict, Any, Pattern, Optional, Tuple
+import logging
+import re
 logger = logging.getLogger(__name__)
 
 

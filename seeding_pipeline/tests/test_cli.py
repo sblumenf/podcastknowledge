@@ -1,16 +1,16 @@
 """Tests for the CLI interface."""
 
-import json
-import pytest
-import sys
 from pathlib import Path
 from unittest.mock import Mock, patch, MagicMock
+import json
+import sys
 import tempfile
 
+import pytest
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from cli import main, load_podcast_configs, seed_podcasts, health_check, validate_config
+from src.cli.cli import main, load_podcast_configs, process_vtt, checkpoint_status, checkpoint_clean, validate_vtt_file, find_vtt_files
 
 
 class TestCLI:
@@ -63,251 +63,177 @@ class TestCLI:
             with pytest.raises(ValueError, match="Missing 'rss_url'"):
                 load_podcast_configs(Path(f.name))
     
-    @patch('cli.PodcastKnowledgePipeline')
-    def test_seed_podcasts_with_rss_url(self, mock_pipeline_class):
-        """Test seeding with RSS URL argument."""
+    @patch('src.cli.cli.PipelineConfig')
+    @patch('src.cli.cli.VTTKnowledgeExtractor')
+    def test_process_vtt_dry_run(self, mock_pipeline_class, mock_config_class):
+        """Test dry run mode for VTT processing."""
+        # Create mock config
+        mock_config = Mock()
+        mock_config_class.return_value = mock_config
+        
         # Create mock pipeline instance
         mock_pipeline = Mock()
-        mock_pipeline.seed_podcasts.return_value = {
-            'start_time': '2024-01-01T00:00:00',
-            'end_time': '2024-01-01T01:00:00',
-            'podcasts_processed': 1,
-            'episodes_processed': 5,
-            'episodes_failed': 0,
-            'processing_time_seconds': 3600.0
-        }
         mock_pipeline_class.return_value = mock_pipeline
+        
+        # Create test VTT file
+        temp_dir = tempfile.mkdtemp()
+        test_file = Path(temp_dir) / 'test.vtt'
+        test_file.write_text('WEBVTT\n\n00:00:00.000 --> 00:00:05.000\nTest content')
         
         # Create args
         args = Mock()
         args.config = None
-        args.podcast_config = None
-        args.rss_url = 'https://example.com/feed.xml'
-        args.name = 'Test Podcast'
-        args.category = 'Tech'
-        args.max_episodes = 5
-        args.large_context = False
+        args.folder = temp_dir
+        args.pattern = '*.vtt'
+        args.recursive = False
+        args.dry_run = True
+        args.skip_errors = False
+        args.no_checkpoint = True
+        args.checkpoint_dir = 'checkpoints'
         args.verbose = False
         
-        # Run seed_podcasts
-        exit_code = seed_podcasts(args)
+        # Run process_vtt
+        exit_code = process_vtt(args)
         
         # Verify
         assert exit_code == 0
         mock_pipeline_class.assert_called_once()
-        mock_pipeline.seed_podcasts.assert_called_once_with(
-            podcast_configs=[{
-                'name': 'Test Podcast',
-                'rss_url': 'https://example.com/feed.xml',
-                'category': 'Tech'
-            }],
-            max_episodes_each=5,
-            use_large_context=False
-        )
+        # In dry run, process_vtt_file should NOT be called
         mock_pipeline.cleanup.assert_called_once()
     
-    @patch('cli.PodcastKnowledgePipeline')
-    def test_seed_podcasts_with_config_file(self, mock_pipeline_class):
-        """Test seeding with podcast config file."""
-        # Create mock pipeline instance
-        mock_pipeline = Mock()
-        mock_pipeline.seed_podcasts.return_value = {
-            'start_time': '2024-01-01T00:00:00',
-            'end_time': '2024-01-01T01:00:00',
-            'podcasts_processed': 2,
-            'episodes_processed': 10,
-            'episodes_failed': 1,
-            'processing_time_seconds': 7200.0
-        }
-        mock_pipeline_class.return_value = mock_pipeline
+    @patch('src.cli.cli.ProgressCheckpoint')
+    def test_checkpoint_status(self, mock_checkpoint_class):
+        """Test checkpoint status command."""
+        # Create mock checkpoint
+        mock_checkpoint = Mock()
+        mock_checkpoint.get_processed_vtt_files.return_value = [
+            {
+                'file': 'test1.vtt',
+                'hash': 'abcdef1234567890',
+                'segments': 10,
+                'processed_at': '2024-01-01T00:00:00'
+            }
+        ]
+        mock_checkpoint_class.return_value = mock_checkpoint
         
-        # Create podcast config file
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
-            configs = [
-                {"name": "Podcast 1", "rss_url": "https://example1.com/feed.xml"},
-                {"name": "Podcast 2", "rss_url": "https://example2.com/feed.xml"}
-            ]
-            json.dump(configs, f)
+        # Create args
+        args = Mock()
+        args.checkpoint_dir = 'checkpoints'
+        args.verbose = False
+        
+        # Run checkpoint_status
+        exit_code = checkpoint_status(args)
+        
+        # Verify
+        assert exit_code == 0
+        mock_checkpoint.get_processed_vtt_files.assert_called_once()
+    
+    def test_checkpoint_clean(self):
+        """Test checkpoint clean command."""
+        # Create temporary checkpoint directory
+        temp_dir = tempfile.mkdtemp()
+        checkpoint_dir = Path(temp_dir) / 'checkpoints'
+        checkpoint_dir.mkdir()
+        
+        # Create some checkpoint files
+        (checkpoint_dir / 'vtt_checkpoint1.json').write_text('{}')
+        (checkpoint_dir / 'vtt_checkpoint2.json').write_text('{}')
+        
+        # Create args
+        args = Mock()
+        args.checkpoint_dir = str(checkpoint_dir)
+        args.pattern = None
+        args.force = True
+        args.verbose = False
+        
+        # Run checkpoint_clean
+        exit_code = checkpoint_clean(args)
+        
+        # Verify
+        assert exit_code == 0
+        # Check files were deleted
+        assert len(list(checkpoint_dir.glob('*.json'))) == 0
+    
+    def test_main_process_vtt_command(self):
+        """Test main with process-vtt command."""
+        with patch('sys.argv', ['cli.py', 'process-vtt', '--folder', '/tmp', '--dry-run']):
+            with patch('src.cli.cli.process_vtt') as mock_process:
+                mock_process.return_value = 0
+                
+                exit_code = main()
+                
+                assert exit_code == 0
+                mock_process.assert_called_once()
+    
+    def test_main_checkpoint_status_command(self):
+        """Test main with checkpoint-status command."""
+        with patch('sys.argv', ['cli.py', 'checkpoint-status']):
+            with patch('src.cli.cli.checkpoint_status') as mock_status:
+                mock_status.return_value = 0
+                
+                exit_code = main()
+                
+                assert exit_code == 0
+                mock_status.assert_called_once()
+    
+    def test_main_checkpoint_clean_command(self):
+        """Test main with checkpoint-clean command."""
+        with patch('sys.argv', ['cli.py', 'checkpoint-clean', '--force']):
+            with patch('src.cli.cli.checkpoint_clean') as mock_clean:
+                mock_clean.return_value = 0
+                
+                exit_code = main()
+                
+                assert exit_code == 0
+                mock_clean.assert_called_once()
+    
+    def test_main_help(self):
+        """Test CLI help output."""
+        with patch('sys.argv', ['cli.py', '--help']):
+            with pytest.raises(SystemExit) as exc_info:
+                main()
+            
+            # Help should exit with 0
+            assert exc_info.value.code == 0
+    
+    def test_main_no_command(self):
+        """Test main with no command."""
+        with patch('sys.argv', ['cli.py']):
+            exit_code = main()
+            
+            assert exit_code == 1
+    
+    def test_validate_vtt_file(self):
+        """Test VTT file validation."""
+        # Create valid VTT file
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.vtt', delete=False) as f:
+            f.write('WEBVTT\n\n00:00:00.000 --> 00:00:05.000\nTest content')
             f.flush()
             
-            # Create args
-            args = Mock()
-            args.config = None
-            args.podcast_config = f.name
-            args.rss_url = None
-            args.max_episodes = 10
-            args.large_context = True
-            args.verbose = False
+            is_valid, error = validate_vtt_file(Path(f.name))
+            assert is_valid
+            assert error is None
+        
+        # Test invalid file
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.txt', delete=False) as f:
+            f.write('Not a VTT file')
+            f.flush()
             
-            # Run seed_podcasts
-            exit_code = seed_podcasts(args)
-            
-            # Verify
-            assert exit_code == 0  # Success even with some failures
-            mock_pipeline.seed_podcasts.assert_called_once()
+            is_valid, error = validate_vtt_file(Path(f.name))
+            assert not is_valid
+            assert 'Not a VTT file' in error
     
-    @patch('cli.PodcastKnowledgePipeline')
-    def test_seed_podcasts_all_failed(self, mock_pipeline_class):
-        """Test seeding when all episodes fail."""
-        # Create mock pipeline instance
-        mock_pipeline = Mock()
-        mock_pipeline.seed_podcasts.return_value = {
-            'start_time': '2024-01-01T00:00:00',
-            'end_time': '2024-01-01T01:00:00',
-            'podcasts_processed': 1,
-            'episodes_processed': 0,
-            'episodes_failed': 5,
-            'processing_time_seconds': 100.0
-        }
-        mock_pipeline_class.return_value = mock_pipeline
+    def test_find_vtt_files(self):
+        """Test finding VTT files in directory."""
+        # Create temporary directory with VTT files
+        temp_dir = tempfile.mkdtemp()
         
-        # Create args
-        args = Mock()
-        args.config = None
-        args.rss_url = 'https://example.com/feed.xml'
-        args.name = None
-        args.category = None
-        args.podcast_config = None
-        args.max_episodes = 5
-        args.large_context = False
-        args.verbose = False
+        # Create some VTT files
+        (Path(temp_dir) / 'file1.vtt').write_text('WEBVTT\n\ntest')
+        (Path(temp_dir) / 'file2.vtt').write_text('WEBVTT\n\ntest')
+        (Path(temp_dir) / 'other.txt').write_text('not vtt')
         
-        # Run seed_podcasts
-        exit_code = seed_podcasts(args)
-        
-        # Verify
-        assert exit_code == 1  # Failure when all episodes fail
-    
-    @patch('cli.PodcastKnowledgePipeline')
-    def test_health_check_success(self, mock_pipeline_class):
-        """Test successful health check."""
-        # Create mock pipeline instance
-        mock_pipeline = Mock()
-        mock_pipeline.initialize_components.return_value = True
-        mock_pipeline_class.return_value = mock_pipeline
-        
-        # Create args
-        args = Mock()
-        args.config = None
-        args.large_context = False
-        args.verbose = False
-        
-        # Run health check
-        exit_code = health_check(args)
-        
-        # Verify
-        assert exit_code == 0
-        mock_pipeline.initialize_components.assert_called_once_with(use_large_context=False)
-        mock_pipeline.cleanup.assert_called_once()
-    
-    @patch('cli.PodcastKnowledgePipeline')
-    def test_health_check_failure(self, mock_pipeline_class):
-        """Test failed health check."""
-        # Create mock pipeline instance
-        mock_pipeline = Mock()
-        mock_pipeline.initialize_components.return_value = False
-        mock_pipeline_class.return_value = mock_pipeline
-        
-        # Create args
-        args = Mock()
-        args.config = None
-        args.large_context = True
-        args.verbose = False
-        
-        # Run health check
-        exit_code = health_check(args)
-        
-        # Verify
-        assert exit_code == 1
-        mock_pipeline.initialize_components.assert_called_once_with(use_large_context=True)
-    
-    @patch('cli.Config')
-    def test_validate_config_success(self, mock_config_class):
-        """Test successful config validation."""
-        # Create mock config
-        mock_config = Mock()
-        mock_config.neo4j_uri = 'neo4j://localhost:7687'
-        mock_config.model_name = 'gemini-pro'
-        mock_config.batch_size = 10
-        mock_config.max_workers = 4
-        mock_config.checkpoint_enabled = True
-        mock_config_class.from_file.return_value = mock_config
-        
-        # Create args
-        args = Mock()
-        args.config = 'config/test.yml'
-        
-        # Run validate config
-        exit_code = validate_config(args)
-        
-        # Verify
-        assert exit_code == 0
-        mock_config_class.from_file.assert_called_once_with('config/test.yml')
-    
-    @patch('cli.Config')
-    def test_validate_config_failure(self, mock_config_class):
-        """Test failed config validation."""
-        # Make config loading fail
-        mock_config_class.from_file.side_effect = ValueError("Invalid config")
-        
-        # Create args
-        args = Mock()
-        args.config = 'config/bad.yml'
-        
-        # Run validate config
-        exit_code = validate_config(args)
-        
-        # Verify
-        assert exit_code == 1
-    
-    @patch('sys.argv')
-    def test_main_help(self, mock_argv):
-        """Test CLI help output."""
-        mock_argv.__getitem__.side_effect = lambda x: ['cli.py', '--help'][x]
-        mock_argv.__len__.return_value = 2
-        
-        with pytest.raises(SystemExit) as exc_info:
-            main()
-        
-        # Help should exit with 0
-        assert exc_info.value.code == 0
-    
-    @patch('sys.argv')
-    @patch('cli.seed_podcasts')
-    def test_main_seed_command(self, mock_seed_podcasts, mock_argv):
-        """Test main with seed command."""
-        mock_argv.__getitem__.side_effect = lambda x: [
-            'cli.py', 'seed', '--rss-url', 'https://example.com/feed.xml'
-        ][x]
-        mock_argv.__len__.return_value = 4
-        
-        mock_seed_podcasts.return_value = 0
-        
-        exit_code = main()
-        
-        assert exit_code == 0
-        mock_seed_podcasts.assert_called_once()
-    
-    @patch('sys.argv')
-    @patch('cli.health_check')
-    def test_main_health_command(self, mock_health_check, mock_argv):
-        """Test main with health command."""
-        mock_argv.__getitem__.side_effect = lambda x: ['cli.py', 'health'][x]
-        mock_argv.__len__.return_value = 2
-        
-        mock_health_check.return_value = 0
-        
-        exit_code = main()
-        
-        assert exit_code == 0
-        mock_health_check.assert_called_once()
-    
-    @patch('sys.argv')
-    def test_main_no_command(self, mock_argv):
-        """Test main with no command."""
-        mock_argv.__getitem__.side_effect = lambda x: ['cli.py'][x]
-        mock_argv.__len__.return_value = 1
-        
-        exit_code = main()
-        
-        assert exit_code == 1
+        # Test finding files
+        vtt_files = find_vtt_files(Path(temp_dir))
+        assert len(vtt_files) == 2
+        assert all(f.suffix == '.vtt' for f in vtt_files)

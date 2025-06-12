@@ -1,0 +1,216 @@
+name: Coverage Trend Tracking
+
+on:
+  push:
+    branches: [ main ]
+  workflow_run:
+    workflows: ["Test Coverage"]
+    types:
+      - completed
+
+jobs:
+  track-coverage:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'push' }}
+    
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Fetch all history for trend analysis
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+        cache: 'pip'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install coverage matplotlib pandas
+    
+    - name: Download previous coverage data
+      uses: dawidd6/action-download-artifact@v2
+      with:
+        workflow: test-coverage.yml
+        name: coverage-trend-data
+        path: .coverage-history
+        if_no_artifact_found: warn
+    
+    - name: Run coverage analysis
+      run: |
+        # Create coverage trend script
+        cat > track_coverage.py << 'EOF'
+        import json
+        import os
+        import pandas as pd
+        import matplotlib.pyplot as plt
+        from datetime import datetime
+        import subprocess
+        
+        # Run coverage on current code
+        subprocess.run(['coverage', 'run', '-m', 'pytest', '-m', 'unit', '--tb=short'], 
+                      capture_output=True, check=False)
+        coverage_result = subprocess.run(['coverage', 'json', '-o', 'coverage.json'], 
+                                       capture_output=True, text=True)
+        
+        # Load current coverage
+        with open('coverage.json', 'r') as f:
+            current_coverage = json.load(f)
+        
+        # Load historical data
+        history_file = '.coverage-history/coverage_history.json'
+        if os.path.exists(history_file):
+            with open(history_file, 'r') as f:
+                history = json.load(f)
+        else:
+            history = []
+        
+        # Add current data point
+        history.append({
+            'date': datetime.now().isoformat(),
+            'commit': os.environ.get('GITHUB_SHA', 'unknown')[:7],
+            'total_coverage': current_coverage['totals']['percent_covered'],
+            'lines_covered': current_coverage['totals']['covered_lines'],
+            'total_lines': current_coverage['totals']['num_statements']
+        })
+        
+        # Keep only last 50 data points to save memory
+        history = history[-50:]
+        
+        # Save updated history
+        os.makedirs('.coverage-history', exist_ok=True)
+        with open(history_file, 'w') as f:
+            json.dump(history, f, indent=2)
+        
+        # Generate trend chart
+        df = pd.DataFrame(history)
+        df['date'] = pd.to_datetime(df['date'])
+        
+        plt.figure(figsize=(10, 6))
+        plt.plot(df['date'], df['total_coverage'], marker='o', linewidth=2)
+        plt.axhline(y=85, color='r', linestyle='--', label='Target (85%)')
+        plt.title('Test Coverage Trend')
+        plt.xlabel('Date')
+        plt.ylabel('Coverage %')
+        plt.ylim(0, 100)
+        plt.grid(True, alpha=0.3)
+        plt.legend()
+        plt.xticks(rotation=45)
+        plt.tight_layout()
+        plt.savefig('coverage_trend.png', dpi=150)
+        
+        # Generate summary
+        latest = history[-1]
+        print(f"Current Coverage: {latest['total_coverage']:.2f}%")
+        print(f"Lines Covered: {latest['lines_covered']}/{latest['total_lines']}")
+        
+        if len(history) > 1:
+            prev = history[-2]
+            diff = latest['total_coverage'] - prev['total_coverage']
+            print(f"Change: {diff:+.2f}%")
+        EOF
+        
+        python track_coverage.py
+    
+    - name: Upload coverage trend data
+      uses: actions/upload-artifact@v3
+      with:
+        name: coverage-trend-data
+        path: .coverage-history/
+        retention-days: 90
+    
+    - name: Upload coverage trend chart
+      uses: actions/upload-artifact@v3
+      with:
+        name: coverage-trend-chart
+        path: coverage_trend.png
+        retention-days: 30
+    
+    - name: Update README with badge
+      run: |
+        # Create coverage badge update script
+        cat > update_badge.py << 'EOF'
+        import json
+        import re
+        
+        # Load coverage data
+        with open('coverage.json', 'r') as f:
+            coverage = json.load(f)
+        
+        coverage_percent = coverage['totals']['percent_covered']
+        
+        # Determine badge color
+        if coverage_percent >= 85:
+            color = 'brightgreen'
+        elif coverage_percent >= 70:
+            color = 'yellow'
+        else:
+            color = 'red'
+        
+        # Create badge URL
+        badge_url = f"https://img.shields.io/badge/coverage-{coverage_percent:.1f}%25-{color}"
+        
+        # Update README if it exists
+        readme_path = 'README.md'
+        if os.path.exists(readme_path):
+            with open(readme_path, 'r') as f:
+                content = f.read()
+            
+            # Replace existing coverage badge or add new one
+            badge_pattern = r'!\[Coverage\]\(https://img\.shields\.io/badge/coverage-[\d\.]+%25-\w+\)'
+            new_badge = f'![Coverage]({badge_url})'
+            
+            if re.search(badge_pattern, content):
+                content = re.sub(badge_pattern, new_badge, content)
+            else:
+                # Add badge after first heading
+                content = re.sub(r'(^# .+\n)', f'\\1\\n{new_badge}\\n\\n', content, count=1)
+            
+            with open(readme_path, 'w') as f:
+                f.write(content)
+        EOF
+        
+        python update_badge.py || echo "Badge update skipped"
+    
+    - name: Create coverage report comment
+      if: github.event_name == 'push'
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const fs = require('fs');
+          
+          // Read coverage summary
+          let summary = 'Coverage report not available';
+          try {
+            const coverage = JSON.parse(fs.readFileSync('coverage.json', 'utf8'));
+            const percent = coverage.totals.percent_covered.toFixed(2);
+            const covered = coverage.totals.covered_lines;
+            const total = coverage.totals.num_statements;
+            
+            summary = `## Coverage Report
+            
+            - **Total Coverage**: ${percent}%
+            - **Lines Covered**: ${covered}/${total}
+            - **Target**: 85%
+            - **Status**: ${percent >= 85 ? '✅ Passing' : '❌ Below Target'}
+            
+            View the [coverage trend chart](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})`;
+          } catch (e) {
+            console.error('Error reading coverage:', e);
+          }
+          
+          // Create or update comment on latest commit
+          const { owner, repo } = context.repo;
+          const sha = context.sha;
+          
+          try {
+            await github.rest.repos.createCommitComment({
+              owner,
+              repo,
+              commit_sha: sha,
+              body: summary
+            });
+          } catch (e) {
+            console.error('Error creating comment:', e);
+          }

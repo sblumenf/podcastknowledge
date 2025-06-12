@@ -1,23 +1,17 @@
 """
-Segmentation module for podcast transcript processing.
+Segmentation module for VTT transcript processing.
 
-This module handles the segmentation and post-processing of podcast transcripts,
+This module handles the segmentation and post-processing of VTT transcripts,
 including advertisement detection and sentiment analysis.
 """
 
-import re
-import logging
-from typing import List, Dict, Any, Optional
 from dataclasses import dataclass
+from typing import List, Dict, Any, Optional
+import logging
+import re
 
-from ..core import (
-    TranscriptSegment,
-    DiarizationSegment,
-    AudioProvider,
-    constants,
-)
-
-
+from ..core import constants
+from ..core.interfaces import TranscriptSegment
 logger = logging.getLogger(__name__)
 
 
@@ -31,29 +25,25 @@ class SegmentMetadata:
     duration_seconds: float = 0.0
 
 
-class EnhancedPodcastSegmenter:
+class VTTTranscriptSegmenter:
     """
-    Enhanced podcast segmenter with advanced features.
+    VTT transcript segmenter with advanced features.
     
-    This class orchestrates audio processing and adds metadata to segments
+    This class processes transcript segments and adds metadata
     such as advertisement detection and sentiment analysis.
     """
     
-    def __init__(self, audio_provider: AudioProvider, config: Optional[Dict[str, Any]] = None):
+    def __init__(self, config: Optional[Dict[str, Any]] = None):
         """
-        Initialize podcast segmenter with audio provider and configuration.
+        Initialize VTT transcript segmenter with configuration.
         
         Args:
-            audio_provider: Audio provider for transcription and diarization
             config: Configuration dictionary with parameters:
                 - min_segment_tokens: Minimum tokens per segment
                 - max_segment_tokens: Maximum tokens per segment
                 - ad_detection_enabled: Enable advertisement detection
                 - use_semantic_boundaries: Use semantic boundaries for segmentation
-                - min_speakers: Minimum speakers for diarization
-                - max_speakers: Maximum speakers for diarization
         """
-        self.audio_provider = audio_provider
         
         # Default configuration
         default_config = {
@@ -69,72 +59,38 @@ class EnhancedPodcastSegmenter:
         if config:
             self.config.update(config)
             
-        logger.info(f"Initialized EnhancedPodcastSegmenter with config: {self.config}")
+        logger.info(f"Initialized VTTTranscriptSegmenter with config: {self.config}")
         
-    def process_audio(self, audio_path: str) -> Dict[str, Any]:
+    def process_segments(self, segments: List[TranscriptSegment]) -> Dict[str, Any]:
         """
-        Process audio file through transcription and diarization.
+        Process transcript segments.
         
         Args:
-            audio_path: Path to audio file
+            segments: List of transcript segments
             
         Returns:
             Dictionary with processing results:
                 - transcript: List of processed transcript segments
-                - diarization: List of diarization segments
                 - metadata: Additional processing metadata
         """
-        logger.info(f"Processing audio: {audio_path}")
+        logger.info(f"Processing {len(segments)} transcript segments")
         
-        # Transcribe audio
-        try:
-            transcript_segments = self.audio_provider.transcribe(audio_path)
-            logger.info(f"Transcription completed with {len(transcript_segments)} segments")
-        except Exception as e:
-            logger.error(f"Transcription failed: {e}")
+        if not segments:
+            logger.warning("No segments to process")
             return {
                 "transcript": [],
-                "diarization": [],
-                "metadata": {"error": str(e)}
+                "metadata": {"warning": "No segments provided"}
             }
-            
-        if not transcript_segments:
-            logger.warning("No transcript segments generated")
-            return {
-                "transcript": [],
-                "diarization": [],
-                "metadata": {"warning": "No transcript segments"}
-            }
-            
-        # Perform speaker diarization
-        diarization_segments = []
-        if self.config.get('enable_diarization', True):
-            try:
-                logger.info("Performing speaker diarization...")
-                diarization_segments = self.audio_provider.diarize(audio_path)
-                logger.info(f"Diarization completed with {len(diarization_segments)} segments")
-            except Exception as e:
-                logger.warning(f"Diarization failed: {e}")
-                # Continue without diarization
-                
-        # Align transcript with diarization
-        if diarization_segments:
-            logger.info("Aligning transcript with speaker diarization...")
-            transcript_segments = self.audio_provider.align_transcript_with_diarization(
-                transcript_segments,
-                diarization_segments
-            )
             
         # Post-process segments
         logger.info("Post-processing segments...")
-        processed_segments = self._post_process_segments(transcript_segments)
+        processed_segments = self._post_process_segments(segments)
         
         # Calculate metadata
         metadata = self._calculate_metadata(processed_segments)
         
         return {
             "transcript": processed_segments,
-            "diarization": diarization_segments,
             "metadata": metadata
         }
         
@@ -312,3 +268,6 @@ class EnhancedPodcastSegmenter:
             "speakers": sorted(list(speakers)),
             "sentiment_distribution": sentiment_distribution,
         }
+
+# Alias for backward compatibility
+VTTSegmenter = VTTTranscriptSegmenter

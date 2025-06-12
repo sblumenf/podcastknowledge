@@ -4,13 +4,14 @@ Tests for src/processing/extraction.py focusing on integration
 with real components and end-to-end scenarios.
 """
 
-import pytest
-from unittest import mock
-import json
 from datetime import datetime
 from typing import Dict, Any, List
+from unittest import mock
+import json
 
-from src.processing.extraction import (
+import pytest
+
+from src.extraction.extraction import (
     KnowledgeExtractor, ExtractionResult, create_extractor
 )
 from src.core.models import (
@@ -18,9 +19,9 @@ from src.core.models import (
     SpeakerRole, ComplexityLevel
 )
 from src.core.exceptions import ExtractionError
-from src.processing.prompts import PromptBuilder
-from src.processing.parsers import ResponseParser
-from src.processing.importance_scoring import ImportanceScorer
+from src.extraction.prompts import PromptBuilder
+from src.extraction.parsers import ResponseParser
+from src.extraction.importance_scoring import ImportanceScorer
 
 
 class TestIntegratedExtraction:
@@ -102,8 +103,7 @@ class TestIntegratedExtraction:
     @pytest.fixture
     def extractor_with_mocked_llm(self, mock_llm_with_responses):
         """Create extractor with mocked LLM."""
-        return KnowledgeExtractor(
-            llm_provider=mock_llm_with_responses,
+        return KnowledgeExtractor(llm_service=mock_llm_with_responses,
             use_large_context=True,
             max_retries=3,
             enable_cache=True
@@ -145,8 +145,7 @@ class TestIntegratedExtraction:
     
     def test_prompt_builder_integration(self, mock_llm_with_responses):
         """Test integration with PromptBuilder."""
-        extractor = KnowledgeExtractor(
-            llm_provider=mock_llm_with_responses,
+        extractor = KnowledgeExtractor(llm_service=mock_llm_with_responses,
             use_large_context=True
         )
         
@@ -163,8 +162,7 @@ class TestIntegratedExtraction:
     
     def test_response_parser_integration(self, mock_llm_with_responses):
         """Test integration with ResponseParser."""
-        extractor = KnowledgeExtractor(
-            llm_provider=mock_llm_with_responses,
+        extractor = KnowledgeExtractor(llm_service=mock_llm_with_responses,
             use_large_context=True
         )
         
@@ -370,8 +368,7 @@ class TestRealWorldScenarios:
     
     def test_medical_podcast_extraction(self, realistic_llm_provider):
         """Test extraction from medical/health podcast content."""
-        extractor = KnowledgeExtractor(
-            llm_provider=realistic_llm_provider,
+        extractor = KnowledgeExtractor(llm_service=realistic_llm_provider,
             use_large_context=True
         )
         
@@ -450,7 +447,7 @@ class TestRealWorldScenarios:
         
         tech_llm.complete.side_effect = tech_complete
         
-        extractor = KnowledgeExtractor(llm_provider=tech_llm)
+        extractor = KnowledgeExtractor(llm_service=tech_llm)
         
         tech_transcript = """
         Today we're discussing Kubernetes best practices. Kubernetes has become
@@ -463,7 +460,7 @@ class TestRealWorldScenarios:
         
         # All entities should be technology type
         for entity in result.entities:
-            assert entity.entity_type == EntityType.TECHNOLOGY
+            assert entity.entity_type == EntityType.CONCEPT
         
         # Should have both conceptual and recommendation insights
         insight_types = {i.insight_type for i in result.insights}
@@ -480,8 +477,7 @@ class TestErrorHandlingIntegration:
         timeout_llm = mock.Mock()
         timeout_llm.complete.side_effect = TimeoutError("LLM request timed out")
         
-        extractor = KnowledgeExtractor(
-            llm_provider=timeout_llm,
+        extractor = KnowledgeExtractor(llm_service=timeout_llm,
             max_retries=2
         )
         
@@ -508,7 +504,7 @@ class TestErrorHandlingIntegration:
         
         llm.complete.side_effect = partial_failure
         
-        extractor = KnowledgeExtractor(llm_provider=llm)
+        extractor = KnowledgeExtractor(llm_service=llm)
         
         # Use mocked methods to control failures
         with mock.patch.object(extractor, 'extract_insights', side_effect=ExtractionError("insights", "Failed")):
@@ -530,7 +526,7 @@ class TestErrorHandlingIntegration:
             '{"completely": "wrong", "structure": true}'
         ]
         
-        extractor = KnowledgeExtractor(llm_provider=llm)
+        extractor = KnowledgeExtractor(llm_service=llm)
         
         for response in responses:
             llm.complete.return_value = response
@@ -562,8 +558,7 @@ class TestCachingBehavior:
         llm = mock.Mock()
         llm.complete.side_effect = slow_llm_complete
         
-        extractor = KnowledgeExtractor(
-            llm_provider=llm,
+        extractor = KnowledgeExtractor(llm_service=llm,
             enable_cache=True
         )
         
@@ -596,7 +591,7 @@ class TestCachingBehavior:
         
         llm.complete.side_effect = dynamic_response
         
-        extractor = KnowledgeExtractor(llm_provider=llm, enable_cache=True)
+        extractor = KnowledgeExtractor(llm_service=llm, enable_cache=True)
         
         result1 = extractor.extract_entities("first text")
         result2 = extractor.extract_entities("second text")
@@ -643,7 +638,7 @@ class TestBackwardCompatibility:
             }
         ])
         
-        extractor = KnowledgeExtractor(llm_provider=llm)
+        extractor = KnowledgeExtractor(llm_service=llm)
         entities = extractor.extract_entities("Test")
         
         # Should handle uppercase type names

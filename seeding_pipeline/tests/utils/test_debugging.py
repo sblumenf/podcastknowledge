@@ -1,10 +1,12 @@
 """Tests for debugging and error handling utilities."""
 
-import pytest
+from unittest.mock import Mock, patch, MagicMock
 import json
 import logging
 import tempfile
-from unittest.mock import Mock, patch, MagicMock
+
+import pytest
+
 from src.utils.debugging import (
     ErrorSeverity,
     ErrorCategory,

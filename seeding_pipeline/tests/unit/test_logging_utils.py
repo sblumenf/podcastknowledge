@@ -1,23 +1,42 @@
 """Tests for logging utilities - matches actual API."""
 
-import pytest
-import logging
-import json
-import time
-from unittest.mock import Mock, patch, MagicMock
-from io import StringIO
-import sys
+# TODO: This test file needs to be updated to match the actual logging module API.
+# Issues:
+# 1. Several imported classes/functions don't exist in src.utils.logging:
+#    - PerformanceFilter (not in logging module)
+#    - log_with_context (decorator - not in logging module) 
+#    - LogContext (not in logging module)
+#    - create_operation_logger (not in logging module)
+# 2. The actual logging module only exports:
+#    - setup_logging, setup_structured_logging, get_logger
+#    - log_execution_time, log_error_with_context, log_metric
+#    - generate_correlation_id, get_correlation_id, set_correlation_id, with_correlation_id
+#    - StructuredFormatter, ContextFilter
+# 3. Some test assumptions are incorrect:
+#    - setup_logging parameters don't match (json_format vs structured)
+#    - log_error_with_context signature is different
+# 
+# Tests that reference non-existent functions are commented out below.
 
-from src.utils.logging import (
+from io import StringIO
+from unittest.mock import Mock, patch, MagicMock
+import json
+import logging
+import sys
+import time
+
+import pytest
+
+from src.utils.log_utils import (
     StructuredFormatter,
     ContextFilter,
-    PerformanceFilter,
+    # PerformanceFilter,  # Does not exist in logging module
     setup_logging,
     get_logger,
     log_execution_time,
-    log_with_context,
-    LogContext,
-    create_operation_logger,
+    # log_with_context,  # Does not exist in logging module
+    # LogContext,  # Does not exist in logging module
+    # create_operation_logger,  # Does not exist in logging module
     log_error_with_context,
     log_metric
 )
@@ -96,27 +115,28 @@ class TestContextFilter:
         assert hasattr(record, 'hostname')
 
 
-class TestPerformanceFilter:
-    """Test PerformanceFilter class."""
-    
-    def test_filter_adds_performance_data(self):
-        """Test filter adds performance metrics."""
-        filter = PerformanceFilter()
-        
-        record = logging.LogRecord(
-            name="test",
-            level=logging.INFO,
-            pathname="test.py",
-            lineno=1,
-            msg="Test",
-            args=(),
-            exc_info=None
-        )
-        
-        result = filter.filter(record)
-        
-        assert result is True
-        # Performance data might be added based on conditions
+# class TestPerformanceFilter:
+#     """Test PerformanceFilter class."""
+#     # TODO: PerformanceFilter does not exist in the logging module
+#     
+#     def test_filter_adds_performance_data(self):
+#         """Test filter adds performance metrics."""
+#         filter = PerformanceFilter()
+#         
+#         record = logging.LogRecord(
+#             name="test",
+#             level=logging.INFO,
+#             pathname="test.py",
+#             lineno=1,
+#             msg="Test",
+#             args=(),
+#             exc_info=None
+#         )
+#         
+#         result = filter.filter(record)
+#         
+#         assert result is True
+#         # Performance data might be added based on conditions
 
 
 class TestSetupLogging:
@@ -137,9 +157,10 @@ class TestSetupLogging:
     
     def test_setup_json_logging(self):
         """Test JSON format logging setup."""
+        # TODO: setup_logging uses 'structured' not 'json_format'
         setup_logging(
-            log_level="DEBUG",
-            json_format=True
+            level="DEBUG",
+            structured=True
         )
         
         logger = logging.getLogger("test")
@@ -202,73 +223,76 @@ class TestLogExecutionTime:
         mock_logger.info.assert_called_once()
 
 
-class TestLogWithContext:
-    """Test log_with_context decorator."""
-    
-    def test_context_decorator(self):
-        """Test decorator adds context to logs."""
-        @log_with_context(operation="test_op", user_id=123)
-        def test_function():
-            logger = logging.getLogger(__name__)
-            logger.info("Test message")
-            return "done"
-        
-        # Would need to capture logs to verify context
-        result = test_function()
-        assert result == "done"
-    
-    def test_context_decorator_with_error(self):
-        """Test decorator with function that raises."""
-        @log_with_context(operation="failing_op")
-        def failing_function():
-            raise RuntimeError("Test error")
-        
-        with pytest.raises(RuntimeError):
-            failing_function()
+# class TestLogWithContext:
+#     """Test log_with_context decorator."""
+#     # TODO: log_with_context does not exist in the logging module
+#     
+#     def test_context_decorator(self):
+#         """Test decorator adds context to logs."""
+#         @log_with_context(operation="test_op", user_id=123)
+#         def test_function():
+#             logger = logging.getLogger(__name__)
+#             logger.info("Test message")
+#             return "done"
+#         
+#         # Would need to capture logs to verify context
+#         result = test_function()
+#         assert result == "done"
+#     
+#     def test_context_decorator_with_error(self):
+#         """Test decorator with function that raises."""
+#         @log_with_context(operation="failing_op")
+#         def failing_function():
+#             raise RuntimeError("Test error")
+#         
+#         with pytest.raises(RuntimeError):
+#             failing_function()
 
 
-class TestLogContext:
-    """Test LogContext context manager."""
-    
-    def test_log_context_manager(self):
-        """Test context manager for logging."""
-        logger = Mock()
-        
-        with LogContext(logger, request_id="123", user_id=456):
-            # Context should be active
-            pass
-        
-        # Would need to verify context was set and cleared
-        assert True  # Placeholder
-    
-    def test_nested_contexts(self):
-        """Test nested log contexts."""
-        logger = Mock()
-        
-        with LogContext(logger, level1=1):
-            with LogContext(logger, level2=2):
-                # Both contexts should be active
-                pass
+# class TestLogContext:
+#     """Test LogContext context manager."""
+#     # TODO: LogContext does not exist in the logging module
+#     
+#     def test_log_context_manager(self):
+#         """Test context manager for logging."""
+#         logger = Mock()
+#         
+#         with LogContext(logger, request_id="123", user_id=456):
+#             # Context should be active
+#             pass
+#         
+#         # Would need to verify context was set and cleared
+#         assert True  # Placeholder
+#     
+#     def test_nested_contexts(self):
+#         """Test nested log contexts."""
+#         logger = Mock()
+#         
+#         with LogContext(logger, level1=1):
+#             with LogContext(logger, level2=2):
+#                 # Both contexts should be active
+#                 pass
 
 
-class TestCreateOperationLogger:
-    """Test create_operation_logger function."""
-    
-    def test_create_operation_logger(self):
-        """Test creating operation-specific logger."""
-        logger = create_operation_logger(
-            operation="data_processing",
-            correlation_id="abc-123"
-        )
-        
-        assert isinstance(logger, logging.Logger)
-        # Logger should have operation context
-    
-    def test_operation_logger_auto_correlation_id(self):
-        """Test auto-generated correlation ID."""
-        logger = create_operation_logger(operation="test_op")
-        
-        assert isinstance(logger, logging.Logger)
+# class TestCreateOperationLogger:
+#     """Test create_operation_logger function."""
+#     # TODO: create_operation_logger does not exist in the logging module
+#     
+#     def test_create_operation_logger(self):
+#         """Test creating operation-specific logger."""
+#         logger = create_operation_logger(
+#             operation="data_processing",
+#             correlation_id="abc-123"
+#         )
+#         
+#         assert isinstance(logger, logging.Logger)
+#         # Logger should have operation context
+#     
+#     def test_operation_logger_auto_correlation_id(self):
+#         """Test auto-generated correlation ID."""
+#         logger = create_operation_logger(operation="test_op")
+#         
+#         assert isinstance(logger, logging.Logger)
 
 
 class TestLogErrorWithContext:
@@ -279,8 +303,10 @@ class TestLogErrorWithContext:
         logger = Mock()
         error = ValueError("Test error")
         
+        # TODO: Actual signature is log_error_with_context(logger, message, error, context)
         log_error_with_context(
             logger,
+            "Error occurred",  # message parameter is required
             error,
             context={"operation": "test"}
         )
@@ -296,10 +322,12 @@ class TestLogErrorWithContext:
         try:
             raise RuntimeError("Test error")
         except RuntimeError as e:
+            # TODO: Actual signature is log_error_with_context(logger, message, error, context)
+            # include_traceback parameter does not exist
             log_error_with_context(
                 logger,
+                "Runtime error occurred",  # message parameter is required
                 e,
-                include_traceback=True,
                 context={"user_id": 123}
             )
         

@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "timestamp": "2025-05-29T10:54:34.749976",
+  "timestamp": "2025-06-09T23:47:21.434311",
   "thresholds": {
     "extraction_time": {
       "mean": 1.5,
@@ -28,8 +28,8 @@
     }
   },
   "hardware": {
-    "cpu_cores": 8,
-    "memory_gb": 16.0,
-    "platform": "Darwin"
+    "cpu_cores": 4,
+    "memory_gb": 6.453773498535156,
+    "platform": "Linux"
   }
 }

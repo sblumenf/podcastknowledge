@@ -1,0 +1,28 @@
+WEBVTT
+
+00:00:00.000 --> 00:00:10.000
+Welcome to our tech discussion. Today we're exploring the impact of artificial intelligence on software development.
+
+00:00:10.000 --> 00:00:20.000
+AI has fundamentally changed how we approach coding, from intelligent code completion to automated testing.
+
+00:00:20.000 --> 00:00:30.000
+<v Developer>I've been using GitHub Copilot, and it's increased my productivity by at least 30%.
+
+00:00:30.000 --> 00:00:40.000
+<v Host>That's impressive! What specific tasks has it helped you with the most?
+
+00:00:40.000 --> 00:00:50.000
+<v Developer>Mainly boilerplate code and unit test generation. It understands context remarkably well.
+
+00:00:50.000 --> 00:01:00.000
+<v Host>Let's talk about the challenges. What concerns do you have about AI in development?
+
+00:01:00.000 --> 00:01:10.000
+<v Developer>Code quality and security are my main concerns. We need robust review processes.
+
+00:01:10.000 --> 00:01:20.000
+The future of software development will be a collaboration between human creativity and AI efficiency.
+
+00:01:20.000 --> 00:01:30.000
+Thank you for joining us today. Next time, we'll explore AI in data science.

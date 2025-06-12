@@ -1,13 +1,11 @@
 """Dependency mapping for extraction.py and other core modules."""
 
-import json
-import ast
-import os
+from collections import defaultdict
 from pathlib import Path
 from typing import Dict, List, Set, Tuple
-from collections import defaultdict
-
-
+import ast
+import json
+import os
 class DependencyMapper:
     """Map dependencies and usage patterns in the codebase."""
     
@@ -21,43 +19,43 @@ class DependencyMapper:
         extraction_imports = {
             "src/seeding/orchestrator.py": {
                 "line": 19,
-                "import": "from src.processing.extraction import KnowledgeExtractor",
+                "import": "from src.extraction.extraction import KnowledgeExtractor",
                 "usage": ["Instantiates KnowledgeExtractor in _initialize_extraction()"],
                 "critical": True
             },
             "tests/integration/test_golden_outputs_validation.py": {
                 "line": 14,
-                "import": "from src.processing.extraction import KnowledgeExtractor",
+                "import": "from src.extraction.extraction import KnowledgeExtractor",
                 "usage": ["Tests extraction consistency", "Creates golden outputs"],
                 "critical": False
             },
             "tests/integration/test_performance_benchmarks.py": {
                 "line": 18,
-                "import": "from src.processing.extraction import KnowledgeExtractor",
+                "import": "from src.extraction.extraction import KnowledgeExtractor",
                 "usage": ["Benchmarks extraction performance"],
                 "critical": False
             },
             "tests/processing/test_extraction.py": {
                 "line": 10,
-                "import": "from src.processing.extraction import KnowledgeExtractor",
+                "import": "from src.extraction.extraction import KnowledgeExtractor",
                 "usage": ["Unit tests for KnowledgeExtractor"],
                 "critical": False
             },
             "tests/processing/test_importance_scoring.py": {
                 "line": 388,
-                "import": "from src.processing.extraction import KnowledgeExtractor",
+                "import": "from src.extraction.extraction import KnowledgeExtractor",
                 "usage": ["Tests importance scoring integration"],
                 "critical": False
             },
             "scripts/validate_extraction.py": {
                 "line": 21,
-                "import": "from src.processing.extraction import KnowledgeExtractor",
+                "import": "from src.extraction.extraction import KnowledgeExtractor",
                 "usage": ["Validation script for extraction"],
                 "critical": False
             },
             "docs/examples/processing_examples.py": {
                 "line": 4,
-                "import": "from src.processing.extraction import KnowledgeExtractor",
+                "import": "from src.extraction.extraction import KnowledgeExtractor",
                 "usage": ["Documentation examples"],
                 "critical": False
             }
@@ -72,7 +70,7 @@ class DependencyMapper:
                 {
                     "file": "src/seeding/orchestrator.py",
                     "method": "_initialize_extraction",
-                    "pattern": "self.extractor = KnowledgeExtractor(llm_provider=self.llm_provider, embedding_provider=self.embedding_provider)",
+                    "pattern": "self.extractor = KnowledgeExtractor(llm_service=self.llm_provider, embedding_provider=self.embedding_provider)",
                     "dependencies": ["llm_provider", "embedding_provider"]
                 }
             ],

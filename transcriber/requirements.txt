@@ -1,0 +1,30 @@
+# RSS Feed parsing
+feedparser>=6.0.0
+
+# Deepgram API client
+deepgram-sdk==3.0.0
+
+# Environment variable management
+python-dotenv>=1.0.0
+
+# Retry logic with exponential backoff (keeping for potential future use)
+tenacity>=8.0.0
+# YAML configuration parsing
+PyYAML>=6.0.0
+
+# Development dependencies for testing
+pytest>=7.0.0
+pytest-asyncio>=0.21.0
+pytest-mock>=3.10.0
+
+# YouTube Data API v3
+google-api-python-client==2.108.0
+google-auth==2.25.2
+google-auth-httplib2==0.2.0
+
+# Testing utilities
+freezegun==1.4.0
+
+# Type checking
+mypy>=1.0.0
+types-PyYAML>=6.0.0

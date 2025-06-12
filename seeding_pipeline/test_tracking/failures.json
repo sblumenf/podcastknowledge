@@ -1,0 +1,24 @@
+[
+  {
+    "id": "821185ee",
+    "test_name": "test_validation_check",
+    "first_seen": "2025-05-31T15:16:36.323387",
+    "last_seen": "2025-05-31T15:16:36.323387",
+    "error_type": "other",
+    "severity": "low",
+    "status": "new",
+    "root_cause": "",
+    "attempted_fixes": [],
+    "resolution": "",
+    "lessons_learned": "",
+    "metadata": {
+      "test_category": "",
+      "test_file": "",
+      "error_message": "Testing failure tracking system",
+      "stack_trace": "",
+      "environment": "unknown",
+      "frequency": 1,
+      "related_failures": []
+    }
+  }
+]

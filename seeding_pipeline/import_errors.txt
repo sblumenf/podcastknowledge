@@ -1,0 +1,251 @@
+==================================== ERRORS ====================================
+______________________ ERROR collecting tests/test_cli.py ______________________
+ImportError while importing test module '/home/sergeblumenfeld/podcastknowledge/seeding_pipeline/tests/test_cli.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+--
+tests/test_cli.py:13: in <module>
+    from src.cli.cli import main, load_podcast_configs, seed_podcasts, health_check, validate_config
+E   ImportError: cannot import name 'load_podcast_configs' from 'src.cli.cli' (/home/sergeblumenfeld/podcastknowledge/seeding_pipeline/src/cli/cli.py)
+__________________ ERROR collecting tests/api/test_health.py ___________________
+ImportError while importing test module '/home/sergeblumenfeld/podcastknowledge/seeding_pipeline/tests/api/test_health.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+--
+tests/api/test_health.py:7: in <module>
+    from src.api.health import (
+E   ImportError: cannot import name 'ComponentHealth' from 'src.api.health' (/home/sergeblumenfeld/podcastknowledge/seeding_pipeline/src/api/health.py)
+__________________ ERROR collecting tests/api/test_v1_api.py ___________________
+ImportError while importing test module '/home/sergeblumenfeld/podcastknowledge/seeding_pipeline/tests/api/test_v1_api.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+--
+tests/api/test_v1_api.py:8: in <module>
+    from src.api.v1 import (
+E   ImportError: cannot import name 'VTTKnowledgeExtractor' from 'src.api.v1' (/home/sergeblumenfeld/podcastknowledge/seeding_pipeline/src/api/v1/__init__.py)
+_______________ ERROR collecting tests/e2e/test_e2e_scenarios.py _______________
+ImportError while importing test module '/home/sergeblumenfeld/podcastknowledge/seeding_pipeline/tests/e2e/test_e2e_scenarios.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+--
+tests/e2e/test_e2e_scenarios.py:15: in <module>
+    from src.api.v1 import seed_podcast, seed_podcasts, VTTKnowledgeExtractor
+E   ImportError: cannot import name 'VTTKnowledgeExtractor' from 'src.api.v1' (/home/sergeblumenfeld/podcastknowledge/seeding_pipeline/src/api/v1/__init__.py)
+_____________ ERROR collecting tests/e2e/test_vtt_pipeline_e2e.py ______________
+ImportError while importing test module '/home/sergeblumenfeld/podcastknowledge/seeding_pipeline/tests/e2e/test_vtt_pipeline_e2e.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+--
+tests/e2e/test_vtt_pipeline_e2e.py:9: in <module>
+    from src.api.v1 import seed_podcast, VTTKnowledgeExtractor
+E   ImportError: cannot import name 'VTTKnowledgeExtractor' from 'src.api.v1' (/home/sergeblumenfeld/podcastknowledge/seeding_pipeline/src/api/v1/__init__.py)
+___________ ERROR collecting tests/integration/test_cli_commands.py ____________
+ImportError while importing test module '/home/sergeblumenfeld/podcastknowledge/seeding_pipeline/tests/integration/test_cli_commands.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+--
+tests/integration/test_cli_commands.py:15: in <module>
+    from src.cli.cli import main, seed_podcasts, health_check, validate_config, schema_stats
+E   ImportError: cannot import name 'seed_podcasts' from 'src.cli.cli' (/home/sergeblumenfeld/podcastknowledge/seeding_pipeline/src/cli/cli.py)
+______ ERROR collecting tests/integration/test_performance_benchmarks.py _______
+ImportError while importing test module '/home/sergeblumenfeld/podcastknowledge/seeding_pipeline/tests/integration/test_performance_benchmarks.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+--
+tests/integration/test_performance_benchmarks.py:20: in <module>
+    from src.utils.memory import MemoryMonitor
+E   ImportError: cannot import name 'MemoryMonitor' from 'src.utils.memory' (/home/sergeblumenfeld/podcastknowledge/seeding_pipeline/src/utils/memory.py)
+______________ ERROR collecting tests/integration/test_vtt_e2e.py ______________
+ImportError while importing test module '/home/sergeblumenfeld/podcastknowledge/seeding_pipeline/tests/integration/test_vtt_e2e.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+--
+tests/integration/test_vtt_e2e.py:13: in <module>
+    from src.core.extraction_interface import Entity, EntityType, Relationship, RelationshipType
+E   ImportError: cannot import name 'EntityType' from 'src.core.extraction_interface' (/home/sergeblumenfeld/podcastknowledge/seeding_pipeline/src/core/extraction_interface.py)
+_______________ ERROR collecting tests/performance/load_test.py ________________
+ImportError while importing test module '/home/sergeblumenfeld/podcastknowledge/seeding_pipeline/tests/performance/load_test.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+--
+tests/performance/load_test.py:30: in <module>
+    from src.api.v1 import VTTKnowledgeExtractor, seed_podcast
+E   ImportError: cannot import name 'VTTKnowledgeExtractor' from 'src.api.v1' (/home/sergeblumenfeld/podcastknowledge/seeding_pipeline/src/api/v1/__init__.py)
+______ ERROR collecting tests/performance/test_performance_regression.py _______
+ImportError while importing test module '/home/sergeblumenfeld/podcastknowledge/seeding_pipeline/tests/performance/test_performance_regression.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+--
+tests/performance/test_performance_regression.py:16: in <module>
+    from src.api.v1 import seed_podcast, VTTKnowledgeExtractor
+E   ImportError: cannot import name 'VTTKnowledgeExtractor' from 'src.api.v1' (/home/sergeblumenfeld/podcastknowledge/seeding_pipeline/src/api/v1/__init__.py)
+________ ERROR collecting tests/processing/test_complexity_analysis.py _________
+ImportError while importing test module '/home/sergeblumenfeld/podcastknowledge/seeding_pipeline/tests/processing/test_complexity_analysis.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+--
+tests/processing/test_complexity_analysis.py:8: in <module>
+    from src.core.extraction_interface import Entity, Insight, Quote, EntityType, InsightType, QuoteType, ComplexityLevel
+E   ImportError: cannot import name 'EntityType' from 'src.core.extraction_interface' (/home/sergeblumenfeld/podcastknowledge/seeding_pipeline/src/core/extraction_interface.py)
+_________ ERROR collecting tests/processing/test_entity_resolution.py __________
+ImportError while importing test module '/home/sergeblumenfeld/podcastknowledge/seeding_pipeline/tests/processing/test_entity_resolution.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+--
+tests/processing/test_entity_resolution.py:10: in <module>
+    from src.core.extraction_interface import Entity, EntityType
+E   ImportError: cannot import name 'EntityType' from 'src.core.extraction_interface' (/home/sergeblumenfeld/podcastknowledge/seeding_pipeline/src/core/extraction_interface.py)
+_________ ERROR collecting tests/processing/test_importance_scoring.py _________
+ImportError while importing test module '/home/sergeblumenfeld/podcastknowledge/seeding_pipeline/tests/processing/test_importance_scoring.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+--
+tests/processing/test_importance_scoring.py:10: in <module>
+    from src.core.extraction_interface import Entity, Insight, Segment, EntityType, InsightType
+E   ImportError: cannot import name 'EntityType' from 'src.core.extraction_interface' (/home/sergeblumenfeld/podcastknowledge/seeding_pipeline/src/core/extraction_interface.py)
+______________ ERROR collecting tests/processing/test_parsers.py _______________
+ImportError while importing test module '/home/sergeblumenfeld/podcastknowledge/seeding_pipeline/tests/processing/test_parsers.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+--
+tests/processing/test_parsers.py:9: in <module>
+    from src.core.extraction_interface import Entity, Insight, Quote, EntityType, InsightType, QuoteType
+E   ImportError: cannot import name 'EntityType' from 'src.core.extraction_interface' (/home/sergeblumenfeld/podcastknowledge/seeding_pipeline/src/core/extraction_interface.py)
+___________ ERROR collecting tests/processing/test_vtt_extraction.py ___________
+ImportError while importing test module '/home/sergeblumenfeld/podcastknowledge/seeding_pipeline/tests/processing/test_vtt_extraction.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+--
+tests/processing/test_vtt_extraction.py:12: in <module>
+    from src.core.extraction_interface import Entity, Insight, Quote, EntityType, InsightType, QuoteType
+E   ImportError: cannot import name 'EntityType' from 'src.core.extraction_interface' (/home/sergeblumenfeld/podcastknowledge/seeding_pipeline/src/core/extraction_interface.py)
+______________ ERROR collecting tests/seeding/test_concurrency.py ______________
+ImportError while importing test module '/home/sergeblumenfeld/podcastknowledge/seeding_pipeline/tests/seeding/test_concurrency.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+--
+tests/seeding/test_concurrency.py:12: in <module>
+    from src.seeding.concurrency import (
+E   ImportError: cannot import name 'Priority' from 'src.seeding.concurrency' (/home/sergeblumenfeld/podcastknowledge/seeding_pipeline/src/seeding/concurrency.py)
+___________ ERROR collecting tests/unit/test_error_handling_utils.py ___________
+venv/lib/python3.11/site-packages/_pytest/python.py:617: in _importtestmodule
+--
+E   SyntaxError: invalid syntax
+__________ ERROR collecting tests/unit/test_extraction_integration.py __________
+ImportError while importing test module '/home/sergeblumenfeld/podcastknowledge/seeding_pipeline/tests/unit/test_extraction_integration.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+--
+tests/unit/test_extraction_integration.py:14: in <module>
+    from src.extraction.extraction import (
+E   ImportError: cannot import name 'create_extractor' from 'src.extraction.extraction' (/home/sergeblumenfeld/podcastknowledge/seeding_pipeline/src/extraction/extraction.py)
+_____________ ERROR collecting tests/unit/test_extraction_unit.py ______________
+ImportError while importing test module '/home/sergeblumenfeld/podcastknowledge/seeding_pipeline/tests/unit/test_extraction_unit.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+--
+tests/unit/test_extraction_unit.py:14: in <module>
+    from src.extraction.extraction import (
+E   ImportError: cannot import name 'create_extractor' from 'src.extraction.extraction' (/home/sergeblumenfeld/podcastknowledge/seeding_pipeline/src/extraction/extraction.py)
+_____________ ERROR collecting tests/unit/test_interfaces_full.py ______________
+ImportError while importing test module '/home/sergeblumenfeld/podcastknowledge/seeding_pipeline/tests/unit/test_interfaces_full.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+--
+tests/unit/test_interfaces_full.py:17: in <module>
+    from src.core.interfaces import (
+E   ImportError: cannot import name 'AudioProvider' from 'src.core.interfaces' (/home/sergeblumenfeld/podcastknowledge/seeding_pipeline/src/core/interfaces.py)
+_________________ ERROR collecting tests/unit/test_logging.py __________________
+venv/lib/python3.11/site-packages/_pytest/python.py:617: in _importtestmodule
+--
+E   SyntaxError: invalid syntax
+______________ ERROR collecting tests/unit/test_logging_utils.py _______________
+ImportError while importing test module '/home/sergeblumenfeld/podcastknowledge/seeding_pipeline/tests/unit/test_logging_utils.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+--
+tests/unit/test_logging_utils.py:12: in <module>
+    from src.utils.logging import (
+E   ImportError: cannot import name 'ContextFilter' from 'src.utils.logging' (/home/sergeblumenfeld/podcastknowledge/seeding_pipeline/src/utils/logging.py)
+_________________ ERROR collecting tests/unit/test_metrics.py __________________
+import file mismatch:
+--
+HINT: remove __pycache__ / .pyc files and/or use a unique basename for your test file modules
+__________ ERROR collecting tests/unit/test_orchestrator_scenarios.py __________
+ImportError while importing test module '/home/sergeblumenfeld/podcastknowledge/seeding_pipeline/tests/unit/test_orchestrator_scenarios.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+--
+tests/unit/test_orchestrator_scenarios.py:18: in <module>
+    from src.core.extraction_interface import Entity, Insight, Quote, EntityType
+E   ImportError: cannot import name 'EntityType' from 'src.core.extraction_interface' (/home/sergeblumenfeld/podcastknowledge/seeding_pipeline/src/core/extraction_interface.py)
+____________ ERROR collecting tests/unit/test_orchestrator_unit.py _____________
+venv/lib/python3.11/site-packages/_pytest/python.py:617: in _importtestmodule
+--
+E   SyntaxError: invalid syntax
+___________ ERROR collecting tests/unit/test_rate_limiting_utils.py ____________
+ImportError while importing test module '/home/sergeblumenfeld/podcastknowledge/seeding_pipeline/tests/unit/test_rate_limiting_utils.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+--
+tests/unit/test_rate_limiting_utils.py:11: in <module>
+    from src.utils.rate_limiting import (
+E   ImportError: cannot import name 'FixedWindowRateLimiter' from 'src.utils.rate_limiting' (/home/sergeblumenfeld/podcastknowledge/seeding_pipeline/src/utils/rate_limiting.py)
+___________ ERROR collecting tests/unit/test_retry_comprehensive.py ____________
+ImportError while importing test module '/home/sergeblumenfeld/podcastknowledge/seeding_pipeline/tests/unit/test_retry_comprehensive.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+--
+tests/unit/test_retry_comprehensive.py:12: in <module>
+    from src.utils.retry import (
+E   ImportError: cannot import name 'Exception' from 'src.utils.retry' (/home/sergeblumenfeld/podcastknowledge/seeding_pipeline/src/utils/retry.py)
+_______________ ERROR collecting tests/unit/test_retry_utils.py ________________
+ImportError while importing test module '/home/sergeblumenfeld/podcastknowledge/seeding_pipeline/tests/unit/test_retry_utils.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+--
+tests/unit/test_retry_utils.py:9: in <module>
+    from src.utils.retry import (
+E   ImportError: cannot import name 'retry' from 'src.utils.retry' (/home/sergeblumenfeld/podcastknowledge/seeding_pipeline/src/utils/retry.py)
+_______________ ERROR collecting tests/unit/test_segmentation.py _______________
+ImportError while importing test module '/home/sergeblumenfeld/podcastknowledge/seeding_pipeline/tests/unit/test_segmentation.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+--
+tests/unit/test_segmentation.py:12: in <module>
+    from src.processing.segmentation import (
+E   ImportError: cannot import name 'VTTSegmenter' from 'src.processing.segmentation' (/home/sergeblumenfeld/podcastknowledge/seeding_pipeline/src/processing/segmentation.py)
+______ ERROR collecting tests/unit/test_text_processing_comprehensive.py _______
+venv/lib/python3.11/site-packages/_pytest/python.py:617: in _importtestmodule
+--
+E   SyntaxError: invalid syntax
+_________ ERROR collecting tests/unit/test_validation_comprehensive.py _________
+ImportError while importing test module '/home/sergeblumenfeld/podcastknowledge/seeding_pipeline/tests/unit/test_validation_comprehensive.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+--
+src/utils/validation.py:9: in <module>
+    from src.utils.text_processing import normalize_entity_name, calculate_name_similarity
+E   ImportError: cannot import name 'normalize_entity_name' from 'src.utils.text_processing' (/home/sergeblumenfeld/podcastknowledge/seeding_pipeline/src/utils/text_processing.py)
+_____________ ERROR collecting tests/unit/test_validation_utils.py _____________
+ImportError while importing test module '/home/sergeblumenfeld/podcastknowledge/seeding_pipeline/tests/unit/test_validation_utils.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+--
+src/utils/validation.py:9: in <module>
+    from src.utils.text_processing import normalize_entity_name, calculate_name_similarity
+E   ImportError: cannot import name 'normalize_entity_name' from 'src.utils.text_processing' (/home/sergeblumenfeld/podcastknowledge/seeding_pipeline/src/utils/text_processing.py)
+_____________ ERROR collecting tests/utils/test_text_processing.py _____________
+venv/lib/python3.11/site-packages/_pytest/python.py:617: in _importtestmodule
+--
+E   SyntaxError: invalid syntax
+_______________ ERROR collecting tests/utils/test_validation.py ________________
+ImportError while importing test module '/home/sergeblumenfeld/podcastknowledge/seeding_pipeline/tests/utils/test_validation.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+--
+src/utils/validation.py:9: in <module>
+    from src.utils.text_processing import normalize_entity_name, calculate_name_similarity
+E   ImportError: cannot import name 'normalize_entity_name' from 'src.utils.text_processing' (/home/sergeblumenfeld/podcastknowledge/seeding_pipeline/src/utils/text_processing.py)
+=============================== warnings summary ===============================
+venv/lib/python3.11/site-packages/pythonjsonlogger/jsonlogger.py:11

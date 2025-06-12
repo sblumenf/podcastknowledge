@@ -1,0 +1,114 @@
+# Codecov configuration for podcast transcriber
+# Memory-efficient coverage reporting settings
+
+coverage:
+  # Overall project coverage requirements
+  status:
+    project:
+      default:
+        target: 85%  # Minimum acceptable coverage
+        threshold: 2%  # Allow 2% drop in coverage
+        base: auto
+        flags:
+          - unittests
+        if_ci_failed: error
+    
+    # Individual PR coverage requirements
+    patch:
+      default:
+        target: 80%  # New code must have 80% coverage
+        threshold: 5%
+        base: auto
+        if_ci_failed: error
+
+  # Coverage precision
+  precision: 2
+  round: down
+  range: "70...100"
+
+# Coverage by component
+component_management:
+  default_rules:
+    statuses:
+      - type: project
+        target: auto
+        threshold: 1%
+  
+  individual_components:
+    - component_id: critical_path
+      name: Critical Path Modules
+      paths:
+        - src/orchestrator.py
+        - src/transcription_processor.py
+        - src/checkpoint_recovery.py
+        - src/retry_wrapper.py
+    
+    - component_id: api_integration
+      name: API Integration
+      paths:
+        - src/gemini_client.py
+        - src/youtube_searcher.py
+        - src/key_rotation_manager.py
+    
+    - component_id: data_management
+      name: Data Management
+      paths:
+        - src/metadata_index.py
+        - src/file_organizer.py
+        - src/utils/state_management.py
+    
+    - component_id: utilities
+      name: Utilities
+      paths:
+        - src/utils/*.py
+        - src/speaker_identifier.py
+        - src/vtt_generator.py
+
+# File ignore patterns
+ignore:
+  - "tests/**/*"
+  - "setup.py"
+  - "**/__pycache__/**/*"
+  - "**/venv/**/*"
+  - "scripts/**/*"
+  - "docs/**/*"
+
+# Comment behavior
+comment:
+  layout: "reach, diff, flags, files"
+  behavior: default
+  require_changes: false
+  require_base: false
+  require_head: true
+  branches:
+    - main
+    - develop
+    - transcript-input
+
+# Flag configuration
+flags:
+  unittests:
+    paths:
+      - src/
+    carryforward: true
+    
+  integration:
+    paths:
+      - src/
+    carryforward: false
+
+# GitHub integration
+github_checks:
+  annotations: true
+  
+# Parsers configuration (memory optimization)
+parsers:
+  gcov:
+    branch_detection:
+      conditional: yes
+      loop: yes
+      method: no
+      macro: no
+  
+  javascript:
+    enable_partials: no

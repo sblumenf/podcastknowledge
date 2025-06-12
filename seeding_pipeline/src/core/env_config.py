@@ -5,10 +5,15 @@ This module provides a single place to access all environment variables
 with validation, helpful error messages, and defaults.
 """
 
-import os
 from typing import Optional, Dict, Any
+import os
+from pathlib import Path
+from dotenv import load_dotenv
 
-
+# Load .env file if it exists
+env_path = Path('.env')
+if env_path.exists():
+    load_dotenv(env_path)
 class EnvironmentConfig:
     """Centralized environment variable access with validation."""
     
@@ -96,7 +101,57 @@ class EnvironmentConfig:
             "GOOGLE_API_KEY": cls.get_optional(
                 "GOOGLE_API_KEY",
                 None,
-                "Google API key for Gemini models"
+                "Google API key for Gemini models (backward compatibility)"
+            ),
+            "GEMINI_API_KEY": cls.get_optional(
+                "GEMINI_API_KEY",
+                None,
+                "Primary Gemini API key (alternative to GOOGLE_API_KEY)"
+            ),
+            "GEMINI_API_KEY_1": cls.get_optional(
+                "GEMINI_API_KEY_1",
+                None,
+                "First Gemini API key for rotation"
+            ),
+            "GEMINI_API_KEY_2": cls.get_optional(
+                "GEMINI_API_KEY_2",
+                None,
+                "Second Gemini API key for rotation"
+            ),
+            "GEMINI_API_KEY_3": cls.get_optional(
+                "GEMINI_API_KEY_3",
+                None,
+                "Third Gemini API key for rotation"
+            ),
+            "GEMINI_API_KEY_4": cls.get_optional(
+                "GEMINI_API_KEY_4",
+                None,
+                "Fourth Gemini API key for rotation"
+            ),
+            "GEMINI_API_KEY_5": cls.get_optional(
+                "GEMINI_API_KEY_5",
+                None,
+                "Fifth Gemini API key for rotation"
+            ),
+            "GEMINI_API_KEY_6": cls.get_optional(
+                "GEMINI_API_KEY_6",
+                None,
+                "Sixth Gemini API key for rotation"
+            ),
+            "GEMINI_API_KEY_7": cls.get_optional(
+                "GEMINI_API_KEY_7",
+                None,
+                "Seventh Gemini API key for rotation"
+            ),
+            "GEMINI_API_KEY_8": cls.get_optional(
+                "GEMINI_API_KEY_8",
+                None,
+                "Eighth Gemini API key for rotation"
+            ),
+            "GEMINI_API_KEY_9": cls.get_optional(
+                "GEMINI_API_KEY_9",
+                None,
+                "Ninth Gemini API key for rotation"
             ),
             "OPENAI_API_KEY": cls.get_optional(
                 "OPENAI_API_KEY",
@@ -114,16 +169,6 @@ class EnvironmentConfig:
                 "USE_SCHEMALESS_EXTRACTION",
                 False,
                 "Enable schemaless entity extraction"
-            ),
-            "ENABLE_TRACING": cls.get_bool(
-                "ENABLE_TRACING",
-                False,
-                "Enable distributed tracing with Jaeger"
-            ),
-            "ENABLE_METRICS": cls.get_bool(
-                "ENABLE_METRICS",
-                False,
-                "Enable Prometheus metrics collection"
             ),
             
             # Performance Settings
@@ -166,22 +211,54 @@ class EnvironmentConfig:
                 4.0,
                 "Maximum memory usage in GB"
             ),
+            "MAX_MEMORY_MB": cls.get_int(
+                "MAX_MEMORY_MB",
+                2048,
+                "Maximum memory usage in MB"
+            ),
+            "MAX_CONCURRENT_FILES": cls.get_int(
+                "MAX_CONCURRENT_FILES",
+                1,
+                "Maximum concurrent files to process"
+            ),
+            "BATCH_SIZE": cls.get_int(
+                "BATCH_SIZE",
+                10,
+                "Processing batch size"
+            ),
             
-            # Tracing Configuration
-            "JAEGER_AGENT_HOST": cls.get_optional(
-                "JAEGER_AGENT_HOST",
-                "localhost",
-                "Jaeger agent hostname"
+            # Feature Flags
+            "ENABLE_ENHANCED_LOGGING": cls.get_bool(
+                "ENABLE_ENHANCED_LOGGING",
+                False,
+                "Enable enhanced logging with rotation and JSON format"
             ),
-            "JAEGER_AGENT_PORT": cls.get_int(
-                "JAEGER_AGENT_PORT",
-                6831,
-                "Jaeger agent port"
+            "ENABLE_METRICS": cls.get_bool(
+                "ENABLE_METRICS",
+                False,
+                "Enable metrics collection"
             ),
-            "SERVICE_NAME": cls.get_optional(
-                "SERVICE_NAME",
-                "podcast-kg-pipeline",
-                "Service name for tracing"
+            
+            # Development Settings
+            "DEBUG_MODE": cls.get_bool(
+                "DEBUG_MODE",
+                False,
+                "Enable debug mode"
+            ),
+            "CHECKPOINT_DIR": cls.get_optional(
+                "CHECKPOINT_DIR",
+                "checkpoints",
+                "Directory for storing checkpoints"
+            ),
+            "OUTPUT_DIR": cls.get_optional(
+                "OUTPUT_DIR",
+                "output",
+                "Directory for output files"
+            ),
+            "STATE_DIR": cls.get_optional(
+                "STATE_DIR",
+                "data",
+                "Directory for storing API key rotation state files"
             ),
         }
     

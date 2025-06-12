@@ -1,15 +1,14 @@
 """Metrics and scoring functionality for content analysis."""
 
-import re
-import logging
-from typing import Dict, Any, List, Optional, Tuple
-from dataclasses import dataclass
-from statistics import mean, stdev
 from collections import Counter
+from dataclasses import dataclass
+from typing import Dict, Any, List, Optional, Tuple
+import logging
+import re
+
+from statistics import mean, stdev
 
 from src.core.models import Entity, Insight, ComplexityLevel
-
-
 logger = logging.getLogger(__name__)
 
 
@@ -56,9 +55,10 @@ class MetricsCalculator:
         """Initialize metrics calculator."""
         # Technical term patterns
         self.technical_patterns = [
-            r'\b[A-Z]{3,}\b',  # Acronyms
+            r'\b[A-Z]{2,}[A-Z0-9]*\b',  # Acronyms (at least 2 uppercase letters)
             r'\b\w+(?:ology|itis|osis|ase|ine|cyte|plasm)\b',  # Medical/scientific suffixes
-            r'\b(?:neuro|cardio|hypo|hyper|anti|meta|poly|mono|bi|tri)\w+\b',  # Technical prefixes
+            r'\b(?:neuro|cardio|hypo|hyper|anti|meta|poly|mono)\w+\b',  # Technical prefixes
+            r'\b(?:bi|tri)(?:lateral|modal|polar|nary|cycle|weekly|monthly|annual)\b',  # bi/tri compounds
             r'\b(?:algorithm|protocol|methodology|hypothesis|synthesis)\b',
             r'\b(?:receptor|enzyme|pathway|mechanism|substrate)\b',
         ]
@@ -110,7 +110,7 @@ class MetricsCalculator:
             
             technical_entity_count = sum(
                 1 for entity in entities
-                if entity.type in technical_types
+                if str(entity.entity_type).split('.')[-1] in technical_types
             )
             
         # Calculate composite complexity score
@@ -254,10 +254,14 @@ class MetricsCalculator:
         avg_sentence_length = len(words) / len(sentences)
         
         # Count jargon and explanations
-        jargon_count = sum(
-            len(re.findall(pattern, text, re.IGNORECASE))
-            for pattern in self.technical_patterns
-        )
+        jargon_count = 0
+        for i, pattern in enumerate(self.technical_patterns):
+            # First pattern (acronyms) should be case sensitive
+            if i == 0:
+                matches = re.findall(pattern, text)
+            else:
+                matches = re.findall(pattern, text, re.IGNORECASE)
+            jargon_count += len(matches)
         
         explanation_count = sum(
             len(re.findall(pattern, text, re.IGNORECASE))
@@ -414,10 +418,14 @@ class MetricsCalculator:
         unique_ratio = len(unique_words) / len(words)
         
         # Technical term density
-        technical_count = sum(
-            len(re.findall(pattern, text, re.IGNORECASE))
-            for pattern in self.technical_patterns
-        )
+        technical_count = 0
+        for i, pattern in enumerate(self.technical_patterns):
+            # First pattern (acronyms) should be case sensitive
+            if i == 0:
+                matches = re.findall(pattern, text)
+            else:
+                matches = re.findall(pattern, text, re.IGNORECASE)
+            technical_count += len(matches)
         technical_density = technical_count / len(words)
         
         # Syllable complexity

@@ -6,19 +6,18 @@ components in the extraction pipeline, helping identify redundant or
 low-impact components that can be removed.
 """
 
-import time
-import json
-import functools
-from pathlib import Path
-from typing import Dict, Any, List, Optional, Callable, Tuple
+from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import datetime
+from pathlib import Path
+from typing import Dict, Any, List, Optional, Callable, Tuple
+import functools
 import hashlib
-from collections import defaultdict
+import json
+import time
 
-from ..utils.logging import get_logger
 from ..api.metrics import get_metrics_collector
-
+from ..utils.log_utils import get_logger
 logger = get_logger(__name__)
 
 
@@ -111,6 +110,11 @@ class ComponentTracker:
         # Save to disk
         self._save_impact(impact)
         
+    def track_contribution(self, contribution: ComponentContribution) -> None:
+        """Track a component contribution."""
+        # Save to disk
+        self._save_contribution(contribution)
+        
     def _save_impact(self, impact: ComponentImpact) -> None:
         """Save impact data to disk."""
         file_path = self.output_dir / f"{impact.component_name}_impacts.jsonl"
@@ -126,6 +130,20 @@ class ComponentTracker:
                 "relationships_added": impact.relationships_added,
                 "metadata": impact.metadata,
                 "timestamp": impact.timestamp
+            }, f)
+            f.write('\n')
+    
+    def _save_contribution(self, contribution: ComponentContribution) -> None:
+        """Save contribution data to disk."""
+        file_path = self.output_dir / f"{contribution.component_name}_contributions.jsonl"
+        
+        with open(file_path, 'a') as f:
+            json.dump({
+                "component_name": contribution.component_name,
+                "contribution_type": contribution.contribution_type,
+                "count": contribution.count,
+                "examples": contribution.examples,
+                "metadata": contribution.metadata
             }, f)
             f.write('\n')
     

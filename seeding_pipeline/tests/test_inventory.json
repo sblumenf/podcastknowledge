@@ -1,0 +1,1210 @@
+{
+  "vtt_core": [
+    {
+      "file": "tests/test_component_baselines.py",
+      "tests": [
+        "test_run_raw_baseline",
+        "test_component_impact_tracking",
+        "test_compare_baselines",
+        "test_all_baselines"
+      ],
+      "count": 4
+    },
+    {
+      "file": "tests/test_cli.py",
+      "tests": [
+        "test_load_podcast_configs_single",
+        "test_load_podcast_configs_multiple",
+        "test_load_podcast_configs_missing_rss_url",
+        "test_process_vtt_single_file",
+        "test_process_vtt_dry_run",
+        "test_checkpoint_status",
+        "test_checkpoint_clean",
+        "test_main_process_vtt_command",
+        "test_main_checkpoint_status_command",
+        "test_main_checkpoint_clean_command",
+        "test_main_help",
+        "test_main_no_command",
+        "test_validate_vtt_file",
+        "test_find_vtt_files"
+      ],
+      "count": 14
+    },
+    {
+      "file": "tests/test_minimal.py",
+      "tests": [
+        "test_vtt_file_validation",
+        "test_invalid_vtt_file",
+        "test_environment_config",
+        "test_resource_detection",
+        "test_cli_help",
+        "test_minimal_cli_help",
+        "test_validation_script",
+        "test_directory_creation",
+        "test_env_template_exists"
+      ],
+      "count": 9
+    },
+    {
+      "file": "tests/e2e/test_critical_path.py",
+      "tests": [
+        "test_episode",
+        "test_vtt_to_knowledge_graph_flow",
+        "test_pipeline_with_empty_vtt",
+        "test_pipeline_with_extraction_failure",
+        "test_pipeline_with_storage_failure"
+      ],
+      "count": 5
+    },
+    {
+      "file": "tests/e2e/test_vtt_pipeline_e2e.py",
+      "tests": [
+        "test_config",
+        "test_vtt_file_processing",
+        "test_knowledge_extraction",
+        "test_multiple_episodes"
+      ],
+      "count": 4
+    },
+    {
+      "file": "tests/e2e/test_vtt_processing_scenarios.py",
+      "tests": [
+        "test_config",
+        "test_scenario_new_user_first_vtt",
+        "test_batch_process_vtt_files",
+        "test_vtt_checkpoint_recovery",
+        "test_scenario_error_handling_partial_success",
+        "test_scenario_vtt_directory_processing"
+      ],
+      "count": 6
+    },
+    {
+      "file": "tests/performance/test_vtt_performance_benchmarks.py",
+      "tests": [
+        "test_small_file_processing_benchmark",
+        "test_large_file_processing_benchmark",
+        "test_batch_processing_scalability",
+        "test_memory_usage_patterns",
+        "test_vtt_parser_performance",
+        "test_concurrent_processing_performance",
+        "test_save_benchmark_results"
+      ],
+      "count": 7
+    },
+    {
+      "file": "tests/performance/test_benchmarks.py",
+      "tests": [
+        "test_vtt_parsing_performance",
+        "test_knowledge_extraction_performance",
+        "test_neo4j_writes_performance",
+        "test_total_pipeline_performance",
+        "test_baseline_data_validity",
+        "test_performance_test_file_validity",
+        "test_performance_benchmark_integration"
+      ],
+      "count": 7
+    },
+    {
+      "file": "tests/performance/test_batch_performance.py",
+      "tests": [
+        "test_batch_performance_baseline",
+        "test_memory_usage_growth",
+        "test_concurrent_performance_scaling",
+        "test_checkpoint_overhead",
+        "test_performance_thresholds"
+      ],
+      "count": 5
+    },
+    {
+      "file": "tests/performance/test_baseline_performance.py",
+      "tests": [
+        "test_single_file_performance",
+        "test_batch_performance",
+        "test_memory_usage_growth"
+      ],
+      "count": 3
+    },
+    {
+      "file": "tests/processing/test_vtt_parser.py",
+      "tests": [
+        "test_parse_simple_vtt",
+        "test_parse_vtt_with_speakers",
+        "test_parse_vtt_with_cue_ids",
+        "test_parse_vtt_with_settings",
+        "test_parse_multiline_cues",
+        "test_parse_timestamp_formats",
+        "test_invalid_timestamp_format",
+        "test_extract_speaker",
+        "test_missing_webvtt_header",
+        "test_invalid_timestamp_in_content",
+        "test_malformed_vtt",
+        "test_empty_content",
+        "test_whitespace_only_content",
+        "test_parse_file",
+        "test_parse_nonexistent_file",
+        "test_merge_short_segments",
+        "test_merge_segments_different_speakers",
+        "test_merge_empty_segments_list",
+        "test_normalize_segment",
+        "test_normalize_segment_alternate_fields",
+        "test_normalize_segment_minimal",
+        "test_vtt_with_only_header",
+        "test_vtt_with_metadata",
+        "test_cue_with_empty_text"
+      ],
+      "count": 24
+    },
+    {
+      "file": "tests/processing/test_vtt_extraction.py",
+      "tests": [
+        "test_vtt_to_segments_parsing",
+        "test_extract_entities_from_vtt_segments",
+        "test_extract_insights_from_vtt_segments",
+        "test_extract_quotes_from_vtt_segments",
+        "test_full_extraction_pipeline_with_vtt",
+        "test_extraction_with_merged_segments",
+        "test_extraction_preserves_segment_metadata",
+        "test_empty_vtt_extraction",
+        "test_vtt_extraction_error_handling",
+        "test_vtt_segment_id_preservation"
+      ],
+      "count": 10
+    },
+    {
+      "file": "tests/utils/test_helpers.py",
+      "tests": [
+        "test_speaker",
+        "test_segment",
+        "test_episode",
+        "test_entity",
+        "test_quote",
+        "test_extraction_result"
+      ],
+      "count": 6
+    }
+  ],
+  "vtt_integration": [
+    {
+      "file": "tests/integration/test_checkpoint_recovery.py",
+      "tests": [
+        "test_checkpoint_creation_and_recovery",
+        "test_checkpoint_resume_interrupted_processing",
+        "test_checkpoint_compatibility_between_modes",
+        "test_checkpoint_distributed_locking",
+        "test_checkpoint_version_migration",
+        "test_checkpoint_schema_discovery_tracking",
+        "test_checkpoint_corruption_recovery",
+        "test_checkpoint_cleanup_old_files"
+      ],
+      "count": 8
+    },
+    {
+      "file": "tests/integration/test_cli_commands.py",
+      "tests": [
+        "test_config_file",
+        "test_podcast_config",
+        "test_seed_command_single_podcast",
+        "test_seed_command_schemaless_mode",
+        "test_seed_command_migration_mode",
+        "test_seed_command_podcast_config_file",
+        "test_seed_command_with_custom_config",
+        "test_seed_command_large_context_flag",
+        "test_health_command",
+        "test_health_command_with_large_context",
+        "test_health_command_failure",
+        "test_validate_config_command",
+        "test_validate_config_invalid_file",
+        "test_schema_stats_command",
+        "test_schema_stats_no_data",
+        "test_flag_validation_migration_mode_conflict",
+        "test_flag_validation_schema_discovery_conflict",
+        "test_verbose_flag",
+        "test_no_command_shows_help"
+      ],
+      "count": 19
+    },
+    {
+      "file": "tests/integration/test_comprehensive_extraction_modes.py",
+      "tests": [
+        "test_config",
+        "test_fixed_schema_extraction_end_to_end",
+        "test_schemaless_extraction_end_to_end",
+        "test_dual_mode_migration_extraction"
+      ],
+      "count": 4
+    },
+    {
+      "file": "tests/integration/test_golden_outputs_validation.py",
+      "tests": [
+        "test_create_golden_output_fixed_schema",
+        "test_create_golden_output_schemaless",
+        "test_compare_with_golden_output_fixed_schema",
+        "test_document_expected_entity_types",
+        "test_migration_mode_golden_output"
+      ],
+      "count": 5
+    },
+    {
+      "file": "tests/integration/test_performance_benchmarks.py",
+      "tests": [
+        "test_config",
+        "test_benchmark_extraction_time_per_episode",
+        "test_benchmark_memory_usage_patterns",
+        "test_benchmark_neo4j_query_performance",
+        "test_create_baseline_metrics_file"
+      ],
+      "count": 5
+    },
+    {
+      "file": "tests/integration/test_signal_handling.py",
+      "tests": [
+        "test_config",
+        "test_sigint_graceful_shutdown",
+        "test_sigterm_graceful_shutdown",
+        "test_resource_cleanup_on_shutdown",
+        "test_checkpoint_save_on_interrupt",
+        "test_concurrent_shutdown_safety",
+        "test_signal_handler_registration"
+      ],
+      "count": 7
+    },
+    {
+      "file": "tests/integration/test_vtt_e2e.py",
+      "tests": [
+        "test_single_vtt_file_processing",
+        "test_vtt_to_graph_entities",
+        "test_vtt_to_graph_relationships",
+        "test_batch_vtt_processing",
+        "test_checkpoint_integration",
+        "test_error_recovery_in_batch",
+        "test_vtt_metadata_in_graph",
+        "test_speaker_relationships",
+        "test_vtt_processing_statistics"
+      ],
+      "count": 9
+    },
+    {
+      "file": "tests/integration/test_vtt_batch_processing.py",
+      "tests": [
+        "test_mixed_file_type_processing",
+        "test_parallel_processing_performance",
+        "test_interruption_and_resume",
+        "test_memory_usage_monitoring",
+        "test_concurrent_file_access",
+        "test_processing_timeout_handling",
+        "test_error_recovery_strategies",
+        "test_batch_size_optimization",
+        "test_file_change_detection",
+        "test_resource_cleanup"
+      ],
+      "count": 10
+    },
+    {
+      "file": "tests/integration/test_batch_processing_core.py",
+      "tests": [
+        "test_process_multiple_files",
+        "test_checkpoint_recovery",
+        "test_duplicate_file_handling",
+        "test_concurrent_processing",
+        "test_batch_size_handling",
+        "test_memory_limit_enforcement",
+        "test_progress_callback",
+        "test_error_handling_per_item",
+        "test_batch_performance_tracking",
+        "test_schema_discovery_tracking"
+      ],
+      "count": 10
+    },
+    {
+      "file": "tests/integration/test_failure_recovery.py",
+      "tests": [
+        "test_recover_from_llm_failure",
+        "test_recover_from_neo4j_disconnect",
+        "test_recover_from_corrupt_vtt",
+        "test_checkpoint_integrity",
+        "test_partial_batch_failure",
+        "test_cascading_failure_prevention",
+        "test_retry_mechanism",
+        "test_graceful_shutdown_during_processing",
+        "test_checkpoint_recovery_with_schema_evolution",
+        "test_concurrent_failure_handling"
+      ],
+      "count": 10
+    },
+    {
+      "file": "tests/integration/test_vtt_processing.py",
+      "tests": [
+        "test_parse_real_vtt_file",
+        "test_parse_corrupt_vtt",
+        "test_parse_empty_vtt",
+        "test_parse_large_vtt",
+        "test_parse_special_characters",
+        "test_parse_multiline_segments",
+        "test_extract_knowledge_from_segment",
+        "test_entity_deduplication",
+        "test_relationship_extraction",
+        "test_empty_segment_handling"
+      ],
+      "count": 10
+    },
+    {
+      "file": "tests/integration/test_e2e_critical_path.py",
+      "tests": [
+        "test_vtt_to_neo4j_pipeline",
+        "test_batch_processing",
+        "test_batch_with_failures",
+        "test_checkpoint_recovery"
+      ],
+      "count": 4
+    },
+    {
+      "file": "tests/integration/test_vtt_pipeline_integration.py",
+      "tests": [
+        "test_config",
+        "test_pipeline_initialization",
+        "test_vtt_parser_integration",
+        "test_knowledge_extractor_integration",
+        "test_graph_storage_integration",
+        "test_component_initialization_with_providers",
+        "test_process_vtt_files_integration",
+        "test_cleanup",
+        "test_error_handling_in_vtt_processing"
+      ],
+      "count": 9
+    }
+  ],
+  "vtt_unit": [
+    {
+      "file": "tests/unit/test_orchestrator_scenarios.py",
+      "tests": [
+        "test_complete_podcast_processing",
+        "test_podcast_processing_with_failures",
+        "test_checkpoint_recovery_scenario",
+        "test_schemaless_extraction_scenario",
+        "test_large_batch_processing",
+        "test_memory_cleanup_after_processing",
+        "test_memory_monitoring_during_batch",
+        "test_signal_handling_during_processing",
+        "test_minimal_configuration",
+        "test_custom_configuration",
+        "test_provider_initialization_retry",
+        "test_graceful_degradation",
+        "test_batch_size_impact",
+        "test_checkpoint_frequency"
+      ],
+      "count": 14
+    },
+    {
+      "file": "tests/unit/test_orchestrator_unit.py",
+      "tests": [
+        "test_pipeline_initialization",
+        "test_pipeline_default_config",
+        "test_setup_logging",
+        "test_setup_logging_with_file",
+        "test_setup_tracing",
+        "test_initialize_components_success",
+        "test_initialize_components_provider_failure",
+        "test_initialize_components_health_check_failure",
+        "test_verify_components_health",
+        "test_cleanup",
+        "test_seed_podcast",
+        "test_seed_podcasts_single_config",
+        "test_seed_podcasts_initialization_required",
+        "test_seed_podcasts_initialization_failure",
+        "test_seed_podcasts_with_shutdown",
+        "test_seed_podcasts_with_errors",
+        "test_seed_podcasts_schemaless_mode",
+        "test_process_podcast",
+        "test_process_podcast_with_episode_failure",
+        "test_process_podcast_schemaless_metrics",
+        "test_process_episode",
+        "test_resume_from_checkpoints",
+        "test_signal_manager_setup",
+        "test_backward_compatible_attributes",
+        "test_empty_podcast_list",
+        "test_invalid_config_type"
+      ],
+      "count": 26
+    },
+    {
+      "file": "tests/unit/test_api.py",
+      "tests": [
+        "test_create_app",
+        "test_app_routes",
+        "test_app_middleware",
+        "test_root_endpoint",
+        "test_health_check_all_healthy",
+        "test_health_check_degraded",
+        "test_health_check_unhealthy",
+        "test_metrics_endpoint",
+        "test_seed_podcast_success",
+        "test_seed_podcast_validation_error",
+        "test_seed_podcast_processing_error",
+        "test_tracing_middleware_success",
+        "test_tracing_middleware_error",
+        "test_404_error",
+        "test_method_not_allowed",
+        "test_internal_server_error",
+        "test_cors_headers"
+      ],
+      "count": 17
+    },
+    {
+      "file": "tests/unit/test_vtt_parser_core.py",
+      "tests": [
+        "test_parse_minimal_vtt",
+        "test_parse_standard_vtt",
+        "test_handle_malformed_vtt",
+        "test_parse_empty_file",
+        "test_parse_large_timestamps",
+        "test_parse_vtt_with_speakers",
+        "test_parse_multiline_cues",
+        "test_timestamp_parsing_edge_cases",
+        "test_vtt_with_metadata"
+      ],
+      "count": 9
+    },
+    {
+      "file": "tests/unit/test_vtt_parser_unit.py",
+      "tests": [
+        "test_vtt_cue_creation",
+        "test_vtt_cue_defaults",
+        "test_parser_initialization",
+        "test_parse_file_not_found",
+        "test_parse_file_success",
+        "test_parse_file_read_error",
+        "test_parse_content_missing_header",
+        "test_parse_content_valid",
+        "test_parse_content_with_speaker",
+        "test_parse_content_with_settings",
+        "test_parse_content_with_cue_identifiers",
+        "test_parse_content_multiline_text",
+        "test_is_timestamp_line",
+        "test_parse_timestamp_valid",
+        "test_parse_timestamp_invalid",
+        "test_parse_settings",
+        "test_extract_speaker",
+        "test_convert_to_segments",
+        "test_merge_short_segments_basic",
+        "test_merge_short_segments_different_speakers",
+        "test_merge_short_segments_non_consecutive",
+        "test_merge_short_segments_empty",
+        "test_merge_short_segments_confidence",
+        "test_normalize_segment_basic",
+        "test_normalize_segment_alternate_fields",
+        "test_normalize_segment_missing_fields",
+        "test_parse_complex_vtt"
+      ],
+      "count": 27
+    },
+    {
+      "file": "tests/unit/test_vtt_segmentation_unit.py",
+      "tests": [
+        "test_segment_metadata_creation",
+        "test_segment_metadata_defaults",
+        "test_segmenter_initialization_default",
+        "test_segmenter_initialization_custom",
+        "test_process_segments_empty",
+        "test_process_segments_basic",
+        "test_process_segments_with_advertisement",
+        "test_process_segments_with_sentiment",
+        "test_process_segments_metadata",
+        "test_detect_advertisement_positive",
+        "test_detect_advertisement_negative",
+        "test_detect_advertisement_case_insensitive",
+        "test_analyze_segment_sentiment_positive",
+        "test_analyze_segment_sentiment_negative",
+        "test_analyze_segment_sentiment_neutral",
+        "test_analyze_segment_sentiment_mixed",
+        "test_calculate_metadata_empty",
+        "test_calculate_metadata_comprehensive",
+        "test_post_process_segments_attribute_access",
+        "test_process_segments_with_disabled_features",
+        "test_logging",
+        "test_word_count_calculation",
+        "test_duration_calculation"
+      ],
+      "count": 23
+    },
+    {
+      "file": "tests/unit/test_api_app_unit.py",
+      "tests": [
+        "test_api_imports",
+        "test_mock_vtt_processing",
+        "test_mock_graph_stats",
+        "test_api_root_response_structure"
+      ],
+      "count": 4
+    },
+    {
+      "file": "tests/unit/test_transcript_ingestion_unit.py",
+      "tests": [
+        "test_vtt_file_creation",
+        "test_vtt_file_to_dict",
+        "test_vtt_file_defaults",
+        "test_initialization",
+        "test_scan_directory_not_found",
+        "test_scan_directory_recursive",
+        "test_scan_directory_non_recursive",
+        "test_calculate_file_hash",
+        "test_infer_metadata_from_path",
+        "test_infer_metadata_from_path_complex",
+        "test_load_metadata_file_success",
+        "test_load_metadata_file_not_found",
+        "test_load_metadata_file_invalid_json",
+        "test_create_vtt_file_success",
+        "test_create_vtt_file_with_metadata",
+        "test_create_vtt_file_error",
+        "test_process_vtt_file_already_processed",
+        "test_process_vtt_file_success",
+        "test_process_vtt_file_error",
+        "test_create_episode_data",
+        "test_create_episode_data_empty_segments",
+        "test_process_directory",
+        "test_process_directory_with_max_files",
+        "test_group_by_podcast",
+        "test_validate_vtt_file_valid",
+        "test_validate_vtt_file_invalid",
+        "test_validate_vtt_file_error",
+        "test_process_file",
+        "test_process_file_create_error",
+        "test_compute_file_hash",
+        "test_initialization",
+        "test_initialization_with_checkpoint",
+        "test_process_vtt_file_success",
+        "test_process_vtt_file_create_error",
+        "test_process_vtt_file_skipped",
+        "test_process_vtt_file_error",
+        "test_process_vtt_file_exception"
+      ],
+      "count": 37
+    },
+    {
+      "file": "tests/unit/test_cli_unit.py",
+      "tests": [
+        "test_load_single_config",
+        "test_load_multiple_configs",
+        "test_load_config_missing_rss_url",
+        "test_load_config_file_not_found",
+        "test_load_config_invalid_json",
+        "test_seed_podcasts_single_rss",
+        "test_seed_podcasts_from_config",
+        "test_seed_podcasts_no_input",
+        "test_seed_podcasts_all_failed",
+        "test_seed_podcasts_exception",
+        "test_seed_podcasts_with_config_file",
+        "test_health_check_success",
+        "test_health_check_failure",
+        "test_health_check_with_config",
+        "test_health_check_exception",
+        "test_validate_config_success",
+        "test_validate_config_verbose",
+        "test_validate_config_validation_error",
+        "test_validate_config_file_error",
+        "test_process_vtt_directory_success",
+        "test_process_vtt_directory_not_found",
+        "test_process_vtt_directory_exception",
+        "test_check_status_success",
+        "test_check_status_exception",
+        "test_export_data_json",
+        "test_export_data_exception",
+        "test_format_duration_seconds",
+        "test_format_file_size",
+        "test_main_function_integration"
+      ],
+      "count": 29
+    }
+  ],
+  "non_vtt": [
+    {
+      "file": "tests/test_smoke.py",
+      "tests": [
+        "test_config",
+        "test_load_sample_transcripts",
+        "test_transcript_structure"
+      ],
+      "count": 12
+    },
+    {
+      "file": "tests/api/test_health.py",
+      "tests": [
+        "test_neo4j_healthy",
+        "test_neo4j_unhealthy",
+        "test_system_resources_healthy"
+      ],
+      "count": 10
+    },
+    {
+      "file": "tests/fixtures/schemaless_poc/test_episodes.py",
+      "tests": [],
+      "count": 0
+    },
+    {
+      "file": "tests/integration/test_neo4j_storage.py",
+      "tests": [
+        "test_create_episode_node",
+        "test_create_knowledge_nodes",
+        "test_create_relationships"
+      ],
+      "count": 11
+    },
+    {
+      "file": "tests/integration/test_neo4j_critical_path.py",
+      "tests": [
+        "test_store_episode",
+        "test_store_segments_with_relationships",
+        "test_handle_duplicate_episodes"
+      ],
+      "count": 8
+    },
+    {
+      "file": "tests/processing/test_complexity_analysis.py",
+      "tests": [
+        "test_analyze_vocabulary_complexity_simple",
+        "test_analyze_vocabulary_complexity_technical",
+        "test_analyze_vocabulary_complexity_medical"
+      ],
+      "count": 14
+    },
+    {
+      "file": "tests/processing/test_episode_flow.py",
+      "tests": [
+        "test_classify_segment_transitions",
+        "test_track_concept_introductions",
+        "test_map_concept_development"
+      ],
+      "count": 13
+    },
+    {
+      "file": "tests/processing/test_importance_scoring.py",
+      "tests": [
+        "test_calculate_frequency_factor",
+        "test_calculate_structural_centrality",
+        "test_calculate_semantic_centrality"
+      ],
+      "count": 11
+    },
+    {
+      "file": "tests/processing/test_prompts.py",
+      "tests": [
+        "test_prompt_template_creation",
+        "test_prompt_template_format",
+        "test_prompt_template_missing_variable"
+      ],
+      "count": 17
+    },
+    {
+      "file": "tests/processing/test_entity_resolution.py",
+      "tests": [
+        "test_normalize_entity_name",
+        "test_calculate_name_similarity",
+        "test_extract_entity_aliases"
+      ],
+      "count": 8
+    },
+    {
+      "file": "tests/processing/test_metrics.py",
+      "tests": [
+        "test_calculate_complexity_simple_text",
+        "test_calculate_complexity_complex_text",
+        "test_calculate_complexity_empty_text"
+      ],
+      "count": 16
+    },
+    {
+      "file": "tests/processing/test_parsers.py",
+      "tests": [
+        "test_parse_json_response_valid",
+        "test_parse_json_response_no_markers",
+        "test_parse_json_response_with_text"
+      ],
+      "count": 23
+    },
+    {
+      "file": "tests/processing/test_preprocessor.py",
+      "tests": [
+        "test_preprocessor_initialization",
+        "test_custom_config",
+        "test_inject_temporal_context"
+      ],
+      "count": 17
+    },
+    {
+      "file": "tests/processing/test_extraction.py",
+      "tests": [
+        "test_extract_quotes_basic",
+        "test_extract_quotes_with_patterns",
+        "test_quote_validation"
+      ],
+      "count": 10
+    },
+    {
+      "file": "tests/scripts/test_integration.py",
+      "tests": [
+        "test_imports",
+        "test_basic_instantiation"
+      ],
+      "count": 2
+    },
+    {
+      "file": "tests/scripts/test_minimal_integration.py",
+      "tests": [
+        "test_core_classes",
+        "test_config_files",
+        "test_test_files"
+      ],
+      "count": 3
+    },
+    {
+      "file": "tests/seeding/test_batch_processor.py",
+      "tests": [
+        "test_batch_item_creation",
+        "test_batch_item_with_metadata",
+        "test_successful_result"
+      ],
+      "count": 21
+    },
+    {
+      "file": "tests/seeding/test_checkpoint.py",
+      "tests": [
+        "test_initialization",
+        "test_save_and_load_episode_checkpoint",
+        "test_save_and_load_segment_checkpoint"
+      ],
+      "count": 17
+    },
+    {
+      "file": "tests/seeding/test_pipeline_executor_refactored.py",
+      "tests": [
+        "test_is_episode_completed_true",
+        "test_is_episode_completed_false",
+        "test_download_episode_audio_success"
+      ],
+      "count": 13
+    },
+    {
+      "file": "tests/unit/test_core_imports.py",
+      "tests": [
+        "test_core_interfaces_import",
+        "test_core_exceptions_import",
+        "test_core_models_import"
+      ],
+      "count": 7
+    },
+    {
+      "file": "tests/unit/test_debugging_utils.py",
+      "tests": [
+        "test_severity_values",
+        "test_category_values",
+        "test_error_context_creation"
+      ],
+      "count": 36
+    },
+    {
+      "file": "tests/unit/test_exceptions.py",
+      "tests": [
+        "test_severity_values",
+        "test_all_severities_defined",
+        "test_basic_initialization"
+      ],
+      "count": 55
+    },
+    {
+      "file": "tests/unit/test_extraction_integration.py",
+      "tests": [
+        "test_full_extraction_pipeline",
+        "test_prompt_builder_integration",
+        "test_response_parser_integration"
+      ],
+      "count": 15
+    },
+    {
+      "file": "tests/unit/test_extraction_unit.py",
+      "tests": [
+        "test_extraction_result_creation",
+        "test_extractor_initialization",
+        "test_quote_patterns"
+      ],
+      "count": 21
+    },
+    {
+      "file": "tests/unit/test_feature_flags.py",
+      "tests": [
+        "test_feature_flags_defined",
+        "test_flag_values_are_strings",
+        "test_flag_enum_members"
+      ],
+      "count": 34
+    },
+    {
+      "file": "tests/unit/test_interfaces_full.py",
+      "tests": [
+        "test_health_checkable_protocol_definition",
+        "test_health_checkable_with_different_implementations",
+        "test_transcript_segment_creation_minimal"
+      ],
+      "count": 19
+    },
+    {
+      "file": "tests/unit/test_logging_utils.py",
+      "tests": [
+        "test_format_log_record",
+        "test_format_with_extra_fields",
+        "test_filter_adds_context"
+      ],
+      "count": 22
+    },
+    {
+      "file": "tests/unit/test_validation_utils.py",
+      "tests": [
+        "test_validate_text_normal",
+        "test_validate_text_none",
+        "test_validate_text_non_string"
+      ],
+      "count": 46
+    },
+    {
+      "file": "tests/unit/test_models.py",
+      "tests": [
+        "test_complexity_level_values",
+        "test_insight_type_values",
+        "test_quote_type_values"
+      ],
+      "count": 45
+    },
+    {
+      "file": "tests/unit/test_logging.py",
+      "tests": [],
+      "count": 0
+    },
+    {
+      "file": "tests/unit/test_memory.py",
+      "tests": [
+        "test_cleanup_memory",
+        "test_get_memory_usage_with_psutil",
+        "test_get_memory_usage_without_psutil"
+      ],
+      "count": 4
+    },
+    {
+      "file": "tests/unit/test_extraction_core.py",
+      "tests": [
+        "test_extract_entities",
+        "test_extract_relationships",
+        "test_extract_insights"
+      ],
+      "count": 12
+    },
+    {
+      "file": "tests/unit/test_text_processing_comprehensive.py",
+      "tests": [],
+      "count": 0
+    },
+    {
+      "file": "tests/unit/test_deprecation.py",
+      "tests": [
+        "test_basic_deprecation",
+        "test_deprecation_with_alternative",
+        "test_deprecation_with_removal_version"
+      ],
+      "count": 20
+    },
+    {
+      "file": "tests/unit/test_error_handling.py",
+      "tests": [
+        "test_successful_function",
+        "test_function_with_retries",
+        "test_function_fails_after_retries"
+      ],
+      "count": 28
+    },
+    {
+      "file": "tests/unit/test_feature_flag_utils.py",
+      "tests": [
+        "test_print_feature_flags",
+        "test_print_empty_flags",
+        "test_export_to_dict"
+      ],
+      "count": 23
+    },
+    {
+      "file": "tests/unit/test_text_processing.py",
+      "tests": [
+        "test_extract_basic_urls",
+        "test_extract_complex_urls",
+        "test_extract_urls_with_subdomains"
+      ],
+      "count": 57
+    },
+    {
+      "file": "tests/unit/test_performance_profiling.py",
+      "tests": [
+        "test_profile_result_creation",
+        "test_profiler_initialization",
+        "test_profiler_custom_output_dir"
+      ],
+      "count": 26
+    },
+    {
+      "file": "tests/unit/test_patterns_performance.py",
+      "tests": [
+        "test_pattern_match_creation",
+        "test_pattern_match_with_groups_and_metadata",
+        "test_pattern_library_technical_patterns"
+      ],
+      "count": 31
+    },
+    {
+      "file": "tests/unit/test_performance_decorator.py",
+      "tests": [
+        "test_performance_metrics_creation",
+        "test_performance_metrics_auto_timestamp",
+        "test_performance_metrics_custom_timestamp"
+      ],
+      "count": 26
+    },
+    {
+      "file": "tests/unit/test_parsers_simple.py",
+      "tests": [
+        "test_parse_result_creation_success",
+        "test_parse_result_creation_with_errors",
+        "test_parse_result_auto_init_lists"
+      ],
+      "count": 10
+    },
+    {
+      "file": "tests/unit/test_prompts_simple.py",
+      "tests": [
+        "test_prompt_version_values",
+        "test_prompt_version_string_comparison",
+        "test_prompt_template_creation"
+      ],
+      "count": 11
+    },
+    {
+      "file": "tests/unit/test_graph_storage.py",
+      "tests": [
+        "test_service_initialization",
+        "test_service_initialization_missing_uri",
+        "test_service_initialization_missing_credentials"
+      ],
+      "count": 8
+    },
+    {
+      "file": "tests/unit/test_api_health_unit.py",
+      "tests": [
+        "test_health_status_values",
+        "test_component_health_creation",
+        "test_component_health_defaults"
+      ],
+      "count": 26
+    },
+    {
+      "file": "tests/unit/test_schemaless_adapter_unit.py",
+      "tests": [
+        "test_initialization",
+        "test_extract_entities_success",
+        "test_extract_entities_error"
+      ],
+      "count": 20
+    },
+    {
+      "file": "tests/unit/test_llm_service_unit.py",
+      "tests": [
+        "test_initialization_success",
+        "test_initialization_no_rotation_manager",
+        "test_get_rate_limit_status"
+      ],
+      "count": 20
+    },
+    {
+      "file": "tests/unit/test_embeddings_gemini_unit.py",
+      "tests": [
+        "test_initialization_success",
+        "test_initialization_no_rotation_manager",
+        "test_get_rate_limit_status"
+      ],
+      "count": 26
+    },
+    {
+      "file": "tests/unit/test_batch_processor_unit.py",
+      "tests": [
+        "test_batch_item_creation",
+        "test_batch_item_defaults",
+        "test_batch_item_ordering"
+      ],
+      "count": 38
+    },
+    {
+      "file": "tests/unit/test_checkpoint_unit.py",
+      "tests": [
+        "test_versions",
+        "test_metadata_creation",
+        "test_metadata_to_dict"
+      ],
+      "count": 7
+    },
+    {
+      "file": "tests/unit/test_episode_flow_unit.py",
+      "tests": [
+        "test_analyzer_initialization",
+        "test_classify_segment_transitions",
+        "test_identify_discourse_patterns"
+      ],
+      "count": 5
+    },
+    {
+      "file": "tests/unit/test_parsers_unit.py",
+      "tests": [
+        "test_parse_result_creation",
+        "test_parser_initialization",
+        "test_parse_llm_response_json"
+      ],
+      "count": 8
+    },
+    {
+      "file": "tests/unit/test_prompts_unit.py",
+      "tests": [
+        "test_prompt_version_values",
+        "test_prompt_template_creation",
+        "test_prompt_template_format"
+      ],
+      "count": 8
+    },
+    {
+      "file": "tests/unit/test_config.py",
+      "tests": [
+        "test_default_initialization",
+        "test_environment_variable_loading",
+        "test_path_handling"
+      ],
+      "count": 40
+    },
+    {
+      "file": "tests/unit/test_key_rotation_manager.py",
+      "tests": [
+        "test_initial_state",
+        "test_mark_success",
+        "test_mark_failure"
+      ],
+      "count": 22
+    },
+    {
+      "file": "tests/unit/test_rotation_state_manager.py",
+      "tests": [
+        "test_get_state_directory_default",
+        "test_get_state_directory_from_env",
+        "test_get_state_directory_from_checkpoint_dir"
+      ],
+      "count": 10
+    },
+    {
+      "file": "tests/unit/test_services_rotation_integration.py",
+      "tests": [
+        "test_create_gemini_services_with_rotation",
+        "test_create_gemini_services_no_keys",
+        "test_create_llm_service_only"
+      ],
+      "count": 8
+    },
+    {
+      "file": "tests/utils/test_debugging.py",
+      "tests": [
+        "test_error_context_creation",
+        "test_error_context_to_dict",
+        "test_error_context_to_json"
+      ],
+      "count": 25
+    },
+    {
+      "file": "tests/utils/test_resources.py",
+      "tests": [
+        "test_create_temp_file",
+        "test_create_temp_dir",
+        "test_cleanup_all"
+      ],
+      "count": 26
+    },
+    {
+      "file": "tests/utils/test_component_tracker.py",
+      "tests": [
+        "test_tracker_initialization",
+        "test_record_impact",
+        "test_track_impact_context"
+      ],
+      "count": 8
+    },
+    {
+      "file": "tests/utils/test_retry.py",
+      "tests": [
+        "test_initialization",
+        "test_exponential_growth",
+        "test_max_delay_capping"
+      ],
+      "count": 58
+    },
+    {
+      "file": "tests/utils/test_validation.py",
+      "tests": [
+        "test_valid_string_input",
+        "test_none_input",
+        "test_non_string_input"
+      ],
+      "count": 62
+    },
+    {
+      "file": "tests/utils/test_patterns_performance_utils.py",
+      "tests": [
+        "test_pattern_compilation_caching",
+        "test_match_result_caching",
+        "test_large_text_processing"
+      ],
+      "count": 7
+    },
+    {
+      "file": "tests/services/test_llm_service.py",
+      "tests": [
+        "test_initialization",
+        "test_initialization_no_api_key",
+        "test_generate_content"
+      ],
+      "count": 5
+    },
+    {
+      "file": "tests/services/test_embeddings_service.py",
+      "tests": [
+        "test_initialization",
+        "test_initialization_default_model",
+        "test_embed_single_text"
+      ],
+      "count": 7
+    },
+    {
+      "file": "tests/services/test_graph_storage_service.py",
+      "tests": [
+        "test_initialization",
+        "test_store_entity",
+        "test_store_relationship"
+      ],
+      "count": 8
+    },
+    {
+      "file": "tests/services/test_embeddings_gemini.py",
+      "tests": [
+        "test_initialization",
+        "test_initialization_without_api_key",
+        "test_generate_single_embedding"
+      ],
+      "count": 17
+    }
+  ],
+  "total_tests": 1643,
+  "high_failure_rate": [
+    "tests/integration/test_cli_commands.py",
+    "tests/integration/test_checkpoint_recovery.py",
+    "tests/processing/test_extraction.py",
+    "tests/processing/test_parsers.py",
+    "tests/processing/test_preprocessor.py",
+    "tests/processing/test_prompts.py"
+  ]
+}

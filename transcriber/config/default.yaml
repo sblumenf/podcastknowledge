@@ -1,0 +1,61 @@
+# Default configuration for Podcast Transcriber
+# This file sets the YouTube search method to 'simple' for API-based search
+
+youtube_search:
+  enabled: true
+  method: "simple"  # Changed from "rss_only" to use YouTube API search
+  cache_results: true
+  fuzzy_match_threshold: 0.85
+  duration_tolerance: 0.1
+  max_search_results: 5
+
+youtube_api:
+  # API key will be loaded from YOUTUBE_API_KEY environment variable
+  max_results_per_search: 10
+  search_quota_per_episode: 500
+  confidence_threshold: 0.90
+
+# VTT Formatting settings
+vtt_formatting:
+  # Choose segmentation method: 'regular', 'semantic', 'syntactic', or 'conversational'
+  segmentation_type: "conversational"  # Options: "regular", "semantic", "syntactic", "conversational"
+  
+  # Regular segmentation settings (when segmentation_type is "regular")
+  # Simple time/character-based segmentation for subtitles
+  regular:
+    max_cue_duration: 7.0  # Maximum duration for a single cue in seconds
+    max_chars_per_line: 80  # Maximum characters per cue line
+  
+  # Semantic segmentation settings (when segmentation_type is "semantic")
+  # Breaks at sentence/clause boundaries with configurable parameters
+  semantic:
+    min_cue_duration: 3.0  # Minimum duration for a single cue in seconds
+    max_cue_duration: 10.0  # Maximum duration for a single cue in seconds
+    prefer_sentence_breaks: true  # Prefer breaking at sentence boundaries
+    allow_clause_breaks: true  # Allow breaking at clause boundaries (commas, semicolons)
+    max_chars_per_line: 120  # Maximum characters per cue line (increased for semantic chunks)
+  
+  # Syntactic segmentation settings (when segmentation_type is "syntactic")
+  # Research-based subtitle segmentation following Netflix/BBC standards
+  # Reduces cognitive load by keeping syntactic units together
+  syntactic:
+    # No configuration needed - uses industry-standard parameters:
+    # - 42 chars/line (Netflix standard)
+    # - Max 2 lines per subtitle
+    # - 0.83-7 seconds duration
+    # - 180 words/minute reading speed
+    # - Syntactic phrase boundary detection
+  
+  # Conversational segmentation settings (when segmentation_type is "conversational")
+  # Optimized for podcast transcripts with natural conversation boundaries
+  # Creates longer, more readable segments based on speaker turns and topics
+  conversational:
+    min_segment_duration: 3.0  # Minimum segment duration in seconds
+    preferred_segment_duration: 30.0  # Target segment duration in seconds
+    max_segment_duration: 180.0  # Maximum segment duration in seconds (3 minutes)
+    pause_threshold: 2.0  # Pause duration that indicates topic shift
+    merge_short_interjections: true  # Merge short responses like "yeah", "right"
+    respect_sentences: true  # Avoid breaking mid-sentence
+    use_discourse_markers: true  # Use markers like "so", "now" for segmentation
+
+# Other settings can be added here as needed

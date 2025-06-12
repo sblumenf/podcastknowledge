@@ -1,11 +1,13 @@
 """Tests for resource management utilities."""
 
+from unittest.mock import Mock, patch, MagicMock
 import os
 import shutil
 import tempfile
 import time
+
 import pytest
-from unittest.mock import Mock, patch, MagicMock
+
 from src.utils.resources import (
     TempFileManager,
     temp_file,
@@ -314,8 +316,13 @@ class TestResourcePool:
         pool = ResourcePool(lambda: object())
         
         # Create and release resources
+        resources = []
         for _ in range(3):
             r = pool.acquire()
+            resources.append(r)
+        
+        # Release all resources
+        for r in resources:
             pool.release(r)
         
         assert len(pool._available) == 3

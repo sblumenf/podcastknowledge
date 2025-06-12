@@ -1,365 +1,397 @@
-"""
-Enhanced logging utilities with consistent correlation ID support.
+"""Enhanced logging with rotation, metrics, and comprehensive tracing."""
 
-This module provides enhanced logging capabilities with automatic correlation ID
-propagation, structured logging patterns, and standardized log formats.
-"""
-
+import json
 import logging
-import uuid
-import contextvars
-from typing import Optional, Dict, Any, Callable
-from functools import wraps
+import logging.handlers
+import os
+import time
 from datetime import datetime
+from functools import wraps
+from pathlib import Path
+from typing import Dict, Any, Optional, Callable, List
+import threading
+from queue import Queue, Empty
 
-# Context variable for correlation ID
-correlation_id_var: contextvars.ContextVar[Optional[str]] = contextvars.ContextVar(
-    'correlation_id', 
-    default=None
+from src.utils.log_utils import (
+    get_logger, 
+    get_correlation_id, 
+    set_correlation_id,
+    ContextFilter,
+    StructuredFormatter,
+    HAS_JSON_LOGGER
 )
 
-
-def generate_correlation_id() -> str:
-    """Generate a new correlation ID."""
-    return str(uuid.uuid4())
-
-
-def get_correlation_id() -> Optional[str]:
-    """Get the current correlation ID from context."""
-    return correlation_id_var.get()
-
-
-def set_correlation_id(correlation_id: Optional[str] = None) -> str:
-    """
-    Set the correlation ID for the current context.
+# Performance metrics storage
+class MetricsCollector:
+    """Collects and stores performance metrics."""
     
-    Args:
-        correlation_id: Correlation ID to set (generates new one if None)
+    def __init__(self):
+        self._metrics = {}
+        self._lock = threading.Lock()
+        self._start_time = time.time()
         
-    Returns:
-        The correlation ID that was set
-    """
-    if correlation_id is None:
-        correlation_id = generate_correlation_id()
-    correlation_id_var.set(correlation_id)
-    return correlation_id
-
-
-class CorrelationIdFilter(logging.Filter):
-    """Automatically add correlation ID to all log records."""
-    
-    def filter(self, record: logging.LogRecord) -> bool:
-        """Add correlation ID to log record."""
-        # Get correlation ID from context or record
-        correlation_id = getattr(record, 'correlation_id', None) or get_correlation_id()
-        record.correlation_id = correlation_id
-        return True
-
-
-class StandardizedLogger(logging.LoggerAdapter):
-    """
-    Logger adapter that ensures consistent structured logging.
-    
-    This adapter automatically adds correlation IDs and other context
-    to all log messages.
-    """
-    
-    def __init__(self, logger: logging.Logger, extra: Optional[Dict[str, Any]] = None):
-        """Initialize with logger and optional extra context."""
-        super().__init__(logger, extra or {})
-        
-    def process(self, msg: str, kwargs: Dict[str, Any]) -> tuple:
-        """Process log message to add standard context."""
-        extra = kwargs.get('extra', {})
-        
-        # Add correlation ID if not present
-        if 'correlation_id' not in extra:
-            extra['correlation_id'] = get_correlation_id()
+    def record_metric(self, name: str, value: float, unit: str = "count", 
+                     tags: Optional[Dict[str, str]] = None):
+        """Record a metric value."""
+        with self._lock:
+            if name not in self._metrics:
+                self._metrics[name] = []
             
-        # Add timestamp if not present
-        if 'timestamp' not in extra:
-            extra['timestamp'] = datetime.utcnow().isoformat()
+            metric_data = {
+                'timestamp': datetime.now().isoformat(),
+                'value': value,
+                'unit': unit,
+                'tags': tags or {}
+            }
+            self._metrics[name].append(metric_data)
+    
+    def get_metrics(self) -> Dict[str, Any]:
+        """Get all collected metrics."""
+        with self._lock:
+            return {
+                'start_time': datetime.fromtimestamp(self._start_time).isoformat(),
+                'uptime_seconds': time.time() - self._start_time,
+                'metrics': self._metrics.copy()
+            }
+    
+    def get_summary(self, metric_name: str) -> Dict[str, Any]:
+        """Get summary statistics for a metric."""
+        with self._lock:
+            if metric_name not in self._metrics:
+                return {}
             
-        # Merge with adapter's extra
-        extra.update(self.extra)
-        kwargs['extra'] = extra
+            values = [m['value'] for m in self._metrics[metric_name]]
+            if not values:
+                return {}
+            
+            return {
+                'count': len(values),
+                'sum': sum(values),
+                'avg': sum(values) / len(values),
+                'min': min(values),
+                'max': max(values)
+            }
+
+# Global metrics collector
+_metrics_collector = MetricsCollector()
+
+def get_metrics_collector() -> MetricsCollector:
+    """Get the global metrics collector."""
+    return _metrics_collector
+
+
+class ProcessingTraceLogger:
+    """Logger for detailed processing traces."""
+    
+    def __init__(self, logger: logging.Logger):
+        self.logger = logger
+        self._trace_stack = []
         
-        return msg, kwargs
+    def start_trace(self, operation: str, context: Optional[Dict[str, Any]] = None):
+        """Start a new trace operation."""
+        trace_id = f"{operation}_{time.time()}"
+        trace_data = {
+            'operation': operation,
+            'start_time': time.time(),
+            'context': context or {},
+            'trace_id': trace_id
+        }
+        self._trace_stack.append(trace_data)
+        
+        self.logger.debug(
+            f"TRACE_START: {operation}",
+            extra={
+                'trace_type': 'start',
+                'trace_id': trace_id,
+                'operation': operation,
+                'context': context,
+                'correlation_id': get_correlation_id()
+            }
+        )
+        return trace_id
+    
+    def end_trace(self, trace_id: Optional[str] = None, result: Any = None, error: Optional[Exception] = None):
+        """End a trace operation."""
+        if not self._trace_stack:
+            return
+        
+        # Pop the most recent trace if no ID specified
+        if trace_id:
+            trace_data = next((t for t in self._trace_stack if t.get('trace_id') == trace_id), None)
+            if trace_data:
+                self._trace_stack.remove(trace_data)
+        else:
+            trace_data = self._trace_stack.pop()
+        
+        if not trace_data:
+            return
+        
+        duration = time.time() - trace_data['start_time']
+        
+        log_data = {
+            'trace_type': 'end',
+            'trace_id': trace_data['trace_id'],
+            'operation': trace_data['operation'],
+            'duration_seconds': duration,
+            'correlation_id': get_correlation_id()
+        }
+        
+        if result is not None:
+            log_data['result_summary'] = str(result)[:200]  # Truncate large results
+        
+        if error:
+            log_data['error'] = str(error)
+            log_data['error_type'] = type(error).__name__
+            self.logger.error(f"TRACE_ERROR: {trace_data['operation']}", extra=log_data, exc_info=error)
+        else:
+            self.logger.debug(f"TRACE_END: {trace_data['operation']}", extra=log_data)
+            
+        # Record as metric
+        _metrics_collector.record_metric(
+            f"operation.{trace_data['operation']}.duration",
+            duration,
+            unit="seconds"
+        )
 
 
-def with_correlation_id(correlation_id: Optional[str] = None) -> Callable:
+def setup_enhanced_logging(
+    level: str = "INFO",
+    log_file: Optional[str] = None,
+    max_bytes: int = 10 * 1024 * 1024,  # 10MB
+    backup_count: int = 5,
+    structured: bool = True,
+    enable_metrics: bool = True,
+    enable_tracing: bool = True
+) -> None:
     """
-    Decorator to set correlation ID for a function's execution.
+    Set up enhanced logging with rotation and metrics.
     
     Args:
-        correlation_id: Correlation ID to use (generates new one if None)
+        level: Logging level
+        log_file: Optional file path for logging
+        max_bytes: Max size before rotation (default 10MB)
+        backup_count: Number of backup files to keep
+        structured: Use structured JSON logging
+        enable_metrics: Enable metrics collection
+        enable_tracing: Enable detailed tracing
+    """
+    # Convert string level to int
+    log_level = getattr(logging, level.upper(), logging.INFO)
+    
+    # Create enhanced formatter with additional fields
+    class EnhancedJSONFormatter(logging.Formatter):
+        """Enhanced JSON formatter with additional context."""
         
-    Example:
-        @with_correlation_id()
-        def process_request():
-            logger.info("Processing request")  # Will include correlation ID
-    """
-    def decorator(func: Callable) -> Callable:
-        @wraps(func)
-        def wrapper(*args, **kwargs):
-            # Save current correlation ID
-            token = correlation_id_var.set(correlation_id or generate_correlation_id())
-            try:
-                return func(*args, **kwargs)
-            finally:
-                # Restore previous correlation ID
-                correlation_id_var.reset(token)
-        return wrapper
-    return decorator
+        def format(self, record: logging.LogRecord) -> str:
+            log_data = {
+                'timestamp': datetime.utcnow().isoformat() + 'Z',
+                'level': record.levelname,
+                'logger': record.name,
+                'message': record.getMessage(),
+                'correlation_id': getattr(record, 'correlation_id', None),
+                'module': record.module,
+                'function': record.funcName,
+                'line': record.lineno,
+                'thread': record.threadName,
+                'process': record.processName,
+            }
+            
+            # Add any extra fields
+            for key, value in record.__dict__.items():
+                if key not in ['name', 'msg', 'args', 'created', 'filename', 'funcName',
+                              'levelname', 'levelno', 'lineno', 'module', 'msecs',
+                              'pathname', 'process', 'processName', 'relativeCreated',
+                              'thread', 'threadName', 'getMessage']:
+                    log_data[key] = value
+            
+            # Add exception info if present
+            if record.exc_info:
+                log_data['exception'] = self.formatException(record.exc_info)
+            
+            return json.dumps(log_data)
+    
+    # Choose formatter
+    if structured:
+        formatter = EnhancedJSONFormatter()
+    else:
+        formatter = logging.Formatter(
+            '%(asctime)s - %(name)s - %(levelname)s - [%(correlation_id)s] - %(message)s',
+            defaults={'correlation_id': 'no-correlation-id'}
+        )
+    
+    # Configure root logger
+    root_logger = logging.getLogger()
+    root_logger.setLevel(log_level)
+    
+    # Remove existing handlers
+    root_logger.handlers.clear()
+    
+    # Add context filter
+    context_filter = ContextFilter()
+    
+    # Console handler
+    console_handler = logging.StreamHandler()
+    console_handler.setLevel(log_level)
+    console_handler.setFormatter(formatter)
+    console_handler.addFilter(context_filter)
+    root_logger.addHandler(console_handler)
+    
+    # File handler with rotation
+    if log_file:
+        log_path = Path(log_file)
+        log_path.parent.mkdir(parents=True, exist_ok=True)
+        
+        file_handler = logging.handlers.RotatingFileHandler(
+            log_file,
+            maxBytes=max_bytes,
+            backupCount=backup_count,
+            encoding='utf-8'
+        )
+        file_handler.setLevel(log_level)
+        file_handler.setFormatter(formatter)
+        file_handler.addFilter(context_filter)
+        root_logger.addHandler(file_handler)
+    
+    # Add metrics handler if enabled
+    if enable_metrics:
+        class MetricsHandler(logging.Handler):
+            """Handler that extracts metrics from log records."""
+            
+            def emit(self, record: logging.LogRecord):
+                # Extract metrics from specific log patterns
+                if hasattr(record, 'metric_name') and hasattr(record, 'metric_value'):
+                    _metrics_collector.record_metric(
+                        record.metric_name,
+                        record.metric_value,
+                        unit=getattr(record, 'metric_unit', 'count'),
+                        tags=getattr(record, 'metric_tags', {})
+                    )
+        
+        metrics_handler = MetricsHandler()
+        metrics_handler.setLevel(logging.DEBUG)
+        root_logger.addHandler(metrics_handler)
+    
+    logger = get_logger(__name__)
+    logger.info(
+        "Enhanced logging configured",
+        extra={
+            'log_level': level,
+            'log_file': log_file,
+            'structured': structured,
+            'rotation_enabled': log_file is not None,
+            'metrics_enabled': enable_metrics,
+            'tracing_enabled': enable_tracing
+        }
+    )
 
 
-def log_operation(
-    operation_name: str,
-    log_args: bool = False,
-    log_result: bool = False,
-    log_duration: bool = True
-) -> Callable:
+def log_performance_metric(
+    logger: logging.Logger,
+    metric_name: str,
+    value: float,
+    unit: str = "seconds",
+    operation: Optional[str] = None,
+    tags: Optional[Dict[str, str]] = None
+):
     """
-    Decorator for consistent operation logging.
+    Log a performance metric.
     
     Args:
-        operation_name: Name of the operation being performed
-        log_args: Whether to log function arguments
-        log_result: Whether to log function result
-        log_duration: Whether to log execution duration
-        
-    Example:
-        @log_operation("process_episode", log_duration=True)
-        def process_episode(episode_id: str):
-            ...
+        logger: Logger instance
+        metric_name: Name of the metric
+        value: Metric value
+        unit: Unit of measurement
+        operation: Operation name for context
+        tags: Additional tags
+    """
+    extra = {
+        'metric_name': metric_name,
+        'metric_value': value,
+        'metric_unit': unit,
+        'metric_tags': tags or {},
+        'correlation_id': get_correlation_id()
+    }
+    
+    if operation:
+        extra['operation'] = operation
+    
+    logger.info(f"METRIC: {metric_name}={value} {unit}", extra=extra)
+
+
+def trace_operation(operation_name: str):
+    """
+    Decorator to trace operation execution.
+    
+    Args:
+        operation_name: Name of the operation to trace
     """
     def decorator(func: Callable) -> Callable:
         @wraps(func)
         def wrapper(*args, **kwargs):
             logger = get_logger(func.__module__)
-            correlation_id = get_correlation_id() or generate_correlation_id()
+            tracer = ProcessingTraceLogger(logger)
             
-            # Log start
-            start_extra = {
-                'operation': operation_name,
-                'phase': 'start',
-                'correlation_id': correlation_id
-            }
-            if log_args:
-                start_extra['args'] = str(args)
-                start_extra['kwargs'] = str(kwargs)
-                
-            logger.info(f"Starting {operation_name}", extra=start_extra)
-            
-            # Execute function
-            import time
-            start_time = time.time()
-            error_occurred = None
-            result = None
+            # Start trace
+            trace_id = tracer.start_trace(
+                operation_name,
+                context={
+                    'function': func.__name__,
+                    'args_count': len(args),
+                    'kwargs_keys': list(kwargs.keys())
+                }
+            )
             
             try:
                 result = func(*args, **kwargs)
+                tracer.end_trace(trace_id, result=result)
                 return result
             except Exception as e:
-                error_occurred = e
+                tracer.end_trace(trace_id, error=e)
                 raise
-            finally:
-                # Log completion
-                duration = time.time() - start_time
-                end_extra = {
-                    'operation': operation_name,
-                    'phase': 'end',
-                    'correlation_id': correlation_id,
-                    'success': error_occurred is None
-                }
-                
-                if log_duration:
-                    end_extra['duration_seconds'] = round(duration, 3)
-                    
-                if log_result and error_occurred is None:
-                    end_extra['result'] = str(result)
-                    
-                if error_occurred:
-                    end_extra['error_type'] = type(error_occurred).__name__
-                    end_extra['error_message'] = str(error_occurred)
-                    logger.error(
-                        f"Failed {operation_name} after {duration:.2f}s",
-                        extra=end_extra,
-                        exc_info=True
-                    )
-                else:
-                    logger.info(
-                        f"Completed {operation_name} in {duration:.2f}s",
-                        extra=end_extra
-                    )
         
         return wrapper
     return decorator
 
 
-def get_logger(name: str) -> StandardizedLogger:
-    """
-    Get a standardized logger instance.
-    
-    Args:
-        name: Logger name (usually __name__)
-        
-    Returns:
-        StandardizedLogger instance with correlation ID support
-    """
-    base_logger = logging.getLogger(name)
-    return StandardizedLogger(base_logger)
-
-
-# Structured logging helpers
-def log_event(
+def log_batch_progress(
     logger: logging.Logger,
-    event_type: str,
-    message: str,
-    **kwargs
-) -> None:
+    current: int,
+    total: int,
+    operation: str,
+    start_time: float,
+    additional_info: Optional[Dict[str, Any]] = None
+):
     """
-    Log a structured event.
+    Log batch processing progress with ETA.
     
     Args:
         logger: Logger instance
-        event_type: Type of event (e.g., 'episode_processed', 'entity_extracted')
-        message: Human-readable message
-        **kwargs: Additional structured data
+        current: Current item number
+        total: Total items
+        operation: Operation being performed
+        start_time: Start time of batch processing
+        additional_info: Additional context
     """
-    extra = {
-        'event_type': event_type,
-        'correlation_id': get_correlation_id(),
-        **kwargs
-    }
-    logger.info(message, extra=extra)
-
-
-def log_business_metric(
-    logger: logging.Logger,
-    metric_name: str,
-    value: float,
-    unit: str = 'count',
-    **dimensions
-) -> None:
-    """
-    Log a business metric with dimensions.
+    elapsed = time.time() - start_time
+    rate = current / elapsed if elapsed > 0 else 0
+    eta = (total - current) / rate if rate > 0 else 0
     
-    Args:
-        logger: Logger instance
-        metric_name: Name of the metric
-        value: Metric value
-        unit: Unit of measurement
-        **dimensions: Additional dimensions (tags)
-    """
     extra = {
-        'metric_type': 'business',
-        'metric_name': metric_name,
-        'metric_value': value,
-        'metric_unit': unit,
-        'correlation_id': get_correlation_id(),
-        **dimensions
+        'operation': operation,
+        'progress_current': current,
+        'progress_total': total,
+        'progress_percent': (current / total * 100) if total > 0 else 0,
+        'rate_per_second': rate,
+        'eta_seconds': eta,
+        'elapsed_seconds': elapsed,
+        'correlation_id': get_correlation_id()
     }
-    logger.info(f"Business metric: {metric_name}={value} {unit}", extra=extra)
-
-
-def log_technical_metric(
-    logger: logging.Logger,
-    metric_name: str,
-    value: float,
-    unit: str = 'count',
-    **dimensions
-) -> None:
-    """
-    Log a technical metric with dimensions.
     
-    Args:
-        logger: Logger instance
-        metric_name: Name of the metric
-        value: Metric value
-        unit: Unit of measurement
-        **dimensions: Additional dimensions (tags)
-    """
-    extra = {
-        'metric_type': 'technical',
-        'metric_name': metric_name,
-        'metric_value': value,
-        'metric_unit': unit,
-        'correlation_id': get_correlation_id(),
-        **dimensions
-    }
-    logger.info(f"Technical metric: {metric_name}={value} {unit}", extra=extra)
-
-
-# Logging Guidelines
-LOGGING_GUIDELINES = """
-Logging Guidelines for Podcast Knowledge Pipeline
-================================================
-
-1. Always use structured logging with extra fields
-2. Include correlation_id in all logs for request tracing
-3. Use appropriate log levels:
-   - DEBUG: Detailed diagnostic information
-   - INFO: General informational messages
-   - WARNING: Warning messages for recoverable issues
-   - ERROR: Error messages for failures
-   - CRITICAL: Critical failures requiring immediate attention
-
-4. Standard fields to include:
-   - correlation_id: Request correlation ID
-   - operation: Current operation name
-   - phase: Operation phase (start, processing, end)
-   - duration_seconds: Operation duration
-   - success: Whether operation succeeded
-   - error_type: Exception type on failure
-   - error_message: Error message on failure
-
-5. Use structured logging helpers:
-   - log_event(): For business events
-   - log_business_metric(): For business metrics
-   - log_technical_metric(): For technical metrics
-   - @log_operation(): For consistent operation logging
-   - @with_correlation_id(): For correlation ID propagation
-
-6. Example usage:
-
-   from src.utils.logging_enhanced import get_logger, log_operation, with_correlation_id
-
-   logger = get_logger(__name__)
-   
-   @with_correlation_id()
-   @log_operation("process_episode")
-   def process_episode(episode_id: str):
-       logger.info("Processing episode", extra={'episode_id': episode_id})
-       # ... processing logic ...
-       log_business_metric(logger, "episodes_processed", 1, episode_id=episode_id)
-
-7. For error logging, always include context:
-   try:
-       # operation
-   except Exception as e:
-       logger.error(
-           "Operation failed",
-           extra={
-               'operation': 'process_episode',
-               'episode_id': episode_id,
-               'error_type': type(e).__name__
-           },
-           exc_info=True
-       )
-"""
-
-
-__all__ = [
-    'get_logger',
-    'get_correlation_id',
-    'set_correlation_id',
-    'with_correlation_id',
-    'log_operation',
-    'log_event',
-    'log_business_metric',
-    'log_technical_metric',
-    'CorrelationIdFilter',
-    'StandardizedLogger',
-    'LOGGING_GUIDELINES'
-]
+    if additional_info:
+        extra.update(additional_info)
+    
+    logger.info(
+        f"PROGRESS: {operation} - {current}/{total} ({current/total*100:.1f}%) - "
+        f"Rate: {rate:.1f}/s - ETA: {eta:.0f}s",
+        extra=extra
+    )

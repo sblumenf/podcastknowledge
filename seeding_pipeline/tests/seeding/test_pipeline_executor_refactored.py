@@ -5,14 +5,13 @@ This module tests the new helper methods added during refactoring
 to ensure they maintain the same behavior as the original code.
 """
 
-import pytest
 from unittest.mock import Mock, MagicMock, patch
 import os
 
-from src.seeding.components.pipeline_executor import PipelineExecutor
+import pytest
+
 from src.core.exceptions import PipelineError
-
-
+from src.seeding.components.pipeline_executor import PipelineExecutor
 class TestPipelineExecutorHelperMethods:
     """Test the newly extracted helper methods."""
     

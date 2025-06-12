@@ -4,20 +4,19 @@ Tests for src/seeding/orchestrator.py focusing on real-world scenarios
 and integration between components.
 """
 
-import pytest
-from unittest import mock
 from datetime import datetime
-import json
 from typing import Dict, Any, List
-import tempfile
+from unittest import mock
+import json
 import os
+import tempfile
 
-from src.seeding.orchestrator import PodcastKnowledgePipeline
+import pytest
+
 from src.core.config import SeedingConfig
 from src.core.exceptions import PipelineError
-from src.core.models import Entity, Insight, Quote, EntityType
-
-
+from src.core.extraction_interface import Entity, Insight, Quote, EntityType
+from src.seeding.orchestrator import VTTKnowledgeExtractor
 class TestEndToEndScenarios:
     """Test complete end-to-end pipeline scenarios."""
     
@@ -133,8 +132,7 @@ class TestEndToEndScenarios:
         config.batch_size = 10
         
         # Create pipeline
-        with mock.patch('src.seeding.orchestrator.init_tracing'):
-            pipeline = PodcastKnowledgePipeline(config=config)
+        pipeline = VTTKnowledgeExtractor(config=config)
         
         # Mock component initialization
         with mock.patch.object(pipeline.provider_coordinator, 'initialize_providers') as mock_init:
@@ -407,11 +405,10 @@ class TestConfigurationScenarios:
     
     def test_minimal_configuration(self):
         """Test pipeline with minimal configuration."""
-        with mock.patch('src.seeding.orchestrator.init_tracing'):
-            pipeline = PodcastKnowledgePipeline()
-            
-            assert pipeline.config is not None
-            assert isinstance(pipeline.config, SeedingConfig)
+        pipeline = VTTKnowledgeExtractor()
+        
+        assert pipeline.config is not None
+        assert isinstance(pipeline.config, SeedingConfig)
     
     def test_custom_configuration(self, tmp_path):
         """Test pipeline with custom configuration."""
@@ -422,13 +419,12 @@ class TestConfigurationScenarios:
         config.log_level = 'DEBUG'
         config.log_file = str(tmp_path / "pipeline.log")
         
-        with mock.patch('src.seeding.orchestrator.init_tracing'):
-            with mock.patch('logging.basicConfig'):
-                with mock.patch('logging.FileHandler'):
-                    pipeline = PodcastKnowledgePipeline(config=config)
-                    
-                    assert pipeline.config.batch_size == 5
-                    assert pipeline.config.checkpoint_interval == 20
+        with mock.patch('logging.basicConfig'):
+            with mock.patch('logging.FileHandler'):
+                pipeline = VTTKnowledgeExtractor(config=config)
+                
+                assert pipeline.config.batch_size == 5
+                assert pipeline.config.checkpoint_interval == 20
 
 
 class TestErrorRecovery:
@@ -438,23 +434,22 @@ class TestErrorRecovery:
         """Test retry logic for provider initialization."""
         config = SeedingConfig()
         
-        with mock.patch('src.seeding.orchestrator.init_tracing'):
-            pipeline = PodcastKnowledgePipeline(config=config)
-            
-            # Mock initialization to fail then succeed
-            pipeline.provider_coordinator.initialize_providers.side_effect = [False, True]
-            pipeline.provider_coordinator.check_health.return_value = True
-            
-            # First attempt should fail
-            assert pipeline.initialize_components() is False
-            
-            # Second attempt should succeed
-            with mock.patch('src.seeding.orchestrator.StorageCoordinator'):
-                with mock.patch('src.seeding.orchestrator.PipelineExecutor'):
-                    # Need to set up mock providers for success
-                    pipeline.provider_coordinator.graph_provider = mock.Mock()
-                    pipeline.provider_coordinator.graph_enhancer = mock.Mock()
-                    assert pipeline.initialize_components() is True
+        pipeline = VTTKnowledgeExtractor(config=config)
+        
+        # Mock initialization to fail then succeed
+        pipeline.provider_coordinator.initialize_providers.side_effect = [False, True]
+        pipeline.provider_coordinator.check_health.return_value = True
+        
+        # First attempt should fail
+        assert pipeline.initialize_components() is False
+        
+        # Second attempt should succeed
+        with mock.patch('src.seeding.orchestrator.StorageCoordinator'):
+            with mock.patch('src.seeding.orchestrator.PipelineExecutor'):
+                # Need to set up mock providers for success
+                pipeline.provider_coordinator.graph_provider = mock.Mock()
+                pipeline.provider_coordinator.graph_enhancer = mock.Mock()
+                assert pipeline.initialize_components() is True
     
     def test_graceful_degradation(self, configured_pipeline):
         """Test graceful degradation when optional components fail."""

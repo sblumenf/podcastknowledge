@@ -6,12 +6,10 @@ ensuring consistent behavior across different implementations.
 """
 
 from abc import ABC, abstractmethod
-from typing import Protocol, Dict, Any, List, Optional, Tuple, Union
+from contextlib import AbstractContextManager
 from dataclasses import dataclass
 from datetime import datetime
-from contextlib import AbstractContextManager
-
-
+from typing import Protocol, Dict, Any, List, Optional, Tuple, Union
 # Base protocol for health checks
 class HealthCheckable(Protocol):
     """Protocol for components that support health checks."""
@@ -29,16 +27,7 @@ class HealthCheckable(Protocol):
         ...
 
 
-# Audio Processing Interfaces
-@dataclass
-class DiarizationSegment:
-    """Represents a speaker segment from diarization."""
-    speaker: str
-    start_time: float
-    end_time: float
-    confidence: Optional[float] = None
-
-
+# Transcript Processing Interfaces
 @dataclass
 class TranscriptSegment:
     """Represents a transcript segment."""
@@ -50,55 +39,46 @@ class TranscriptSegment:
     confidence: Optional[float] = None
 
 
-class AudioProvider(HealthCheckable, Protocol):
-    """Interface for audio processing providers."""
+# Audio Provider Interfaces
+class AudioProvider(ABC):
+    """Abstract base class for audio providers."""
     
-    def transcribe(self, audio_path: str) -> List[TranscriptSegment]:
-        """
-        Transcribe audio file to text segments.
+    @abstractmethod
+    def download_audio(self, url: str, output_path: str) -> str:
+        """Download audio from URL.
         
         Args:
-            audio_path: Path to the audio file
+            url: URL of the audio file
+            output_path: Path to save the audio file
             
         Returns:
-            List of transcript segments with timestamps
-            
-        Raises:
-            AudioProcessingError: If transcription fails
+            Path to the downloaded file
         """
-        ...
+        pass
     
-    def diarize(self, audio_path: str) -> List[DiarizationSegment]:
-        """
-        Perform speaker diarization on audio file.
+    @abstractmethod
+    def get_audio_duration(self, file_path: str) -> float:
+        """Get duration of an audio file in seconds.
         
         Args:
-            audio_path: Path to the audio file
+            file_path: Path to the audio file
             
         Returns:
-            List of speaker segments with timestamps
-            
-        Raises:
-            AudioProcessingError: If diarization fails
+            Duration in seconds
         """
-        ...
+        pass
     
-    def align_transcript_with_diarization(
-        self, 
-        transcript_segments: List[TranscriptSegment], 
-        diarization_segments: List[DiarizationSegment]
-    ) -> List[TranscriptSegment]:
-        """
-        Align transcript segments with speaker diarization.
+    @abstractmethod
+    def validate_audio_format(self, file_path: str) -> bool:
+        """Validate if audio format is supported.
         
         Args:
-            transcript_segments: List of transcript segments
-            diarization_segments: List of speaker segments
+            file_path: Path to the audio file
             
         Returns:
-            Transcript segments with speaker information added
+            True if format is supported
         """
-        ...
+        pass
 
 
 # LLM Provider Interfaces

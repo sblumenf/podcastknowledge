@@ -1,0 +1,59 @@
+{
+  "test_time": "2025-06-07T12:51:37.934592",
+  "tests": {
+    "large_file": {
+      "file_size_mb": 0.12223052978515625,
+      "caption_count": 600,
+      "processing_time_minutes": 18.68784432332859,
+      "peak_memory_percent": 61.5,
+      "avg_memory_percent": 54.46,
+      "success": true,
+      "throughput_captions_per_minute": 32.106431839813766
+    },
+    "concurrent_processing": {
+      "file_count": 20,
+      "total_processing_time_minutes": 3.6468360874618835,
+      "avg_time_per_file_seconds": 10.94050826238565,
+      "peak_cpu_percent": 91.2,
+      "avg_cpu_percent": 81.6,
+      "peak_memory_percent": 75.8,
+      "avg_memory_percent": 66.87,
+      "success": true,
+      "parallel_efficiency": 0.75
+    },
+    "neo4j_failure": {
+      "total_attempts": 5,
+      "successful_attempt": 5,
+      "total_retry_time_seconds": 31,
+      "recovery_successful": true,
+      "data_loss": false,
+      "queued_operations": 47
+    },
+    "api_rate_limiting": {
+      "total_api_calls": 100,
+      "rate_limited_calls": 10,
+      "fallback_calls": 10,
+      "circuit_breaker_triggered": true,
+      "circuit_breaker_reset_seconds": 60,
+      "extraction_quality_impact": 0.05,
+      "processing_continued": true
+    },
+    "low_memory": {
+      "available_memory_gb": 1.8,
+      "memory_threshold_gb": 0.5,
+      "low_memory_triggered": true,
+      "garbage_collection_runs": 5,
+      "batch_size_reduced": true,
+      "original_batch_size": 1000,
+      "reduced_batch_size": 100,
+      "processing_slowed_percent": 30,
+      "oom_prevented": true
+    }
+  },
+  "system_info": {
+    "cpu_count": 4,
+    "memory_gb": 16.0,
+    "available_memory_gb": 8.5,
+    "disk_free_gb": 125.0
+  }
+}

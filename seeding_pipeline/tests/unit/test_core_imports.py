@@ -1,8 +1,6 @@
 """Test that core module imports work correctly."""
 
 import pytest
-
-
 def test_core_interfaces_import():
     """Test that interfaces can be imported."""
     from src.core import (

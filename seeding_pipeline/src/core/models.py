@@ -7,10 +7,8 @@ representing podcasts, episodes, segments, and extracted knowledge.
 
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Optional, List, Dict, Any, Union
 from enum import Enum
-
-
+from typing import Optional, List, Dict, Any, Union
 # Enums for various types
 class ComplexityLevel(str, Enum):
     """Complexity levels for content classification."""
@@ -61,6 +59,15 @@ class SpeakerRole(str, Enum):
     UNKNOWN = "unknown"
 
 
+class ProcessingStatus(str, Enum):
+    """Status of processing."""
+    PENDING = "pending"
+    IN_PROGRESS = "in_progress"
+    COMPLETED = "completed"
+    FAILED = "failed"
+    PARTIAL = "partial"
+
+
 # Main data models
 @dataclass
 class Podcast:
@@ -100,6 +107,7 @@ class Episode:
     episode_number: Optional[int] = None
     season_number: Optional[int] = None
     processed_timestamp: Optional[datetime] = None
+    guests: List[str] = field(default_factory=list)
     
     # Complexity metrics
     avg_complexity: Optional[float] = None
@@ -147,6 +155,7 @@ class Segment:
     speaker: Optional[str] = None
     episode_id: str = ""
     segment_index: int = 0
+    segment_number: int = 0
     
     # Content properties
     is_advertisement: bool = False
@@ -280,6 +289,7 @@ class Quote:
     id: str
     text: str
     speaker: str
+    speaker_id: Optional[str] = None
     quote_type: QuoteType = QuoteType.GENERAL
     context: Optional[str] = None
     
@@ -317,6 +327,7 @@ class Topic:
     name: str
     description: Optional[str] = None
     trend: Optional[str] = None  # "emerging", "established", "declining"
+    keywords: List[str] = field(default_factory=list)
     
     # Hierarchy
     hierarchy_level: int = 0
@@ -334,6 +345,7 @@ class Topic:
             "name": self.name,
             "description": self.description,
             "trend": self.trend,
+            "keywords": self.keywords,
             "hierarchy_level": self.hierarchy_level,
             "parent_topics": self.parent_topics,
             "child_topics": self.child_topics
@@ -346,6 +358,7 @@ class Speaker:
     id: str
     name: str
     role: SpeakerRole = SpeakerRole.UNKNOWN
+    bio: Optional[str] = None
     
     # Statistics
     episode_count: int = 1
@@ -360,6 +373,7 @@ class Speaker:
             "id": self.id,
             "name": self.name,
             "role": self.role.value,
+            "bio": self.bio,
             "created_timestamp": self.created_timestamp
         }
 
@@ -368,6 +382,8 @@ class Speaker:
 class PotentialConnection:
     """Represents a potential connection between entities."""
     id: str
+    source_id: str
+    target_id: str
     description: str
     strength: float
     entities: List[str] = field(default_factory=list)
@@ -387,6 +403,7 @@ class ProcessingResult:
     """Result of processing a podcast episode."""
     episode_id: str
     success: bool
+    error: Optional[str] = None
     
     # Extracted data
     segments: List[Segment] = field(default_factory=list)

@@ -1,14 +1,12 @@
 """Within-episode discourse flow analysis."""
 
-import logging
-from typing import List, Dict, Any, Optional, Tuple
 from collections import defaultdict, Counter
-import numpy as np
-from scipy.spatial.distance import cosine
+from typing import List, Dict, Any, Optional, Tuple
+import logging
 
 from src.core.models import Entity, Segment
-from src.providers.embeddings.base import EmbeddingProvider
-from src.utils.logging import get_logger
+from src.utils.log_utils import get_logger
+from src.utils.optional_deps import cosine_distance, HAS_SCIPY, HAS_NUMPY, _warn_once
 
 logger = get_logger(__name__)
 
@@ -20,7 +18,7 @@ class EpisodeFlowAnalyzer:
     Works entirely within episode boundaries.
     """
     
-    def __init__(self, embedding_provider: Optional[EmbeddingProvider] = None):
+    def __init__(self, embedding_provider: Optional[Any] = None):
         """
         Initialize the episode flow analyzer.
         
@@ -85,10 +83,15 @@ class EpisodeFlowAnalyzer:
             return 0.5  # Default neutral similarity
         
         try:
-            emb1 = np.array(self.embedding_provider.embed_text(text1))
-            emb2 = np.array(self.embedding_provider.embed_text(text2))
-            return 1 - cosine(emb1, emb2)
-        except:
+            emb1 = self.embedding_provider.embed_text(text1)
+            emb2 = self.embedding_provider.embed_text(text2)
+            
+            # Use our optional dependency cosine distance function
+            # (it returns distance, so we subtract from 1 to get similarity)
+            distance = cosine_distance(emb1, emb2)
+            return 1.0 - distance
+        except Exception as e:
+            logger.warning(f"Failed to calculate semantic similarity: {e}")
             return 0.5
     
     def _detect_transition_type(
@@ -179,10 +182,11 @@ class EpisodeFlowAnalyzer:
         entity_mentions = self._find_entity_mentions(segments, entities)
         
         for entity in entities:
-            if entity.id not in entity_mentions:
+            entity_id = entity.properties.get('id', '') if entity.properties else ''
+            if entity_id not in entity_mentions:
                 continue
             
-            first_mention = entity_mentions[entity.id][0]
+            first_mention = entity_mentions[entity_id][0]
             segment_idx = first_mention["segment_index"]
             segment = segments[segment_idx]
             
@@ -201,7 +205,7 @@ class EpisodeFlowAnalyzer:
                 first_mention["context"]
             )
             
-            introductions[entity.id] = {
+            introductions[entity_id] = {
                 "introduction_segment": segment_idx,
                 "introduction_type": intro_type,
                 "introduction_context": first_mention["context"],
@@ -230,7 +234,8 @@ class EpisodeFlowAnalyzer:
                     context_end = min(len(segment.text), start_idx + len(entity.name) + 50)
                     context = segment.text[context_start:context_end]
                     
-                    mentions[entity.id].append({
+                    entity_id = entity.properties.get('id', '') if entity.properties else ''
+                    mentions[entity_id].append({
                         "segment_index": i,
                         "position": start_idx,
                         "context": context,
@@ -619,7 +624,9 @@ class EpisodeFlowAnalyzer:
         
         # Check other entities in same segments
         for other_entity in all_entities:
-            if other_entity.id == entity.id:
+            other_id = other_entity.properties.get('id', '') if other_entity.properties else ''
+            entity_id = entity.properties.get('id', '') if entity.properties else ''
+            if other_id == entity_id:
                 continue
             
             for i, segment in enumerate(segments):

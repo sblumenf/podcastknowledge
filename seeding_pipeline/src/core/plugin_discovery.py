@@ -1,12 +1,12 @@
 """Plugin discovery system for automatic provider registration."""
 
+from pathlib import Path
+from typing import Dict, Type, Any, List, Optional, Callable
+import logging
 import os
+
 import importlib
 import inspect
-import logging
-from typing import Dict, Type, Any, List, Optional, Callable
-from pathlib import Path
-
 logger = logging.getLogger(__name__)
 
 
@@ -15,15 +15,15 @@ def provider_plugin(provider_type: str, name: str, version: str = "1.0.0",
     """Decorator for marking a class as a provider plugin.
     
     Args:
-        provider_type: Type of provider ('audio', 'llm', 'graph', 'embedding')
+        provider_type: Type of provider ('llm', 'graph', 'embedding')
         name: Name for the provider
         version: Provider version
         author: Provider author
         description: Provider description
         
     Example:
-        @provider_plugin('audio', 'whisper', version='1.2.0', author='OpenAI')
-        class WhisperAudioProvider(AudioProvider):
+        @provider_plugin('llm', 'gemini', version='1.2.0', author='Google')
+        class GeminiProvider(LLMProvider):
             pass
     """
     def decorator(cls: Type) -> Type:
@@ -54,13 +54,11 @@ class PluginDiscovery:
         """
         self.provider_dirs = provider_dirs or ['src/providers']
         self.discovered_plugins: Dict[str, Dict[str, Type]] = {
-            'audio': {},
             'llm': {},
             'graph': {},
             'embedding': {}
         }
         self.plugin_metadata: Dict[str, Dict[str, Dict[str, Any]]] = {
-            'audio': {},
             'llm': {},
             'graph': {},
             'embedding': {}

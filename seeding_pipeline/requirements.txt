@@ -5,23 +5,16 @@ numpy==1.24.3
 scipy==1.11.4
 networkx==3.1
 
-# Audio Processing
-torch==2.1.0
-openai-whisper==20231117
-faster-whisper==0.10.0
-pyannote.audio==3.1.1
-
 # LLM and AI
 langchain==0.1.0
 langchain-google-genai==0.0.5
 openai==1.6.1
 google-generativeai==0.3.2
+google-genai>=1.0.0
 
-# Embeddings
-sentence-transformers==2.2.2
+# Embeddings are now handled via Gemini API (google-generativeai)
 
 # Data Processing
-feedparser==6.0.10
 tqdm==4.66.1
 
 # Utilities
@@ -33,13 +26,3 @@ fastapi==0.104.1
 uvicorn[standard]==0.24.0
 pydantic==2.5.0
 
-# Distributed Tracing
-opentelemetry-api==1.21.0
-opentelemetry-sdk==1.21.0
-opentelemetry-instrumentation==0.42b0
-opentelemetry-exporter-jaeger==1.21.0
-opentelemetry-instrumentation-redis==0.42b0
-opentelemetry-instrumentation-requests==0.42b0
-opentelemetry-instrumentation-urllib3==0.42b0
-opentelemetry-instrumentation-logging==0.42b0
-opentelemetry-propagator-b3==1.21.0

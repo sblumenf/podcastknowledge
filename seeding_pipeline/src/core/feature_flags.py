@@ -5,25 +5,24 @@ This module provides a centralized feature flag system for controlling
 experimental features and gradual rollouts.
 """
 
-import os
-from typing import Dict, Any, Optional
-from enum import Enum
 from dataclasses import dataclass
+from enum import Enum
 from functools import lru_cache
+from typing import Dict, Any, Optional
+import os
 
-from ..utils.logging import get_logger
-
+from ..utils.log_utils import get_logger
 logger = get_logger(__name__)
 
 
 class FeatureFlag(Enum):
     """Available feature flags for the pipeline."""
     
-    # Schemaless extraction flags
-    ENABLE_SCHEMALESS_EXTRACTION = "ENABLE_SCHEMALESS_EXTRACTION"
-    SCHEMALESS_MIGRATION_MODE = "SCHEMALESS_MIGRATION_MODE"
+    # Schemaless extraction flags (schemaless is now the only mode)
     LOG_SCHEMA_DISCOVERY = "LOG_SCHEMA_DISCOVERY"
     ENABLE_ENTITY_RESOLUTION_V2 = "ENABLE_ENTITY_RESOLUTION_V2"
+    ENABLE_SCHEMALESS_EXTRACTION = "ENABLE_SCHEMALESS_EXTRACTION"
+    SCHEMALESS_MIGRATION_MODE = "SCHEMALESS_MIGRATION_MODE"
     
     # Component enhancement flags (for Phase 9.5)
     ENABLE_TIMESTAMP_INJECTION = "ENABLE_TIMESTAMP_INJECTION"
@@ -31,6 +30,9 @@ class FeatureFlag(Enum):
     ENABLE_QUOTE_POSTPROCESSING = "ENABLE_QUOTE_POSTPROCESSING"
     ENABLE_METADATA_ENRICHMENT = "ENABLE_METADATA_ENRICHMENT"
     ENABLE_ENTITY_RESOLUTION_POSTPROCESS = "ENABLE_ENTITY_RESOLUTION_POSTPROCESS"
+    
+    # Speaker identification flags
+    ENABLE_SPEAKER_IDENTIFICATION = "ENABLE_SPEAKER_IDENTIFICATION"
 
 
 @dataclass
@@ -52,16 +54,6 @@ class FeatureFlagManager:
     def __init__(self):
         """Initialize the feature flag manager."""
         self._flags: Dict[FeatureFlag, FlagConfig] = {
-            FeatureFlag.ENABLE_SCHEMALESS_EXTRACTION: FlagConfig(
-                name="ENABLE_SCHEMALESS_EXTRACTION",
-                default_value=False,
-                description="Enable schemaless knowledge extraction using Neo4j GraphRAG"
-            ),
-            FeatureFlag.SCHEMALESS_MIGRATION_MODE: FlagConfig(
-                name="SCHEMALESS_MIGRATION_MODE",
-                default_value=False,
-                description="Run both fixed and schemaless extraction for comparison"
-            ),
             FeatureFlag.LOG_SCHEMA_DISCOVERY: FlagConfig(
                 name="LOG_SCHEMA_DISCOVERY",
                 default_value=True,
@@ -96,6 +88,21 @@ class FeatureFlagManager:
                 name="ENABLE_ENTITY_RESOLUTION_POSTPROCESS",
                 default_value=True,
                 description="Enable entity resolution post-processing"
+            ),
+            FeatureFlag.ENABLE_SCHEMALESS_EXTRACTION: FlagConfig(
+                name="ENABLE_SCHEMALESS_EXTRACTION",
+                default_value=False,
+                description="Enable schemaless knowledge extraction"
+            ),
+            FeatureFlag.SCHEMALESS_MIGRATION_MODE: FlagConfig(
+                name="SCHEMALESS_MIGRATION_MODE",
+                default_value=False,
+                description="Enable migration from fixed to schemaless schema"
+            ),
+            FeatureFlag.ENABLE_SPEAKER_IDENTIFICATION: FlagConfig(
+                name="ENABLE_SPEAKER_IDENTIFICATION",
+                default_value=True,
+                description="Enable LLM-based speaker identification for VTT transcripts"
             ),
         }
         

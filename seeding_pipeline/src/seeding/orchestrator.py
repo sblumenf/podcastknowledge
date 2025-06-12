@@ -1,40 +1,18 @@
 """Main orchestrator for the podcast knowledge extraction pipeline."""
 
+from datetime import datetime
+from pathlib import Path
+from typing import Dict, Any, Optional, List, Union
+import logging
 import os
 import signal
 import sys
-from typing import Dict, Any, Optional, List, Union
-from datetime import datetime
-from pathlib import Path
-import logging
 
 from src.core.config import PipelineConfig, SeedingConfig
 from src.core.exceptions import PipelineError, ConfigurationError
-from src.factories.provider_factory import ProviderFactory
-from src.providers.audio.base import AudioProvider
-from src.providers.llm.base import LLMProvider
-from src.providers.graph.base import GraphProvider
-from src.providers.embeddings.base import EmbeddingProvider
-from src.processing.segmentation import EnhancedPodcastSegmenter
-from src.processing.extraction import KnowledgeExtractor
-from src.processing.entity_resolution import EntityResolver
-from src.processing.graph_analysis import GraphAnalyzer
-from src.processing.discourse_flow import DiscourseFlowTracker
-from src.processing.emergent_themes import EmergentThemeDetector
+from src.extraction import KnowledgeExtractor, EntityResolver
 from src.processing.episode_flow import EpisodeFlowAnalyzer
-from src.utils.memory import cleanup_memory, monitor_memory
-from src.utils.resources import ProgressCheckpoint
-from src.utils.feed_processing import fetch_podcast_feed, download_episode_audio
-from src.providers.graph.enhancements import GraphEnhancements
-from src.utils.logging import get_logger, log_execution_time, log_error_with_context, log_metric
-from src.tracing import (
-    init_tracing, trace_method, trace_async, add_span_attributes,
-    record_exception, set_span_status, create_span, get_current_span,
-    trace_business_operation, instrument_all
-)
-from src.tracing.config import TracingConfig
-
-# Import new components
+from src.processing.segmentation import VTTTranscriptSegmenter
 from src.seeding.components import (
     SignalManager,
     ProviderCoordinator,
@@ -42,15 +20,22 @@ from src.seeding.components import (
     PipelineExecutor,
     StorageCoordinator
 )
+from src.services import LLMService, EmbeddingsService
+from src.storage import GraphStorageService
+from src.utils.log_utils import get_logger, log_execution_time, log_error_with_context, log_metric
+from src.utils.memory import cleanup_memory
+from src.utils.resources import ProgressCheckpoint
+from src.utils.metrics import get_pipeline_metrics
 
 logger = get_logger(__name__)
 
 
-class PodcastKnowledgePipeline:
-    """Master orchestrator for the podcast knowledge extraction pipeline.
+class VTTKnowledgeExtractor:
+    """Master orchestrator for VTT transcript knowledge extraction.
     
     This class coordinates all components of the pipeline using dependency injection
-    and provides the main API for seeding the knowledge graph.
+    and provides the main API for extracting knowledge from VTT files and seeding
+    the knowledge graph.
     """
     
     def __init__(self, config: Optional[Union[PipelineConfig, SeedingConfig]] = None):
@@ -60,31 +45,26 @@ class PodcastKnowledgePipeline:
             config: Pipeline or seeding configuration
         """
         self.config = config or SeedingConfig()
-        self.factory = ProviderFactory()
-        
         # Initialize components
         self.signal_manager = SignalManager()
-        self.provider_coordinator = ProviderCoordinator(self.factory, self.config)
+        self.provider_coordinator = ProviderCoordinator(self.config)
         self.checkpoint_manager = CheckpointManager(self.config)
         
         # The pipeline executor and storage coordinator will be initialized after providers
         self.pipeline_executor = None
         self.storage_coordinator = None
         
-        # Provider instances - maintain references for backward compatibility
-        self.audio_provider: Optional[AudioProvider] = None
-        self.llm_provider: Optional[LLMProvider] = None
-        self.graph_provider: Optional[GraphProvider] = None
-        self.embedding_provider: Optional[EmbeddingProvider] = None
+        # Service instances - maintain references for backward compatibility
+        self.llm_service: Optional[LLMService] = None
+        self.graph_service: Optional[GraphStorageService] = None
+        self.embedding_service: Optional[EmbeddingsService] = None
         
         # Processing components - maintain references for backward compatibility
-        self.segmenter: Optional[EnhancedPodcastSegmenter] = None
+        self.segmenter: Optional[Any] = None
         self.knowledge_extractor: Optional[KnowledgeExtractor] = None
         self.entity_resolver: Optional[EntityResolver] = None
-        self.graph_analyzer: Optional[GraphAnalyzer] = None
-        self.graph_enhancer: Optional[GraphEnhancements] = None
-        self.discourse_flow_tracker: Optional[DiscourseFlowTracker] = None
-        self.emergent_theme_detector: Optional[EmergentThemeDetector] = None
+        # Analytics components removed in Phase 3.3.1
+        self.graph_enhancer: Optional[Any] = None  # Removed with provider pattern
         self.episode_flow_analyzer: Optional[EpisodeFlowAnalyzer] = None
         
         # Checkpoint manager - maintain reference for backward compatibility
@@ -96,9 +76,6 @@ class PodcastKnowledgePipeline:
         
         # Initialize logging
         self._setup_logging()
-        
-        # Initialize distributed tracing
-        self._setup_tracing()
     
     def _setup_logging(self):
         """Set up comprehensive logging."""
@@ -117,43 +94,6 @@ class PodcastKnowledgePipeline:
             file_handler.setFormatter(logging.Formatter(log_format))
             logging.getLogger().addHandler(file_handler)
     
-    def _setup_tracing(self):
-        """Initialize distributed tracing."""
-        tracing_config = TracingConfig.from_env()
-        
-        # Initialize OpenTelemetry tracer
-        init_tracing(
-            service_name=tracing_config.service_name,
-            jaeger_host=tracing_config.jaeger_host,
-            jaeger_port=tracing_config.jaeger_port,
-            config=self.config,
-            enable_console=tracing_config.console_export,
-        )
-        
-        # Enable auto-instrumentation based on config
-        if tracing_config.instrument_neo4j:
-            from src.tracing.instrumentation import instrument_neo4j
-            instrument_neo4j()
-        
-        if tracing_config.instrument_redis:
-            from src.tracing.instrumentation import instrument_redis
-            instrument_redis()
-        
-        if tracing_config.instrument_requests:
-            from src.tracing.instrumentation import instrument_requests
-            instrument_requests()
-        
-        if tracing_config.instrument_langchain:
-            from src.tracing.instrumentation import instrument_langchain
-            instrument_langchain()
-        
-        if tracing_config.instrument_whisper:
-            from src.tracing.instrumentation import instrument_whisper
-            instrument_whisper()
-        
-        logger.info("Distributed tracing initialized")
-    
-    @trace_method(name="pipeline.initialize_components")
     def initialize_components(self, use_large_context: bool = True) -> bool:
         """Initialize all pipeline components.
         
@@ -170,18 +110,15 @@ class PodcastKnowledgePipeline:
                 return False
             
             # Set up backward compatibility references
-            self.audio_provider = self.provider_coordinator.audio_provider
-            self.llm_provider = self.provider_coordinator.llm_provider
-            self.graph_provider = self.provider_coordinator.graph_provider
-            self.embedding_provider = self.provider_coordinator.embedding_provider
+            self.llm_service = self.provider_coordinator.llm_service
+            self.graph_service = self.provider_coordinator.graph_service
+            self.embedding_service = self.provider_coordinator.embedding_service
             
             self.segmenter = self.provider_coordinator.segmenter
             self.knowledge_extractor = self.provider_coordinator.knowledge_extractor
             self.entity_resolver = self.provider_coordinator.entity_resolver
-            self.graph_analyzer = self.provider_coordinator.graph_analyzer
+            # Analytics components removed in Phase 3.3.1
             self.graph_enhancer = self.provider_coordinator.graph_enhancer
-            self.discourse_flow_tracker = self.provider_coordinator.discourse_flow_tracker
-            self.emergent_theme_detector = self.provider_coordinator.emergent_theme_detector
             self.episode_flow_analyzer = self.provider_coordinator.episode_flow_analyzer
             
             # Set up checkpoint reference for backward compatibility
@@ -189,7 +126,7 @@ class PodcastKnowledgePipeline:
             
             # Initialize storage coordinator first
             self.storage_coordinator = StorageCoordinator(
-                self.graph_provider,
+                self.graph_service,
                 self.graph_enhancer,
                 self.config
             )
@@ -202,9 +139,6 @@ class PodcastKnowledgePipeline:
                 self.storage_coordinator
             )
             
-            # Verify all components are healthy
-            if not self._verify_components_health():
-                raise PipelineError("Component health check failed")
             
             logger.info("✓ All pipeline components initialized successfully")
             return True
@@ -212,12 +146,6 @@ class PodcastKnowledgePipeline:
         except Exception as e:
             logger.error(f"✗ Failed to initialize pipeline components: {e}")
             return False
-    
-    @trace_method(name="pipeline.verify_components_health")
-    def _verify_components_health(self) -> bool:
-        """Verify all components are healthy."""
-        # Delegate to provider coordinator
-        return self.provider_coordinator.check_health()
     
     def cleanup(self):
         """Clean up resources and close connections."""
@@ -230,56 +158,66 @@ class PodcastKnowledgePipeline:
         cleanup_memory()
         logger.info("Pipeline cleanup completed")
     
-    @trace_method(name="pipeline.seed_podcast")
-    def seed_podcast(self, 
-                    podcast_config: Dict[str, Any],
-                    max_episodes: int = 1,
-                    use_large_context: bool = True) -> Dict[str, Any]:
-        """Seed knowledge graph with a single podcast.
+    def process_vtt_directory(self, 
+                            directory_path: str,
+                            pattern: str = "*.vtt",
+                            recursive: bool = False,
+                            use_large_context: bool = True) -> Dict[str, Any]:
+        """Process VTT files from a directory.
         
         Args:
-            podcast_config: Podcast configuration with RSS URL
-            max_episodes: Maximum episodes to process
+            directory_path: Path to directory containing VTT files
+            pattern: File pattern to match (default: *.vtt)
+            recursive: Whether to search subdirectories
             use_large_context: Whether to use large context models
             
         Returns:
             Processing summary
         """
-        return self.seed_podcasts(
-            [podcast_config],
-            max_episodes_each=max_episodes,
+        from src.seeding.transcript_ingestion import TranscriptIngestion
+        
+        ingestion = TranscriptIngestion(self.config)
+        vtt_files = ingestion.scan_directory(
+            Path(directory_path),
+            pattern=pattern,
+            recursive=recursive
+        )
+        
+        return self.process_vtt_files(
+            vtt_files,
             use_large_context=use_large_context
         )
     
-    @trace_method(name="pipeline.seed_podcasts")
-    def seed_podcasts(self,
-                     podcast_configs: Union[Dict[str, Any], List[Dict[str, Any]]],
-                     max_episodes_each: int = 10,
-                     use_large_context: bool = True) -> Dict[str, Any]:
-        """Seed knowledge graph with multiple podcasts.
+    def process_vtt_files(self,
+                         vtt_files: List[Any],
+                         use_large_context: bool = True) -> Dict[str, Any]:
+        """Process multiple VTT files into knowledge graph.
         
         Args:
-            podcast_configs: List of podcast configurations or single config
-            max_episodes_each: Episodes to process per podcast
+            vtt_files: List of VTTFile objects to process
             use_large_context: Whether to use large context models
             
         Returns:
             Summary dict with processing statistics
         """
-        # Ensure podcast_configs is a list
-        if isinstance(podcast_configs, dict):
-            podcast_configs = [podcast_configs]
+        from src.seeding.transcript_ingestion import TranscriptIngestion
+        
+        # Get metrics instance
+        metrics = get_pipeline_metrics()
+        
+        # Ensure vtt_files is a list
+        if not isinstance(vtt_files, list):
+            vtt_files = [vtt_files]
         
         # Initialize components if not already done
-        if not self.audio_provider:
+        if not self.llm_service:
             if not self.initialize_components(use_large_context):
                 raise PipelineError("Failed to initialize pipeline components")
         
         summary = {
             'start_time': datetime.now().isoformat(),
-            'podcasts_processed': 0,
-            'episodes_processed': 0,
-            'episodes_failed': 0,
+            'files_processed': 0,
+            'files_failed': 0,
             'total_segments': 0,
             'total_insights': 0,
             'total_entities': 0,
@@ -289,26 +227,91 @@ class PodcastKnowledgePipeline:
             'errors': []
         }
         
+        ingestion = TranscriptIngestion(self.config)
+        
         try:
-            for podcast_config in podcast_configs:
+            for vtt_file_path in vtt_files:
                 if self._shutdown_requested:
                     logger.info("Shutdown requested, stopping processing")
                     break
                 
                 try:
-                    result = self._process_podcast(
-                        podcast_config,
-                        max_episodes_each,
-                        use_large_context
-                    )
+                    # Convert Path to VTTFile if needed
+                    if isinstance(vtt_file_path, Path):
+                        vtt_file = ingestion._create_vtt_file(vtt_file_path)
+                        if not vtt_file:
+                            logger.warning(f"Failed to create VTTFile from {vtt_file_path}")
+                            summary['files_failed'] += 1
+                            continue
+                    else:
+                        vtt_file = vtt_file_path
                     
-                    # Update summary
-                    summary['podcasts_processed'] += 1
-                    summary['episodes_processed'] += result['episodes_processed']
-                    summary['episodes_failed'] += result['episodes_failed']
-                    summary['total_segments'] += result['total_segments']
-                    summary['total_insights'] += result['total_insights']
-                    summary['total_entities'] += result['total_entities']
+                    # Start timing file processing
+                    file_start_time = datetime.now().timestamp()
+                    file_path = str(vtt_file.path if hasattr(vtt_file, 'path') else vtt_file)
+                    
+                    result = ingestion.process_vtt_file(vtt_file)
+                    
+                    if result['status'] == 'success':
+                        # Process the segments through knowledge extraction
+                        if self.pipeline_executor:
+                            # Create podcast and episode data structures
+                            podcast_config = {
+                                'id': f"podcast_{vtt_file.podcast_name.lower().replace(' ', '_')}",
+                                'name': vtt_file.podcast_name,
+                                'description': ''
+                            }
+                            
+                            episode_data = result['episode']
+                            
+                            # Process segments through pipeline executor
+                            extraction_result = self.pipeline_executor.process_vtt_segments(
+                                podcast_config,
+                                episode_data,
+                                result['segments'],
+                                use_large_context=use_large_context
+                            )
+                            
+                            # Update summary with extraction results
+                            if extraction_result:
+                                summary['total_insights'] += len(extraction_result.get('insights', []))
+                                summary['total_entities'] += len(extraction_result.get('entities', []))
+                                summary['total_relationships'] += len(extraction_result.get('relationships', []))
+                        
+                        summary['files_processed'] += 1
+                        summary['total_segments'] += result.get('segment_count', 0)
+                        
+                        # Record file processing metrics
+                        file_end_time = datetime.now().timestamp()
+                        metrics.record_file_processing(
+                            file_path,
+                            file_start_time,
+                            file_end_time,
+                            result.get('segment_count', 0),
+                            success=True
+                        )
+                        
+                        # Record entity extraction rate
+                        entity_count = len(extraction_result.get('entities', [])) if 'extraction_result' in locals() else 0
+                        if entity_count > 0:
+                            metrics.record_entity_extraction(entity_count)
+                            
+                    else:
+                        summary['files_failed'] += 1
+                        summary['errors'].append({
+                            'file': str(vtt_file.path if hasattr(vtt_file, 'path') else vtt_file),
+                            'error': result.get('error', 'Unknown error')
+                        })
+                        
+                        # Record failed file processing
+                        file_end_time = datetime.now().timestamp()
+                        metrics.record_file_processing(
+                            file_path,
+                            file_start_time,
+                            file_end_time,
+                            0,
+                            success=False
+                        )
                     
                     # Add schemaless-specific metrics
                     if result.get('extraction_mode') == 'schemaless':
@@ -317,9 +320,10 @@ class PodcastKnowledgePipeline:
                             summary['discovered_types'].update(result['discovered_types'])
                     
                 except Exception as e:
-                    logger.error(f"Failed to process podcast: {e}")
+                    logger.error(f"Failed to process VTT file: {e}")
+                    summary['files_failed'] += 1
                     summary['errors'].append({
-                        'podcast': podcast_config.get('id', 'unknown'),
+                        'file': str(vtt_file.path if hasattr(vtt_file, 'path') else vtt_file),
                         'error': str(e)
                     })
             
@@ -332,102 +336,13 @@ class PodcastKnowledgePipeline:
             
             # Log final schema discovery summary if in schemaless mode
             if summary['extraction_mode'] == 'schemaless' and summary['discovered_types']:
-                logger.info(f"Overall Schema Discovery - Found {len(summary['discovered_types'])} unique entity types across all podcasts")
+                logger.info(f"Overall Schema Discovery - Found {len(summary['discovered_types'])} unique entity types across all VTT files")
             
             return summary
             
         finally:
             # Always cleanup
             self.cleanup()
-    
-    def _process_podcast(self,
-                        podcast_config: Dict[str, Any],
-                        max_episodes: int,
-                        use_large_context: bool) -> Dict[str, Any]:
-        """Process a single podcast.
-        
-        Args:
-            podcast_config: Podcast configuration
-            max_episodes: Maximum episodes to process
-            use_large_context: Whether to use large context
-            
-        Returns:
-            Processing results
-        """
-        logger.info(f"Processing podcast: {podcast_config.get('name', podcast_config['id'])}")
-        
-        # Fetch podcast feed
-        podcast_info = fetch_podcast_feed(podcast_config, max_episodes)
-        
-        result = {
-            'episodes_processed': 0,
-            'episodes_failed': 0,
-            'total_segments': 0,
-            'total_insights': 0,
-            'total_entities': 0,
-            'total_relationships': 0,
-            'discovered_types': set(),
-            'extraction_mode': 'schemaless' if getattr(self.config, 'use_schemaless_extraction', False) else 'fixed'
-        }
-        
-        # Process each episode
-        for episode in podcast_info['episodes']:
-            if self._shutdown_requested:
-                break
-            
-            try:
-                episode_result = self._process_episode(
-                    podcast_config,
-                    episode,
-                    use_large_context
-                )
-                
-                result['episodes_processed'] += 1
-                result['total_segments'] += episode_result.get('segments', 0)
-                result['total_insights'] += episode_result.get('insights', 0)
-                result['total_entities'] += episode_result.get('entities', 0)
-                
-                # Add schemaless-specific metrics
-                if episode_result.get('mode') == 'schemaless':
-                    result['total_relationships'] += episode_result.get('relationships', 0)
-                    if 'discovered_types' in episode_result:
-                        result['discovered_types'].update(episode_result['discovered_types'])
-                
-            except Exception as e:
-                logger.error(f"Failed to process episode '{episode['title']}': {e}")
-                result['episodes_failed'] += 1
-        
-        # Convert discovered types set to sorted list for JSON serialization
-        if isinstance(result['discovered_types'], set):
-            result['discovered_types'] = sorted(list(result['discovered_types']))
-        
-        # Log schema discovery summary if in schemaless mode
-        if result['extraction_mode'] == 'schemaless' and result['discovered_types']:
-            logger.info(f"Schema Discovery Summary - Found {len(result['discovered_types'])} unique entity types: {result['discovered_types']}")
-        
-        return result
-    
-    @trace_method(name="pipeline.process_episode")
-    def _process_episode(self,
-                        podcast_config: Dict[str, Any],
-                        episode: Dict[str, Any],
-                        use_large_context: bool) -> Dict[str, Any]:
-        """Process a single episode.
-        
-        Args:
-            podcast_config: Podcast configuration
-            episode: Episode information
-            use_large_context: Whether to use large context
-            
-        Returns:
-            Episode processing results
-        """
-        # Delegate to pipeline executor
-        return self.pipeline_executor.process_episode(
-            podcast_config,
-            episode,
-            use_large_context
-        )
     
     def resume_from_checkpoints(self) -> Dict[str, Any]:
         """Resume processing from checkpoints after interruption.
@@ -446,3 +361,65 @@ class PodcastKnowledgePipeline:
             'resumed_episodes': 0,
             'message': 'Checkpoint recovery not fully implemented'
         }
+
+    def process_text(self, text: str, metadata: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        """Process raw text for baseline testing.
+        
+        Args:
+            text: Raw text to process
+            metadata: Optional metadata (episode_id, podcast_name, etc.)
+            
+        Returns:
+            Dictionary with extraction results
+        """
+        # Initialize components if not already done
+        if not self.llm_service:
+            if not self.initialize_components():
+                raise PipelineError("Failed to initialize pipeline components")
+        
+        # Get the knowledge extractor from provider coordinator
+        knowledge_extractor = self.provider_coordinator.knowledge_extractor
+        if not knowledge_extractor:
+            raise PipelineError("Knowledge extractor not available")
+        
+        # Create a simple segment from the text
+        from src.core.models import Segment
+        segment = Segment(
+            id=metadata.get('episode_id', 'test') + '_segment_0' if metadata else 'test_segment_0',
+            text=text,
+            start_time=0.0,
+            end_time=len(text.split()) * 0.5,  # Rough estimate: 0.5s per word
+            episode_id=metadata.get('episode_id', 'test') if metadata else 'test',
+            segment_index=0
+        )
+        
+        # Extract knowledge from the segment
+        try:
+            extraction_result = knowledge_extractor.extract_knowledge(segment, metadata)
+            
+            # Format results similar to what test expects
+            result = {
+                'entities': extraction_result.entities,
+                'quotes': extraction_result.quotes,
+                'relationships': extraction_result.relationships,
+                'metadata': extraction_result.metadata,
+                'segments_processed': 1,
+                'total_entities': len(extraction_result.entities),
+                'total_quotes': len(extraction_result.quotes),
+                'total_relationships': len(extraction_result.relationships)
+            }
+            
+            return result
+            
+        except Exception as e:
+            logger.error(f"Error processing text: {e}")
+            return {
+                'entities': [],
+                'quotes': [],
+                'relationships': [],
+                'metadata': {'error': str(e)},
+                'segments_processed': 0,
+                'total_entities': 0,
+                'total_quotes': 0,
+                'total_relationships': 0
+            }

@@ -1,24 +1,23 @@
 """Performance benchmark tests for the pipeline."""
 
-import time
-import json
-import pytest
-import tempfile
-import os
-import psutil
-import gc
+from datetime import datetime
 from pathlib import Path
 from typing import Dict, Any, List
 from unittest.mock import Mock, patch
-from datetime import datetime
+import gc
+import json
+import os
+import tempfile
+import time
+
 import numpy as np
+import psutil
+import pytest
 
-from src.seeding.orchestrator import PodcastKnowledgePipeline
 from src.core.config import Config
-from src.processing.extraction import KnowledgeExtractor
+from src.extraction.extraction import KnowledgeExtractor
+from src.seeding.orchestrator import VTTKnowledgeExtractor
 from src.utils.memory import MemoryMonitor
-
-
 class PerformanceMetrics:
     """Collect and analyze performance metrics."""
     
@@ -141,8 +140,7 @@ class TestPerformanceBenchmarks:
              patch('src.factories.provider_factory.ProviderFactory.create_embedding_provider',
                   return_value=mock_embeddings):
             
-            extractor = KnowledgeExtractor(
-                llm_provider=mock_llm,
+            extractor = KnowledgeExtractor(llm_service=mock_llm,
                 embedding_provider=mock_embeddings
             )
             

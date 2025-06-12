@@ -7,12 +7,11 @@ This module implements a hybrid configuration system that loads:
 - Defaults from code
 """
 
-import os
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Optional, Dict, Any, List, Union
 import json
-
+import os
 try:
     import yaml
     YAML_AVAILABLE = True
@@ -33,13 +32,9 @@ from .exceptions import ConfigurationError
 class PipelineConfig:
     """Base configuration for the podcast processing pipeline."""
     
-    # Audio Processing Settings
+    # Processing Settings
     min_segment_tokens: int = 150
     max_segment_tokens: int = 800
-    whisper_model_size: str = "large-v3"
-    use_faster_whisper: bool = True
-    
-    # Speaker Diarization
     min_speakers: int = 1
     max_speakers: int = 10
     
@@ -55,18 +50,17 @@ class PipelineConfig:
     hf_token: Optional[str] = field(default_factory=lambda: os.environ.get("HF_TOKEN"))
     
     # Embedding Settings
-    embedding_dimensions: int = 1536
+    embedding_dimensions: int = 768  # Gemini text-embedding-004 dimensions
     embedding_similarity: str = "cosine"
-    embedding_model: str = "text-embedding-ada-002"
+    embedding_model: str = "models/text-embedding-004"  # Gemini embedding model
+    gemini_embedding_batch_size: int = 100  # Optimal batch size for Gemini API
     
     # File Paths
     base_dir: Path = field(default_factory=lambda: Path("."))
-    audio_dir: Path = field(default_factory=lambda: Path("./podcast_audio"))
     output_dir: Path = field(default_factory=lambda: Path("./processed_podcasts"))
     checkpoint_dir: Path = field(default_factory=lambda: Path("./checkpoints"))
     
     # Processing Settings
-    max_episodes: int = 1
     use_large_context: bool = True
     enable_graph_enhancements: bool = True
     
@@ -94,13 +88,10 @@ class PipelineConfig:
         """Convert string paths to Path objects and validate configuration."""
         # Convert paths
         self.base_dir = Path(self.base_dir)
-        self.audio_dir = Path(self.audio_dir)
         self.output_dir = Path(self.output_dir)
         self.checkpoint_dir = Path(self.checkpoint_dir)
         
         # Make paths absolute if they're relative
-        if not self.audio_dir.is_absolute():
-            self.audio_dir = self.base_dir / self.audio_dir
         if not self.output_dir.is_absolute():
             self.output_dir = self.base_dir / self.output_dir
         if not self.checkpoint_dir.is_absolute():
@@ -137,7 +128,6 @@ class PipelineConfig:
             
         # Validate paths exist or can be created
         for path_name, path_value in [
-            ("audio_dir", self.audio_dir),
             ("output_dir", self.output_dir),
             ("checkpoint_dir", self.checkpoint_dir)
         ]:
@@ -171,7 +161,7 @@ class PipelineConfig:
         if not config_path.exists():
             raise ConfigurationError(f"Configuration file not found: {config_path}")
             
-        with open(config_path, 'r') as f:
+        with open(config_path, 'r', encoding='utf-8') as f:
             if config_path.suffix in ['.yaml', '.yml']:
                 if not YAML_AVAILABLE:
                     raise ConfigurationError("YAML support not available. Install PyYAML: pip install pyyaml")
@@ -191,7 +181,7 @@ class SeedingConfig(PipelineConfig):
     
     # Batch processing settings
     batch_size: int = 10
-    embedding_batch_size: int = 50
+    embedding_batch_size: int = 100  # Increased for Gemini API efficiency
     save_checkpoints: bool = True
     checkpoint_every_n: int = 5  # Episodes
     
@@ -216,7 +206,6 @@ class SeedingConfig(PipelineConfig):
     exponential_backoff: bool = True
     
     # Resource limits
-    max_concurrent_audio_jobs: int = 2
     max_concurrent_llm_jobs: int = 4
     max_memory_gb: float = 4.0
     
@@ -255,16 +244,6 @@ class SeedingConfig(PipelineConfig):
         available = []
         missing = []
         
-        # Check audio processing
-        try:
-            import whisper
-            available.append("whisper")
-        except ImportError:
-            try:
-                import faster_whisper
-                available.append("faster-whisper")
-            except ImportError:
-                missing.append("whisper or faster-whisper")
                 
         # Check LLM providers
         try:
@@ -284,18 +263,6 @@ class SeedingConfig(PipelineConfig):
                 missing.append("openai")
                 
         # Check other dependencies
-        try:
-            import feedparser
-            available.append("feedparser")
-        except ImportError:
-            missing.append("feedparser")
-            
-        try:
-            import pyannote.audio
-            available.append("pyannote.audio")
-        except ImportError:
-            if self.enable_graph_enhancements:
-                missing.append("pyannote.audio")
                 
         return missing
 
@@ -359,8 +326,6 @@ def get_llm_config(config: PipelineConfig) -> Dict[str, Any]:
     return {
         "google_api_key": config.google_api_key,
         "openai_api_key": config.openai_api_key,
-        "whisper_model": config.whisper_model_size,
-        "use_faster_whisper": config.use_faster_whisper,
     }
 
 

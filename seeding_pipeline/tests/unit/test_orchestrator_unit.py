@@ -4,31 +4,30 @@ Tests for src/seeding/orchestrator.py focusing on unit-level testing
 with mocked dependencies.
 """
 
-import pytest
-from unittest import mock
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, Any, List, Optional
+from unittest import mock
 import logging
 
-from src.seeding.orchestrator import PodcastKnowledgePipeline
+import pytest
+
 from src.core.config import PipelineConfig, SeedingConfig
 from src.core.exceptions import PipelineError, ConfigurationError
-from src.factories.provider_factory import ProviderFactory
-from src.providers.audio.base import AudioProvider
-from src.providers.llm.base import LLMProvider
-from src.providers.graph.base import GraphProvider
-from src.providers.embeddings.base import EmbeddingProvider
-from src.processing.segmentation import EnhancedPodcastSegmenter
-from src.processing.extraction import KnowledgeExtractor
-from src.seeding.components import (
-    SignalManager, ProviderCoordinator, CheckpointManager,
-    PipelineExecutor, StorageCoordinator
-)
-
-
-class TestPodcastKnowledgePipeline:
-    """Test PodcastKnowledgePipeline class."""
+from src.core.interfaces import AudioProvider, LLMProvider, GraphProvider, EmbeddingProvider
+from src.extraction.extraction import KnowledgeExtractor
+from src.processing.segmentation import VTTSegmenter
+from src.seeding.components.checkpoint_manager import CheckpointManager
+from src.seeding.components.pipeline_executor import PipelineExecutor
+from src.seeding.components.provider_coordinator import ProviderCoordinator
+from src.seeding.components.signal_manager import SignalManager
+from src.seeding.orchestrator import VTTKnowledgeExtractor
+from src.services.embeddings import EmbeddingsService
+from src.services.llm import LLMService
+from src.storage.graph_storage import GraphStorageService
+from src.storage.storage_coordinator import StorageCoordinator
+class TestVTTKnowledgeExtractor:
+    """Test VTTKnowledgeExtractor class."""
     
     @pytest.fixture
     def mock_config(self):
@@ -44,7 +43,7 @@ class TestPodcastKnowledgePipeline:
     @pytest.fixture
     def mock_factory(self):
         """Create mock provider factory."""
-        return mock.Mock(spec=ProviderFactory)
+        return mock.Mock()
     
     @pytest.fixture
     def mock_components(self):
@@ -64,31 +63,26 @@ class TestPodcastKnowledgePipeline:
         with mock.patch('src.seeding.orchestrator.SignalManager'):
             with mock.patch('src.seeding.orchestrator.ProviderCoordinator'):
                 with mock.patch('src.seeding.orchestrator.CheckpointManager'):
-                    with mock.patch('src.seeding.orchestrator.ProviderFactory'):
-                        with mock.patch('src.seeding.orchestrator.init_tracing'):
-                            pipeline = PodcastKnowledgePipeline(config=mock_config)
-                            return pipeline
+                    pipeline = VTTKnowledgeExtractor(config=mock_config)
+                    return pipeline
     
     def test_pipeline_initialization(self, mock_config):
         """Test pipeline initialization."""
         with mock.patch('src.seeding.orchestrator.SignalManager') as MockSignal:
             with mock.patch('src.seeding.orchestrator.ProviderCoordinator') as MockProvider:
                 with mock.patch('src.seeding.orchestrator.CheckpointManager') as MockCheckpoint:
-                    with mock.patch('src.seeding.orchestrator.ProviderFactory') as MockFactory:
-                        with mock.patch('src.seeding.orchestrator.init_tracing'):
-                            pipeline = PodcastKnowledgePipeline(config=mock_config)
-                            
-                            # Verify component creation
-                            MockSignal.assert_called_once()
-                            MockProvider.assert_called_once()
-                            MockCheckpoint.assert_called_once_with(mock_config)
-                            MockFactory.assert_called_once()
-                            
-                            # Verify attributes
-                            assert pipeline.config == mock_config
-                            assert pipeline._shutdown_requested is False
-                            assert pipeline.audio_provider is None
-                            assert pipeline.pipeline_executor is None
+                    pipeline = VTTKnowledgeExtractor(config=mock_config)
+                    
+                    # Verify component creation
+                    MockSignal.assert_called_once()
+                    MockProvider.assert_called_once()
+                    MockCheckpoint.assert_called_once_with(mock_config)
+                    
+                    # Verify attributes
+                    assert pipeline.config == mock_config
+                    assert pipeline._shutdown_requested is False
+                    assert pipeline.pipeline_executor is None
+                    assert pipeline.storage_coordinator is None
     
     def test_pipeline_default_config(self, monkeypatch):
         """Test pipeline with default configuration."""
@@ -99,10 +93,8 @@ class TestPodcastKnowledgePipeline:
         with mock.patch('src.seeding.orchestrator.SignalManager'):
             with mock.patch('src.seeding.orchestrator.ProviderCoordinator'):
                 with mock.patch('src.seeding.orchestrator.CheckpointManager'):
-                    with mock.patch('src.seeding.orchestrator.ProviderFactory'):
-                        with mock.patch('src.seeding.orchestrator.init_tracing'):
-                            pipeline = PodcastKnowledgePipeline()
-                            assert isinstance(pipeline.config, SeedingConfig)
+                    pipeline = VTTKnowledgeExtractor()
+                    assert isinstance(pipeline.config, SeedingConfig)
     
     def test_setup_logging(self, pipeline, mock_config):
         """Test logging setup."""
@@ -129,31 +121,10 @@ class TestPodcastKnowledgePipeline:
                     mock_logger.addHandler.assert_called_once()
     
     def test_setup_tracing(self, pipeline):
-        """Test tracing setup."""
-        with mock.patch('src.seeding.orchestrator.TracingConfig') as MockTracingConfig:
-            with mock.patch('src.seeding.orchestrator.init_tracing') as mock_init:
-                # Mock tracing config
-                mock_tracing_config = mock.Mock()
-                mock_tracing_config.service_name = 'test-service'
-                mock_tracing_config.jaeger_host = 'localhost'
-                mock_tracing_config.jaeger_port = 6831
-                mock_tracing_config.console_export = False
-                mock_tracing_config.instrument_neo4j = False
-                mock_tracing_config.instrument_redis = False
-                mock_tracing_config.instrument_requests = False
-                mock_tracing_config.instrument_langchain = False
-                mock_tracing_config.instrument_whisper = False
-                MockTracingConfig.from_env.return_value = mock_tracing_config
-                
-                pipeline._setup_tracing()
-                
-                mock_init.assert_called_once_with(
-                    service_name='test-service',
-                    jaeger_host='localhost',
-                    jaeger_port=6831,
-                    config=pipeline.config,
-                    enable_console=False
-                )
+        """Test tracing setup - removed in current version."""
+        # Tracing functionality has been removed from the orchestrator
+        # This test is kept as a placeholder for future implementation
+        pass
     
     def test_initialize_components_success(self, pipeline):
         """Test successful component initialization."""
@@ -194,11 +165,11 @@ class TestPodcastKnowledgePipeline:
                 # Verify provider coordinator was called
                 pipeline.provider_coordinator.initialize_providers.assert_called_once_with(True)
                 
-                # Verify backward compatibility references
-                assert pipeline.audio_provider == mock_audio
-                assert pipeline.llm_provider == mock_llm
-                assert pipeline.graph_provider == mock_graph
-                assert pipeline.embedding_provider == mock_embedding
+                # Verify providers are available through coordinator
+                assert pipeline.provider_coordinator.audio_provider == mock_audio
+                assert pipeline.provider_coordinator.llm_provider == mock_llm
+                assert pipeline.provider_coordinator.graph_provider == mock_graph
+                assert pipeline.provider_coordinator.embedding_provider == mock_embedding
                 
                 # Verify storage and executor creation
                 MockStorage.assert_called_once()
@@ -254,13 +225,12 @@ class TestPodcastKnowledgePipeline:
             
             result = pipeline.seed_podcast(
                 podcast_config,
-                max_episodes=5,
-                use_large_context=True
+                max_episodes=5
             )
             
             mock_seed_podcasts.assert_called_once_with(
                 [podcast_config],
-                max_episodes_each=5,
+                max_episodes_per_podcast=5,
                 use_large_context=True
             )
             assert result == {'success': True}
@@ -283,7 +253,7 @@ class TestPodcastKnowledgePipeline:
                     'extraction_mode': 'fixed'
                 }
                 
-                result = pipeline.seed_podcasts(podcast_config, max_episodes_each=1)
+                result = pipeline.seed_podcasts(podcast_config, max_episodes_per_podcast=1)
                 
                 # Should convert to list
                 mock_process.assert_called_once_with(podcast_config, 1, True)
@@ -531,10 +501,9 @@ class TestSignalHandling:
         with mock.patch('src.seeding.orchestrator.SignalManager') as MockSignal:
             with mock.patch('src.seeding.orchestrator.ProviderCoordinator'):
                 with mock.patch('src.seeding.orchestrator.CheckpointManager'):
-                    with mock.patch('src.seeding.orchestrator.init_tracing'):
                         mock_signal_instance = MockSignal.return_value
                         
-                        pipeline = PodcastKnowledgePipeline()
+                        pipeline = VTTKnowledgeExtractor()
                         
                         mock_signal_instance.setup.assert_called_once()
                         # Check cleanup callback was provided
@@ -555,8 +524,7 @@ class TestBackwardCompatibility:
         with mock.patch('src.seeding.orchestrator.SignalManager'):
             with mock.patch('src.seeding.orchestrator.ProviderCoordinator') as MockProvider:
                 with mock.patch('src.seeding.orchestrator.CheckpointManager') as MockCheckpoint:
-                    with mock.patch('src.seeding.orchestrator.init_tracing'):
-                        pipeline = PodcastKnowledgePipeline()
+                        pipeline = VTTKnowledgeExtractor()
                         
                         # Set up mocks
                         mock_provider_coord = MockProvider.return_value
@@ -600,8 +568,7 @@ class TestEdgeCases:
         with mock.patch('src.seeding.orchestrator.SignalManager'):
             with mock.patch('src.seeding.orchestrator.ProviderCoordinator'):
                 with mock.patch('src.seeding.orchestrator.CheckpointManager'):
-                    with mock.patch('src.seeding.orchestrator.init_tracing'):
-                        pipeline = PodcastKnowledgePipeline()
+                        pipeline = VTTKnowledgeExtractor()
                         pipeline.audio_provider = mock.Mock()  # Already initialized
                         
                         with mock.patch.object(pipeline, 'cleanup'):
@@ -615,7 +582,6 @@ class TestEdgeCases:
         with mock.patch('src.seeding.orchestrator.SignalManager'):
             with mock.patch('src.seeding.orchestrator.ProviderCoordinator'):
                 with mock.patch('src.seeding.orchestrator.CheckpointManager'):
-                    with mock.patch('src.seeding.orchestrator.init_tracing'):
                         # Should handle dict config gracefully
-                        pipeline = PodcastKnowledgePipeline(config={'key': 'value'})
+                        pipeline = VTTKnowledgeExtractor(config={'key': 'value'})
                         assert pipeline.config == {'key': 'value'}

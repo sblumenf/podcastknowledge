@@ -1,0 +1,84 @@
+# Example configuration file for Podcast Transcriber
+
+api:
+  timeout: 300  # API request timeout in seconds
+  retry:
+    max_attempts: 2
+    backoff_multiplier: 2
+    max_backoff: 30
+  quota:
+    max_episodes_per_day: 12
+    max_requests_per_key: 25
+    max_tokens_per_key: 1000000
+
+processing:
+  parallel_workers: 1
+  enable_progress_bar: true
+  checkpoint_enabled: true
+  max_episode_length: 60  # Maximum episode length in minutes
+  quota_wait_enabled: true
+  max_quota_wait_hours: 25
+  quota_check_interval_minutes: 5
+
+output:
+  # Base directory for transcript storage
+  default_dir: "data/transcripts"
+  
+  # Naming pattern for transcript files
+  # Available placeholders: {podcast_name}, {date}, {episode_title}
+  naming:
+    pattern: "{podcast_name}/{date}_{episode_title}.vtt"
+    sanitize_filenames: true
+    max_filename_length: 200
+  
+  # VTT output settings
+  vtt:
+    include_metadata: true
+    speaker_voice_tags: true
+    timestamp_precision: 3
+
+logging:
+  console_level: "INFO"
+  file_level: "DEBUG"
+  max_file_size_mb: 10
+  backup_count: 5
+  log_dir: "logs"
+
+security:
+  # Environment variables containing API keys
+  api_key_vars:
+    - "GEMINI_API_KEY_1"
+    - "GEMINI_API_KEY_2"
+  
+  rotation:
+    strategy: "round_robin"  # Options: round_robin, random
+    fail_over_enabled: true
+
+youtube_search:
+  enabled: true
+  method: "rss_only"  # Options: rss_only, yt_dlp, external_api
+  cache_results: true
+  fuzzy_match_threshold: 0.85
+  duration_tolerance: 0.1
+  max_search_results: 5
+
+validation:
+  enabled: true
+  min_coverage_ratio: 0.85
+  max_continuation_attempts: 10
+
+simplified_workflow:
+  enabled: false  # Enable simplified transcription workflow
+  use_paid_key_only: false  # Use only the first (paid tier) API key
+  require_full_coverage: true  # Require full episode coverage
+  min_coverage_threshold: 0.85  # Minimum coverage ratio for completion
+  max_continuation_attempts: 10  # Maximum continuation requests
+  enable_transcript_stitching: true  # Enable seamless segment stitching
+  save_raw_transcripts: false  # Save raw transcript responses
+
+development:
+  dry_run: false
+  debug_mode: false
+  save_raw_responses: false
+  test_mode: false
+  mock_api_calls: false

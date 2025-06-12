@@ -1,0 +1,11 @@
+# API Dependencies - For running the REST API server
+# Install after requirements-core.txt
+
+# API Framework
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+pydantic==2.5.0
+
+# Additional API dependencies
+httpx==0.25.2
+python-multipart==0.0.6

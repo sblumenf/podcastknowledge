@@ -1,23 +1,19 @@
-"""FastAPI application with distributed tracing support."""
+"""FastAPI application for VTT Knowledge Pipeline."""
 
-import os
-import asyncio
-from typing import Dict, Any, List, Optional
 from contextlib import asynccontextmanager
+from typing import Dict, Any, List, Optional
+import asyncio
+import os
 
+from ..core.config import SeedingConfig as PipelineConfig
+from ..seeding import VTTKnowledgeExtractor as PodcastKnowledgePipeline
+from ..utils.log_utils import get_logger
+from .health import create_health_endpoints
+from .metrics import setup_metrics
 from fastapi import FastAPI, HTTPException, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 import uvicorn
-
-from ..core.config import PipelineConfig
-from ..seeding import PodcastKnowledgePipeline
-from ..tracing import init_tracing, TracingMiddleware, trace_request
-from ..tracing.config import TracingConfig
-from .health import create_health_endpoints
-from .metrics import setup_metrics
-from ..utils.logging import get_logger
-
 logger = get_logger(__name__)
 
 
@@ -26,14 +22,6 @@ async def lifespan(app: FastAPI):
     """Application lifespan manager."""
     # Startup
     logger.info("Starting Podcast Knowledge Pipeline API...")
-    
-    # Initialize tracing
-    tracing_config = TracingConfig.from_env()
-    init_tracing(
-        service_name="podcast-kg-api",
-        config=tracing_config,
-    )
-    logger.info("Distributed tracing initialized")
     
     # Initialize pipeline
     config = PipelineConfig.from_env()
@@ -68,42 +56,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Add distributed tracing middleware
-@app.middleware("http")
-async def tracing_middleware(request: Request, call_next):
-    """Add distributed tracing to all requests."""
-    # Extract trace context from headers
-    from ..tracing import extract_context, inject_context, create_span
-    
-    # Extract trace context from incoming request
-    trace_headers = {}
-    for header, value in request.headers.items():
-        if header.lower().startswith("traceparent") or header.lower().startswith("tracestate"):
-            trace_headers[header] = value
-    
-    context = extract_context(trace_headers)
-    
-    # Create span for this request
-    with create_span(
-        f"{request.method} {request.url.path}",
-        attributes={
-            "http.method": request.method,
-            "http.url": str(request.url),
-            "http.path": request.url.path,
-            "http.scheme": request.url.scheme,
-            "http.host": request.url.hostname,
-            "http.user_agent": request.headers.get("user-agent", ""),
-        }
-    ) as span:
-        try:
-            response = await call_next(request)
-            span.set_attribute("http.status_code", response.status_code)
-            return response
-        except Exception as e:
-            span.record_exception(e)
-            span.set_status(trace.Status(trace.StatusCode.ERROR, str(e)))
-            raise
-
 
 # Add health endpoints
 create_health_endpoints(app)
@@ -111,13 +63,8 @@ create_health_endpoints(app)
 # Setup metrics
 setup_metrics(app)
 
-# Add SLO endpoints
-from .v1.slo import router as slo_router
-app.include_router(slo_router, prefix="/api/v1")
-
 
 @app.get("/", tags=["root"])
-@trace_request("GET", "/")
 async def root():
     """Root endpoint."""
     return {
@@ -127,114 +74,58 @@ async def root():
     }
 
 
-@app.post("/api/v1/seed/podcast", tags=["seeding"])
-@trace_request("POST", "/api/v1/seed/podcast")
-async def seed_podcast(request: Request, podcast_config: Dict[str, Any]):
-    """
-    Seed a single podcast into the knowledge graph.
-    
-    Args:
-        podcast_config: Configuration containing:
-            - id: Unique podcast identifier
-            - rss_url: RSS feed URL
-            - name: Podcast name (optional)
-            - max_episodes: Maximum episodes to process (default: 1)
-    """
-    pipeline = request.app.state.pipeline
-    
+@app.get("/api/v1/vtt/status", tags=["vtt"])
+async def get_vtt_processing_status(request: Request):
+    """Get VTT processing status and statistics."""
     try:
-        # Run seeding in background task
-        loop = asyncio.get_event_loop()
-        result = await loop.run_in_executor(
-            None,
-            pipeline.seed_podcast,
-            podcast_config,
-            podcast_config.get("max_episodes", 1)
-        )
+        # Get checkpoint information
+        checkpoint_dir = getattr(request.app.state.config, 'checkpoint_dir', 'checkpoints')
+        
+        # Count processed VTT files
+        from pathlib import Path
+        import json
+        
+        checkpoint_path = Path(checkpoint_dir)
+        processed_files = []
+        
+        if checkpoint_path.exists():
+            for checkpoint_file in checkpoint_path.glob("*.json"):
+                try:
+                    with open(checkpoint_file, 'r', encoding='utf-8') as f:
+                        data = json.load(f)
+                        if 'vtt_file' in data:
+                            processed_files.append({
+                                "file": data['vtt_file'],
+                                "processed_at": data.get('timestamp', 'unknown'),
+                                "segments": data.get('segment_count', 0)
+                            })
+                except Exception:
+                    pass
         
         return {
             "status": "success",
-            "result": result
+            "processed_files_count": len(processed_files),
+            "processed_files": processed_files,
+            "checkpoint_directory": str(checkpoint_path)
         }
     except Exception as e:
-        logger.error(f"Failed to seed podcast: {e}")
+        logger.error(f"Failed to get VTT status: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=str(e)
         )
 
 
-@app.post("/api/v1/seed/podcasts", tags=["seeding"])
-@trace_request("POST", "/api/v1/seed/podcasts")
-async def seed_podcasts(request: Request, podcast_configs: List[Dict[str, Any]]):
-    """
-    Seed multiple podcasts into the knowledge graph.
-    
-    Args:
-        podcast_configs: List of podcast configurations
-    """
-    pipeline = request.app.state.pipeline
-    
-    try:
-        # Run seeding in background task
-        loop = asyncio.get_event_loop()
-        result = await loop.run_in_executor(
-            None,
-            pipeline.seed_podcasts,
-            podcast_configs
-        )
-        
-        return {
-            "status": "success",
-            "result": result
-        }
-    except Exception as e:
-        logger.error(f"Failed to seed podcasts: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=str(e)
-        )
-
-
-@app.get("/api/v1/status/{podcast_id}", tags=["status"])
-@trace_request("GET", "/api/v1/status/{podcast_id}")
-async def get_podcast_status(request: Request, podcast_id: str):
-    """Get processing status for a podcast."""
-    pipeline = request.app.state.pipeline
-    
-    try:
-        # Get checkpoint status
-        checkpoint = pipeline.checkpoint
-        completed_episodes = checkpoint.get_completed_episodes()
-        
-        # Filter for this podcast
-        podcast_episodes = [
-            ep for ep in completed_episodes 
-            if ep.startswith(f"{podcast_id}_")
-        ]
-        
-        return {
-            "podcast_id": podcast_id,
-            "episodes_completed": len(podcast_episodes),
-            "episode_ids": podcast_episodes
-        }
-    except Exception as e:
-        logger.error(f"Failed to get podcast status: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=str(e)
-        )
 
 
 @app.get("/api/v1/graph/stats", tags=["graph"])
-@trace_request("GET", "/api/v1/graph/stats")
 async def get_graph_stats(request: Request):
     """Get knowledge graph statistics."""
     pipeline = request.app.state.pipeline
     
     try:
         # Query graph for statistics
-        graph_provider = pipeline.graph_provider
+        graph_provider = pipeline.graph_service
         
         stats = {}
         

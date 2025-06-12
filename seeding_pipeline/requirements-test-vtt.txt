@@ -1,0 +1,26 @@
+# VTT-specific test requirements
+# This file contains minimal dependencies for running VTT tests only
+
+# Core testing framework
+pytest==7.4.3
+pytest-cov==4.1.0
+pytest-mock==3.12.0
+pytest-timeout==2.2.0
+pytest-xdist==3.5.0  # For parallel test execution
+
+# VTT processing dependencies
+webvtt-py==0.4.6  # For VTT file validation in tests
+
+# Mock data generation
+faker==19.12.0  # For generating test transcript data
+
+# Performance monitoring
+pytest-benchmark==4.0.0
+psutil==5.9.6
+
+# Test environment management
+pytest-env==1.1.1
+python-dotenv>=1.0.0
+
+# Neo4j mocking (lightweight alternative to full testcontainers)
+responses==0.23.3  # For mocking HTTP responses

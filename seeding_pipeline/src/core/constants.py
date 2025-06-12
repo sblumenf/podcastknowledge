@@ -18,7 +18,7 @@ BATCH_QUEUE_TIMEOUT = 0.1  # Batch processor queue timeout
 
 # Batch Size Constants
 DEFAULT_BATCH_SIZE = 10  # Default processing batch size
-EMBEDDING_BATCH_SIZE = 50  # Batch size for embedding operations
+EMBEDDING_BATCH_SIZE = 100  # Batch size for Gemini embedding operations (API optimized)
 MEMORY_BATCH_SIZE = 100  # Batch size for memory-intensive operations
 MIGRATION_BATCH_SIZE = 100  # Batch size for data migration
 VALIDATION_BATCH_SIZE = 1000  # Batch size for validation operations

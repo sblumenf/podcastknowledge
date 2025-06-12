@@ -1,12 +1,12 @@
 """Validation utilities for data integrity and input sanitization."""
 
-import re
-import logging
+from collections import defaultdict
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Union, Tuple
-from collections import defaultdict
-from src.utils.text_processing import normalize_entity_name, calculate_name_similarity
+import logging
+import re
 
+from src.utils.text_processing import normalize_entity_name, calculate_name_similarity
 logger = logging.getLogger(__name__)
 
 
@@ -83,7 +83,8 @@ def sanitize_file_path(path: str) -> str:
         Sanitized file path
     """
     # Convert to string and remove potentially dangerous characters
-    safe_path = re.sub(r'[^\w\s\-_.\/]', '', str(path))
+    # Use ASCII-only word characters to prevent unicode issues
+    safe_path = re.sub(r'[^a-zA-Z0-9\s\-_.\/]', '', str(path))
     
     # Remove double dots to prevent directory traversal
     safe_path = safe_path.replace('..', '')
@@ -91,8 +92,9 @@ def sanitize_file_path(path: str) -> str:
     # Remove leading slashes to prevent absolute paths
     safe_path = safe_path.lstrip('/')
     
-    # Normalize path separators
-    safe_path = safe_path.replace('//', '/')
+    # Normalize path separators - replace multiple slashes with single slash
+    while '//' in safe_path:
+        safe_path = safe_path.replace('//', '/')
     
     return safe_path
 
@@ -141,6 +143,11 @@ class DataValidator:
         validated = []
         
         for entity in entities:
+            # Skip if not a dictionary
+            if not isinstance(entity, dict):
+                self.validation_stats['missing_fields'] += 1
+                continue
+                
             # Validate required fields
             if not entity.get('name') or not entity.get('type'):
                 self.validation_stats['missing_fields'] += 1
@@ -169,7 +176,8 @@ class DataValidator:
                 continue
             
             # Validate confidence threshold
-            confidence = entity.get('confidence', 1)
+            # Default confidence to threshold if not specified (assume valid)
+            confidence = entity.get('confidence', self.confidence_threshold)
             if confidence < self.confidence_threshold:
                 self.validation_stats['low_confidence'] += 1
                 # Don't skip, just log
@@ -432,7 +440,7 @@ def is_valid_email(email: str) -> bool:
         True if valid email, False otherwise
     """
     email_pattern = re.compile(
-        r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+        r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9]+(?:\.[a-zA-Z0-9]+)*\.[a-zA-Z]{2,}$'
     )
     
     return bool(email_pattern.match(email))

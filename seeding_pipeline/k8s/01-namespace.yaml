@@ -1,8 +1,0 @@
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: podcast-kg
-  labels:
-    name: podcast-kg
-    app.kubernetes.io/name: podcast-kg-pipeline
-    app.kubernetes.io/instance: production

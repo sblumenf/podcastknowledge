@@ -1,40 +1,13 @@
 {
   "extraction_mode": "fixed",
-  "created_at": "2025-05-26T22:47:13.882174",
-  "sample_output": {
-    "entities": [
-      {
-        "name": "Dr. Jane Smith",
-        "type": "Person",
-        "description": "AI Researcher"
+  "created_at": "2025-06-09T15:27:24.236308",
+  "segments_count": 5,
+  "results": [
+    {
+      "segment": {
+        "text": "Welcome to the AI podcast. I'm your host John Smith, and today we're joined by Dr. Sarah Johnson, who is the Chief Technology Officer at TechCorp. Sarah has been working in artificial intelligence for over 15 years.",
+        "start": 0.0,
+        "end": 15.0,
+        "speaker": "Host"
       },
-      {
-        "name": "MIT",
-        "type": "Organization",
-        "description": "Research Institution"
-      }
-    ],
-    "relationships": [
-      {
-        "source": "Dr. Jane Smith",
-        "target": "MIT",
-        "type": "WORKS_AT"
-      }
-    ],
-    "insights": [
-      {
-        "content": "AI is transforming healthcare",
-        "speaker": "Dr. Jane Smith",
-        "confidence": 0.9
-      }
-    ],
-    "themes": [
-      "artificial intelligence",
-      "healthcare"
-    ],
-    "topics": [
-      "machine learning",
-      "medical diagnostics"
-    ]
-  }
-}
+      "extraction": 

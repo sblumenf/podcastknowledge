@@ -1,18 +1,17 @@
 """Tests for signal handling and graceful shutdown."""
 
-import signal
-import time
-import threading
-import pytest
-import tempfile
-import os
-from unittest.mock import Mock, patch, MagicMock
 from multiprocessing import Process, Queue
+from unittest.mock import Mock, patch, MagicMock
+import os
+import signal
+import tempfile
+import threading
+import time
 
-from src.seeding.orchestrator import PodcastKnowledgePipeline
+import pytest
+
 from src.core.config import Config
-
-
+from src.seeding.orchestrator import VTTKnowledgeExtractor
 class TestSignalHandling:
     """Test signal handling and graceful shutdown scenarios."""
     
@@ -60,23 +59,23 @@ class TestSignalHandling:
         """Run pipeline in subprocess and send signal after delay."""
         try:
             # Import here to avoid issues with multiprocessing
-            from src.seeding.orchestrator import PodcastKnowledgePipeline
+            from src.seeding.orchestrator import VTTKnowledgeExtractor
             import signal as sig
             import time
             
             # Track cleanup
             cleanup_called = False
-            original_cleanup = PodcastKnowledgePipeline.cleanup
+            original_cleanup = VTTKnowledgeExtractor.cleanup
             
             def track_cleanup(self):
                 nonlocal cleanup_called
                 cleanup_called = True
                 original_cleanup(self)
             
-            PodcastKnowledgePipeline.cleanup = track_cleanup
+            VTTKnowledgeExtractor.cleanup = track_cleanup
             
             # Create pipeline
-            pipeline = PodcastKnowledgePipeline(config)
+            pipeline = VTTKnowledgeExtractor(config)
             
             # Set up signal to be sent after delay
             def send_signal():
@@ -124,7 +123,7 @@ class TestSignalHandling:
                 ]
             }
             
-            pipeline = PodcastKnowledgePipeline(test_config)
+            pipeline = VTTKnowledgeExtractor(test_config)
             
             # Track signal handling
             signal_handled = False
@@ -222,7 +221,7 @@ class TestSignalHandling:
                   return_value=mock_providers['embeddings']), \
              patch('os.unlink', side_effect=track_unlink):
             
-            pipeline = PodcastKnowledgePipeline(test_config)
+            pipeline = VTTKnowledgeExtractor(test_config)
             
             # Initialize components
             pipeline.initialize_components()
@@ -265,7 +264,7 @@ class TestSignalHandling:
                 ]
             }
             
-            pipeline = PodcastKnowledgePipeline(test_config)
+            pipeline = VTTKnowledgeExtractor(test_config)
             
             # Process a few episodes then simulate interrupt
             episode_count = 0
@@ -319,7 +318,7 @@ class TestSignalHandling:
             for provider in mock_providers.values():
                 provider.cleanup = Mock(side_effect=track_cleanup)
             
-            pipeline = PodcastKnowledgePipeline(test_config)
+            pipeline = VTTKnowledgeExtractor(test_config)
             pipeline.initialize_components()
             
             # Simulate multiple concurrent shutdown requests
@@ -343,7 +342,7 @@ class TestSignalHandling:
         original_sigterm = signal.signal(signal.SIGTERM, signal.SIG_DFL)
         
         try:
-            pipeline = PodcastKnowledgePipeline(test_config)
+            pipeline = VTTKnowledgeExtractor(test_config)
             
             # Get current handlers
             current_sigint = signal.signal(signal.SIGINT, signal.SIG_DFL)

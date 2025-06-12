@@ -5,17 +5,16 @@ These tests run the extraction pipeline with different component configurations
 to measure the impact of each enhancement.
 """
 
-import pytest
-import json
 from pathlib import Path
 from typing import Dict, Any, List
+import json
 
-from src.core.feature_flags import FeatureFlag, set_flag, get_all_flags
+import pytest
+
 from src.core.config import PipelineConfig
+from src.core.feature_flags import FeatureFlag, set_flag, get_all_flags
+from src.seeding import VTTKnowledgeExtractor
 from src.utils.component_tracker import get_component_tracker
-from src.seeding import PodcastKnowledgePipeline
-
-
 # Test transcript for baseline comparisons
 TEST_TRANSCRIPT = """
 Host: Welcome to our podcast. I'm John Smith, and today we're talking with 
@@ -59,7 +58,7 @@ class BaselineTestRunner:
         tracker = get_component_tracker()
         
         # Run extraction
-        pipeline = PodcastKnowledgePipeline(self.config)
+        pipeline = VTTKnowledgeExtractor(self.config)
         pipeline.initialize_components()
         
         # Process test transcript
@@ -227,6 +226,17 @@ class BaselineTestRunner:
 
 # Test fixtures
 @pytest.fixture
+def pipeline_config():
+    """Create a test pipeline configuration."""
+    return PipelineConfig(
+        # Use test-specific settings
+        checkpoint_dir=Path("test_checkpoints"),
+        output_dir=Path("test_output"),
+        use_gpu=False,  # Disable GPU for tests
+        checkpoint_interval=1
+    )
+
+@pytest.fixture
 def baseline_runner(pipeline_config):
     """Create a baseline test runner."""
     return BaselineTestRunner(pipeline_config)
@@ -273,8 +283,11 @@ class TestComponentBaselines:
         impact_report = result.get("impact_report", {})
         components = impact_report.get("components", {})
         
-        # Should have tracked timestamp injection component
-        assert any("timestamp" in comp.lower() for comp in components)
+        # Should have tracked at least some components
+        assert len(components) > 0, f"Expected components to be tracked, got: {list(components.keys())}"
+        
+        # Should have tracked knowledge_extractor at minimum
+        assert any("knowledge_extractor" in comp.lower() for comp in components)
     
     def test_compare_baselines(self, baseline_runner):
         """Test baseline comparison functionality."""

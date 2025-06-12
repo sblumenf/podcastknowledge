@@ -4,22 +4,21 @@ Performance profiling utilities for the podcast knowledge pipeline.
 This module provides tools for profiling and optimizing the schemaless extraction pipeline.
 """
 
-import time
-import cProfile
-import pstats
-import io
-import functools
-import tracemalloc
 from contextlib import contextmanager
 from dataclasses import dataclass
-from typing import Dict, Any, Optional, List, Callable, Tuple
 from datetime import datetime
-import json
 from pathlib import Path
+from typing import Dict, Any, Optional, List, Callable, Tuple
+import functools
+import io
+import json
+import time
 
-from ..utils.logging import get_logger
 from ..api.metrics import get_metrics_collector
-
+from ..utils.log_utils import get_logger
+import cProfile
+import pstats
+import tracemalloc
 logger = get_logger(__name__)
 
 
