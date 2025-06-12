@@ -281,11 +281,15 @@ class TranscriptIngestion:
         # Extract speakers
         speakers = list(set(seg.speaker for seg in segments if seg.speaker))
         
+        # Extract podcast ID from metadata
+        podcast_id = vtt_metadata.get('podcast_id', 'unknown_podcast')
+        
         # Use metadata to enhance episode data
         episode_data = {
             'id': vtt_file.file_hash[:12],  # Use first 12 chars of hash as ID
             'title': vtt_metadata.get('episode', vtt_file.episode_title),
             'podcast_name': vtt_metadata.get('podcast', vtt_file.podcast_name),
+            'podcast_id': podcast_id,  # Add podcast ID for multi-podcast support
             'description': vtt_metadata.get('description', ''),
             'published_date': vtt_metadata.get('date', ''),
             'youtube_url': vtt_metadata.get('youtube_url'),
@@ -457,6 +461,14 @@ class TranscriptIngestionManager:
         self.pipeline = pipeline
         self.checkpoint = checkpoint
         self.ingestion = TranscriptIngestion(pipeline.config)
+        
+        # Initialize podcast directory manager if in multi-podcast mode
+        self.podcast_mode = os.getenv('PODCAST_MODE', 'single')
+        if self.podcast_mode == 'multi':
+            from src.utils.podcast_directory_manager import PodcastDirectoryManager
+            self.dir_manager = PodcastDirectoryManager()
+        else:
+            self.dir_manager = None
     
     def process_vtt_file(self, vtt_file: str, metadata: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         """Process a VTT file and return results.
@@ -477,15 +489,31 @@ class TranscriptIngestionManager:
             # Check if file exists in processed directory
             processed_dir = Path(os.getenv('PROCESSED_DIR', 'data/processed'))
             
-            # Maintain same directory structure in processed directory
-            relative_path = None
-            vtt_input_dir = Path(os.getenv('VTT_INPUT_DIR', 'data/transcripts'))
-            if vtt_path.is_relative_to(vtt_input_dir):
-                relative_path = vtt_path.relative_to(vtt_input_dir)
+            # In multi-podcast mode, we need to determine the podcast ID first
+            if self.podcast_mode == 'multi' and self.dir_manager:
+                # Parse file to get podcast ID
+                parse_result = self.ingestion.vtt_parser.parse_file_with_metadata(vtt_path)
+                podcast_id = parse_result['metadata'].get('podcast_id', 'unknown_podcast')
+                
+                # Ensure podcast directory structure exists
+                podcast_dirs = self.dir_manager.ensure_podcast_structure(podcast_id)
+                
+                # Use podcast-specific processed directory
+                processed_dir = podcast_dirs['processed']
+                
+                # Calculate relative path for processed file
+                relative_path = vtt_path.name
                 processed_file_path = processed_dir / relative_path
             else:
-                # Fallback: just use filename
-                processed_file_path = processed_dir / vtt_path.name
+                # Single podcast mode - maintain same directory structure
+                relative_path = None
+                vtt_input_dir = Path(os.getenv('VTT_INPUT_DIR', 'data/transcripts'))
+                if vtt_path.is_relative_to(vtt_input_dir):
+                    relative_path = vtt_path.relative_to(vtt_input_dir)
+                    processed_file_path = processed_dir / relative_path
+                else:
+                    # Fallback: just use filename
+                    processed_file_path = processed_dir / vtt_path.name
             
             # Check if already processed
             if processed_file_path.exists():
