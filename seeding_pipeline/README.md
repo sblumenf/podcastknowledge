@@ -22,6 +22,7 @@ The VTT Knowledge Graph Pipeline automatically:
 - **💾 Checkpoint Recovery**: Resume processing after interruptions with file-based tracking
 - **🔄 Change Detection**: Skip already-processed files using content hashing
 - **🎯 RAG Optimized**: Rich metadata and embeddings for retrieval applications
+- **🎙️ Multi-Podcast Support**: Process and store multiple podcasts in separate databases
 - **🧪 Comprehensive Testing**: Full test coverage for reliability
 
 ## Quick Start
@@ -134,6 +135,76 @@ Knowledge extraction completed successfully!
 Total entities: 44
 Total quotes: 34
 Total segments: 164
+```
+
+## Multi-Podcast Support
+
+The pipeline supports processing multiple podcasts with separate database storage for each.
+
+### Single vs Multi-Podcast Mode
+
+The pipeline operates in two modes:
+
+- **Single Mode** (default): All data stored in one Neo4j database
+- **Multi Mode**: Each podcast stored in its own database
+
+Set the mode using environment variable:
+```bash
+export PODCAST_MODE=single  # Default
+export PODCAST_MODE=multi   # Multi-podcast mode
+```
+
+### Multi-Podcast Usage
+
+#### List configured podcasts:
+```bash
+python -m src.cli.cli list-podcasts
+```
+
+#### Process files for a specific podcast:
+```bash
+python -m src.cli.cli process-vtt --podcast tech_talk
+```
+
+#### Process all enabled podcasts:
+```bash
+python -m src.cli.cli process-vtt --all-podcasts
+```
+
+### Podcast Configuration
+
+Configure podcasts in `config/podcasts.yaml`:
+```yaml
+version: '1.0'
+podcasts:
+  - id: tech_talk
+    name: Tech Talk Podcast
+    enabled: true
+    database:
+      uri: neo4j://localhost:7687
+      database_name: tech_talk
+    processing:
+      batch_size: 10
+      enable_flow_analysis: true
+    metadata:
+      description: A podcast about technology trends
+      host: John Doe
+```
+
+### Directory Structure
+
+In multi-podcast mode, each podcast has its own directory:
+```
+data/
+├── podcasts/
+│   ├── tech_talk/
+│   │   ├── transcripts/    # Input VTT files
+│   │   ├── processed/      # Processed VTT files
+│   │   └── exports/        # Export outputs
+│   └── data_science_hour/
+│       ├── transcripts/
+│       ├── processed/
+│       └── exports/
 ```
 
 ## VTT Format Requirements

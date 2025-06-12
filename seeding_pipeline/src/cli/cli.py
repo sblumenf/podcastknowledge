@@ -437,6 +437,9 @@ def process_vtt_for_podcast(args: argparse.Namespace, podcast_id: str) -> Dict[s
                     continue
             
             try:
+                # Import TranscriptIngestionManager
+                from src.seeding.transcript_ingestion import TranscriptIngestionManager
+                
                 # Create ingestion manager
                 ingestion_manager = TranscriptIngestionManager(
                     pipeline=pipeline,
