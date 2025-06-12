@@ -142,7 +142,7 @@ Create an end-to-end pipeline where the transcriber module outputs VTT files to 
 
 ### Task 7: Process Test Episodes
 
-- [ ] Run pipeline with 4 test VTT files
+- [x] Run pipeline with 4 test VTT files
   - Purpose: Validate real-world functionality
   - Steps:
     1. Place 4 VTT files in `/data/transcripts`
