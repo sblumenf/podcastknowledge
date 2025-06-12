@@ -85,7 +85,7 @@ Create an end-to-end pipeline where the transcriber module outputs VTT files to 
 
 ### Task 4: Implement Duplicate Processing Prevention
 
-- [ ] Add processed file tracking
+- [x] Add processed file tracking
   - Purpose: Prevent reprocessing of completed files
   - Steps:
     1. Use context7 MCP tool for file tracking patterns
@@ -95,7 +95,7 @@ Create an end-to-end pipeline where the transcriber module outputs VTT files to 
     5. Add error handling for move failures
   - Validation: Files move to processed directory after completion
 
-- [ ] Update checkpoint system
+- [x] Update checkpoint system
   - Purpose: Integrate with existing checkpoint mechanism
   - Steps:
     1. Review checkpoint handling in `seeding_pipeline/src/seeding/checkpoint.py`

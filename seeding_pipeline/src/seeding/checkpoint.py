@@ -740,7 +740,8 @@ class ProgressCheckpoint(BaseProgressCheckpoint):
         vtt_data[vtt_file] = {
             'hash': file_hash,
             'processed_at': datetime.now().isoformat(),
-            'segments': segments_processed
+            'segments': segments_processed,
+            'moved_to_processed': False  # Track if file has been moved
         }
         
         # Save updated data
@@ -808,6 +809,35 @@ class ProgressCheckpoint(BaseProgressCheckpoint):
         except Exception as e:
             logger.error(f"Failed to get VTT files: {e}")
             return []
+    
+    def mark_vtt_moved_to_processed(self, vtt_file: str, processed_path: str) -> None:
+        """Mark a VTT file as moved to processed directory.
+        
+        Args:
+            vtt_file: Original path to the VTT file
+            processed_path: New path in processed directory
+        """
+        vtt_checkpoint_file = os.path.join(self.checkpoint_dir, 'vtt_processed.json')
+        
+        if not os.path.exists(vtt_checkpoint_file):
+            return
+        
+        try:
+            with open(vtt_checkpoint_file, 'r') as f:
+                vtt_data = json.load(f)
+            
+            if vtt_file in vtt_data:
+                vtt_data[vtt_file]['moved_to_processed'] = True
+                vtt_data[vtt_file]['processed_path'] = processed_path
+                vtt_data[vtt_file]['moved_at'] = datetime.now().isoformat()
+                
+                with open(vtt_checkpoint_file, 'w') as f:
+                    json.dump(vtt_data, f, indent=2)
+                    
+                logger.info(f"Marked {vtt_file} as moved to processed directory")
+                
+        except Exception as e:
+            logger.error(f"Failed to update VTT move status: {e}")
     
     def clear_vtt_checkpoint(self, vtt_file: Optional[str] = None) -> bool:
         """Clear VTT checkpoint data.

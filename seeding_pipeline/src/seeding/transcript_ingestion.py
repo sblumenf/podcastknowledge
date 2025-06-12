@@ -8,6 +8,7 @@ import hashlib
 import json
 import logging
 import os
+import shutil
 
 from src.core.config import PipelineConfig
 from src.core.exceptions import ValidationError, PipelineError
@@ -471,8 +472,32 @@ class TranscriptIngestionManager:
             - error: str (if failed)
         """
         try:
+            vtt_path = Path(vtt_file)
+            
+            # Check if file exists in processed directory
+            processed_dir = Path(os.getenv('PROCESSED_DIR', 'data/processed'))
+            
+            # Maintain same directory structure in processed directory
+            relative_path = None
+            vtt_input_dir = Path(os.getenv('VTT_INPUT_DIR', 'data/transcripts'))
+            if vtt_path.is_relative_to(vtt_input_dir):
+                relative_path = vtt_path.relative_to(vtt_input_dir)
+                processed_file_path = processed_dir / relative_path
+            else:
+                # Fallback: just use filename
+                processed_file_path = processed_dir / vtt_path.name
+            
+            # Check if already processed
+            if processed_file_path.exists():
+                logger.info(f"File already processed (exists in processed directory): {vtt_path}")
+                return {
+                    'success': False,
+                    'skipped': True,
+                    'error': 'File already processed'
+                }
+            
             # Create VTTFile object
-            vtt_file_obj = self.ingestion._create_vtt_file(Path(vtt_file))
+            vtt_file_obj = self.ingestion._create_vtt_file(vtt_path)
             if not vtt_file_obj:
                 return {
                     'success': False,
@@ -484,6 +509,24 @@ class TranscriptIngestionManager:
             
             # Transform result to expected format
             if result['status'] == 'success':
+                # Move file to processed directory
+                try:
+                    # Create subdirectories if needed
+                    processed_file_path.parent.mkdir(parents=True, exist_ok=True)
+                    
+                    # Move the file
+                    shutil.move(str(vtt_path), str(processed_file_path))
+                    logger.info(f"Moved processed file to: {processed_file_path}")
+                    
+                    # Update checkpoint with move status
+                    if self.checkpoint:
+                        self.checkpoint.mark_vtt_moved_to_processed(str(vtt_path), str(processed_file_path))
+                    
+                except Exception as e:
+                    # Log error but don't fail the processing
+                    logger.error(f"Failed to move file to processed directory: {e}")
+                    # Don't return error - processing was successful
+                
                 return {
                     'success': True,
                     'segments_processed': result['segment_count'],
@@ -493,6 +536,7 @@ class TranscriptIngestionManager:
             elif result['status'] == 'skipped':
                 return {
                     'success': False,
+                    'skipped': True,
                     'error': f"Skipped: {result.get('reason', 'Unknown reason')}"
                 }
             else:
