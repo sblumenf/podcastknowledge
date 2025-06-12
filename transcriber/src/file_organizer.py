@@ -59,12 +59,20 @@ class FileOrganizer:
             env_dir = os.getenv('TRANSCRIPT_OUTPUT_DIR')
             if env_dir:
                 self.base_dir = Path(env_dir)
+                logger.info(f"Using TRANSCRIPT_OUTPUT_DIR: {self.base_dir}")
             elif config:
                 # Fall back to config if available
                 self.base_dir = Path(config.output.default_dir)
+                logger.info(f"Using config output directory: {self.base_dir}")
             else:
                 # Fall back to old env var or default
                 self.base_dir = Path(os.getenv('PODCAST_OUTPUT_DIR', 'data/transcripts'))
+                logger.info(f"Using fallback output directory: {self.base_dir}")
+                
+        # Support podcast-aware structure
+        self.podcast_mode = os.getenv('PODCAST_MODE', 'single') == 'multi'
+        if self.podcast_mode:
+            logger.info("Podcast-aware mode enabled - will organize by podcast ID")
         
         # Only create directory if it's not a test path
         if not str(self.base_dir).startswith('/test'):

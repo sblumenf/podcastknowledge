@@ -23,5 +23,29 @@
     "hash": "7ebdeebf7cd6358022f008ae6200b6f9",
     "processed_at": "2025-06-10T23:53:11.492063",
     "segments": 119
+  },
+  "/home/sergeblumenfeld/podcastknowledge/data/transcripts/test_podcast/complex.vtt": {
+    "hash": "aeef629d52aad37914b05438106214ca",
+    "processed_at": "2025-06-11T20:13:47.958251",
+    "segments": 15,
+    "moved_to_processed": false
+  },
+  "/home/sergeblumenfeld/podcastknowledge/data/transcripts/sample.vtt": {
+    "hash": "275c952a031a411cf27e4609313c9563",
+    "processed_at": "2025-06-11T20:13:47.963822",
+    "segments": 9,
+    "moved_to_processed": false
+  },
+  "/home/sergeblumenfeld/podcastknowledge/data/transcripts/test_podcast/standard.vtt": {
+    "hash": "e928922e0aff54289002d716bdf8db85",
+    "processed_at": "2025-06-11T20:13:47.969857",
+    "segments": 100,
+    "moved_to_processed": false
+  },
+  "/home/sergeblumenfeld/podcastknowledge/data/transcripts/test_podcast/minimal.vtt": {
+    "hash": "5b0901a748683c224504cb1006a80184",
+    "processed_at": "2025-06-11T20:13:47.970853",
+    "segments": 5,
+    "moved_to_processed": false
   }
 }

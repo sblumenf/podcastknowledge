@@ -51,6 +51,36 @@ class TestVTTParser:
         """Create a VTT parser instance."""
         return VTTParser()
     
+    @pytest.fixture
+    def vtt_with_metadata(self):
+        """Sample VTT content with metadata."""
+        return """WEBVTT
+
+NOTE Episode Information
+Podcast: The Mel Robbins Podcast
+Episode: 3 Simple Steps to Change Your Life
+
+NOTE Content Details
+Description: You can change your life. Period.
+Original URL: https://www.stitcher.com
+YouTube URL: https://www.youtube.com/watch?v=1JbfAr-BQjA
+
+NOTE JSON Metadata
+{
+  "podcast": "The Mel Robbins Podcast",
+  "episode": "3 Simple Steps to Change Your Life",
+  "date": "2022-10-06",
+  "youtube_url": "https://www.youtube.com/watch?v=1JbfAr-BQjA",
+  "duration": 3600
+}
+
+00:00:00.000 --> 00:00:05.000
+<v Speaker1>Welcome to the podcast!
+
+00:00:05.000 --> 00:00:10.000
+<v Speaker2>Thank you for having me.
+"""
+    
     def test_parser_initialization(self, parser):
         """Test parser initialization."""
         assert parser.cues == []
@@ -98,7 +128,98 @@ class TestVTTParser:
     def test_parse_content_missing_header(self, parser):
         """Test parsing content without WEBVTT header."""
         with pytest.raises(ValidationError, match="Missing WEBVTT header"):
-            parser.parse_content("00:00:00.000 --> 00:00:01.000\nHello")
+            parser.parse_content("Some random content")
+    
+    def test_parse_content_with_metadata(self, parser, vtt_with_metadata):
+        """Test parsing VTT content with metadata extraction."""
+        result = parser.parse_content_with_metadata(vtt_with_metadata)
+        
+        # Check structure
+        assert 'metadata' in result
+        assert 'segments' in result
+        
+        # Check metadata extraction
+        metadata = result['metadata']
+        assert metadata['youtube_url'] == 'https://www.youtube.com/watch?v=1JbfAr-BQjA'
+        assert metadata['podcast'] == 'The Mel Robbins Podcast'
+        assert metadata['episode'] == '3 Simple Steps to Change Your Life'
+        assert metadata['date'] == '2022-10-06'
+        assert metadata['duration'] == 3600
+        assert metadata['description'] == 'You can change your life. Period.'
+        assert metadata['original_url'] == 'https://www.stitcher.com'
+        
+        # Check segments
+        segments = result['segments']
+        assert len(segments) == 2
+        assert segments[0].text == 'Welcome to the podcast!'
+        assert segments[0].speaker == 'Speaker1'
+        assert segments[1].text == 'Thank you for having me.'
+        assert segments[1].speaker == 'Speaker2'
+    
+    def test_parse_note_blocks_json_only(self, parser):
+        """Test parsing NOTE blocks with only JSON metadata."""
+        content = """WEBVTT
+
+NOTE JSON Metadata
+{
+  "youtube_url": "https://youtube.com/watch?v=test",
+  "title": "Test Episode"
+}
+
+00:00:00.000 --> 00:00:01.000
+Test content
+"""
+        metadata = parser._parse_note_blocks(content)
+        assert metadata['youtube_url'] == 'https://youtube.com/watch?v=test'
+        assert metadata['title'] == 'Test Episode'
+    
+    def test_parse_note_blocks_human_readable_only(self, parser):
+        """Test parsing NOTE blocks with only human-readable metadata."""
+        content = """WEBVTT
+
+NOTE Content Details
+YouTube URL: https://youtube.com/watch?v=test
+Description: This is a test episode
+
+00:00:00.000 --> 00:00:01.000
+Test content
+"""
+        metadata = parser._parse_note_blocks(content)
+        assert metadata['youtube_url'] == 'https://youtube.com/watch?v=test'
+        assert metadata['description'] == 'This is a test episode'
+    
+    def test_parse_note_blocks_invalid_json(self, parser):
+        """Test parsing NOTE blocks with invalid JSON."""
+        content = """WEBVTT
+
+NOTE JSON Metadata
+{invalid json content
+
+00:00:00.000 --> 00:00:01.000
+Test content
+"""
+        # Should not raise, just log warning
+        metadata = parser._parse_note_blocks(content)
+        assert metadata == {}  # No metadata extracted due to invalid JSON
+    
+    def test_parse_file_with_metadata(self, parser, tmp_path, vtt_with_metadata):
+        """Test parsing file with metadata extraction."""
+        # Create temporary VTT file
+        vtt_file = tmp_path / "test.vtt"
+        vtt_file.write_text(vtt_with_metadata)
+        
+        result = parser.parse_file_with_metadata(vtt_file)
+        
+        # Check metadata
+        assert result['metadata']['youtube_url'] == 'https://www.youtube.com/watch?v=1JbfAr-BQjA'
+        assert len(result['segments']) == 2
+    
+    def test_backwards_compatibility(self, parser, vtt_with_metadata):
+        """Test that parse_content still works without metadata extraction."""
+        # Old method should still work
+        segments = parser.parse_content(vtt_with_metadata)
+        assert len(segments) == 2
+        assert segments[0].text == 'Welcome to the podcast!'
     
     def test_parse_content_valid(self, parser):
         """Test parsing valid VTT content."""
