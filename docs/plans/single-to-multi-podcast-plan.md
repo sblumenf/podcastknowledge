@@ -129,7 +129,7 @@ Create an end-to-end pipeline where the transcriber module outputs VTT files to 
 
 ### Task 6: Create Run Scripts
 
-- [ ] Create unified run script
+- [x] Create unified run script
   - Purpose: Simplify running both modules
   - Steps:
     1. Use context7 MCP tool for script best practices
