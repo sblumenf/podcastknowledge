@@ -365,6 +365,133 @@ def validate_vtt_file(file_path: Path) -> Tuple[bool, Optional[str]]:
 
 
 @trace_operation("batch_vtt_processing")
+def process_vtt_for_podcast(args: argparse.Namespace, podcast_id: str) -> Dict[str, int]:
+    """Process VTT files for a specific podcast.
+    
+    Args:
+        args: Command line arguments
+        podcast_id: ID of the podcast to process
+        
+    Returns:
+        Dictionary with processed and failed counts
+    """
+    logger = get_logger(__name__)
+    
+    try:
+        # Set podcast context
+        os.environ['CURRENT_PODCAST_ID'] = podcast_id
+        
+        # Load configuration
+        config = None
+        if args.config:
+            config = PipelineConfig.from_file(args.config)
+        else:
+            config = PipelineConfig()
+        
+        # Initialize multi-podcast pipeline
+        from src.seeding.multi_podcast_orchestrator import MultiPodcastVTTKnowledgeExtractor
+        pipeline = MultiPodcastVTTKnowledgeExtractor(config)
+        
+        # Find VTT files
+        folder = Path(args.folder)
+        if not folder.exists():
+            logger.warning(f"Folder does not exist: {folder}")
+            return {'processed': 0, 'failed': 0}
+        
+        vtt_files = find_vtt_files(folder, args.pattern, args.recursive)
+        
+        if not vtt_files:
+            print(f"  No VTT files found in {folder}")
+            return {'processed': 0, 'failed': 0}
+        
+        print(f"  Found {len(vtt_files)} VTT file(s)")
+        
+        # Initialize checkpoint if enabled
+        checkpoint = None
+        if not args.no_checkpoint:
+            checkpoint_dir = Path(args.checkpoint_dir) / 'podcasts' / podcast_id
+            checkpoint_dir.mkdir(exist_ok=True, parents=True)
+            checkpoint = ProgressCheckpoint(
+                checkpoint_dir=str(checkpoint_dir),
+                extraction_mode='vtt'
+            )
+        
+        # Process files
+        processed = 0
+        failed = 0
+        
+        for i, file_path in enumerate(vtt_files, 1):
+            print(f"    [{i}/{len(vtt_files)}] Processing: {file_path.name}")
+            
+            # Validate file
+            is_valid, error = validate_vtt_file(file_path)
+            if not is_valid:
+                print(f"      ✗ Skipping invalid file: {error}")
+                failed += 1
+                continue
+            
+            # Check if already processed
+            if checkpoint:
+                file_hash = get_file_hash(file_path)
+                if checkpoint.is_vtt_processed(str(file_path), file_hash):
+                    print(f"      ✓ Already processed")
+                    continue
+            
+            try:
+                # Create ingestion manager
+                ingestion_manager = TranscriptIngestionManager(
+                    pipeline=pipeline,
+                    checkpoint=checkpoint
+                )
+                
+                # Process the VTT file with podcast context
+                result = ingestion_manager.process_vtt_file(
+                    vtt_file=str(file_path),
+                    metadata={
+                        'source': 'cli',
+                        'file_name': file_path.name,
+                        'file_path': str(file_path),
+                        'podcast_id': podcast_id,
+                        'processed_at': datetime.now().isoformat()
+                    }
+                )
+                
+                if result['success']:
+                    print(f"      ✓ Success - {result['segments_processed']} segments")
+                    processed += 1
+                    
+                    if checkpoint:
+                        checkpoint.mark_vtt_processed(
+                            str(file_path),
+                            file_hash,
+                            result['segments_processed']
+                        )
+                else:
+                    print(f"      ✗ Failed: {result.get('error', 'Unknown error')}")
+                    failed += 1
+                    
+            except Exception as e:
+                print(f"      ✗ Error: {str(e)}")
+                logger.error(f"Failed to process {file_path}: {str(e)}", exc_info=True)
+                failed += 1
+                
+                if not args.skip_errors:
+                    break
+        
+        # Cleanup
+        pipeline.cleanup()
+        
+        return {'processed': processed, 'failed': failed}
+        
+    except Exception as e:
+        logger.error(f"Error processing podcast {podcast_id}: {e}")
+        return {'processed': 0, 'failed': 0}
+    finally:
+        # Clear podcast context
+        if 'CURRENT_PODCAST_ID' in os.environ:
+            del os.environ['CURRENT_PODCAST_ID']
+
+
 def process_vtt_batch(vtt_files: List[Path], pipeline, checkpoint, args) -> int:
     """Process VTT files in parallel using batch processing.
     
@@ -598,6 +725,114 @@ def process_vtt(args: argparse.Namespace) -> int:
     logger = get_logger(__name__)
     
     try:
+        # Handle multi-podcast mode
+        if args.all_podcasts or args.podcast:
+            # Enable multi-podcast mode
+            os.environ['PODCAST_MODE'] = 'multi'
+            
+            from src.config.podcast_databases import PodcastDatabaseConfig
+            podcast_config = PodcastDatabaseConfig()
+            
+            # Determine which podcasts to process
+            if args.all_podcasts:
+                podcast_ids = podcast_config.get_enabled_podcasts()
+                if not podcast_ids:
+                    print("No enabled podcasts found.")
+                    return 0
+                print(f"Processing {len(podcast_ids)} enabled podcast(s)")
+            else:
+                # Single podcast
+                podcast_ids = [args.podcast]
+                if args.podcast not in podcast_config.list_podcasts():
+                    print(f"Error: Unknown podcast ID: {args.podcast}")
+                    print("Use 'list-podcasts' command to see available podcasts.")
+                    return 1
+            
+            # Check if parallel processing is enabled
+            if args.parallel and len(podcast_ids) > 1:
+                # Use parallel processing for multiple podcasts
+                from src.cli.multi_podcast_parallel import (
+                    MultiPodcastParallelProcessor, optimize_worker_count
+                )
+                
+                # Optimize worker count
+                worker_count = optimize_worker_count(len(podcast_ids), args.workers)
+                
+                # Create parallel processor
+                processor = MultiPodcastParallelProcessor(
+                    max_workers=worker_count,
+                    rate_limit_per_podcast=0.1  # 100ms between files in same podcast
+                )
+                
+                # Process podcasts in parallel
+                results = processor.process_podcasts_parallel(
+                    podcast_ids,
+                    process_vtt_for_podcast,
+                    args
+                )
+                
+                # Summary
+                total_processed = sum(r.processed for r in results.values())
+                total_failed = sum(r.failed for r in results.values())
+                
+                print(f"\n{'='*70}")
+                print("Multi-Podcast Parallel Processing Summary:")
+                print(f"  Podcasts processed: {len(results)}")
+                print(f"  Successful: {len([r for r in results.values() if r.error is None])}")
+                print(f"  Failed: {len([r for r in results.values() if r.error is not None])}")
+                print(f"  Total files processed: {total_processed}")
+                print(f"  Total files failed: {total_failed}")
+                
+                # Show per-podcast results
+                print("\nPer-Podcast Results:")
+                for podcast_id, result in sorted(results.items()):
+                    status = "✓" if result.error is None else "✗"
+                    print(f"  {status} {podcast_id}: {result.processed} processed, "
+                          f"{result.failed} failed ({result.duration:.2f}s)")
+                    if result.error:
+                        print(f"    Error: {result.error}")
+                
+                return 0 if all(r.error is None for r in results.values()) else 1
+                
+            else:
+                # Sequential processing
+                total_processed = 0
+                total_failed = 0
+                
+                for podcast_id in podcast_ids:
+                    print(f"\n{'='*70}")
+                    print(f"Processing podcast: {podcast_id}")
+                    print('='*70)
+                    
+                    # Update folder to podcast-specific directory
+                    podcast_info = podcast_config.get_podcast_config(podcast_id)
+                    base_path = Path(os.getenv('PODCAST_DATA_DIR', '/data'))
+                    podcast_folder = base_path / 'podcasts' / podcast_id / 'transcripts'
+                    
+                    if not podcast_folder.exists():
+                        print(f"  Warning: No transcript folder found at {podcast_folder}")
+                        continue
+                    
+                    # Override args folder for this podcast
+                    args.folder = str(podcast_folder)
+                    
+                    # Process this podcast's files
+                    result = process_vtt_for_podcast(args, podcast_id)
+                    total_processed += result['processed']
+                    total_failed += result['failed']
+                
+                # Summary
+                print(f"\n{'='*70}")
+                print("Multi-Podcast Processing Summary:")
+                print(f"  Podcasts processed: {len(podcast_ids)}")
+                print(f"  Total files processed: {total_processed}")
+                print(f"  Total files failed: {total_failed}")
+                
+                return 0 if total_failed == 0 else 1
+        
+        # Single mode (original logic)
+        os.environ['PODCAST_MODE'] = 'single'
+        
         # Load configuration
         config = None
         if args.config:
@@ -789,6 +1024,81 @@ def checkpoint_status(args: argparse.Namespace) -> int:
         if args.verbose:
             import traceback
             traceback.print_exc()
+        return 1
+
+
+def list_podcasts(args: argparse.Namespace) -> int:
+    """List all configured podcasts.
+    
+    Returns:
+        Exit code (0 for success, 1 for failure)
+    """
+    try:
+        from src.config.podcast_databases import PodcastDatabaseConfig
+        
+        # Load podcast configuration
+        config = PodcastDatabaseConfig()
+        
+        if args.format == 'json':
+            # JSON output
+            podcasts = []
+            for podcast_id, db_name in config.list_podcasts().items():
+                podcast_info = config.get_podcast_config(podcast_id)
+                podcasts.append({
+                    'id': podcast_id,
+                    'database': db_name,
+                    'enabled': podcast_info.get('enabled', True),
+                    'name': podcast_info.get('name', podcast_id)
+                })
+            
+            if args.enabled_only:
+                podcasts = [p for p in podcasts if p['enabled']]
+            
+            print(json.dumps(podcasts, indent=2))
+        else:
+            # Text output
+            all_podcasts = config.list_podcasts()
+            enabled_podcasts = config.get_enabled_podcasts()
+            
+            if args.enabled_only:
+                podcasts_to_show = {k: v for k, v in all_podcasts.items() if k in enabled_podcasts}
+            else:
+                podcasts_to_show = all_podcasts
+            
+            if not podcasts_to_show:
+                print("No podcasts configured.")
+                return 0
+            
+            print("Configured Podcasts:")
+            print("=" * 70)
+            
+            for podcast_id, db_name in sorted(podcasts_to_show.items()):
+                podcast_info = config.get_podcast_config(podcast_id)
+                enabled = podcast_id in enabled_podcasts
+                status = "✓ Enabled" if enabled else "✗ Disabled"
+                name = podcast_info.get('name', podcast_id)
+                
+                print(f"\n{status}")
+                print(f"  ID: {podcast_id}")
+                print(f"  Name: {name}")
+                print(f"  Database: {db_name}")
+                
+                if podcast_info.get('metadata'):
+                    metadata = podcast_info['metadata']
+                    if metadata.get('description'):
+                        print(f"  Description: {metadata['description']}")
+                    if metadata.get('host'):
+                        print(f"  Host: {metadata['host']}")
+            
+            print("\n" + "=" * 70)
+            print(f"Total: {len(podcasts_to_show)} podcast(s)")
+            if not args.enabled_only:
+                print(f"Enabled: {len([p for p in podcasts_to_show if p in enabled_podcasts])}")
+        
+        return 0
+        
+    except Exception as e:
+        print(f"Error listing podcasts: {e}", file=sys.stderr)
         return 1
 
 
@@ -1335,6 +1645,38 @@ Examples:
         help='Number of parallel workers to use (default: 4)'
     )
     
+    vtt_parser.add_argument(
+        '--podcast',
+        type=str,
+        help='Process files for a specific podcast ID'
+    )
+    
+    vtt_parser.add_argument(
+        '--all-podcasts',
+        action='store_true',
+        help='Process files for all configured podcasts'
+    )
+    
+    # List podcasts command
+    list_parser = subparsers.add_parser(
+        'list-podcasts',
+        help='List all configured podcasts'
+    )
+    
+    list_parser.add_argument(
+        '--enabled-only',
+        action='store_true',
+        help='Show only enabled podcasts'
+    )
+    
+    list_parser.add_argument(
+        '--format',
+        type=str,
+        choices=['text', 'json'],
+        default='text',
+        help='Output format (default: text)'
+    )
+    
     # Checkpoint status command
     status_parser = subparsers.add_parser(
         'checkpoint-status',
@@ -1502,6 +1844,8 @@ Examples:
     # Execute command
     if args.command == 'process-vtt':
         return process_vtt(args)
+    elif args.command == 'list-podcasts':
+        return list_podcasts(args)
     elif args.command == 'checkpoint-status':
         return checkpoint_status(args)
     elif args.command == 'checkpoint-clean':

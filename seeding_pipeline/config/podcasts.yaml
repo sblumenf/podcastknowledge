@@ -1,0 +1,70 @@
+version: '1.0'
+podcasts:
+- id: tech_talk
+  name: Tech Talk Podcast
+  enabled: true
+  database:
+    uri: neo4j://localhost:7687
+    database_name: tech_talk
+  processing:
+    batch_size: 10
+    max_retries: 3
+    enable_flow_analysis: true
+    enable_graph_enhancement: true
+    use_large_context: true
+  metadata:
+    description: A podcast about technology trends and innovations
+    language: en
+    category: Technology
+    tags:
+    - tech
+    - software
+    - innovation
+    host: John Doe
+    website: https://techtalk.example.com
+- id: data_science_hour
+  name: Data Science Hour
+  enabled: true
+  database:
+    uri: neo4j://localhost:7687
+    database_name: data_science
+  processing:
+    batch_size: 5
+    max_retries: 3
+    enable_flow_analysis: true
+    enable_graph_enhancement: true
+    use_large_context: true
+    custom_prompts:
+      entity_extraction: Focus on data science concepts, tools, and methodologies
+  metadata:
+    description: Weekly discussions on data science and machine learning
+    language: en
+    category: Science
+    tags:
+    - data-science
+    - machine-learning
+    - AI
+    host: Jane Smith
+- id: startup_stories
+  name: Startup Stories
+  enabled: false
+  processing:
+    batch_size: 10
+    max_retries: 3
+    enable_flow_analysis: true
+    enable_graph_enhancement: true
+    use_large_context: true
+  metadata:
+    description: Interviews with successful startup founders
+    language: en
+    category: Business
+    tags:
+    - startup
+    - entrepreneurship
+    - business
+defaults:
+  batch_size: 10
+  max_retries: 3
+  enable_flow_analysis: true
+  enable_graph_enhancement: true
+  use_large_context: true

@@ -343,14 +343,25 @@ class VTTParser:
                 note_type = line[4:].strip()  # Get text after "NOTE"
                 i += 1
                 
-                # Collect NOTE content until empty line
+                # Collect NOTE content until empty line or next NOTE
                 note_content = []
-                while i < len(lines) and lines[i].strip() and not lines[i].strip().startswith('NOTE'):
+                while i < len(lines) and lines[i].strip() and not lines[i].strip().startswith('NOTE') and not self._is_timestamp_line(lines[i]):
                     note_content.append(lines[i])
                     i += 1
                 
-                # Process based on note type
-                if note_type == 'JSON Metadata' and note_content:
+                # Join all content for processing
+                content_text = '\n'.join(note_content).strip()
+                
+                # Check if it's JSON content (starts with { and ends with })
+                if content_text.startswith('{') and content_text.endswith('}'):
+                    # Parse JSON metadata block
+                    try:
+                        json_data = json.loads(content_text)
+                        metadata.update(json_data)
+                    except json.JSONDecodeError as e:
+                        logger.warning(f"Failed to parse JSON metadata: {e}")
+                # Also check note type for JSON
+                elif note_type.lower() == 'json metadata' and note_content:
                     # Parse JSON metadata block
                     try:
                         json_str = '\n'.join(note_content)
@@ -614,6 +625,116 @@ class VTTParser:
             i = j
         
         return merged
+    
+    def parse_file_with_metadata(self, file_path: Path) -> Dict[str, Any]:
+        """Parse a VTT file and extract both segments and metadata.
+        
+        Args:
+            file_path: Path to the VTT file
+            
+        Returns:
+            Dictionary with 'segments' and 'metadata' keys
+        """
+        if not file_path.exists():
+            raise ValidationError(f"VTT file not found: {file_path}")
+            
+        metadata = {}
+        segments = []
+        
+        try:
+            with open(file_path, 'r', encoding='utf-8') as f:
+                content = f.read()
+                
+            # Extract metadata from NOTE sections using the existing method
+            metadata = self._parse_note_blocks(content)
+            
+            # Try to extract podcast ID from metadata or filename
+            metadata['podcast_id'] = self._extract_podcast_id(file_path, metadata)
+            
+            # Parse segments
+            segments = self.parse_content(content)
+            
+        except Exception as e:
+            raise ValidationError(f"Failed to parse VTT file with metadata: {e}")
+            
+        return {
+            'segments': segments,
+            'metadata': metadata
+        }
+        
+    def _extract_metadata_from_content(self, content: str) -> Dict[str, Any]:
+        """Extract metadata from VTT NOTE sections.
+        
+        Args:
+            content: VTT file content
+            
+        Returns:
+            Dictionary of extracted metadata
+        """
+        metadata = {}
+        
+        # Find NOTE sections
+        note_pattern = re.compile(r'NOTE\s*(.*?)(?:\n\n|\n(?=\d+:|WEBVTT|\Z))', re.DOTALL)
+        notes = note_pattern.findall(content)
+        
+        for note_text in notes:
+            # Try to parse as JSON
+            note_text = note_text.strip()
+            if note_text.startswith('{'):
+                try:
+                    note_data = json.loads(note_text)
+                    metadata.update(note_data)
+                except json.JSONDecodeError:
+                    pass
+            else:
+                # Parse key-value pairs
+                lines = note_text.split('\n')
+                for line in lines:
+                    if ':' in line:
+                        key, value = line.split(':', 1)
+                        key = key.strip().lower().replace(' ', '_')
+                        value = value.strip()
+                        metadata[key] = value
+                        
+        return metadata
+        
+    def _extract_podcast_id(self, file_path: Path, metadata: Dict[str, Any]) -> str:
+        """Extract podcast ID from metadata or file path.
+        
+        Args:
+            file_path: Path to VTT file
+            metadata: Extracted metadata dictionary
+            
+        Returns:
+            Podcast ID string
+        """
+        # Try metadata first
+        podcast_id = metadata.get('podcast_id') or metadata.get('podcast') or metadata.get('show')
+        
+        if podcast_id:
+            # Normalize podcast ID
+            podcast_id = re.sub(r'[^a-zA-Z0-9_-]', '_', str(podcast_id))
+            return podcast_id.lower()
+            
+        # Try to extract from file path only if no metadata found
+        path_parts = file_path.parts
+        
+        # Look for common patterns
+        for i, part in enumerate(path_parts):
+            if part in ['podcasts', 'shows', 'series']:
+                if i + 1 < len(path_parts):
+                    return re.sub(r'[^a-zA-Z0-9_-]', '_', path_parts[i + 1]).lower()
+                    
+        # Use parent directory name as fallback only if it's not a temp dir
+        if len(path_parts) >= 2:
+            parent_dir = path_parts[-2]
+            # Skip temp directories and common non-podcast directories
+            if (parent_dir not in ['transcripts', 'vtt', 'data', 'input', 'tmp'] and 
+                not parent_dir.startswith('tmp')):
+                return re.sub(r'[^a-zA-Z0-9_-]', '_', parent_dir).lower()
+                
+        # Final fallback
+        return 'unknown_podcast'
     
     def normalize_segment(self, segment: Dict[str, Any]) -> TranscriptSegment:
         """Normalize a segment dictionary to TranscriptSegment.
