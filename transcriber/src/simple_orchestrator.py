@@ -165,17 +165,18 @@ class SimpleOrchestrator:
         
         # Check if episode is already transcribed
         podcast_name = getattr(episode, 'podcast_name', 'Unknown Podcast')
-        if not self.force_reprocess and self.progress_tracker.is_episode_transcribed(podcast_name, episode.title):
+        date_str = episode.published_date.strftime('%Y-%m-%d') if episode.published_date else datetime.now().strftime('%Y-%m-%d')
+        
+        if not self.force_reprocess and self.progress_tracker.is_episode_transcribed(podcast_name, episode.title, date_str):
             logger.info(f"Episode already transcribed, skipping: {episode.title}")
             result['status'] = 'skipped'
             result['error'] = 'Already transcribed'
             return result
         
         # Check Neo4j if in combined mode (prevents duplicate transcription costs)
+        # Note: Neo4j check is also done in progress_tracker.is_episode_transcribed() above,
+        # but we keep this explicit check for clarity and to provide specific logging
         if not self.force_reprocess:
-            # Get episode date for ID generation
-            date_str = episode.published_date.strftime('%Y-%m-%d') if episode.published_date else datetime.now().strftime('%Y-%m-%d')
-            
             # Generate podcast ID (matching seeding pipeline format)
             podcast_id = podcast_name.lower().replace(' ', '_')
             

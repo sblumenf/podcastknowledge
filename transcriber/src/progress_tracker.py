@@ -6,15 +6,29 @@ to avoid duplicate processing.
 
 import json
 import os
+import sys
 import threading
 from typing import Dict, List, Optional
 from pathlib import Path
 from datetime import datetime
 from enum import Enum
 
+# Add shared module to path
+repo_root = Path(__file__).parent.parent.parent
+if str(repo_root) not in sys.path:
+    sys.path.insert(0, str(repo_root))
+
 from src.utils.logging import get_logger
 from src.utils.title_utils import normalize_title
 
+# Import shared tracking bridge for Neo4j checking
+try:
+    from shared import get_tracker
+    tracking_bridge = get_tracker()
+except ImportError:
+    # Fallback if shared module not available
+    tracking_bridge = None
+    
 logger = get_logger(__name__)
 
 
@@ -95,23 +109,42 @@ class ProgressTracker:
                     except:
                         pass
     
-    def is_episode_transcribed(self, podcast_name: str, episode_title: str) -> bool:
+    def is_episode_transcribed(self, podcast_name: str, episode_title: str, date: Optional[str] = None) -> bool:
         """Check if an episode has already been transcribed.
+        
+        Also checks Neo4j when available to ensure we don't miss episodes that
+        were processed through the seeding pipeline.
         
         Args:
             podcast_name: Name of the podcast
             episode_title: Title of the episode (will be normalized before comparison)
+            date: Optional date string for Neo4j checking (format: YYYY-MM-DD)
             
         Returns:
             True if episode has been transcribed, False otherwise
         """
-        # Normalize the title for consistent comparison
+        # First check file-based tracking
         normalized_title = normalize_title(episode_title)
         
         with self._lock:
-            if podcast_name not in self._progress_data:
-                return False
-            return normalized_title in self._progress_data[podcast_name]
+            if podcast_name in self._progress_data and normalized_title in self._progress_data[podcast_name]:
+                logger.debug(f"Episode found in file-based tracking: {podcast_name} - {normalized_title}")
+                return True
+        
+        # Also check Neo4j if available and date provided
+        if tracking_bridge and date:
+            try:
+                # Generate podcast ID (matching seeding pipeline format)
+                podcast_id = podcast_name.lower().replace(' ', '_')
+                
+                # Check if episode exists in knowledge graph
+                if not tracking_bridge.should_transcribe(podcast_id, episode_title, date):
+                    logger.info(f"Episode found in Neo4j knowledge graph: {podcast_name} - {episode_title}")
+                    return True
+            except Exception as e:
+                logger.debug(f"Neo4j check failed, continuing with file-based tracking only: {e}")
+        
+        return False
     
     def mark_episode_transcribed(self, podcast_name: str, episode_title: str, date: str) -> None:
         """Mark an episode as transcribed.
