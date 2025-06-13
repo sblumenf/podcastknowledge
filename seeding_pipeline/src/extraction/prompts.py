@@ -662,11 +662,43 @@ Extract the following in JSON format:
    - speaker: Who said it
    - context: Brief context
 
+4. CONVERSATION_STRUCTURE: Analyze the flow and structure of the conversation
+   First, identify natural conversation boundaries and thought completions. Look for:
+   - Complete vs incomplete thoughts (sentences cut mid-way)
+   - Topic shifts and transitions
+   - Question-answer pairs that should stay together
+   - Stories or examples that span multiple segments
+   
+   Provide:
+   - topic_groups: Natural groupings of conversation segments
+     - description: What this group discusses (e.g., "Jake's complete answer about dating insecurities")
+     - content_summary: Brief summary of the key points
+     - completeness: complete/incomplete/fragmented
+     - key_entities: Main entities discussed in this group
+   - major_themes: Overarching themes throughout the conversation
+     - theme: Theme name
+     - description: What aspects are explored
+     - evolution: How the theme develops through the conversation
+   - conversation_flow: The narrative arc
+     - opening: How the conversation starts
+     - development: How topics build on each other
+     - conclusion: How it wraps up (if applicable)
+   - structural_insights: Observations about conversation quality
+     - fragmentation_issues: Where thoughts are unnaturally split
+     - missing_context: Where additional context would help understanding
+     - natural_boundaries: Where clean topic breaks occur
+
 Return ONLY valid JSON:
 {{
   "insights": [...],
   "entities": [...],
-  "quotes": [...]
+  "quotes": [...],
+  "conversation_structure": {{
+    "topic_groups": [...],
+    "major_themes": [...],
+    "conversation_flow": {{...}},
+    "structural_insights": {{...}}
+  }}
 }}"""
         else:
             # Shorter prompt for segment processing
