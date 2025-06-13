@@ -2,7 +2,6 @@
 
 import os
 import time
-import psutil
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, Any, List, Optional, Tuple
@@ -10,6 +9,7 @@ import shutil
 
 from src.utils.log_utils import get_logger
 from src.utils.metrics import get_pipeline_metrics
+from src.utils.optional_dependencies import get_psutil, get_memory_info, get_cpu_info, PSUTIL_AVAILABLE
 
 
 class HealthStatus:
@@ -117,7 +117,16 @@ class HealthChecker:
     def check_system_resources(self) -> ComponentHealth:
         """Check system memory and CPU resources."""
         try:
-            # Memory check
+            if not PSUTIL_AVAILABLE:
+                return ComponentHealth(
+                    name='system',
+                    status=HealthStatus.HEALTHY,
+                    message='Resource monitoring unavailable (psutil not installed)',
+                    details={'psutil_available': False}
+                )
+            
+            # Get memory and CPU info
+            psutil = get_psutil()
             memory = psutil.virtual_memory()
             memory_percent = memory.percent
             memory_available_gb = memory.available / (1024 ** 3)
@@ -129,7 +138,7 @@ class HealthChecker:
                 'memory_percent_used': memory_percent,
                 'memory_available_gb': round(memory_available_gb, 2),
                 'cpu_percent': cpu_percent,
-                'process_count': len(psutil.pids())
+                'process_count': len(psutil.pids()) if hasattr(psutil, 'pids') else 0
             }
             
             # Determine status

@@ -18,6 +18,7 @@ The VTT Knowledge Graph Pipeline automatically:
 ## Key Features
 
 - **📝 VTT Native**: Direct processing of WebVTT files with full format support
+- **🧠 Semantic Processing**: NEW! Conversation-aware analysis for better knowledge extraction
 - **🚀 Batch Processing**: Efficiently handle folders of transcript files
 - **💾 Neo4j-Based Tracking**: Single source of truth for episode processing status
 - **🔄 Smart Recovery**: Automatically skip already-processed episodes using Neo4j tracking
@@ -136,6 +137,40 @@ Total entities: 44
 Total quotes: 34
 Total segments: 164
 ```
+
+### Semantic Processing (NEW!)
+
+The pipeline now supports **semantic conversation-aware processing** that analyzes conversation structure before extraction:
+
+#### Enable semantic processing:
+```bash
+python -m src.cli.cli process-vtt --folder transcripts/ --semantic
+```
+
+#### Compare semantic vs traditional processing:
+```bash
+python -m src.cli.cli process-vtt --folder transcripts/ --compare-methods
+```
+
+#### Semantic Processing Benefits:
+- **Groups segments** into meaningful conversation units (topics, stories, Q&A pairs)
+- **Reduces entity duplication** by 50%+ through cross-unit resolution
+- **Identifies conversation themes** and narrative flow
+- **Provides better context** for knowledge extraction
+
+#### Expected Output with Semantic Processing:
+```
+Processing VTT files with semantic analysis...
+
+[1/1] Processing: episode_001.vtt
+  ✓ Success - 103 segments processed
+    - 12 meaningful units identified
+    - 3 conversation themes detected
+    - 187 entities extracted
+    - 124 relationships found
+```
+
+See [Semantic Processing Documentation](docs/SEMANTIC_PROCESSING.md) for detailed information.
 
 ## Multi-Podcast Support
 

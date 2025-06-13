@@ -3,7 +3,8 @@
 import logging
 from typing import List, Dict, Any, Optional
 from src.core.interfaces import TranscriptSegment
-from src.services.llm_service import LLMService
+from src.services.llm import LLMService
+from src.services.performance_optimizer import PerformanceOptimizer
 from src.core.monitoring import trace_operation
 from src.core.exceptions import ProcessingError
 from src.core.conversation_models.conversation import (
@@ -21,15 +22,17 @@ logger = logging.getLogger(__name__)
 class ConversationAnalyzer:
     """Analyzes transcript segments to identify semantic boundaries and structure."""
     
-    def __init__(self, llm_service: LLMService):
+    def __init__(self, llm_service: LLMService, performance_optimizer: Optional[PerformanceOptimizer] = None):
         """
         Initialize conversation analyzer.
         
         Args:
             llm_service: LLM service for structure analysis
+            performance_optimizer: Optional performance optimizer for caching
         """
         self.llm_service = llm_service
         self.logger = logger
+        self.optimizer = performance_optimizer
         
     @trace_operation("analyze_conversation_structure")
     def analyze_structure(self, segments: List[TranscriptSegment]) -> ConversationStructure:
@@ -49,6 +52,15 @@ class ConversationAnalyzer:
             raise ProcessingError("No segments provided for analysis")
             
         self.logger.info(f"Analyzing conversation structure for {len(segments)} segments")
+        
+        # Check cache if optimizer is available
+        transcript_hash = None
+        if self.optimizer:
+            transcript_hash = self.optimizer.compute_transcript_hash(segments)
+            cached_structure = self.optimizer.get_cached_structure(transcript_hash)
+            if cached_structure:
+                self.logger.info("Using cached conversation structure")
+                return cached_structure
         
         try:
             # Prepare transcript for analysis
@@ -78,6 +90,10 @@ class ConversationAnalyzer:
             
             # Validate structure
             self._validate_structure(structure, len(segments))
+            
+            # Cache the result if optimizer is available
+            if self.optimizer and transcript_hash:
+                self.optimizer.cache_conversation_structure(transcript_hash, structure)
             
             self.logger.info(f"Identified {len(structure.units)} conversation units from {len(segments)} segments")
             return structure

@@ -2,7 +2,8 @@
 """Command Line Interface for VTT Knowledge Graph Pipeline.
 
 This CLI provides batch processing commands for transforming VTT transcript files
-into structured knowledge graphs using AI-powered analysis.
+into structured knowledge graphs using AI-powered analysis. Supports both traditional
+segment-by-segment processing and new semantic conversation-aware processing.
 """
 
 from datetime import datetime
@@ -20,6 +21,7 @@ import fnmatch
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from src.seeding import VTTKnowledgeExtractor
+from src.seeding.semantic_orchestrator import SemanticVTTKnowledgeExtractor
 from src.core.config import PipelineConfig
 from src.core.exceptions import PipelineError
 from src.vtt import VTTParser
@@ -389,7 +391,12 @@ def process_vtt_for_podcast(args: argparse.Namespace, podcast_id: str) -> Dict[s
         
         # Initialize multi-podcast pipeline
         from src.seeding.multi_podcast_orchestrator import MultiPodcastVTTKnowledgeExtractor
-        pipeline = MultiPodcastVTTKnowledgeExtractor(config)
+        if args.semantic:
+            # For now, use single-podcast semantic pipeline
+            # TODO: Create MultiPodcastSemanticVTTKnowledgeExtractor if needed
+            pipeline = SemanticVTTKnowledgeExtractor(config)
+        else:
+            pipeline = MultiPodcastVTTKnowledgeExtractor(config)
         
         # Find VTT files
         folder = Path(args.folder)
@@ -549,12 +556,18 @@ def process_vtt_batch(vtt_files: List[Path], pipeline, checkpoint, args) -> int:
         try:
             # Process single file through orchestrator (direct knowledge extraction)
             try:
-                logger.debug(f"Batch processing: Starting knowledge extraction for {file_path.name}")
-                batch_result = pipeline.process_vtt_files(
-                    vtt_files=[file_path],  # List of Path objects
-                    use_large_context=True,
-                    force_reprocess=getattr(args, 'force', False)
-                )
+                logger.debug(f"Batch processing: Starting {'semantic' if args.semantic else 'segment'} knowledge extraction for {file_path.name}")
+                process_args = {
+                    'vtt_files': [file_path],  # List of Path objects
+                    'use_large_context': True,
+                    'force_reprocess': getattr(args, 'force', False)
+                }
+                
+                # Add semantic processing flag if using SemanticVTTKnowledgeExtractor
+                if hasattr(pipeline, 'process_vtt_files') and isinstance(pipeline, SemanticVTTKnowledgeExtractor):
+                    process_args['use_semantic_processing'] = args.semantic
+                
+                batch_result = pipeline.process_vtt_files(**process_args)
                 logger.debug(f"Batch processing: Knowledge extraction completed for {file_path.name}")
                 
                 # Transform orchestrator result to CLI expected format
@@ -564,7 +577,10 @@ def process_vtt_batch(vtt_files: List[Path], pipeline, checkpoint, args) -> int:
                         'segments_processed': batch_result['total_segments'],
                         'files_processed': batch_result['files_processed'],
                         'entities_extracted': batch_result['total_entities'],
-                        'relationships_found': batch_result['total_relationships']
+                        'relationships_found': batch_result['total_relationships'],
+                        'meaningful_units': batch_result.get('total_meaningful_units', 0),
+                        'themes': batch_result.get('total_themes', 0),
+                        'processing_type': batch_result.get('processing_type', 'segment')
                     }
                 else:
                     result = {
@@ -639,6 +655,8 @@ def process_vtt_batch(vtt_files: List[Path], pipeline, checkpoint, args) -> int:
                     counters['skipped'] += 1
             elif result.get('success'):
                 print(f"  ✓ {file_path.name} - {result.get('segments_processed', 0)} segments")
+                if result.get('processing_type') == 'semantic' and result.get('meaningful_units', 0) > 0:
+                    print(f"    - {result['meaningful_units']} meaningful units, {result.get('themes', 0)} themes")
                 print(f"    - {result.get('entities_extracted', 0)} entities, {result.get('relationships_found', 0)} relationships")
                 with lock:
                     counters['processed'] += 1
@@ -840,9 +858,14 @@ def process_vtt(args: argparse.Namespace) -> int:
         
         # Initialize pipeline
         try:
-            logger.info("Initializing VTTKnowledgeExtractor pipeline...")
-            pipeline = VTTKnowledgeExtractor(config)
-            logger.info("✓ VTTKnowledgeExtractor pipeline initialized successfully")
+            if args.semantic:
+                logger.info("Initializing SemanticVTTKnowledgeExtractor pipeline...")
+                pipeline = SemanticVTTKnowledgeExtractor(config)
+                logger.info("✓ SemanticVTTKnowledgeExtractor pipeline initialized successfully")
+            else:
+                logger.info("Initializing VTTKnowledgeExtractor pipeline...")
+                pipeline = VTTKnowledgeExtractor(config)
+                logger.info("✓ VTTKnowledgeExtractor pipeline initialized successfully")
         except Exception as e:
             print(f"Failed to initialize knowledge extraction pipeline: {e}", file=sys.stderr)
             logger.error(f"Pipeline initialization failed: {e}", exc_info=True)
@@ -882,6 +905,47 @@ def process_vtt(args: argparse.Namespace) -> int:
         
         # Checkpoint is now handled internally by the orchestrator
         
+        # Handle method comparison if requested
+        if args.compare_methods:
+            print("\nComparing semantic vs segment processing methods...")
+            if len(vtt_files) != 1:
+                print("Error: Method comparison only works with a single file")
+                return 1
+            
+            # Initialize semantic pipeline for comparison
+            semantic_pipeline = SemanticVTTKnowledgeExtractor(config)
+            
+            file_path = vtt_files[0]
+            comparison = semantic_pipeline.compare_processing_methods(
+                str(file_path),
+                use_large_context=True
+            )
+            
+            # Display comparison results
+            print("\n" + "="*60)
+            print("Processing Method Comparison")
+            print("="*60)
+            print(f"File: {file_path.name}")
+            print("\nSegment-by-Segment Processing:")
+            print(f"  Segments: {comparison['segment_processing']['total_segments']}")
+            print(f"  Entities: {comparison['segment_processing']['entities']}")
+            print(f"  Insights: {comparison['segment_processing']['insights']}")
+            print(f"  Relationships: {comparison['segment_processing']['relationships']}")
+            
+            print("\nSemantic Processing:")
+            print(f"  Segments: {comparison['semantic_processing']['total_segments']}")
+            print(f"  Meaningful Units: {comparison['semantic_processing']['meaningful_units']}")
+            print(f"  Entities: {comparison['semantic_processing']['entities']}")
+            print(f"  Insights: {comparison['semantic_processing']['insights']}")
+            print(f"  Relationships: {comparison['semantic_processing']['relationships']}")
+            print(f"  Themes: {comparison['semantic_processing']['themes']}")
+            
+            print("\nImprovements:")
+            print(f"  Entity Reduction: {comparison['improvements']['entity_reduction']*100:.1f}%")
+            print(f"  Segment-to-Unit Ratio: {comparison['improvements']['segment_to_unit_ratio']:.1f}:1")
+            
+            return 0
+        
         # Use batch processing for multiple files
         if len(vtt_files) > 1 and args.parallel:
             return process_vtt_batch(vtt_files, pipeline, None, args)
@@ -891,7 +955,7 @@ def process_vtt(args: argparse.Namespace) -> int:
         failed = 0
         skipped = 0
         
-        print("\nProcessing VTT files...")
+        print(f"\nProcessing VTT files{' with semantic analysis' if args.semantic else ''}...")
         for i, file_path in enumerate(vtt_files, 1):
             print(f"\n[{i}/{len(vtt_files)}] Processing: {file_path.name}")
             
@@ -908,12 +972,13 @@ def process_vtt(args: argparse.Namespace) -> int:
             try:
                 # Process single file through orchestrator (direct knowledge extraction)
                 try:
-                    logger.info(f"Starting knowledge extraction for {file_path.name}")
+                    logger.info(f"Starting {'semantic' if args.semantic else 'segment'} knowledge extraction for {file_path.name}")
                     logger.debug(f"File details: size={file_path.stat().st_size} bytes, path={file_path}")
                     
                     result = pipeline.process_vtt_files(
                         vtt_files=[file_path],  # List of Path objects
-                        use_large_context=True
+                        use_large_context=True,
+                        use_semantic_processing=args.semantic if hasattr(pipeline, 'process_vtt_files') and isinstance(pipeline, SemanticVTTKnowledgeExtractor) else None
                     )
                     
                     logger.info(f"Knowledge extraction completed for {file_path.name}: {result.get('success', False)}")
@@ -926,7 +991,9 @@ def process_vtt(args: argparse.Namespace) -> int:
                             'segments_processed': result['total_segments'],
                             'files_processed': result['files_processed'],
                             'entities_extracted': result['total_entities'],
-                            'relationships_found': result['total_relationships']
+                            'relationships_found': result['total_relationships'],
+                            'meaningful_units': result.get('total_meaningful_units', 0),
+                            'themes': result.get('total_themes', 0)
                         }
                     else:
                         cli_result = {
@@ -945,6 +1012,9 @@ def process_vtt(args: argparse.Namespace) -> int:
                 
                 if result['success']:
                     print(f"  ✓ Success - {result['segments_processed']} segments processed")
+                    if args.semantic and result.get('meaningful_units', 0) > 0:
+                        print(f"    - {result['meaningful_units']} meaningful units identified")
+                        print(f"    - {result.get('themes', 0)} conversation themes detected")
                     print(f"    - {result.get('entities_extracted', 0)} entities extracted")
                     print(f"    - {result.get('relationships_found', 0)} relationships found")
                     processed += 1
@@ -1821,11 +1891,17 @@ Examples:
   # Process all VTT files in a folder
   %(prog)s process-vtt --folder /path/to/vtt/files
   
+  # Process with semantic conversation-aware analysis
+  %(prog)s process-vtt --folder /path/to/vtt --semantic
+  
+  # Compare semantic vs segment processing
+  %(prog)s process-vtt --folder /path/to/vtt --compare-methods single_file.vtt
+  
   # Process with specific pattern
   %(prog)s process-vtt --folder /path/to/vtt --pattern "episode_*.vtt"
   
-  # Recursive processing
-  %(prog)s process-vtt --folder /path/to/vtt --recursive
+  # Recursive processing with semantic analysis and parallel processing
+  %(prog)s process-vtt --folder /path/to/vtt --recursive --semantic --parallel
   
   # Dry run to see what would be processed
   %(prog)s process-vtt --folder /path/to/vtt --dry-run
@@ -1959,6 +2035,18 @@ Examples:
         '--all-podcasts',
         action='store_true',
         help='Process files for all configured podcasts'
+    )
+    
+    vtt_parser.add_argument(
+        '--semantic',
+        action='store_true',
+        help='Use semantic conversation-aware processing instead of segment-by-segment'
+    )
+    
+    vtt_parser.add_argument(
+        '--compare-methods',
+        action='store_true',
+        help='Compare semantic vs segment processing (processes twice)'
     )
     
     # List podcasts command

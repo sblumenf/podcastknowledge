@@ -346,6 +346,86 @@ class GeminiDirectService:
                 
         return results
         
+    def generate_completion(
+        self, 
+        prompt: str,
+        system_prompt: Optional[str] = None,
+        response_format: Optional[Any] = None,
+        temperature: Optional[float] = None,
+        cached_content_name: Optional[str] = None
+    ) -> Any:
+        """Generate completion with structured output support.
+        
+        Args:
+            prompt: User prompt
+            system_prompt: System instructions
+            response_format: Pydantic model or schema for structured output
+            temperature: Override default temperature
+            cached_content_name: Optional cached content to use
+            
+        Returns:
+            Parsed response according to response_format, or string if no format
+            
+        Raises:
+            ProviderError: If completion fails
+        """
+        import json
+        
+        # Build combined prompt
+        full_prompt = ""
+        if system_prompt:
+            full_prompt = f"{system_prompt}\n\n{prompt}"
+        else:
+            full_prompt = prompt
+            
+        # Add JSON formatting instructions if response format provided
+        if response_format:
+            # Get JSON schema from Pydantic model
+            if hasattr(response_format, 'model_json_schema'):
+                schema = response_format.model_json_schema()
+                full_prompt += f"\n\nReturn your response as valid JSON matching this schema:\n{json.dumps(schema, indent=2)}"
+            else:
+                full_prompt += "\n\nReturn your response as valid JSON."
+        
+        # Get completion
+        temp = temperature if temperature is not None else self.temperature
+        result = self.complete_with_options(
+            full_prompt, 
+            temperature=temp, 
+            cached_content_name=cached_content_name
+        )
+        content = result['content']
+        
+        # Parse response if format specified
+        if response_format:
+            try:
+                # Clean up response - Gemini sometimes adds markdown code blocks
+                if content.startswith("```json"):
+                    content = content[7:]  # Remove ```json
+                if content.startswith("```"):
+                    content = content[3:]  # Remove ```
+                if content.endswith("```"):
+                    content = content[:-3]  # Remove ```
+                content = content.strip()
+                
+                # Parse JSON
+                json_data = json.loads(content)
+                
+                # Validate with Pydantic model if provided
+                if hasattr(response_format, 'model_validate'):
+                    return response_format.model_validate(json_data)
+                else:
+                    return json_data
+                    
+            except json.JSONDecodeError as e:
+                logger.error(f"Failed to parse JSON response: {e}\nContent: {content}")
+                raise ProviderError(self.provider, f"Invalid JSON response: {e}")
+            except Exception as e:
+                logger.error(f"Failed to validate response: {e}")
+                raise ProviderError(self.provider, f"Response validation failed: {e}")
+        
+        return content
+        
     def get_cached_content_info(self, episode_id: str) -> Optional[Dict[str, Any]]:
         """Get information about cached content for an episode.
         

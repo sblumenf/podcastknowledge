@@ -2,7 +2,6 @@
 
 import json
 import time
-import psutil
 import threading
 from datetime import datetime
 from pathlib import Path
@@ -11,6 +10,7 @@ from collections import defaultdict, deque
 
 from src.utils.log_utils import get_logger
 from src.utils.logging_enhanced import get_metrics_collector
+from src.utils.optional_dependencies import get_psutil, get_memory_info, get_cpu_info
 
 
 class PipelineMetrics:
@@ -75,19 +75,20 @@ class PipelineMetrics:
         """Background thread to collect system metrics."""
         while not self._stop_monitoring.is_set():
             try:
-                # Sample memory usage
-                process = psutil.Process()
-                memory_mb = process.memory_info().rss / 1024 / 1024
+                # Sample memory and CPU usage
+                mem_info = get_memory_info()
+                cpu_info = get_cpu_info()
+                
                 self._memory_samples.append({
                     'timestamp': time.time(),
-                    'memory_mb': memory_mb,
-                    'cpu_percent': process.cpu_percent(interval=0.1)
+                    'memory_mb': mem_info['process_memory_mb'],
+                    'cpu_percent': cpu_info['process_cpu_percent']
                 })
                 
                 # Check for anomalies
-                if memory_mb > self.thresholds['memory_usage_mb']:
+                if mem_info['process_memory_mb'] > self.thresholds['memory_usage_mb']:
                     self._trigger_anomaly('high_memory', {
-                        'current_mb': memory_mb,
+                        'current_mb': mem_info['process_memory_mb'],
                         'threshold_mb': self.thresholds['memory_usage_mb']
                     })
                 

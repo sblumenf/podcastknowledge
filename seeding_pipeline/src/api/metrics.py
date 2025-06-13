@@ -14,11 +14,7 @@ import threading
 import time
 
 from ..utils.log_utils import get_logger
-try:
-    import psutil
-except ImportError:
-    # Use mock psutil if real one not available
-    from tests.utils import mock_psutil as psutil
+from ..utils.optional_dependencies import get_psutil, PSUTIL_AVAILABLE
 logger = get_logger(__name__)
 
 
@@ -301,12 +297,16 @@ class MetricsCollector:
         def monitor():
             while True:
                 try:
-                    # Update memory usage
-                    process = psutil.Process()
-                    self.memory_usage.set(process.memory_info().rss)
-                    
-                    # Update CPU usage
-                    self.cpu_usage.set(process.cpu_percent(interval=1))
+                    if PSUTIL_AVAILABLE:
+                        # Update memory and CPU usage
+                        psutil = get_psutil()
+                        process = psutil.Process()
+                        self.memory_usage.set(process.memory_info().rss)
+                        self.cpu_usage.set(process.cpu_percent(interval=1))
+                    else:
+                        # Set default values when psutil not available
+                        self.memory_usage.set(0)
+                        self.cpu_usage.set(0)
                     
                     time.sleep(10)  # Update every 10 seconds
                 except Exception as e:

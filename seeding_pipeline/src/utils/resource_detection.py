@@ -9,17 +9,13 @@ import os
 import multiprocessing
 from typing import Dict, Any, Tuple
 
-# Try to import psutil for better resource detection
-try:
-    import psutil
-    PSUTIL_AVAILABLE = True
-except ImportError:
-    PSUTIL_AVAILABLE = False
+from src.utils.optional_dependencies import get_psutil, PSUTIL_AVAILABLE, get_memory_info
 
 
 def get_available_memory_mb() -> int:
     """Get available system memory in MB."""
     if PSUTIL_AVAILABLE:
+        psutil = get_psutil()
         memory = psutil.virtual_memory()
         # Use available memory (not total) to be conservative
         return int(memory.available / (1024 * 1024))
