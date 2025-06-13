@@ -13,6 +13,9 @@ from typing import Optional, Dict, Any
 from pathlib import Path
 from datetime import datetime
 
+# Import shared episode ID generation
+from .episode_id import generate_episode_id
+
 # Configure logging
 logger = logging.getLogger(__name__)
 
@@ -136,14 +139,11 @@ class TranscriptionTracker:
             return True
         
         try:
-            # Generate expected VTT filename to create episode ID
-            from src.tracking import generate_episode_id
-            
             # Normalize title for filename (matching transcriber logic)
             normalized_title = self._normalize_title(episode_title)
             filename = f"{date}_{normalized_title}.vtt"
             
-            # Generate episode ID
+            # Generate episode ID using shared implementation
             episode_id = generate_episode_id(filename, podcast_id)
             
             # Get Neo4j tracker for this podcast

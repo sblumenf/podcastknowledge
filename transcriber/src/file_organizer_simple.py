@@ -6,9 +6,15 @@ for VTT transcript files. It removes all manifest tracking and complex features.
 
 import os
 import re
+import sys
 from pathlib import Path
 from typing import Optional, Tuple
 from datetime import datetime
+
+# Add shared module to path
+repo_root = Path(__file__).parent.parent.parent
+if str(repo_root) not in sys.path:
+    sys.path.insert(0, str(repo_root))
 
 from src.utils.logging import get_logger
 from src.config import Config

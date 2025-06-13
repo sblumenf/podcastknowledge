@@ -256,78 +256,8 @@ class EpisodeTracker:
             logger.error(f"Error marking episode as failed: {e}")
 
 
-def generate_episode_id(vtt_path: str, podcast_id: str) -> str:
-    """
-    Generate unique episode ID from VTT file path and podcast ID.
-    
-    Format: {podcast_id}_{date}_{normalized_title}
-    
-    Args:
-        vtt_path: Path to VTT file
-        podcast_id: Podcast identifier
-        
-    Returns:
-        Generated episode ID
-    """
-    path = Path(vtt_path)
-    filename = path.stem  # Remove .vtt extension
-    
-    # Try to extract date from filename (common patterns)
-    import re
-    date_patterns = [
-        r'(\d{4}-\d{2}-\d{2})',  # YYYY-MM-DD
-        r'(\d{4}_\d{2}_\d{2})',  # YYYY_MM_DD
-        r'(\d{8})',              # YYYYMMDD
-    ]
-    
-    date_str = None
-    for pattern in date_patterns:
-        match = re.search(pattern, filename)
-        if match:
-            date_str = match.group(1).replace('_', '-')
-            if len(date_str) == 8:  # YYYYMMDD format
-                date_str = f"{date_str[:4]}-{date_str[4:6]}-{date_str[6:8]}"
-            break
-    
-    # If no date found, use file modification time
-    if not date_str:
-        try:
-            mtime = path.stat().st_mtime
-            date_str = datetime.fromtimestamp(mtime).strftime('%Y-%m-%d')
-        except:
-            date_str = datetime.now().strftime('%Y-%m-%d')
-    
-    # Normalize title
-    title = filename
-    # Remove date from title if found
-    for pattern in date_patterns:
-        title = re.sub(pattern, '', title)
-    
-    # Normalize: lowercase, remove special chars, replace spaces
-    title = re.sub(r'[^a-zA-Z0-9\s-]', '', title)
-    title = re.sub(r'\s+', '_', title.strip())
-    title = title.lower()
-    
-    # Remove multiple underscores
-    title = re.sub(r'_+', '_', title)
-    title = title.strip('_')
-    
-    # Ensure title is not empty
-    if not title:
-        # Use hash of filename as fallback
-        title = hashlib.md5(filename.encode()).hexdigest()[:8]
-    
-    episode_id = f"{podcast_id}_{date_str}_{title}"
-    
-    # Ensure ID doesn't exceed reasonable length
-    if len(episode_id) > 200:
-        # Truncate title part and add hash
-        title_hash = hashlib.md5(title.encode()).hexdigest()[:6]
-        title = title[:150] + '_' + title_hash
-        episode_id = f"{podcast_id}_{date_str}_{title}"
-    
-    logger.debug(f"Generated episode ID: {episode_id} from {vtt_path}")
-    return episode_id
+# Note: generate_episode_id is now imported from shared module in __init__.py
+# This ensures consistent episode ID generation across transcriber and seeding_pipeline
 
 
 def calculate_file_hash(file_path: str) -> str:
