@@ -2,8 +2,8 @@
 
 import pytest
 from unittest.mock import Mock, patch
-from src.services.conversation_analyzer import (
-    ConversationAnalyzer, 
+from src.services.conversation_analyzer import ConversationAnalyzer
+from src.core.conversation_models.conversation import (
     ConversationStructure,
     ConversationUnit,
     ConversationTheme,

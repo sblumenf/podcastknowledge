@@ -2,65 +2,20 @@
 
 import logging
 from typing import List, Dict, Any, Optional
-from pydantic import BaseModel, Field
 from src.core.interfaces import TranscriptSegment
 from src.services.llm_service import LLMService
 from src.core.monitoring import trace_operation
 from src.core.exceptions import ProcessingError
+from src.core.conversation_models.conversation import (
+    ConversationBoundary,
+    ConversationUnit,
+    ConversationTheme,
+    ConversationFlow,
+    StructuralInsights,
+    ConversationStructure
+)
 
 logger = logging.getLogger(__name__)
-
-
-class ConversationBoundary(BaseModel):
-    """Represents a boundary between conversation topics or units."""
-    segment_index: int = Field(description="Index of segment where boundary occurs")
-    boundary_type: str = Field(description="Type of boundary: topic_shift, speaker_change, story_end, q&a_complete")
-    confidence: float = Field(description="Confidence score 0.0-1.0")
-    reason: str = Field(description="Explanation for boundary detection")
-
-
-class ConversationUnit(BaseModel):
-    """Represents a semantically coherent group of segments."""
-    start_index: int = Field(description="Starting segment index (inclusive)")
-    end_index: int = Field(description="Ending segment index (inclusive)")
-    unit_type: str = Field(description="Type: topic_discussion, story, q&a_pair, introduction, conclusion")
-    description: str = Field(description="Brief description of unit content")
-    completeness: str = Field(description="complete, incomplete, fragmented")
-    key_entities: List[str] = Field(default_factory=list, description="Main entities discussed")
-    confidence: float = Field(description="Confidence score 0.0-1.0")
-
-
-class ConversationTheme(BaseModel):
-    """Major theme running through the conversation."""
-    theme: str = Field(description="Theme name")
-    description: str = Field(description="What aspects are explored")
-    evolution: str = Field(description="How theme develops through conversation")
-    related_units: List[int] = Field(default_factory=list, description="Indices of units discussing this theme")
-
-
-class ConversationFlow(BaseModel):
-    """Overall narrative arc of the conversation."""
-    opening: str = Field(description="How conversation starts")
-    development: str = Field(description="How topics build on each other")
-    conclusion: Optional[str] = Field(default=None, description="How it wraps up (if applicable)")
-
-
-class StructuralInsights(BaseModel):
-    """Observations about conversation quality and structure."""
-    fragmentation_issues: List[str] = Field(default_factory=list, description="Where thoughts are unnaturally split")
-    missing_context: List[str] = Field(default_factory=list, description="Where additional context would help")
-    natural_boundaries: List[int] = Field(default_factory=list, description="Segment indices with clean topic breaks")
-    overall_coherence: float = Field(description="Overall coherence score 0.0-1.0")
-
-
-class ConversationStructure(BaseModel):
-    """Complete conversation structure analysis result."""
-    units: List[ConversationUnit] = Field(description="Semantic conversation units")
-    themes: List[ConversationTheme] = Field(description="Major themes throughout conversation")
-    flow: ConversationFlow = Field(description="Narrative arc")
-    insights: StructuralInsights = Field(description="Structural observations")
-    boundaries: List[ConversationBoundary] = Field(default_factory=list, description="Detected boundaries")
-    total_segments: int = Field(description="Total number of input segments")
     
 
 class ConversationAnalyzer:
