@@ -28,3 +28,6 @@ freezegun==1.4.0
 # Type checking
 mypy>=1.0.0
 types-PyYAML>=6.0.0
+
+# Optional: Neo4j driver for unified tracking (used when running in combined mode)
+# neo4j>=5.0.0

@@ -26,6 +26,7 @@ class TranscriptionTracker:
         self._episode_tracker = None
         self._podcast_configs = {}
         self._combined_mode = self._detect_combined_mode()
+        self._connection_pool = {}  # Connection pool for multi-podcast support
         
         # Try to import seeding_pipeline components
         self._initialize_neo4j_connection()
@@ -181,24 +182,35 @@ class TranscriptionTracker:
         try:
             from src.tracking import EpisodeTracker
             from src.storage.graph_storage import GraphStorageService
+            from src.storage.multi_database_graph_storage import MultiDatabaseGraphStorage
             
             # Check if we have config for this podcast
             if podcast_id not in self._podcast_configs:
                 logger.warning(f"No database configuration found for podcast: {podcast_id}")
                 return None
             
+            # Check if we already have a tracker for this podcast (connection pooling)
+            if podcast_id in self._connection_pool:
+                return self._connection_pool[podcast_id]
+            
             # Create graph storage for this podcast's database
             db_config = self._podcast_configs[podcast_id]
             
-            # Initialize graph storage with podcast-specific database
-            graph_storage = GraphStorageService()
-            
-            # For multi-podcast mode, we need to handle database routing
-            if hasattr(graph_storage, 'set_podcast_context'):
+            # Check if we're in multi-podcast mode
+            if len(self._podcast_configs) > 1:
+                # Use multi-database storage for proper routing
+                graph_storage = MultiDatabaseGraphStorage()
                 graph_storage.set_podcast_context(podcast_id)
+            else:
+                # Single podcast mode - use regular graph storage
+                graph_storage = GraphStorageService()
             
-            # Create and return episode tracker
-            return EpisodeTracker(graph_storage)
+            # Create episode tracker and cache it
+            tracker = EpisodeTracker(graph_storage)
+            self._connection_pool[podcast_id] = tracker
+            
+            logger.debug(f"Created and cached Neo4j tracker for podcast: {podcast_id}")
+            return tracker
             
         except Exception as e:
             logger.error(f"Error creating Neo4j tracker for podcast {podcast_id}: {e}")
@@ -235,6 +247,20 @@ class TranscriptionTracker:
         normalized = normalized.strip('_')
         
         return normalized
+    
+    def cleanup(self):
+        """Clean up any open connections."""
+        if self._connection_pool:
+            logger.info("Cleaning up Neo4j connections...")
+            for podcast_id, tracker in self._connection_pool.items():
+                try:
+                    if hasattr(tracker, 'storage') and hasattr(tracker.storage, 'close'):
+                        tracker.storage.close()
+                        logger.debug(f"Closed connection for podcast: {podcast_id}")
+                except Exception as e:
+                    logger.error(f"Error closing connection for podcast {podcast_id}: {e}")
+            
+            self._connection_pool.clear()
 
 
 # Create a singleton instance
