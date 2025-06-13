@@ -110,24 +110,65 @@ class TranscriptionTracker:
                 with open(config_path, 'r') as f:
                     config = yaml.safe_load(f)
                     
-                # Store podcast database configurations
+                # Store podcast database configurations and name mappings
+                self._podcast_name_to_id = {}  # Map from podcast name to ID
                 for podcast in config.get('podcasts', []):
                     podcast_id = podcast['id']
+                    podcast_name = podcast.get('name', '')
+                    
+                    # Store database config by ID
                     self._podcast_configs[podcast_id] = podcast.get('database', {})
                     
+                    # Create name-to-ID mapping
+                    if podcast_name:
+                        self._podcast_name_to_id[podcast_name] = podcast_id
+                        # Also store lowercase version for case-insensitive matching
+                        self._podcast_name_to_id[podcast_name.lower()] = podcast_id
+                    
                 logger.info(f"Loaded configurations for {len(self._podcast_configs)} podcasts")
+                logger.debug(f"Podcast name mappings: {self._podcast_name_to_id}")
             else:
                 logger.warning(f"Podcast config not found at {config_path}")
                 
         except Exception as e:
             logger.error(f"Error loading podcast configs: {e}")
     
-    def should_transcribe(self, podcast_id: str, episode_title: str, date: str) -> bool:
+    def _get_podcast_id(self, podcast_name_or_id: str) -> str:
+        """
+        Get the podcast ID from a name or ID.
+        
+        Args:
+            podcast_name_or_id: Either a podcast name (from RSS) or ID
+            
+        Returns:
+            The podcast ID to use for database lookup
+        """
+        # First check if it's already a known ID
+        if podcast_name_or_id in self._podcast_configs:
+            return podcast_name_or_id
+        
+        # Try to find by name mapping
+        if hasattr(self, '_podcast_name_to_id'):
+            # Try exact match
+            if podcast_name_or_id in self._podcast_name_to_id:
+                return self._podcast_name_to_id[podcast_name_or_id]
+            
+            # Try lowercase match
+            if podcast_name_or_id.lower() in self._podcast_name_to_id:
+                return self._podcast_name_to_id[podcast_name_or_id.lower()]
+        
+        # If no mapping found, generate ID from name (fallback)
+        # This matches the simple conversion used in simple_orchestrator.py
+        podcast_id = podcast_name_or_id.lower().replace(' ', '_')
+        logger.warning(f"No configured mapping for podcast '{podcast_name_or_id}', using generated ID: {podcast_id}")
+        return podcast_id
+
+    def should_transcribe(self, podcast_name_or_id: str, episode_title: str, date: str) -> bool:
         """
         Check if an episode should be transcribed.
         
         Args:
-            podcast_id: Identifier for the podcast
+            podcast_name_or_id: Podcast name (from RSS) or ID
             episode_title: Title of the episode
             date: Publication date of the episode
             
@@ -139,6 +180,9 @@ class TranscriptionTracker:
             return True
         
         try:
+            # Convert podcast name to ID if needed
+            podcast_id = self._get_podcast_id(podcast_name_or_id)
+            
             # Normalize title for filename (matching transcriber logic)
             normalized_title = self._normalize_title(episode_title)
             filename = f"{date}_{normalized_title}.vtt"

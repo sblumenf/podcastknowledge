@@ -134,11 +134,8 @@ class ProgressTracker:
         # Also check Neo4j if available and date provided
         if tracking_bridge and date:
             try:
-                # Generate podcast ID (matching seeding pipeline format)
-                podcast_id = podcast_name.lower().replace(' ', '_')
-                
-                # Check if episode exists in knowledge graph
-                if not tracking_bridge.should_transcribe(podcast_id, episode_title, date):
+                # Pass the podcast name directly - tracking bridge will handle mapping to ID
+                if not tracking_bridge.should_transcribe(podcast_name, episode_title, date):
                     logger.info(f"Episode found in Neo4j knowledge graph: {podcast_name} - {episode_title}")
                     return True
             except Exception as e:

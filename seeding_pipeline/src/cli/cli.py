@@ -1609,6 +1609,208 @@ def episode_status_command(args: argparse.Namespace) -> int:
             pipeline.cleanup()
 
 
+def archive_command(args: argparse.Namespace) -> int:
+    """Handle archive management commands.
+    
+    Returns:
+        Exit code (0 for success, 1 for failure)
+    """
+    logger = get_logger(__name__)
+    
+    try:
+        if args.archive_command == 'list':
+            return archive_list(args)
+        elif args.archive_command == 'restore':
+            return archive_restore(args)
+        elif args.archive_command == 'locate':
+            return archive_locate(args)
+        else:
+            print("Please specify a subcommand: list, restore, or locate")
+            return 1
+    except Exception as e:
+        logger.error(f"Archive command failed: {e}")
+        return 1
+
+
+def archive_list(args: argparse.Namespace) -> int:
+    """List archived VTT files.
+    
+    Returns:
+        Exit code (0 for success, 1 for failure)
+    """
+    logger = get_logger(__name__)
+    
+    try:
+        from src.utils.podcast_directory_manager import PodcastDirectoryManager
+        from src.tracking import EpisodeTracker
+        from src.storage.graph_storage import GraphStorageService
+        
+        # Initialize components
+        dir_manager = PodcastDirectoryManager()
+        graph_storage = GraphStorageService()
+        tracker = EpisodeTracker(graph_storage)
+        
+        # Get archived files
+        archived_files = []
+        
+        if args.podcast_id:
+            # Single podcast
+            processed_episodes = tracker.get_processed_episodes(args.podcast_id)
+            for episode in processed_episodes[:args.limit]:
+                if 'archive_path' in episode and episode['archive_path']:
+                    archived_files.append({
+                        'podcast_id': args.podcast_id,
+                        'episode_id': episode['episode_id'],
+                        'title': episode.get('title', 'Unknown'),
+                        'archive_path': episode['archive_path'],
+                        'processed_at': episode.get('processed_at', 'Unknown')
+                    })
+        else:
+            # All podcasts
+            for podcast_id in dir_manager.list_podcasts():
+                processed_episodes = tracker.get_processed_episodes(podcast_id)
+                for episode in processed_episodes:
+                    if 'archive_path' in episode and episode['archive_path']:
+                        archived_files.append({
+                            'podcast_id': podcast_id,
+                            'episode_id': episode['episode_id'],
+                            'title': episode.get('title', 'Unknown'),
+                            'archive_path': episode['archive_path'],
+                            'processed_at': episode.get('processed_at', 'Unknown')
+                        })
+                        if len(archived_files) >= args.limit:
+                            break
+                if len(archived_files) >= args.limit:
+                    break
+        
+        # Display results
+        if not archived_files:
+            print("No archived VTT files found.")
+            return 0
+        
+        print(f"\nFound {len(archived_files)} archived VTT files:\n")
+        print(f"{'Podcast ID':<20} {'Episode ID':<50} {'Archive Path':<60}")
+        print("-" * 130)
+        
+        for file in archived_files:
+            print(f"{file['podcast_id']:<20} {file['episode_id']:<50} {file['archive_path']:<60}")
+        
+        return 0
+        
+    except Exception as e:
+        logger.error(f"Failed to list archived files: {e}")
+        return 1
+
+
+def archive_restore(args: argparse.Namespace) -> int:
+    """Restore an archived VTT file.
+    
+    Returns:
+        Exit code (0 for success, 1 for failure)
+    """
+    logger = get_logger(__name__)
+    
+    try:
+        import shutil
+        from pathlib import Path
+        
+        archive_path = Path(args.archive_path)
+        
+        if not archive_path.exists():
+            print(f"Error: Archive file not found: {archive_path}")
+            return 1
+        
+        # Determine target directory
+        if args.target_dir:
+            target_dir = Path(args.target_dir)
+        else:
+            # Try to restore to original location (transcripts directory)
+            from src.utils.podcast_directory_manager import PodcastDirectoryManager
+            dir_manager = PodcastDirectoryManager()
+            
+            # Extract podcast ID from archive path
+            podcast_id = dir_manager.get_podcast_from_vtt_path(archive_path)
+            if podcast_id:
+                target_dir = dir_manager.get_podcast_subdirectory(podcast_id, 'transcripts')
+            else:
+                print("Error: Could not determine original location. Please specify --target-dir")
+                return 1
+        
+        # Ensure target directory exists
+        target_dir.mkdir(parents=True, exist_ok=True)
+        
+        # Restore file
+        target_path = target_dir / archive_path.name
+        shutil.copy2(str(archive_path), str(target_path))
+        
+        print(f"Successfully restored: {archive_path} -> {target_path}")
+        return 0
+        
+    except Exception as e:
+        logger.error(f"Failed to restore archived file: {e}")
+        return 1
+
+
+def archive_locate(args: argparse.Namespace) -> int:
+    """Locate the archive path for a specific episode.
+    
+    Returns:
+        Exit code (0 for success, 1 for failure)
+    """
+    logger = get_logger(__name__)
+    
+    try:
+        from src.tracking import EpisodeTracker
+        from src.storage.graph_storage import GraphStorageService
+        
+        # Initialize components
+        graph_storage = GraphStorageService()
+        tracker = EpisodeTracker(graph_storage)
+        
+        # Query Neo4j for episode info
+        query = """
+        MATCH (e:Episode {id: $episode_id})
+        RETURN e.archive_path as archive_path,
+               e.podcast_id as podcast_id,
+               e.title as title,
+               e.processing_status as status,
+               e.processed_at as processed_at
+        """
+        
+        result = graph_storage.query(query, {"episode_id": args.episode_id})
+        
+        if not result:
+            print(f"Episode not found: {args.episode_id}")
+            return 1
+        
+        episode = result[0]
+        
+        print(f"\nEpisode: {args.episode_id}")
+        print(f"Title: {episode.get('title', 'Unknown')}")
+        print(f"Podcast: {episode.get('podcast_id', 'Unknown')}")
+        print(f"Status: {episode.get('status', 'Unknown')}")
+        print(f"Processed: {episode.get('processed_at', 'Unknown')}")
+        
+        if episode.get('archive_path'):
+            print(f"Archive Path: {episode['archive_path']}")
+            
+            # Check if file exists
+            from pathlib import Path
+            archive_path = Path(episode['archive_path'])
+            if archive_path.exists():
+                print(f"Status: File exists ({archive_path.stat().st_size} bytes)")
+            else:
+                print("Status: File not found at archive location")
+        else:
+            print("Archive Path: Not archived")
+        
+        return 0
+        
+    except Exception as e:
+        logger.error(f"Failed to locate episode archive: {e}")
+        return 1
+
+
 def main() -> int:
     """Main CLI entry point."""
     parser = argparse.ArgumentParser(
@@ -1980,6 +2182,61 @@ Examples:
         help='Filter by podcast ID'
     )
     
+    # Archive management commands
+    archive_parser = subparsers.add_parser(
+        'archive',
+        help='Manage archived VTT files'
+    )
+    
+    archive_subparsers = archive_parser.add_subparsers(
+        dest='archive_command',
+        help='Archive management subcommands'
+    )
+    
+    # List archived files
+    archive_list_parser = archive_subparsers.add_parser(
+        'list',
+        help='List archived VTT files'
+    )
+    archive_list_parser.add_argument(
+        '--podcast-id',
+        type=str,
+        help='Filter by podcast ID'
+    )
+    archive_list_parser.add_argument(
+        '--limit',
+        type=int,
+        default=100,
+        help='Limit number of results (default: 100)'
+    )
+    
+    # Restore archived file
+    archive_restore_parser = archive_subparsers.add_parser(
+        'restore',
+        help='Restore an archived VTT file to its original location'
+    )
+    archive_restore_parser.add_argument(
+        'archive_path',
+        type=str,
+        help='Path to the archived VTT file'
+    )
+    archive_restore_parser.add_argument(
+        '--target-dir',
+        type=str,
+        help='Target directory for restoration (default: original location)'
+    )
+    
+    # Get archive location for episode
+    archive_locate_parser = archive_subparsers.add_parser(
+        'locate',
+        help='Find the archive location for a specific episode'
+    )
+    archive_locate_parser.add_argument(
+        'episode_id',
+        type=str,
+        help='Episode ID to locate'
+    )
+    
     # Parse arguments
     args = parser.parse_args()
     
@@ -2012,6 +2269,8 @@ Examples:
         return generate_content_intelligence_command(args)
     elif args.command == 'status':
         return episode_status_command(args)
+    elif args.command == 'archive':
+        return archive_command(args)
     else:
         parser.print_help()
         return 1

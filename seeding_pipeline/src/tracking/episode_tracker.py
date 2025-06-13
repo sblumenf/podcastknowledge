@@ -95,6 +95,10 @@ class EpisodeTracker:
             set_clauses.append("e.podcast_id = $podcast_id")
             params['podcast_id'] = metadata['podcast_id']
         
+        if 'archive_path' in metadata:
+            set_clauses.append("e.archive_path = $archive_path")
+            params['archive_path'] = metadata['archive_path']
+        
         set_clause = ", ".join(set_clauses)
         
         query = f"""
@@ -138,7 +142,8 @@ class EpisodeTracker:
                e.file_hash as file_hash,
                e.processed_at as processed_at,
                e.segment_count as segment_count,
-               e.entity_count as entity_count
+               e.entity_count as entity_count,
+               e.archive_path as archive_path
         ORDER BY e.processed_at DESC
         """
         try:

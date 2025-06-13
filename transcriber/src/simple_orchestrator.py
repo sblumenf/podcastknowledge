@@ -177,11 +177,8 @@ class SimpleOrchestrator:
         # Note: Neo4j check is also done in progress_tracker.is_episode_transcribed() above,
         # but we keep this explicit check for clarity and to provide specific logging
         if not self.force_reprocess:
-            # Generate podcast ID (matching seeding pipeline format)
-            podcast_id = podcast_name.lower().replace(' ', '_')
-            
-            # Check if episode already exists in knowledge graph
-            if not self.tracking_bridge.should_transcribe(podcast_id, episode.title, date_str):
+            # Pass the podcast name directly - tracking bridge will handle mapping to ID
+            if not self.tracking_bridge.should_transcribe(podcast_name, episode.title, date_str):
                 logger.info(f"Episode already in knowledge graph, skipping transcription: {episode.title}")
                 result['status'] = 'skipped'
                 result['error'] = 'Already in knowledge graph'

@@ -109,8 +109,16 @@ run_transcriber() {
     export TRANSCRIPT_OUTPUT_DIR="$DATA_DIR/transcripts"
     export PODCAST_DATA_DIR="$DATA_DIR"
     
+    # Set pipeline mode for smart detection
+    if [ "$MODE" = "both" ]; then
+        export PODCAST_PIPELINE_MODE="combined"
+    else
+        export PODCAST_PIPELINE_MODE="independent"
+    fi
+    
     if [ "$VERBOSE" = true ]; then
         echo "Output directory: $TRANSCRIPT_OUTPUT_DIR"
+        echo "Pipeline mode: $PODCAST_PIPELINE_MODE"
         python3 -m src.main --verbose
     else
         python3 -m src.main
@@ -139,6 +147,13 @@ run_seeding() {
     export VTT_INPUT_DIR="$DATA_DIR/transcripts"
     export PROCESSED_DIR="$DATA_DIR/processed"
     export PODCAST_DATA_DIR="$DATA_DIR"
+    
+    # Set pipeline mode for consistency
+    if [ "$MODE" = "both" ]; then
+        export PODCAST_PIPELINE_MODE="combined"
+    else
+        export PODCAST_PIPELINE_MODE="independent"
+    fi
     
     # Count VTT files
     VTT_COUNT=$(find "$VTT_INPUT_DIR" -name "*.vtt" -type f 2>/dev/null | wc -l)

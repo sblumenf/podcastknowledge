@@ -165,6 +165,44 @@ class VTTKnowledgeExtractor:
         cleanup_memory()
         logger.info("Pipeline cleanup completed")
     
+    def _archive_vtt_file(self, vtt_path: str, podcast_id: str) -> Optional[Path]:
+        """Archive a processed VTT file to the podcast's processed directory.
+        
+        Args:
+            vtt_path: Path to the VTT file to archive
+            podcast_id: ID of the podcast
+            
+        Returns:
+            Path to the archived file, or None if archiving fails
+        """
+        try:
+            from src.utils.podcast_directory_manager import PodcastDirectoryManager
+            import shutil
+            
+            # Initialize directory manager
+            dir_manager = PodcastDirectoryManager()
+            
+            # Get processed directory for the podcast
+            processed_dir = dir_manager.get_podcast_subdirectory(podcast_id, 'processed')
+            
+            # Create archive path preserving relative structure
+            source_path = Path(vtt_path)
+            archive_filename = source_path.name
+            archive_path = processed_dir / archive_filename
+            
+            # Ensure target directory exists
+            archive_path.parent.mkdir(parents=True, exist_ok=True)
+            
+            # Move file to archive
+            shutil.move(str(source_path), str(archive_path))
+            logger.info(f"Archived VTT file: {vtt_path} -> {archive_path}")
+            
+            return archive_path
+            
+        except Exception as e:
+            logger.error(f"Failed to archive VTT file {vtt_path}: {e}")
+            return None
+    
     def process_vtt_directory(self, 
                             directory_path: str,
                             pattern: str = "*.vtt",
@@ -317,11 +355,18 @@ class VTTKnowledgeExtractor:
                         # Mark episode as complete in Neo4j tracking
                         if self.episode_tracker and 'episode_id' in locals():
                             file_hash = calculate_file_hash(file_path)
+                            
+                            # Archive the VTT file if archiving is enabled
+                            archive_path = None
+                            if getattr(self.config, 'archive_processed_vtt', True):
+                                archive_path = self._archive_vtt_file(file_path, podcast_id)
+                            
                             metadata = {
                                 'podcast_id': podcast_id,
                                 'segment_count': result.get('segment_count', 0),
                                 'entity_count': entity_count,
-                                'vtt_path': file_path
+                                'vtt_path': file_path,
+                                'archive_path': str(archive_path) if archive_path else None
                             }
                             self.episode_tracker.mark_episode_complete(episode_id, file_hash, metadata)
                             
