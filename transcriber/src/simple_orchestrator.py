@@ -5,10 +5,16 @@ Direct flow: download → transcribe → map speakers → format VTT → save.
 """
 
 import os
+import sys
 import logging
 from pathlib import Path
 from typing import Dict, List, Optional, Any
 from datetime import datetime
+
+# Add shared module to path
+repo_root = Path(__file__).parent.parent.parent
+if str(repo_root) not in sys.path:
+    sys.path.insert(0, str(repo_root))
 
 from src.utils.logging import get_logger
 from src.utils.title_utils import normalize_title
@@ -22,6 +28,9 @@ from src.file_organizer_simple import SimpleFileOrganizer
 from src.feed_parser import Episode
 from src.config import Config
 from src.youtube_searcher import YouTubeSearcher
+
+# Import shared tracking bridge
+from shared import get_tracker
 
 logger = get_logger('simple_orchestrator')
 
@@ -45,6 +54,9 @@ class SimpleOrchestrator:
         self.progress_tracker = ProgressTracker()
         self.deepgram_client = DeepgramClient(mock_enabled=mock_enabled)
         self.file_organizer = SimpleFileOrganizer(base_output_dir=self.output_dir)
+        
+        # Initialize tracking bridge for Neo4j checking
+        self.tracking_bridge = get_tracker()
         
         # Load configuration
         config = Config()
@@ -158,6 +170,22 @@ class SimpleOrchestrator:
             result['status'] = 'skipped'
             result['error'] = 'Already transcribed'
             return result
+        
+        # Check Neo4j if in combined mode (prevents duplicate transcription costs)
+        if not self.force_reprocess:
+            # Get episode date for ID generation
+            date_str = episode.published_date.strftime('%Y-%m-%d') if episode.published_date else datetime.now().strftime('%Y-%m-%d')
+            
+            # Generate podcast ID (matching seeding pipeline format)
+            podcast_id = podcast_name.lower().replace(' ', '_')
+            
+            # Check if episode already exists in knowledge graph
+            if not self.tracking_bridge.should_transcribe(podcast_id, episode.title, date_str):
+                logger.info(f"Episode already in knowledge graph, skipping transcription: {episode.title}")
+                result['status'] = 'skipped'
+                result['error'] = 'Already in knowledge graph'
+                result['skipped_reason'] = 'neo4j_check'
+                return result
         
         start_time = datetime.now()
         
