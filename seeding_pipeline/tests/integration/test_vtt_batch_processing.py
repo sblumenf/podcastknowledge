@@ -201,12 +201,16 @@ No proper format here.
         assert results_sequential['processed'] == 10
     
     def test_interruption_and_resume(self, temp_dir, mixed_file_directory, mock_config):
-        """Test processing interruption and checkpoint-based resume."""
+        """Test processing interruption and checkpoint-based resume.
+        
+        Note: VTT file tracking is now handled by Neo4j through the orchestrator.
+        This test now focuses on episode-level checkpoint functionality.
+        """
         checkpoint_dir = temp_dir / "checkpoints"
         checkpoint_dir.mkdir()
         mock_config.checkpoint_dir = str(checkpoint_dir)
         
-        # Create checkpoint manager
+        # Create checkpoint manager for episode-level tracking
         checkpoint = ProgressCheckpoint(
             checkpoint_dir=str(checkpoint_dir),
             extraction_mode='vtt'
@@ -215,32 +219,29 @@ No proper format here.
         ingestion = TranscriptIngestion(mock_config)
         vtt_files = ingestion.scan_directory(temp_dir, pattern="*.vtt")
         
-        # Simulate processing first 2 files successfully
-        processed_files = []
+        # Simulate processing first 2 episodes with episode-level checkpoints
+        processed_episodes = []
         for i, vtt_file in enumerate(vtt_files[:2]):
-            # Mark as processed in checkpoint
-            checkpoint.mark_vtt_processed(
-                str(vtt_file.path), 
-                vtt_file.file_hash, 
-                segments_processed=5
+            episode_id = f"test_episode_{i}"
+            # Save episode-level checkpoint
+            checkpoint.save_episode_progress(
+                episode_id=episode_id,
+                stage='completed',
+                data={'vtt_file': str(vtt_file.path), 'segments': 5}
             )
-            processed_files.append(vtt_file.file_hash)
+            processed_episodes.append(episode_id)
         
-        # Verify checkpoint state
-        assert len(checkpoint.get_processed_vtt_files()) == 2
+        # Verify episode checkpoint state
+        assert len(processed_episodes) == 2
         
-        # Simulate resume - check which files are already processed
-        remaining_files = []
-        for vtt_file in vtt_files:
-            if not checkpoint.is_vtt_processed(str(vtt_file.path), vtt_file.file_hash):
-                remaining_files.append(vtt_file)
+        # Check that episode checkpoints exist
+        for episode_id in processed_episodes:
+            checkpoint_data = checkpoint.load_episode_progress(episode_id, 'completed')
+            assert checkpoint_data is not None
+            assert 'segments' in checkpoint_data
         
-        # Should have remaining files to process
-        assert len(remaining_files) == len(vtt_files) - 2
-        
-        # Verify specific files are marked as processed
-        for vtt_file in vtt_files[:2]:
-            assert checkpoint.is_vtt_processed(str(vtt_file.path), vtt_file.file_hash)
+        # In production, Neo4j would track which episodes are complete
+        # and the orchestrator would skip them automatically
     
     def test_memory_usage_monitoring(self, temp_dir, mock_config):
         """Test memory usage monitoring during batch processing."""

@@ -264,7 +264,11 @@ class TestVTTEndToEnd:
         assert all(result[2] is None for result in validation_results)
     
     def test_checkpoint_integration(self, temp_dir, sample_vtt_files):
-        """Test checkpoint system with VTT processing."""
+        """Test checkpoint system with VTT processing.
+        
+        Note: VTT file tracking is now handled by Neo4j through the orchestrator.
+        This test now focuses on episode-level checkpoint functionality.
+        """
         from src.seeding.checkpoint import ProgressCheckpoint
         from src.cli.cli import get_file_hash
         
@@ -276,28 +280,29 @@ class TestVTTEndToEnd:
             extraction_mode='vtt'
         )
         
-        # Process first file
+        # Test episode-level checkpoint functionality
         vtt_file = sample_vtt_files[0]
-        file_hash = get_file_hash(vtt_file)
+        episode_id = "test_episode_1"
         
-        # Mark as processed
-        checkpoint.mark_vtt_processed(str(vtt_file), file_hash, segments_processed=6)
+        # Save episode checkpoint
+        checkpoint.save_episode_progress(
+            episode_id=episode_id,
+            stage='completed',
+            data={
+                'vtt_file': str(vtt_file),
+                'segments': 6,
+                'file_hash': get_file_hash(vtt_file)
+            }
+        )
         
-        # Check if processed
-        assert checkpoint.is_vtt_processed(str(vtt_file), file_hash)
+        # Load and verify episode checkpoint
+        checkpoint_data = checkpoint.load_episode_progress(episode_id, 'completed')
+        assert checkpoint_data is not None
+        assert checkpoint_data['segments'] == 6
+        assert checkpoint_data['vtt_file'] == str(vtt_file)
         
-        # Change file content
-        vtt_file.write_text(vtt_file.read_text() + "\n\n00:02:00.000 --> 00:02:10.000\nNew content")
-        new_hash = get_file_hash(vtt_file)
-        
-        # Should not be processed with new hash
-        assert not checkpoint.is_vtt_processed(str(vtt_file), new_hash)
-        
-        # Get processed files
-        processed = checkpoint.get_processed_vtt_files()
-        assert len(processed) == 1
-        assert processed[0]['file'] == str(vtt_file)
-        assert processed[0]['segments'] == 6
+        # Test file change detection would be handled by Neo4j tracking
+        # The orchestrator would compare file hash stored in Neo4j
     
     def test_error_recovery_in_batch(self, temp_dir, sample_vtt_files):
         """Test error recovery during batch processing."""

@@ -19,8 +19,8 @@ The VTT Knowledge Graph Pipeline automatically:
 
 - **📝 VTT Native**: Direct processing of WebVTT files with full format support
 - **🚀 Batch Processing**: Efficiently handle folders of transcript files
-- **💾 Checkpoint Recovery**: Resume processing after interruptions with file-based tracking
-- **🔄 Change Detection**: Skip already-processed files using content hashing
+- **💾 Neo4j-Based Tracking**: Single source of truth for episode processing status
+- **🔄 Smart Recovery**: Automatically skip already-processed episodes using Neo4j tracking
 - **🎯 RAG Optimized**: Rich metadata and embeddings for retrieval applications
 - **🎙️ Multi-Podcast Support**: Process and store multiple podcasts in separate databases
 - **🧪 Comprehensive Testing**: Full test coverage for reliability
@@ -290,9 +290,8 @@ max_workers: 4
 model_name: "gemini-1.5-pro"
 use_large_context: true
 
-# Checkpoint settings
-checkpoint_enabled: true
-checkpoint_dir: "checkpoints/"
+# Episode tracking is now handled by Neo4j
+# Legacy checkpoint files are deprecated
 ```
 
 ## Project Structure
@@ -318,17 +317,19 @@ vtt_knowledge_pipeline/
 
 ### Checkpoint System
 
-The pipeline tracks processed files to enable resumption after interruptions:
+The pipeline uses Neo4j as the single source of truth for tracking processed episodes:
 
 ```bash
-# View checkpoint status
-python cli.py checkpoint-status
+# View episode processing status
+python -m src.cli.cli status episodes                    # List all episodes
+python -m src.cli.cli status episodes --podcast podcast1  # List episodes for specific podcast
+python -m src.cli.cli status pending --podcast podcast1  # Show unprocessed VTT files
+python -m src.cli.cli status stats                       # Show aggregate statistics
 
-# Clean checkpoint data
-python cli.py checkpoint-clean
+# Force reprocessing of already completed episodes
+python -m src.cli.cli process-vtt --folder transcripts/ --force
 
-# Clean specific file from checkpoint
-python cli.py checkpoint-clean --file transcript.vtt
+# Note: checkpoint-status and checkpoint-clean commands are deprecated
 ```
 
 ### Parallel Processing

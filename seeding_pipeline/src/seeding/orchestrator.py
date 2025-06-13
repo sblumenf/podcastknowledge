@@ -26,6 +26,7 @@ from src.utils.log_utils import get_logger, log_execution_time, log_error_with_c
 from src.utils.memory import cleanup_memory
 from src.utils.resources import ProgressCheckpoint
 from src.utils.metrics import get_pipeline_metrics
+from src.tracking import EpisodeTracker, generate_episode_id, calculate_file_hash
 
 logger = get_logger(__name__)
 
@@ -66,6 +67,9 @@ class VTTKnowledgeExtractor:
         # Analytics components removed in Phase 3.3.1
         self.graph_enhancer: Optional[Any] = None  # Removed with provider pattern
         self.episode_flow_analyzer: Optional[EpisodeFlowAnalyzer] = None
+        
+        # Episode tracker for Neo4j-based tracking
+        self.episode_tracker: Optional[EpisodeTracker] = None
         
         # Checkpoint manager - maintain reference for backward compatibility
         self.checkpoint: Optional[ProgressCheckpoint] = None
@@ -123,6 +127,9 @@ class VTTKnowledgeExtractor:
             
             # Set up checkpoint reference for backward compatibility
             self.checkpoint = self.checkpoint_manager.checkpoint
+            
+            # Initialize episode tracker with graph storage
+            self.episode_tracker = EpisodeTracker(self.graph_service)
             
             # Initialize storage coordinator first
             self.storage_coordinator = StorageCoordinator(
@@ -190,12 +197,14 @@ class VTTKnowledgeExtractor:
     
     def process_vtt_files(self,
                          vtt_files: List[Any],
-                         use_large_context: bool = True) -> Dict[str, Any]:
+                         use_large_context: bool = True,
+                         force_reprocess: bool = False) -> Dict[str, Any]:
         """Process multiple VTT files into knowledge graph.
         
         Args:
             vtt_files: List of VTTFile objects to process
             use_large_context: Whether to use large context models
+            force_reprocess: Force reprocessing of already completed episodes
             
         Returns:
             Summary dict with processing statistics
@@ -250,6 +259,15 @@ class VTTKnowledgeExtractor:
                     file_start_time = datetime.now().timestamp()
                     file_path = str(vtt_file.path if hasattr(vtt_file, 'path') else vtt_file)
                     
+                    # Check if episode already processed using Neo4j tracking
+                    if self.episode_tracker and not force_reprocess:
+                        podcast_id = vtt_file.podcast_name.lower().replace(' ', '_')
+                        episode_id = generate_episode_id(file_path, podcast_id)
+                        
+                        if self.episode_tracker.is_episode_processed(episode_id):
+                            logger.info(f"Episode {episode_id} already processed, skipping")
+                            continue
+                    
                     result = ingestion.process_vtt_file(vtt_file)
                     
                     if result['status'] == 'success':
@@ -295,6 +313,17 @@ class VTTKnowledgeExtractor:
                         entity_count = len(extraction_result.get('entities', [])) if 'extraction_result' in locals() else 0
                         if entity_count > 0:
                             metrics.record_entity_extraction(entity_count)
+                        
+                        # Mark episode as complete in Neo4j tracking
+                        if self.episode_tracker and 'episode_id' in locals():
+                            file_hash = calculate_file_hash(file_path)
+                            metadata = {
+                                'podcast_id': podcast_id,
+                                'segment_count': result.get('segment_count', 0),
+                                'entity_count': entity_count,
+                                'vtt_path': file_path
+                            }
+                            self.episode_tracker.mark_episode_complete(episode_id, file_hash, metadata)
                             
                     else:
                         summary['files_failed'] += 1
@@ -312,6 +341,11 @@ class VTTKnowledgeExtractor:
                             0,
                             success=False
                         )
+                        
+                        # Mark episode as failed in Neo4j tracking
+                        if self.episode_tracker and 'episode_id' in locals():
+                            error_msg = result.get('error', 'Unknown error')
+                            self.episode_tracker.mark_episode_failed(episode_id, error_msg)
                     
                     # Add schemaless-specific metrics
                     if result.get('extraction_mode') == 'schemaless':

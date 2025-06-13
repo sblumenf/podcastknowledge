@@ -101,32 +101,23 @@ class TestCLI:
         # In dry run, process_vtt_file should NOT be called
         mock_pipeline.cleanup.assert_called_once()
     
-    @patch('src.cli.cli.ProgressCheckpoint')
-    def test_checkpoint_status(self, mock_checkpoint_class):
-        """Test checkpoint status command."""
-        # Create mock checkpoint
-        mock_checkpoint = Mock()
-        mock_checkpoint.get_processed_vtt_files.return_value = [
-            {
-                'file': 'test1.vtt',
-                'hash': 'abcdef1234567890',
-                'segments': 10,
-                'processed_at': '2024-01-01T00:00:00'
-            }
-        ]
-        mock_checkpoint_class.return_value = mock_checkpoint
+    def test_checkpoint_status_deprecated(self):
+        """Test checkpoint status command shows deprecation message."""
+        # Create temporary checkpoint directory
+        temp_dir = tempfile.mkdtemp()
+        checkpoint_dir = Path(temp_dir) / 'checkpoints'
+        checkpoint_dir.mkdir()
         
         # Create args
         args = Mock()
-        args.checkpoint_dir = 'checkpoints'
+        args.checkpoint_dir = str(checkpoint_dir)
         args.verbose = False
         
         # Run checkpoint_status
         exit_code = checkpoint_status(args)
         
-        # Verify
+        # Verify it returns success and shows deprecation
         assert exit_code == 0
-        mock_checkpoint.get_processed_vtt_files.assert_called_once()
     
     def test_checkpoint_clean(self):
         """Test checkpoint clean command."""

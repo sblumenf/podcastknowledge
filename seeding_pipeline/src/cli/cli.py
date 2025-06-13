@@ -429,12 +429,8 @@ def process_vtt_for_podcast(args: argparse.Namespace, podcast_id: str) -> Dict[s
                 failed += 1
                 continue
             
-            # Check if already processed
-            if checkpoint:
-                file_hash = get_file_hash(file_path)
-                if checkpoint.is_vtt_processed(str(file_path), file_hash):
-                    print(f"      ✓ Already processed")
-                    continue
+            # Neo4j-based tracking is now handled within the orchestrator
+            # No need to check here as the orchestrator will skip processed episodes
             
             try:
                 # Import TranscriptIngestionManager
@@ -461,13 +457,7 @@ def process_vtt_for_podcast(args: argparse.Namespace, podcast_id: str) -> Dict[s
                 if result['success']:
                     print(f"      ✓ Success - {result['segments_processed']} segments")
                     processed += 1
-                    
-                    if checkpoint:
-                        checkpoint.mark_vtt_processed(
-                            str(file_path),
-                            file_hash,
-                            result['segments_processed']
-                        )
+                    # Neo4j tracking is handled by the orchestrator
                 else:
                     print(f"      ✗ Failed: {result.get('error', 'Unknown error')}")
                     failed += 1
@@ -562,7 +552,8 @@ def process_vtt_batch(vtt_files: List[Path], pipeline, checkpoint, args) -> int:
                 logger.debug(f"Batch processing: Starting knowledge extraction for {file_path.name}")
                 batch_result = pipeline.process_vtt_files(
                     vtt_files=[file_path],  # List of Path objects
-                    use_large_context=True
+                    use_large_context=True,
+                    force_reprocess=getattr(args, 'force', False)
                 )
                 logger.debug(f"Batch processing: Knowledge extraction completed for {file_path.name}")
                 
@@ -1005,37 +996,37 @@ def process_vtt(args: argparse.Namespace) -> int:
 def checkpoint_status(args: argparse.Namespace) -> int:
     """Show checkpoint status and processing history.
     
+    Note: This command is deprecated. Use 'status' command for Neo4j-based tracking.
+    
     Returns:
         Exit code (0 for success, 1 for failure)
     """
     try:
+        print("Note: The checkpoint-status command is deprecated.")
+        print("Please use the 'status' command for Neo4j-based episode tracking:")
+        print("  vtt-kg status episodes  # List all episodes")
+        print("  vtt-kg status pending --podcast <id>  # Show pending files")
+        print("  vtt-kg status stats  # Show statistics")
+        
         checkpoint_dir = Path(args.checkpoint_dir)
         if not checkpoint_dir.exists():
-            print(f"Checkpoint directory does not exist: {checkpoint_dir}")
+            print(f"\nCheckpoint directory does not exist: {checkpoint_dir}")
             return 0
         
-        # Initialize checkpoint reader
-        checkpoint = ProgressCheckpoint(
-            checkpoint_dir=str(checkpoint_dir),
-            extraction_mode='vtt'
-        )
+        # Show remaining checkpoint files (non-VTT tracking)
+        checkpoint_files = list(checkpoint_dir.glob("*.json"))
+        episode_checkpoints = list(checkpoint_dir.glob("episodes/*.ckpt*"))
         
-        # Get processed files
-        processed_files = checkpoint.get_processed_vtt_files()
+        print(f"\nLegacy Checkpoint Status ({checkpoint_dir}):")
+        print(f"  Checkpoint files: {len(checkpoint_files)}")
+        print(f"  Episode checkpoints: {len(episode_checkpoints)}")
         
-        if not processed_files:
-            print("No VTT files have been processed yet.")
-            return 0
-        
-        print(f"Checkpoint Status ({checkpoint_dir}):")
-        print(f"  Total files processed: {len(processed_files)}")
-        print("\nProcessed Files:")
-        
-        for file_info in sorted(processed_files, key=lambda x: x.get('processed_at', '')):
-            print(f"\n  File: {file_info['file']}")
-            print(f"    Hash: {file_info['hash'][:16]}...")
-            print(f"    Segments: {file_info.get('segments', 'unknown')}")
-            print(f"    Processed at: {file_info.get('processed_at', 'unknown')}")
+        if checkpoint_files:
+            print("\nCheckpoint files:")
+            for f in checkpoint_files[:10]:  # Show first 10
+                print(f"  - {f.name}")
+            if len(checkpoint_files) > 10:
+                print(f"  ... and {len(checkpoint_files) - 10} more")
         
         return 0
         
@@ -1482,6 +1473,142 @@ def generate_content_intelligence_command(args: argparse.Namespace) -> int:
             driver.close()
 
 
+def episode_status_command(args: argparse.Namespace) -> int:
+    """Handle episode status commands using Neo4j tracking.
+    
+    Returns:
+        Exit code (0 for success, 1 for failure)
+    """
+    logger = get_logger(__name__)
+    
+    try:
+        # Load configuration
+        config = PipelineConfig.from_file(Path(args.config)) if args.config else PipelineConfig()
+        
+        # Initialize pipeline to get graph storage
+        pipeline = VTTKnowledgeExtractor(config)
+        if not pipeline.initialize_components():
+            print("Error: Failed to initialize components", file=sys.stderr)
+            return 1
+        
+        # Get episode tracker
+        tracker = pipeline.episode_tracker
+        if not tracker:
+            print("Error: Episode tracker not available", file=sys.stderr)
+            return 1
+        
+        # Handle subcommands
+        if args.status_command == 'episodes':
+            # List all episodes with status
+            podcast_id = args.podcast
+            
+            if podcast_id:
+                episodes = tracker.get_processed_episodes(podcast_id)
+                print(f"\nProcessed Episodes for {podcast_id}:")
+            else:
+                # Get all episodes from all podcasts
+                query = """
+                MATCH (e:Episode)
+                RETURN e.id as episode_id,
+                       e.podcast_id as podcast_id,
+                       e.processing_status as status,
+                       e.processed_at as processed_at,
+                       e.segment_count as segments,
+                       e.entity_count as entities
+                ORDER BY e.processed_at DESC
+                """
+                episodes = tracker.storage.query(query, {})
+                print("\nAll Episodes:")
+            
+            print("=" * 100)
+            print(f"{'Episode ID':<50} {'Status':<12} {'Segments':<10} {'Entities':<10} {'Processed'}")
+            print("=" * 100)
+            
+            for ep in episodes:
+                episode_id = ep.get('episode_id', 'Unknown')
+                status = ep.get('status', ep.get('processing_status', 'complete'))
+                segments = ep.get('segments', ep.get('segment_count', 0))
+                entities = ep.get('entities', ep.get('entity_count', 0))
+                processed = ep.get('processed_at', 'Unknown')
+                
+                if processed and processed != 'Unknown':
+                    processed = str(processed)[:19]  # Trim to YYYY-MM-DD HH:MM:SS
+                
+                print(f"{episode_id:<50} {status:<12} {segments:<10} {entities:<10} {processed}")
+            
+            print(f"\nTotal: {len(episodes)} episodes")
+            
+        elif args.status_command == 'pending':
+            # Show unprocessed VTT files
+            podcast_id = args.podcast
+            
+            # Determine VTT folder
+            if args.folder:
+                vtt_folder = Path(args.folder)
+            else:
+                # Use podcast config to find folder
+                from src.config.podcast_databases import PodcastDatabaseConfig
+                podcast_config = PodcastDatabaseConfig()
+                base_path = Path(os.getenv('PODCAST_DATA_DIR', '/data'))
+                vtt_folder = base_path / 'podcasts' / podcast_id / 'transcripts'
+            
+            if not vtt_folder.exists():
+                print(f"Error: VTT folder not found: {vtt_folder}", file=sys.stderr)
+                return 1
+            
+            # Find all VTT files
+            vtt_files = find_vtt_files(vtt_folder, "*.vtt", recursive=True)
+            
+            # Get pending files
+            pending_files = tracker.get_pending_episodes(podcast_id, [str(f) for f in vtt_files])
+            
+            print(f"\nPending VTT Files for {podcast_id}:")
+            print("=" * 80)
+            
+            if not pending_files:
+                print("No pending files - all VTT files have been processed!")
+            else:
+                for i, file_path in enumerate(pending_files, 1):
+                    print(f"{i}. {Path(file_path).name}")
+                
+                print(f"\nTotal: {len(pending_files)} pending files out of {len(vtt_files)} total")
+            
+        elif args.status_command == 'stats':
+            # Show aggregate statistics
+            podcast_id = args.podcast
+            stats = tracker.get_all_episodes_status(podcast_id)
+            
+            print("\nProcessing Statistics:")
+            print("=" * 50)
+            if podcast_id:
+                print(f"Podcast: {podcast_id}")
+            else:
+                print("All Podcasts")
+            print("-" * 50)
+            print(f"Total Episodes:    {stats['total_episodes']:>10}")
+            print(f"Completed:         {stats['completed']:>10}")
+            print(f"Failed:            {stats['failed']:>10}")
+            print(f"Pending:           {stats['pending']:>10}")
+            print(f"Completion Rate:   {stats['completion_rate']:>9.1f}%")
+            print("=" * 50)
+            
+        else:
+            # No subcommand specified
+            print("Error: Please specify a status subcommand (episodes, pending, or stats)")
+            print("Example: vtt-kg status episodes --podcast my_podcast")
+            return 1
+        
+        return 0
+        
+    except Exception as e:
+        logger.error(f"Status command failed: {e}", exc_info=True)
+        print(f"Error: {e}", file=sys.stderr)
+        return 1
+    finally:
+        if 'pipeline' in locals():
+            pipeline.cleanup()
+
+
 def main() -> int:
     """Main CLI entry point."""
     parser = argparse.ArgumentParser(
@@ -1586,6 +1713,12 @@ Examples:
         '--skip-errors',
         action='store_true',
         help='Continue processing even if some files fail'
+    )
+    
+    vtt_parser.add_argument(
+        '--force',
+        action='store_true',
+        help='Force reprocessing of already completed episodes'
     )
     
     vtt_parser.add_argument(
@@ -1797,6 +1930,56 @@ Examples:
         help='Minimum gap score to include (default: 0.5)'
     )
     
+    # Status command for Neo4j-based episode tracking
+    status_parser = subparsers.add_parser(
+        'status',
+        help='Check episode processing status from Neo4j'
+    )
+    
+    status_subparsers = status_parser.add_subparsers(
+        dest='status_command',
+        help='Status subcommands'
+    )
+    
+    # Status episodes subcommand
+    episodes_parser = status_subparsers.add_parser(
+        'episodes',
+        help='List all episodes with their processing status'
+    )
+    episodes_parser.add_argument(
+        '--podcast',
+        type=str,
+        help='Filter by podcast ID'
+    )
+    
+    # Status pending subcommand
+    pending_parser = status_subparsers.add_parser(
+        'pending',
+        help='Show unprocessed VTT files'
+    )
+    pending_parser.add_argument(
+        '--podcast',
+        type=str,
+        required=True,
+        help='Podcast ID to check'
+    )
+    pending_parser.add_argument(
+        '--folder',
+        type=str,
+        help='Folder containing VTT files (default: based on podcast config)'
+    )
+    
+    # Status stats subcommand
+    stats_parser = status_subparsers.add_parser(
+        'stats',
+        help='Show aggregate processing statistics'
+    )
+    stats_parser.add_argument(
+        '--podcast',
+        type=str,
+        help='Filter by podcast ID'
+    )
+    
     # Parse arguments
     args = parser.parse_args()
     
@@ -1827,6 +2010,8 @@ Examples:
         return generate_gap_report_command(args)
     elif args.command == 'generate-content-intelligence':
         return generate_content_intelligence_command(args)
+    elif args.command == 'status':
+        return episode_status_command(args)
     else:
         parser.print_help()
         return 1

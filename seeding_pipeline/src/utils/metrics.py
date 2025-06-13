@@ -301,6 +301,9 @@ class PipelineMetrics:
                     'failures': counts['failure']
                 }
         
+        # Get Neo4j-based episode metrics if available
+        neo4j_metrics = self._get_neo4j_episode_metrics()
+        
         return {
             'timestamp': datetime.now().isoformat(),
             'uptime_seconds': time.time() - self._start_time,
@@ -323,7 +326,66 @@ class PipelineMetrics:
             'api': api_stats,
             'extraction': {
                 'entities_per_minute': self._calculate_entity_rate()
-            }
+            },
+            'episodes': neo4j_metrics  # Neo4j-based episode tracking
+        }
+    
+    def _get_neo4j_episode_metrics(self) -> Dict[str, Any]:
+        """Get episode metrics from Neo4j.
+        
+        Returns:
+            Dictionary of episode metrics from Neo4j
+        """
+        try:
+            # Try to get episode tracker if available
+            from src.tracking import EpisodeTracker
+            from src.storage import GraphStorageService
+            from src.core.config import PipelineConfig
+            
+            # This is a best-effort attempt to get Neo4j metrics
+            # In production, the tracker would be injected as a dependency
+            config = PipelineConfig()
+            graph_service = GraphStorageService(config)
+            tracker = EpisodeTracker(graph_service)
+            
+            # Get episode statistics from Neo4j
+            stats = tracker.get_all_episodes_status()
+            
+            # Query for additional metrics
+            query = """
+            MATCH (e:Episode)
+            RETURN 
+                COUNT(e) as total_episodes,
+                COUNT(CASE WHEN e.processing_status = 'complete' THEN 1 END) as completed,
+                COUNT(CASE WHEN e.processing_status = 'failed' THEN 1 END) as failed,
+                AVG(e.segment_count) as avg_segments,
+                AVG(e.entity_count) as avg_entities,
+                MAX(e.processed_at) as last_processed
+            """
+            result = graph_service.query(query)
+            
+            if result:
+                neo4j_stats = result[0]
+                return {
+                    'total_episodes': neo4j_stats.get('total_episodes', 0),
+                    'completed': neo4j_stats.get('completed', 0),
+                    'failed': neo4j_stats.get('failed', 0),
+                    'completion_rate': stats.get('completion_rate', 0),
+                    'average_segments': neo4j_stats.get('avg_segments', 0),
+                    'average_entities': neo4j_stats.get('avg_entities', 0),
+                    'last_processed': neo4j_stats.get('last_processed', None)
+                }
+            
+        except Exception as e:
+            self.logger.debug(f"Could not get Neo4j metrics: {e}")
+        
+        # Return empty metrics if Neo4j not available
+        return {
+            'total_episodes': 0,
+            'completed': 0,
+            'failed': 0,
+            'completion_rate': 0,
+            'note': 'Neo4j metrics not available'
         }
     
     def _calculate_entity_rate(self) -> float:
