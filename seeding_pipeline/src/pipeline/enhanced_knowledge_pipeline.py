@@ -95,7 +95,8 @@ class EnhancedKnowledgePipeline:
                  llm_adapter: Optional[GeminiLLMAdapter] = None,
                  neo4j_config: Optional[Dict[str, str]] = None,
                  enable_all_features: bool = True,
-                 extraction_config: Optional[ExtractionConfig] = None):
+                 extraction_config: Optional[ExtractionConfig] = None,
+                 lightweight_mode: bool = False):
         """
         Initialize the Enhanced Knowledge Pipeline.
         
@@ -104,9 +105,11 @@ class EnhancedKnowledgePipeline:
             neo4j_config: Optional Neo4j configuration override
             enable_all_features: Whether to enable all 15+ advanced features
             extraction_config: Configuration for extraction processes
+            lightweight_mode: Use lightweight models for resource-constrained environments
         """
         self.enable_all_features = enable_all_features
         self.extraction_config = extraction_config or ExtractionConfig()
+        self.lightweight_mode = lightweight_mode
         
         # Initialize configuration
         self.env_config = EnvironmentConfig()
@@ -146,12 +149,22 @@ class EnhancedKnowledgePipeline:
     
     def _create_default_llm_adapter(self) -> GeminiLLMAdapter:
         """Create default LLM adapter with working configuration."""
-        return GeminiLLMAdapter(
-            model_name="gemini-2.5-pro-preview",  # Use latest Gemini 2.5 Pro model
-            temperature=0.7,
-            max_tokens=4096,
-            enable_cache=True
-        )
+        if self.lightweight_mode:
+            # Use smaller, faster model for resource-constrained environments
+            return GeminiLLMAdapter(
+                model_name="gemini-1.5-flash",  # Lightweight model
+                temperature=0.5,  # Lower temperature for consistency
+                max_tokens=2048,  # Reduced token limit
+                enable_cache=True
+            )
+        else:
+            # Use full-featured model for standard processing
+            return GeminiLLMAdapter(
+                model_name="gemini-2.5-pro-preview",  # Use latest Gemini 2.5 Pro model
+                temperature=0.7,
+                max_tokens=4096,
+                enable_cache=True
+            )
     
     def _setup_extractors(self):
         """Initialize all existing extractors."""
@@ -305,6 +318,8 @@ class EnhancedKnowledgePipeline:
             raise FileNotFoundError(f"VTT file not found: {vtt_path}")
         
         logger.info(f"Starting enhanced pipeline processing for: {vtt_path}")
+        if self.lightweight_mode:
+            logger.info("Running in lightweight mode for resource-constrained environment")
         start_time = time.time()
         
         # Initialize progress tracking
@@ -370,7 +385,9 @@ class EnhancedKnowledgePipeline:
                     "vtt_file": str(vtt_path),
                     "total_segments": self.progress.total_segments,
                     "phase_times": self.progress.phase_times,
-                    "features_enabled": self.enable_all_features
+                    "features_enabled": self.enable_all_features,
+                    "lightweight_mode": self.lightweight_mode,
+                    "model_used": "gemini-1.5-flash" if self.lightweight_mode else "gemini-2.5-pro-preview"
                 }
             )
             

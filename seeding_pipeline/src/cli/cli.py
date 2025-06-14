@@ -869,14 +869,21 @@ def process_vtt(args: argparse.Namespace) -> int:
             if pipeline_type == 'simplekgpipeline':
                 logger.info("Initializing EnhancedKnowledgePipeline with SimpleKGPipeline...")
                 from src.pipeline.enhanced_knowledge_pipeline import EnhancedKnowledgePipeline
+                
+                # Handle low-resource mode
+                enable_all_features = not args.low_resource
+                if args.low_resource:
+                    logger.info("Low-resource mode enabled - using lightweight configuration")
+                
                 pipeline = EnhancedKnowledgePipeline(
-                    enable_all_features=True,
+                    enable_all_features=enable_all_features,
                     neo4j_config={
                         "uri": config.neo4j_uri,
                         "username": config.neo4j_username,
                         "password": config.neo4j_password,
                         "database": getattr(config, 'neo4j_database', 'neo4j')
-                    }
+                    },
+                    lightweight_mode=args.low_resource
                 )
                 logger.info("✓ EnhancedKnowledgePipeline initialized successfully")
             elif pipeline_type == 'semantic' or args.semantic:
