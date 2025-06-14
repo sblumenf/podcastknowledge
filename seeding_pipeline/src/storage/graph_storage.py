@@ -216,6 +216,10 @@ class GraphStorageService:
         finally:
             if session:
                 session.close()
+    
+    def get_session(self):
+        """Get a Neo4j session context manager (alias for session)."""
+        return self.session()
                 
     def create_node(self, node_type: str, properties: Dict[str, Any]) -> str:
         """Create a node in Neo4j with resilience.

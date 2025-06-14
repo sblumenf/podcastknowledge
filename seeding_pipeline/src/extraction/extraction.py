@@ -95,6 +95,11 @@ class ExtractionResult:
     quotes: List[Dict[str, Any]]
     relationships: List[Dict[str, Any]]
     metadata: Dict[str, Any]
+    insights: List[Dict[str, Any]] = None  # Add insights field
+    
+    def __post_init__(self):
+        if self.insights is None:
+            self.insights = []
 
 
 def create_extractor(
@@ -215,6 +220,7 @@ class KnowledgeExtractor:
         entities = []
         quotes = []
         relationships = []
+        insights = []
 
         # Extract quotes using pattern matching and LLM
         if self.config.extract_quotes:
@@ -226,6 +232,9 @@ class KnowledgeExtractor:
 
         # Extract relationships between entities
         relationships = self._extract_relationships(entities, quotes, segment)
+        
+        # Extract insights from the segment
+        insights = self._extract_insights_from_segment(segment)
 
         # Build metadata
         metadata = {
@@ -273,7 +282,8 @@ class KnowledgeExtractor:
         )
         
         return ExtractionResult(
-            entities=entities, quotes=quotes, relationships=relationships, metadata=metadata
+            entities=entities, quotes=quotes, relationships=relationships, 
+            insights=insights, metadata=metadata
         )
 
     def _extract_quotes(self, segment: Segment) -> List[Dict[str, Any]]:
@@ -1063,6 +1073,58 @@ class KnowledgeExtractor:
                     )
                 )
 
+        return insights
+    
+    def _extract_insights_from_segment(self, segment: Segment) -> List[Dict[str, Any]]:
+        """Extract insights from a text segment."""
+        insights = []
+        text = segment.text.lower()
+        
+        # Define insight patterns - key phrases that indicate insights
+        insight_patterns = {
+            "realization": ["realize", "realized", "understand", "figured out", "dawned on me"],
+            "learning": ["learned", "discovered", "found out", "noticed"],
+            "recommendation": ["should", "recommend", "suggest", "advice", "tip"],
+            "observation": ["observe", "notice", "see that", "what I see", "pattern"],
+            "conclusion": ["conclude", "in conclusion", "therefore", "as a result"],
+            "key_point": ["key point", "important", "crucial", "essential", "critical"],
+            "strategy": ["strategy", "approach", "method", "technique", "way to"],
+            "principle": ["principle", "rule", "guideline", "fundamental"]
+        }
+        
+        # Look for insight indicators
+        for insight_type, patterns in insight_patterns.items():
+            for pattern in patterns:
+                if pattern in text:
+                    # Extract context around the pattern
+                    sentences = text.split('.')
+                    for sentence in sentences:
+                        if pattern in sentence:
+                            insight = {
+                                "content": sentence.strip(),
+                                "type": insight_type,
+                                "confidence": 0.7,
+                                "speaker": getattr(segment, 'speaker', 'Unknown'),
+                                "segment_id": getattr(segment, 'id', None),
+                                "timestamp": getattr(segment, 'start_time', 0.0)
+                            }
+                            insights.append(insight)
+                            break  # One insight per pattern per segment
+        
+        # If no specific patterns, extract general insights from segment structure
+        if not insights and len(segment.text) > 50:
+            # Look for explanatory or conceptual content
+            if any(word in text for word in ["because", "since", "due to", "reason", "explain"]):
+                insight = {
+                    "content": segment.text[:200] + "..." if len(segment.text) > 200 else segment.text,
+                    "type": "explanation",
+                    "confidence": 0.5,
+                    "speaker": getattr(segment, 'speaker', 'Unknown'),
+                    "segment_id": getattr(segment, 'id', None),
+                    "timestamp": getattr(segment, 'start_time', 0.0)
+                }
+                insights.append(insight)
+        
         return insights
 
     def extract_quotes_compatibility(
