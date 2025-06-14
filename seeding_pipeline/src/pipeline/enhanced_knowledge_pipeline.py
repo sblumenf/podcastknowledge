@@ -160,7 +160,7 @@ class EnhancedKnowledgePipeline:
         else:
             # Use full-featured model for standard processing
             return GeminiLLMAdapter(
-                model_name="gemini-2.5-pro-preview",  # Use latest Gemini 2.5 Pro model
+                model_name="gemini-1.5-flash",  # Use working Gemini model
                 temperature=0.7,
                 max_tokens=4096,
                 enable_cache=True
