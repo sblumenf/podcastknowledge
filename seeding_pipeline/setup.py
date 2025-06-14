@@ -44,13 +44,12 @@ setup(
         "neo4j>=5.14.0",
         "python-dotenv>=1.0.0",
         "numpy>=1.24.3",
-        "scipy>=1.11.4",
-        "networkx>=3.1",
-        "langchain>=0.1.0",
-        "langchain-google-genai>=0.0.5",
         "google-generativeai>=0.3.2",
-        "tqdm>=4.66.1",
+        "google-genai>=1.0.0",
+        "psutil>=5.9.6",
         "pyyaml>=6.0.1",
+        "pydantic>=2.5.0",
+        "google-api-python-client>=2.108.0",
     ],
     extras_require={
         "dev": [

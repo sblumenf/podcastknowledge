@@ -1,0 +1,5 @@
+# Scientific Computing - Optional for enhanced analysis features
+# These dependencies provide advanced features but have fallback implementations
+
+scipy==1.11.4          # For cosine similarity in episode flow analysis
+networkx==3.1          # For graph centrality calculations in importance scoring

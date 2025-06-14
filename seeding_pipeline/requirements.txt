@@ -2,20 +2,10 @@
 neo4j==5.14.0
 python-dotenv==1.0.0
 numpy==1.24.3
-scipy==1.11.4
-networkx==3.1
 
 # LLM and AI
-langchain==0.1.0
-langchain-google-genai==0.0.5
-openai==1.6.1
-google-generativeai==0.3.2
-google-genai>=1.0.0
-
-# Embeddings are now handled via Gemini API (google-generativeai)
-
-# Data Processing
-tqdm==4.66.1
+google-generativeai==0.3.2  # For embeddings via Gemini
+google-genai>=1.0.0         # For direct Gemini LLM API
 
 # Utilities
 psutil==5.9.6

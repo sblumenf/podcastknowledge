@@ -179,6 +179,44 @@ Processing VTT files with semantic analysis...
 
 See [Semantic Processing Documentation](docs/SEMANTIC_PROCESSING.md) for detailed information.
 
+### SimpleKGPipeline Processing (NEW!)
+
+The pipeline now supports **AI-powered entity and relationship extraction** using Neo4j's SimpleKGPipeline:
+
+#### Enable SimpleKGPipeline processing:
+```bash
+python -m src.cli.cli process-vtt --folder transcripts/ --pipeline simplekgpipeline
+```
+
+#### SimpleKGPipeline Features:
+- **AI-based entity extraction** using Gemini 2.5 Pro for superior accuracy
+- **Automatic relationship discovery** between entities
+- **Schema-guided extraction** for consistent knowledge graphs
+- **15+ advanced features preserved** including quotes, insights, themes, and complexity analysis
+- **Production-ready performance** with processing times under 5 minutes per transcript
+
+#### Expected Output with SimpleKGPipeline:
+```
+Processing VTT files with SimpleKGPipeline...
+
+[1/1] Processing: episode_001.vtt
+  ✓ Success - 103 segments processed
+    - SimpleKGPipeline entity extraction complete
+    - 187 entities created
+    - 124 relationships discovered
+    - 45 quotes extracted and linked
+    - 32 insights generated
+    - 8 themes identified
+    - Complexity analysis complete
+    - 5 knowledge gaps detected
+```
+
+#### When to Use SimpleKGPipeline:
+- **Production deployments** requiring high-quality entity extraction
+- **Knowledge-intensive content** with complex entity relationships
+- **RAG applications** needing comprehensive knowledge graphs
+- **When pattern-based extraction fails** to capture nuanced entities
+
 ## Multi-Podcast Support
 
 The pipeline supports processing multiple podcasts with separate database storage for each.
@@ -484,6 +522,36 @@ response = requests.post(
 
 3. **Verify Neo4j data**: Use the queries below to check if data was stored
 
+### SimpleKGPipeline Troubleshooting
+
+#### ❌ "SimpleKGPipeline: 0 entities created"
+- **Cause**: LLM model not responding or incorrect model specified
+- **Solution**:
+  ```bash
+  # Verify Gemini API key is set
+  echo $GOOGLE_API_KEY
+  # Check model availability - should use gemini-2.5-pro-preview
+  # Update src/pipeline/enhanced_knowledge_pipeline.py if needed
+  ```
+
+#### ❌ "Unknown pipeline type: simplekgpipeline"
+- **Cause**: Using outdated CLI version
+- **Solution**: Pull latest code and ensure you're using the updated CLI with --pipeline option
+
+#### ❌ "SimpleKGPipeline initialization failed"
+- **Cause**: Missing dependencies or Neo4j connection issues
+- **Solution**:
+  ```bash
+  # Reinstall neo4j-graphrag
+  pip install neo4j-graphrag-python>=1.7.0
+  # Verify Neo4j is running and accessible
+  ```
+
+#### ⚠️ SimpleKGPipeline runs but features missing
+- **Symptoms**: Entities created but no quotes, insights, or themes
+- **Cause**: Feature integration not enabled
+- **Solution**: SimpleKGPipeline automatically enables all features by default
+
 ## Neo4j Query Examples
 
 Once processing completes, you can query the knowledge graph in Neo4j:
@@ -546,6 +614,31 @@ MATCH (e1:Episode)-[:MENTIONS]->(entity)<-[:MENTIONS]-(e2:Episode)
 WHERE e1 <> e2
 RETURN e1.title, e2.title, entity.name as shared_entity
 ORDER BY e1.title, e2.title;
+```
+
+### SimpleKGPipeline Entity Types
+When using SimpleKGPipeline, the following entity types are automatically extracted:
+```cypher
+// View all entity types created by SimpleKGPipeline
+MATCH (n)
+WHERE n:Person OR n:Organization OR n:Topic OR n:Concept OR n:Event OR n:Product
+RETURN labels(n)[0] as EntityType, count(n) as Count
+ORDER BY Count DESC;
+```
+
+### SimpleKGPipeline Relationships
+The pipeline creates these relationship types:
+```cypher
+// View all relationship types
+MATCH (a)-[r]->(b)
+WHERE type(r) IN ['MENTIONS', 'DISCUSSES', 'RELATES_TO', 'WORKS_FOR', 'CREATED_BY']
+RETURN type(r) as RelationshipType, count(r) as Count
+ORDER BY Count DESC;
+
+// Find complex entity networks
+MATCH path = (p:Person)-[*1..3]-(entity)
+WHERE NOT entity:Person
+RETURN path LIMIT 50;
 ```
 
 ## Development

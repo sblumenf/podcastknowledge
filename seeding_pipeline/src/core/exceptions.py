@@ -288,6 +288,7 @@ class DataIntegrityError(VTTProcessingError):
 ConnectionError = DatabaseConnectionError
 PodcastKGError = VTTProcessingError  # Legacy name for backward compatibility
 PodcastProcessingError = VTTProcessingError  # Legacy name for backward compatibility
+ProcessingError = VTTProcessingError  # Common alias
 
 # Additional specific exceptions
 class ParsingError(VTTProcessingError):
