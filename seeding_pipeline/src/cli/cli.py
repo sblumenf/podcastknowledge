@@ -858,7 +858,28 @@ def process_vtt(args: argparse.Namespace) -> int:
         
         # Initialize pipeline
         try:
-            if args.semantic:
+            # Handle pipeline selection (backward compatibility for --semantic flag)
+            if args.semantic and not hasattr(args, 'pipeline'):
+                args.pipeline = 'semantic'
+            elif args.semantic and args.pipeline == 'standard':
+                args.pipeline = 'semantic'  # --semantic flag takes precedence
+            
+            pipeline_type = getattr(args, 'pipeline', 'standard')
+            
+            if pipeline_type == 'simplekgpipeline':
+                logger.info("Initializing EnhancedKnowledgePipeline with SimpleKGPipeline...")
+                from src.pipeline.enhanced_knowledge_pipeline import EnhancedKnowledgePipeline
+                pipeline = EnhancedKnowledgePipeline(
+                    enable_all_features=True,
+                    neo4j_config={
+                        "uri": config.neo4j_uri,
+                        "username": config.neo4j_username,
+                        "password": config.neo4j_password,
+                        "database": getattr(config, 'neo4j_database', 'neo4j')
+                    }
+                )
+                logger.info("✓ EnhancedKnowledgePipeline initialized successfully")
+            elif pipeline_type == 'semantic' or args.semantic:
                 logger.info("Initializing SemanticVTTKnowledgeExtractor pipeline...")
                 pipeline = SemanticVTTKnowledgeExtractor(config)
                 logger.info("✓ SemanticVTTKnowledgeExtractor pipeline initialized successfully")
@@ -972,34 +993,61 @@ def process_vtt(args: argparse.Namespace) -> int:
             try:
                 # Process single file through orchestrator (direct knowledge extraction)
                 try:
-                    logger.info(f"Starting {'semantic' if args.semantic else 'segment'} knowledge extraction for {file_path.name}")
-                    logger.debug(f"File details: size={file_path.stat().st_size} bytes, path={file_path}")
-                    
-                    result = pipeline.process_vtt_files(
-                        vtt_files=[file_path],  # List of Path objects
-                        use_large_context=True,
-                        use_semantic_processing=args.semantic if hasattr(pipeline, 'process_vtt_files') and isinstance(pipeline, SemanticVTTKnowledgeExtractor) else None
-                    )
-                    
-                    logger.info(f"Knowledge extraction completed for {file_path.name}: {result.get('success', False)}")
-                    logger.debug(f"Extraction result details: {result}")
-                    
-                    # Transform orchestrator result to CLI expected format
-                    if result['success'] and result['files_processed'] > 0:
+                    # Check if using EnhancedKnowledgePipeline (SimpleKGPipeline)
+                    if hasattr(pipeline, 'process_vtt_file'):
+                        # EnhancedKnowledgePipeline has different API
+                        logger.info(f"Starting SimpleKGPipeline knowledge extraction for {file_path.name}")
+                        logger.debug(f"File details: size={file_path.stat().st_size} bytes, path={file_path}")
+                        
+                        import asyncio
+                        processing_result = asyncio.run(pipeline.process_vtt_file(file_path))
+                        
+                        logger.info(f"SimpleKGPipeline extraction completed for {file_path.name}")
+                        logger.debug(f"Extraction result details: {processing_result}")
+                        
+                        # Transform EnhancedKnowledgePipeline result to CLI expected format
                         cli_result = {
                             'success': True,
-                            'segments_processed': result['total_segments'],
-                            'files_processed': result['files_processed'],
-                            'entities_extracted': result['total_entities'],
-                            'relationships_found': result['total_relationships'],
-                            'meaningful_units': result.get('total_meaningful_units', 0),
-                            'themes': result.get('total_themes', 0)
+                            'segments_processed': processing_result.metadata.get('total_segments', 0),
+                            'files_processed': 1,
+                            'entities_extracted': processing_result.entities_created,
+                            'relationships_found': processing_result.relationships_created,
+                            'meaningful_units': 0,  # Not applicable for SimpleKGPipeline
+                            'themes': processing_result.themes_identified,
+                            'quotes_extracted': processing_result.quotes_extracted,
+                            'insights_generated': processing_result.insights_generated,
+                            'gaps_detected': processing_result.gaps_detected
                         }
                     else:
-                        cli_result = {
-                            'success': False,
-                            'error': '; '.join([err['error'] for err in result.get('errors', [])])
-                        }
+                        # Standard or Semantic pipeline
+                        logger.info(f"Starting {'semantic' if args.semantic else 'segment'} knowledge extraction for {file_path.name}")
+                        logger.debug(f"File details: size={file_path.stat().st_size} bytes, path={file_path}")
+                        
+                        result = pipeline.process_vtt_files(
+                            vtt_files=[file_path],  # List of Path objects
+                            use_large_context=True,
+                            use_semantic_processing=args.semantic if hasattr(pipeline, 'process_vtt_files') and isinstance(pipeline, SemanticVTTKnowledgeExtractor) else None
+                        )
+                        
+                        logger.info(f"Knowledge extraction completed for {file_path.name}: {result.get('success', False)}")
+                        logger.debug(f"Extraction result details: {result}")
+                        
+                        # Transform orchestrator result to CLI expected format
+                        if result['success'] and result['files_processed'] > 0:
+                            cli_result = {
+                                'success': True,
+                                'segments_processed': result['total_segments'],
+                                'files_processed': result['files_processed'],
+                                'entities_extracted': result['total_entities'],
+                                'relationships_found': result['total_relationships'],
+                                'meaningful_units': result.get('total_meaningful_units', 0),
+                                'themes': result.get('total_themes', 0)
+                            }
+                        else:
+                            cli_result = {
+                                'success': False,
+                                'error': '; '.join([err['error'] for err in result.get('errors', [])])
+                            }
                         
                 except Exception as e:
                     cli_result = {
@@ -1017,6 +1065,11 @@ def process_vtt(args: argparse.Namespace) -> int:
                         print(f"    - {result.get('themes', 0)} conversation themes detected")
                     print(f"    - {result.get('entities_extracted', 0)} entities extracted")
                     print(f"    - {result.get('relationships_found', 0)} relationships found")
+                    # Show additional metrics for SimpleKGPipeline
+                    if 'quotes_extracted' in result:
+                        print(f"    - {result.get('quotes_extracted', 0)} quotes extracted")
+                        print(f"    - {result.get('insights_generated', 0)} insights generated")
+                        print(f"    - {result.get('gaps_detected', 0)} knowledge gaps detected")
                     processed += 1
                 else:
                     print(f"  ✗ Failed: {result.get('error', 'Unknown error')}")
@@ -1894,6 +1947,9 @@ Examples:
   # Process with semantic conversation-aware analysis
   %(prog)s process-vtt --folder /path/to/vtt --semantic
   
+  # Process with SimpleKGPipeline for advanced entity extraction
+  %(prog)s process-vtt --folder /path/to/vtt --pipeline simplekgpipeline
+  
   # Compare semantic vs segment processing
   %(prog)s process-vtt --folder /path/to/vtt --compare-methods single_file.vtt
   
@@ -2041,6 +2097,14 @@ Examples:
         '--semantic',
         action='store_true',
         help='Use semantic conversation-aware processing instead of segment-by-segment'
+    )
+    
+    vtt_parser.add_argument(
+        '--pipeline',
+        type=str,
+        choices=['standard', 'semantic', 'simplekgpipeline'],
+        default='standard',
+        help='Processing pipeline to use: standard (default), semantic, or simplekgpipeline'
     )
     
     vtt_parser.add_argument(
