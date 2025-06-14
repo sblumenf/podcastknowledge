@@ -425,29 +425,83 @@ class EnhancedKnowledgePipeline:
             raise
     
     async def _extract_with_simple_kg(self, segments: List[TranscriptSegment]) -> tuple[int, int]:
-        """Extract entities and relationships using SimpleKGPipeline."""
-        self._ensure_simple_kg_pipeline()
-        
-        # Combine segments into text for SimpleKGPipeline
-        combined_text = " ".join([segment.text for segment in segments])
+        """Extract entities and relationships using direct Neo4j creation."""
+        entities_created = 0
+        relationships_created = 0
         
         try:
-            # Run SimpleKGPipeline extraction
-            logger.info("Running SimpleKGPipeline extraction...")
-            await self.simple_kg_pipeline.run_async(text=combined_text)
+            # Use the knowledge extractor to get entities from segments
+            all_entities = []
+            entity_map = {}  # Map entity names to Neo4j node IDs
             
-            # For now, return placeholder counts
-            # TODO: Query Neo4j to get actual counts
-            entities_created = len(segments) * 2  # Estimate
-            relationships_created = len(segments)  # Estimate
+            for segment in segments:
+                # Convert to internal segment format
+                internal_segment = Segment(
+                    id=getattr(segment, 'id', f"seg_{segments.index(segment)}"),
+                    text=segment.text,
+                    start_time=getattr(segment, 'start_time', 0.0),
+                    end_time=getattr(segment, 'end_time', 0.0),
+                    speaker=getattr(segment, 'speaker', 'Unknown')
+                )
+                
+                # Extract knowledge (includes entities)
+                result = self.knowledge_extractor.extract_knowledge(internal_segment)
+                
+                # Store entities in Neo4j with proper node types
+                for entity in result.entities:
+                    # Create node with dynamic label based on entity type
+                    entity_type = entity.get('entity_type', 'Entity').capitalize()
+                    entity_name = entity.get('value', '')
+                    
+                    if entity_name and entity_name not in entity_map:
+                        # Create entity node in Neo4j
+                        query = f"""
+                        MERGE (e:{entity_type} {{name: $name}})
+                        SET e.confidence = $confidence,
+                            e.created = timestamp(),
+                            e.extraction_method = $method
+                        RETURN id(e) as node_id
+                        """
+                        
+                        with self.graph_storage.session() as session:
+                            result_node = session.run(query, 
+                                name=entity_name,
+                                confidence=entity.get('confidence', 0.85),
+                                method=entity.get('properties', {}).get('extraction_method', 'llm_extraction')
+                            )
+                            record = result_node.single()
+                            if record:
+                                entity_map[entity_name] = record['node_id']
+                                entities_created += 1
+                                all_entities.append(entity)
             
-            logger.info(f"SimpleKGPipeline extraction completed")
+            # Create relationships between entities mentioned in same segments
+            for i, entity1 in enumerate(all_entities):
+                for entity2 in all_entities[i+1:]:
+                    if entity1.get('value') != entity2.get('value'):
+                        # Create MENTIONED_TOGETHER relationship
+                        query = """
+                        MATCH (e1) WHERE id(e1) = $id1
+                        MATCH (e2) WHERE id(e2) = $id2
+                        MERGE (e1)-[r:MENTIONED_TOGETHER]->(e2)
+                        SET r.created = timestamp()
+                        """
+                        
+                        with self.graph_storage.session() as session:
+                            session.run(query,
+                                id1=entity_map.get(entity1.get('value')),
+                                id2=entity_map.get(entity2.get('value'))
+                            )
+                            relationships_created += 1
+            
+            logger.info(f"Direct entity extraction completed: {entities_created} entities, {relationships_created} relationships")
             return entities_created, relationships_created
             
         except Exception as e:
-            logger.warning(f"SimpleKGPipeline extraction failed: {e}")
-            # Continue with other extractors
-            return 0, 0
+            logger.error(f"Entity extraction failed: {e}")
+            import traceback
+            logger.error(traceback.format_exc())
+            return entities_created, relationships_created
     
     async def _extract_quotes(self, segments: List[TranscriptSegment]) -> int:
         """Extract quotes using existing quote extractor."""

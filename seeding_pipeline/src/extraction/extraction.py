@@ -145,6 +145,7 @@ class KnowledgeExtractor:
         self.llm_service = llm_service
         self.embedding_service = embedding_service
         self.config = config or ExtractionConfig()
+        self.logger = get_logger(__name__)
 
         # Quote patterns for fallback extraction
         self.quote_patterns = [
@@ -559,93 +560,73 @@ class KnowledgeExtractor:
 
     def _extract_basic_entities(self, segment: Segment) -> List[Dict[str, Any]]:
         """
-        Extract basic entities using simple patterns with caching.
-
-        In a full implementation, this would use SimpleKGPipeline
-        or the LLM service for more sophisticated extraction.
+        Extract entities using LLM-based extraction for real entity discovery.
         """
         # Check cache first
         cached = self._check_entity_cache(segment.text)
         if cached is not None:
             return cached
             
-        entities = []
-        text = segment.text.lower()
-
-        # Check for specific entities expected by tests
-        expected_entities = [
-            ("Dr. Sarah Johnson", "person", "Dr. Johnson"),
-            (
-                "artificial intelligence",
-                "product",
-                None,
-            ),  # Using 'product' as closest to technology
-            ("machine learning", "product", None),
-            ("healthcare diagnostics", "concept", None),
-            ("cancer detection", "concept", None),
-            ("neural network", "product", None),
-            ("medical imaging", "product", None),
-        ]
-
-        found_entities = []
-        for entity_name, entity_type, alias in expected_entities:
-            if entity_name.lower() in text or (alias and alias.lower() in text):
-                found_entities.append(
-                    {
-                        "type": entity_type.upper(),
-                        "value": entity_name,
-                        "entity_type": entity_type,  # For compatibility
-                        "confidence": 0.8,
-                        "start_time": segment.start if hasattr(segment, 'start') else segment.start_time,
-                        "properties": {
-                            "extraction_method": "pattern_matching",
-                            "description": f"{entity_type.capitalize()} entity",
-                        },
-                    }
-                )
-
-        # If we found the expected entities, cache and return them
-        if found_entities:
-            self._cache_entities(segment.text, found_entities)
-            return found_entities
-
-        # Otherwise, use simple pattern matching for generic entities
-        patterns = {
-            "technology": r"\b(AI|ML|API|iOS|Android|Python|JavaScript|React|Node\.js|artificial intelligence|machine learning|neural network)\b",
-            "concept": r"\b(healthcare|diagnostics|medical imaging|cancer detection)\b",
-        }
-
-        for entity_type, pattern in patterns.items():
-            matches = re.finditer(pattern, text, re.IGNORECASE)
-            for match in matches:
-                entity_value = match.group(1).strip()
-
-                entities.append(
-                    {
-                        "type": entity_type.upper(),
-                        "value": entity_value,
-                        "entity_type": entity_type,
-                        "confidence": 0.7,
-                        "start_time": segment.start if hasattr(segment, 'start') else segment.start_time,
-                        "properties": {"extraction_method": "pattern_matching"},
-                    }
-                )
-
-        # Deduplicate and limit
-        seen = set()
-        unique_entities = []
-        for entity in found_entities + entities:
-            key = (entity["value"].lower(), entity["type"])
-            if key not in seen:
-                seen.add(key)
-                unique_entities.append(entity)
-
-        result = unique_entities[:7]  # Limit to expected number for tests
-        
-        # Cache the result
-        self._cache_entities(segment.text, result)
-        
-        return result
+        try:
+            # Use LLM to extract entities
+            prompt = f"""Extract all entities from this text. Include people, organizations, 
+            topics, concepts, events, and products. 
+            
+            Return as a JSON list where each entity has:
+            - name: the entity name
+            - type: one of PERSON, ORGANIZATION, TOPIC, CONCEPT, EVENT, PRODUCT
+            - context: brief description of the entity's role or relevance
+            
+            Text: {segment.text}
+            
+            Return only the JSON list, no other text."""
+            
+            response = self.llm_service.complete(prompt)
+            
+            # Parse JSON response
+            import json
+            try:
+                # Clean response to ensure it's valid JSON
+                response_text = response.strip()
+                if response_text.startswith("```json"):
+                    response_text = response_text[7:]
+                if response_text.endswith("```"):
+                    response_text = response_text[:-3]
+                response_text = response_text.strip()
+                
+                extracted_entities = json.loads(response_text)
+                
+                # Convert to expected format
+                found_entities = []
+                for entity in extracted_entities:
+                    if isinstance(entity, dict) and 'name' in entity and 'type' in entity:
+                        found_entities.append({
+                            "type": entity['type'].upper(),
+                            "value": entity['name'],
+                            "entity_type": entity['type'].lower(),
+                            "confidence": 0.85,  # Higher confidence for LLM extraction
+                            "start_time": segment.start if hasattr(segment, 'start') else segment.start_time,
+                            "properties": {
+                                "extraction_method": "llm_extraction",
+                                "description": entity.get('context', f"{entity['type']} entity"),
+                            },
+                        })
+                
+                # Cache successful extraction
+                if found_entities:
+                    self._cache_entities(segment.text, found_entities)
+                    
+                return found_entities
+                
+            except json.JSONDecodeError as e:
+                self.logger.warning(f"Failed to parse LLM response as JSON: {e}")
+                # Fall back to empty list
+                return []
+                
+        except Exception as e:
+            self.logger.error(f"Entity extraction failed: {e}")
+            # Return empty list on error
+            return []
 
     def _validate_quote(self, quote: Dict[str, Any], source_text: str) -> bool:
         """
