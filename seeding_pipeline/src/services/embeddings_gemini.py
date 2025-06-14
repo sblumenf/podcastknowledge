@@ -3,11 +3,17 @@
 from typing import List, Dict, Any, Optional, Tuple
 import logging
 
-import google.generativeai as genai
-import numpy as np
+# Make numpy optional
+try:
+    import numpy as np
+    NUMPY_AVAILABLE = True
+except ImportError:
+    NUMPY_AVAILABLE = False
+    np = None
 
 from src.core.exceptions import ProviderError, RateLimitError
 from src.utils.api_key import get_gemini_api_key
+from src.utils.optional_google import get_genai, is_gemini_available, GOOGLE_AI_AVAILABLE
 
 logger = logging.getLogger(__name__)
 
@@ -31,11 +37,18 @@ class GeminiEmbeddingsService:
         self.dimension = 768  # text-embedding-004 dimension
         self._configured = False
         
+        # Log availability status
+        if not GOOGLE_AI_AVAILABLE:
+            logger.warning("google-generativeai not available - using mock embeddings")
+        if not NUMPY_AVAILABLE:
+            logger.warning("numpy not available - using pure Python for similarity calculations")
+            
         logger.info(f"Initialized GeminiEmbeddingsService with model: {self.model_name}")
         
     def _ensure_configured(self) -> None:
         """Ensure the Gemini API is configured."""
         if not self._configured:
+            genai = get_genai()
             genai.configure(api_key=self.api_key)
             self._configured = True
             
@@ -65,6 +78,7 @@ class GeminiEmbeddingsService:
             self._ensure_configured()
             
             # Generate embedding
+            genai = get_genai()
             response = genai.embed_content(
                 model=self.model_name,
                 content=cleaned_text,
@@ -128,6 +142,7 @@ class GeminiEmbeddingsService:
                     self._ensure_configured()
                     
                     # Generate embeddings for non-empty texts
+                    genai = get_genai()
                     response = genai.embed_content(
                         model=self.model_name,
                         content=non_empty_texts,
@@ -196,19 +211,30 @@ class GeminiEmbeddingsService:
         Returns:
             Cosine similarity score between -1 and 1
         """
-        # Convert to numpy arrays
-        vec1 = np.array(embedding1)
-        vec2 = np.array(embedding2)
-        
-        # Compute cosine similarity
-        dot_product = np.dot(vec1, vec2)
-        norm1 = np.linalg.norm(vec1)
-        norm2 = np.linalg.norm(vec2)
-        
-        if norm1 == 0 or norm2 == 0:
-            return 0.0
+        if NUMPY_AVAILABLE:
+            # Use numpy for efficient computation
+            vec1 = np.array(embedding1)
+            vec2 = np.array(embedding2)
             
-        return float(dot_product / (norm1 * norm2))
+            # Compute cosine similarity
+            dot_product = np.dot(vec1, vec2)
+            norm1 = np.linalg.norm(vec1)
+            norm2 = np.linalg.norm(vec2)
+            
+            if norm1 == 0 or norm2 == 0:
+                return 0.0
+                
+            return float(dot_product / (norm1 * norm2))
+        else:
+            # Pure Python implementation
+            dot_product = sum(a * b for a, b in zip(embedding1, embedding2))
+            norm1 = sum(a * a for a in embedding1) ** 0.5
+            norm2 = sum(b * b for b in embedding2) ** 0.5
+            
+            if norm1 == 0 or norm2 == 0:
+                return 0.0
+                
+            return dot_product / (norm1 * norm2)
         
     def find_similar(self, query_embedding: List[float], 
                     embeddings: List[List[float]], 

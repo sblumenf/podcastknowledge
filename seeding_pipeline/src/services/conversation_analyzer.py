@@ -5,8 +5,8 @@ from typing import List, Dict, Any, Optional
 from src.core.interfaces import TranscriptSegment
 from src.services.llm import LLMService
 from src.services.performance_optimizer import PerformanceOptimizer
-from src.core.monitoring import trace_operation
-from src.core.exceptions import ProcessingError
+# from src.core.monitoring import trace_operation  # Module doesn't exist
+from src.core.exceptions import PipelineError
 from src.core.conversation_models.conversation import (
     ConversationBoundary,
     ConversationUnit,
@@ -34,7 +34,7 @@ class ConversationAnalyzer:
         self.logger = logger
         self.optimizer = performance_optimizer
         
-    @trace_operation("analyze_conversation_structure")
+    # @trace_operation("analyze_conversation_structure")  # Decorator not available
     def analyze_structure(self, segments: List[TranscriptSegment]) -> ConversationStructure:
         """
         Analyze full transcript to identify semantic boundaries and structure.
@@ -46,10 +46,10 @@ class ConversationAnalyzer:
             ConversationStructure with identified units, themes, and insights
             
         Raises:
-            ProcessingError: If analysis fails
+            PipelineError: If analysis fails
         """
         if not segments:
-            raise ProcessingError("No segments provided for analysis")
+            raise PipelineError("No segments provided for analysis")
             
         self.logger.info(f"Analyzing conversation structure for {len(segments)} segments")
         
@@ -100,7 +100,7 @@ class ConversationAnalyzer:
             
         except Exception as e:
             self.logger.error(f"Failed to analyze conversation structure: {str(e)}")
-            raise ProcessingError(f"Conversation structure analysis failed: {str(e)}")
+            raise PipelineError(f"Conversation structure analysis failed: {str(e)}")
     
     def _prepare_transcript_data(self, segments: List[TranscriptSegment]) -> Dict[str, Any]:
         """Prepare transcript data for analysis."""
