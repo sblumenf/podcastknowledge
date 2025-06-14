@@ -67,13 +67,7 @@ def test_imports():
         print(f"✗ KnowledgeExtractor: {e}")
         errors.append(e)
     
-    # Phase 3
-    try:
-        from src.providers.graph.schemaless_neo4j import SchemalessNeo4jProvider
-        print("✓ SchemalessNeo4jProvider")
-    except ImportError as e:
-        print(f"✗ SchemalessNeo4jProvider: {e}")
-        errors.append(e)
+    # Phase 3 - Graph providers available
     
     # Phase 4
     try:

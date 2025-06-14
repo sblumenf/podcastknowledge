@@ -209,7 +209,7 @@ class TestVTTEndToEnd:
         # Create nodes for entities
         for entity in entities:
             graph_provider.create_node(
-                label=entity.type.value,
+                label=entity.entity_type.value,
                 properties={
                     'id': entity.id,
                     'name': entity.name,

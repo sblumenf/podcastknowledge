@@ -28,7 +28,7 @@ def normalize_entity(entity: Entity) -> Dict[str, Any]:
     """Normalize entity for comparison"""
     return {
         'name': entity.name.lower().strip(),
-        'type': str(entity.type.value),
+        'type': str(entity.entity_type.value),
         'confidence': round(entity.confidence, 2)
     }
 

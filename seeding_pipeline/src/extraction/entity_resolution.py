@@ -342,8 +342,8 @@ class EntityResolver:
             # Skip if different entity types (for Entity objects)
             if isinstance(new_entity, Entity) and isinstance(existing, Entity):
                 # Compare types - handle both string and enum types
-                new_type = new_entity.type.value if hasattr(new_entity.type, 'value') else new_entity.type
-                existing_type = existing.type.value if hasattr(existing.type, 'value') else existing.type
+                new_type = new_entity.entity_type.value if hasattr(new_entity.entity_type, 'value') else new_entity.entity_type
+                existing_type = existing.entity_type.value if hasattr(existing.entity_type, 'value') else existing.entity_type
                 if new_type != existing_type:
                     continue
             elif isinstance(new_entity, dict) and isinstance(existing, dict):

@@ -265,15 +265,15 @@ class MetricsCollector:
             buckets=[0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0, 10.0]
         )
         
-        # Schemaless extraction metrics
+        # Dynamic extraction metrics
         self.discovered_entity_types = Counter(
             "podcast_kg_discovered_entity_types_total",
-            "Total discovered entity types in schemaless mode",
+            "Total discovered entity types during extraction",
             labels=["entity_type"]
         )
         self.discovered_relationship_types = Counter(
             "podcast_kg_discovered_relationship_types_total",
-            "Total discovered relationship types in schemaless mode",
+            "Total discovered relationship types during extraction",
             labels=["relationship_type"]
         )
         self.entity_resolution_matches = Counter(

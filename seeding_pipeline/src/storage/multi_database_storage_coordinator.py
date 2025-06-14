@@ -138,7 +138,7 @@ class MultiDatabaseStorageCoordinator(StorageCoordinator):
             entity_data = {
                 'id': entity.id,
                 'name': entity.name,
-                'type': entity.type,
+                'type': entity.entity_type,
                 'description': entity.description,
                 'confidence': getattr(entity, 'confidence', 1.0),
                 'importance_score': getattr(entity, 'importance_score', 0.5),

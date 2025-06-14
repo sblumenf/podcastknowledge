@@ -577,11 +577,11 @@ class ProgressCheckpoint(BaseProgressCheckpoint):
         logger.info(f"Imported {imported_count} checkpoints")
         return imported_count
     
-    # Schemaless mode support methods
+    # Schema evolution tracking methods
     
     def save_schema_evolution(self, episode_id: str, discovered_types: List[str], 
                             timestamp: Optional[str] = None):
-        """Save schema evolution information for schemaless mode.
+        """Save schema evolution information for dynamic extraction.
         
         Args:
             episode_id: Episode where types were discovered

@@ -126,9 +126,7 @@ class TestFeatureFlagManager:
     
     def test_is_enabled_default_values(self, manager):
         """Test default values for flags."""
-        # Schemaless extraction should be disabled by default
-        assert manager.is_enabled(FeatureFlag.ENABLE_SCHEMALESS_EXTRACTION) is False
-        assert manager.is_enabled(FeatureFlag.SCHEMALESS_MIGRATION_MODE) is False
+        # Core extraction features
         
         # Some flags are enabled by default
         assert manager.is_enabled(FeatureFlag.LOG_SCHEMA_DISCOVERY) is True

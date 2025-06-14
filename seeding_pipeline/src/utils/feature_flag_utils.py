@@ -119,16 +119,16 @@ def generate_env_template(output_path: Optional[Path] = None) -> str:
     ]
 
     # Group by category
-    lines.append("# Schemaless Extraction Flags")
+    lines.append("# Core Extraction Flags")
     for flag_name, info in sorted(flags.items()):
-        if "SCHEMALESS" in flag_name or "ENTITY_RESOLUTION_V2" in flag_name:
+        if "ENTITY_RESOLUTION_V2" in flag_name or "LOG_SCHEMA_DISCOVERY" in flag_name:
             lines.append(f"# {info['description']}")
             lines.append(f"# {info['env_var']}={str(info['default']).lower()}")
             lines.append("")
 
     lines.append("# Component Enhancement Flags")
     for flag_name, info in sorted(flags.items()):
-        if "SCHEMALESS" not in flag_name and "ENTITY_RESOLUTION_V2" not in flag_name:
+        if "ENTITY_RESOLUTION_V2" not in flag_name and "LOG_SCHEMA_DISCOVERY" not in flag_name:
             lines.append(f"# {info['description']}")
             lines.append(f"# {info['env_var']}={str(info['default']).lower()}")
             lines.append("")
