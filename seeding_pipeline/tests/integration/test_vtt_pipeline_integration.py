@@ -9,7 +9,7 @@ import pytest
 
 from src.core.config import SeedingConfig
 from src.core.exceptions import PipelineError
-from src.seeding.orchestrator import VTTKnowledgeExtractor
+from src.pipeline.enhanced_knowledge_pipeline import EnhancedKnowledgePipeline
 @pytest.fixture
 def mock_providers():
     """Create mock providers for testing."""
@@ -96,7 +96,7 @@ class TestVTTPipelineIntegration:
     
     def test_pipeline_initialization(self, test_config):
         """Test pipeline initialization."""
-        pipeline = VTTKnowledgeExtractor(test_config)
+        pipeline = EnhancedKnowledgePipeline(test_config)
         assert pipeline.config == test_config
         assert hasattr(pipeline, 'provider_coordinator')
         assert hasattr(pipeline, 'checkpoint_manager')
@@ -108,7 +108,7 @@ class TestVTTPipelineIntegration:
         vtt_file = tmp_path / "test.vtt"
         vtt_file.write_text(sample_vtt_content)
         
-        pipeline = VTTKnowledgeExtractor(test_config)
+        pipeline = EnhancedKnowledgePipeline(test_config)
         
         # Mock the VTT parser
         with patch('src.vtt.VTTParser') as mock_parser_class:
@@ -131,7 +131,7 @@ class TestVTTPipelineIntegration:
     
     def test_knowledge_extractor_integration(self, test_config, mock_providers, mock_segments):
         """Test knowledge extractor integration with pipeline."""
-        pipeline = VTTKnowledgeExtractor(test_config)
+        pipeline = EnhancedKnowledgePipeline(test_config)
         
         # Mock the knowledge extractor
         mock_extractor = Mock()
@@ -146,7 +146,7 @@ class TestVTTPipelineIntegration:
     
     def test_graph_storage_integration(self, test_config, mock_providers):
         """Test graph storage integration with pipeline."""
-        pipeline = VTTKnowledgeExtractor(test_config)
+        pipeline = EnhancedKnowledgePipeline(test_config)
         
         # Mock graph storage operations
         mock_graph = mock_providers['graph']
@@ -168,7 +168,7 @@ class TestVTTPipelineIntegration:
             mock_graph_class.return_value = mock_providers['graph']
             mock_embedding_class.return_value = mock_providers['embedding']
             
-            pipeline = VTTKnowledgeExtractor(test_config)
+            pipeline = EnhancedKnowledgePipeline(test_config)
             result = pipeline.initialize_components()
             
             assert result is True
@@ -208,7 +208,7 @@ Second segment of episode two.
             mock_graph_class.return_value = mock_providers['graph']
             mock_embedding_class.return_value = mock_providers['embedding']
             
-            pipeline = VTTKnowledgeExtractor(test_config)
+            pipeline = EnhancedKnowledgePipeline(test_config)
             pipeline.initialize_components()
             
             # Mock the actual processing
@@ -238,7 +238,7 @@ Second segment of episode two.
             mock_graph_class.return_value = mock_providers['graph']
             mock_embedding_class.return_value = mock_providers['embedding']
             
-            pipeline = VTTKnowledgeExtractor(test_config)
+            pipeline = EnhancedKnowledgePipeline(test_config)
             pipeline.initialize_components()
             
             # Test cleanup
@@ -253,7 +253,7 @@ Second segment of episode two.
         invalid_vtt = tmp_path / "invalid.vtt"
         invalid_vtt.write_text("This is not a valid VTT file!")
         
-        pipeline = VTTKnowledgeExtractor(test_config)
+        pipeline = EnhancedKnowledgePipeline(test_config)
         
         # Mock initialization to avoid actual service creation
         with patch.object(pipeline, 'initialize_components', return_value=True):

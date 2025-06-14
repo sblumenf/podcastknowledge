@@ -15,7 +15,7 @@ import pytest
 
 from src.core.config import Config
 from src.core.exceptions import PipelineError
-from src.seeding.orchestrator import VTTKnowledgeExtractor
+from src.pipeline.enhanced_knowledge_pipeline import EnhancedKnowledgePipeline
 from src.seeding.transcript_ingestion import VTTFile
 from tests.utils.neo4j_mocks import create_mock_neo4j_driver
 class TestVTTProcessingScenarios:
@@ -121,7 +121,7 @@ Smart contracts are enabling new forms of automated agreements.
         vtt_file = sample_vtt_files[0]
         
         # Step 2: Process VTT file
-        pipeline = VTTKnowledgeExtractor(test_config)
+        pipeline = EnhancedKnowledgePipeline(test_config)
         try:
             pipeline.initialize_components()
             result = pipeline.process_vtt_files([vtt_file])
@@ -164,7 +164,7 @@ Smart contracts are enabling new forms of automated agreements.
         vtt_files = sample_vtt_files  # All 3 files
         
         # Step 2: Process all VTT files
-        pipeline = VTTKnowledgeExtractor(test_config)
+        pipeline = EnhancedKnowledgePipeline(test_config)
         try:
             pipeline.initialize_components()
             result = pipeline.process_vtt_files(vtt_files)
@@ -212,7 +212,7 @@ Smart contracts are enabling new forms of automated agreements.
         vtt_files = sample_vtt_files
         
         # Step 1 & 2: Process first file only
-        pipeline1 = VTTKnowledgeExtractor(test_config)
+        pipeline1 = EnhancedKnowledgePipeline(test_config)
         try:
             pipeline1.initialize_components()
             # Process just the first file
@@ -233,7 +233,7 @@ Smart contracts are enabling new forms of automated agreements.
             initial_count = initial_segments['count']
         
         # Step 3: Resume processing with all files
-        pipeline2 = VTTKnowledgeExtractor(test_config)
+        pipeline2 = EnhancedKnowledgePipeline(test_config)
         try:
             pipeline2.initialize_components()
             # Try to process all files - should skip already processed
@@ -269,7 +269,7 @@ Smart contracts are enabling new forms of automated agreements.
         
         vtt_files = [sample_vtt_files[0], corrupted_path, sample_vtt_files[1]]
         
-        pipeline = VTTKnowledgeExtractor(test_config)
+        pipeline = EnhancedKnowledgePipeline(test_config)
         try:
             pipeline.initialize_components()
             result = pipeline.process_vtt_files(vtt_files)
@@ -301,7 +301,7 @@ Smart contracts are enabling new forms of automated agreements.
         # Directory containing the VTT files
         vtt_dir = sample_vtt_files[0].parent
         
-        pipeline = VTTKnowledgeExtractor(test_config)
+        pipeline = EnhancedKnowledgePipeline(test_config)
         try:
             pipeline.initialize_components()
             result = pipeline.process_vtt_directory(

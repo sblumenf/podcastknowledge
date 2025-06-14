@@ -101,7 +101,7 @@ class TestDataFlow:
         args = Args()
         
         # Mock the pipeline processing to always succeed
-        with patch('src.seeding.VTTKnowledgeExtractor') as mock_pipeline:
+        with patch('src.pipeline.enhanced_knowledge_pipeline.EnhancedKnowledgePipeline') as mock_pipeline:
             # Mock successful processing
             mock_instance = mock_pipeline.return_value
             mock_instance.process_vtt_file.return_value = {
@@ -187,7 +187,7 @@ class TestDataFlow:
         args = Args()
         
         # Mock successful processing but failed move
-        with patch('src.seeding.VTTKnowledgeExtractor') as mock_pipeline:
+        with patch('src.pipeline.enhanced_knowledge_pipeline.EnhancedKnowledgePipeline') as mock_pipeline:
             mock_instance = mock_pipeline.return_value
             
             with patch('src.seeding.transcript_ingestion.TranscriptIngestion.process_vtt_file') as mock_process:
@@ -335,7 +335,7 @@ class TestErrorHandling:
         args = Args()
         
         # Mock the pipeline
-        with patch('src.seeding.VTTKnowledgeExtractor') as mock_pipeline:
+        with patch('src.pipeline.enhanced_knowledge_pipeline.EnhancedKnowledgePipeline') as mock_pipeline:
             mock_instance = mock_pipeline.return_value
             
             with patch('src.seeding.transcript_ingestion.TranscriptIngestion.process_vtt_file') as mock_process:

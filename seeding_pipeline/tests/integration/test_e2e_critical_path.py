@@ -5,7 +5,7 @@ from pathlib import Path
 import pytest
 
 from src.core.config import SeedingConfig
-from src.seeding.orchestrator import VTTKnowledgeExtractor
+from src.pipeline.enhanced_knowledge_pipeline import EnhancedKnowledgePipeline
 from src.storage.graph_storage import GraphStorageService
 @pytest.mark.integration
 @pytest.mark.slow
@@ -24,7 +24,7 @@ class TestE2ECriticalPath:
         config.use_schemaless_extraction = True
         
         # Create orchestrator
-        orchestrator = VTTKnowledgeExtractor(config=config)
+        orchestrator = EnhancedKnowledgePipeline(config=config)
         
         # Initialize storage service directly for orchestrator
         orchestrator.storage_service = GraphStorageService(
@@ -70,7 +70,7 @@ class TestE2ECriticalPath:
         config.batch_size = 5
         config.use_schemaless_extraction = True
         
-        orchestrator = VTTKnowledgeExtractor(config=config)
+        orchestrator = EnhancedKnowledgePipeline(config=config)
         
         # Initialize storage
         orchestrator.storage_service = GraphStorageService(
@@ -106,7 +106,7 @@ class TestE2ECriticalPath:
         config.checkpoint_dir = str(temp_dir / "checkpoints")
         config.use_schemaless_extraction = True
         
-        orchestrator = VTTKnowledgeExtractor(config=config)
+        orchestrator = EnhancedKnowledgePipeline(config=config)
         
         # Initialize storage
         orchestrator.storage_service = GraphStorageService(

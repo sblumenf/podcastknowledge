@@ -4,7 +4,7 @@ import os
 from typing import Dict, Any, Optional, List, Union
 import logging
 
-from src.seeding.orchestrator import VTTKnowledgeExtractor
+from src.pipeline.enhanced_knowledge_pipeline import EnhancedKnowledgePipeline
 from src.storage.multi_database_graph_storage import MultiDatabaseGraphStorage
 from src.storage.multi_database_storage_coordinator import MultiDatabaseStorageCoordinator
 from src.utils.log_utils import get_logger
@@ -12,7 +12,7 @@ from src.utils.log_utils import get_logger
 logger = get_logger(__name__)
 
 
-class MultiPodcastVTTKnowledgeExtractor(VTTKnowledgeExtractor):
+class MultiPodcastVTTKnowledgeExtractor(EnhancedKnowledgePipeline):
     """Multi-podcast aware orchestrator for VTT transcript knowledge extraction."""
     
     def initialize_components(self, use_large_context: bool = True) -> bool:

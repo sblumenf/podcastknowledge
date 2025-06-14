@@ -162,7 +162,7 @@ class TestMetricsEndpoint:
 class TestSeedingEndpoint:
     Test podcast seeding endpoint.
     
-    @patch('src.seeding.VTTKnowledgeExtractor.seed_podcast')
+    @patch('src.pipeline.enhanced_knowledge_pipeline.EnhancedKnowledgePipeline.seed_podcast')
     async def test_seed_podcast_success(self, mock_seed):
         Test successful podcast seeding.
         mock_seed.return_value = {
@@ -187,7 +187,7 @@ class TestSeedingEndpoint:
         assert data["podcast_id"] == "test-podcast"
         assert data["episodes_processed"] == 5
         
-    @patch('src.seeding.VTTKnowledgeExtractor.seed_podcast')
+    @patch('src.pipeline.enhanced_knowledge_pipeline.EnhancedKnowledgePipeline.seed_podcast')
     async def test_seed_podcast_validation_error(self, mock_seed):
         Test podcast seeding with validation error.
         app = create_app()
@@ -202,7 +202,7 @@ class TestSeedingEndpoint:
         response = client.post("/api/v1/seed/podcast", json=payload)
         assert response.status_code == 422
         
-    @patch('src.seeding.VTTKnowledgeExtractor.seed_podcast')
+    @patch('src.pipeline.enhanced_knowledge_pipeline.EnhancedKnowledgePipeline.seed_podcast')
     async def test_seed_podcast_processing_error(self, mock_seed):
         Test podcast seeding with processing error.
         mock_seed.side_effect = Exception("Processing failed")

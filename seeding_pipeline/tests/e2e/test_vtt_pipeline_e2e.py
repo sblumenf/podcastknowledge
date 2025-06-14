@@ -9,7 +9,7 @@ from neo4j import GraphDatabase
 import pytest
 
 from src.core.config import SeedingConfig
-from src.seeding.orchestrator import VTTKnowledgeExtractor
+from src.pipeline.enhanced_knowledge_pipeline import EnhancedKnowledgePipeline
 from tests.utils.neo4j_mocks import create_mock_neo4j_driver, MockDriver
 @pytest.mark.e2e
 class TestVTTPipelineE2E:
@@ -88,7 +88,7 @@ Thank you for listening to our show.
         # Skip this test for now due to Neo4j mocking complexity
         
         # Act: Process the VTT file through the pipeline
-        pipeline = VTTKnowledgeExtractor(test_config)
+        pipeline = EnhancedKnowledgePipeline(test_config)
         try:
             pipeline.initialize_components()
             result = pipeline.process_vtt_files([sample_vtt_file])
@@ -107,7 +107,7 @@ Thank you for listening to our show.
     def test_knowledge_extraction(self, sample_vtt_file, neo4j_test_db, test_config, podcast_data):
         """Test: Entities and relationships created correctly."""
         # Act: Process the VTT file
-        pipeline = VTTKnowledgeExtractor(test_config)
+        pipeline = EnhancedKnowledgePipeline(test_config)
         try:
             pipeline.initialize_components()
             result = pipeline.process_vtt_files([sample_vtt_file])
@@ -171,7 +171,7 @@ Thank you for listening to episode {i+1}.
         }
         
         # Act: Process multiple episodes
-        pipeline = VTTKnowledgeExtractor(test_config)
+        pipeline = EnhancedKnowledgePipeline(test_config)
         try:
             pipeline.initialize_components()
             vtt_paths = [Path(vf['path']) for vf in vtt_files]

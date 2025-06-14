@@ -12,7 +12,7 @@ import pytest
 from src.core.config import PipelineConfig
 from src.core.extraction_interface import Entity, EntityType, Relationship, RelationshipType
 from src.core.interfaces import LLMProvider, GraphProvider, EmbeddingProvider
-from src.seeding.orchestrator import VTTKnowledgeExtractor
+from src.pipeline.enhanced_knowledge_pipeline import EnhancedKnowledgePipeline
 from src.services.embeddings import EmbeddingsService
 from src.services.llm import LLMService
 from src.storage.graph_storage import GraphStorageService

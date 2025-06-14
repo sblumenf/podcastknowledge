@@ -11,7 +11,7 @@ import time
 import pytest
 
 from src.core.config import Config
-from src.seeding.orchestrator import VTTKnowledgeExtractor
+from src.pipeline.enhanced_knowledge_pipeline import EnhancedKnowledgePipeline
 class TestSignalHandling:
     """Test signal handling and graceful shutdown scenarios."""
     
@@ -59,23 +59,23 @@ class TestSignalHandling:
         """Run pipeline in subprocess and send signal after delay."""
         try:
             # Import here to avoid issues with multiprocessing
-            from src.seeding.orchestrator import VTTKnowledgeExtractor
+            from src.pipeline.enhanced_knowledge_pipeline import EnhancedKnowledgePipeline
             import signal as sig
             import time
             
             # Track cleanup
             cleanup_called = False
-            original_cleanup = VTTKnowledgeExtractor.cleanup
+            original_cleanup = EnhancedKnowledgePipeline.cleanup
             
             def track_cleanup(self):
                 nonlocal cleanup_called
                 cleanup_called = True
                 original_cleanup(self)
             
-            VTTKnowledgeExtractor.cleanup = track_cleanup
+            EnhancedKnowledgePipeline.cleanup = track_cleanup
             
             # Create pipeline
-            pipeline = VTTKnowledgeExtractor(config)
+            pipeline = EnhancedKnowledgePipeline(config)
             
             # Set up signal to be sent after delay
             def send_signal():
@@ -123,7 +123,7 @@ class TestSignalHandling:
                 ]
             }
             
-            pipeline = VTTKnowledgeExtractor(test_config)
+            pipeline = EnhancedKnowledgePipeline(test_config)
             
             # Track signal handling
             signal_handled = False
@@ -221,7 +221,7 @@ class TestSignalHandling:
                   return_value=mock_providers['embeddings']), \
              patch('os.unlink', side_effect=track_unlink):
             
-            pipeline = VTTKnowledgeExtractor(test_config)
+            pipeline = EnhancedKnowledgePipeline(test_config)
             
             # Initialize components
             pipeline.initialize_components()
@@ -264,7 +264,7 @@ class TestSignalHandling:
                 ]
             }
             
-            pipeline = VTTKnowledgeExtractor(test_config)
+            pipeline = EnhancedKnowledgePipeline(test_config)
             
             # Process a few episodes then simulate interrupt
             episode_count = 0
@@ -318,7 +318,7 @@ class TestSignalHandling:
             for provider in mock_providers.values():
                 provider.cleanup = Mock(side_effect=track_cleanup)
             
-            pipeline = VTTKnowledgeExtractor(test_config)
+            pipeline = EnhancedKnowledgePipeline(test_config)
             pipeline.initialize_components()
             
             # Simulate multiple concurrent shutdown requests
@@ -342,7 +342,7 @@ class TestSignalHandling:
         original_sigterm = signal.signal(signal.SIGTERM, signal.SIG_DFL)
         
         try:
-            pipeline = VTTKnowledgeExtractor(test_config)
+            pipeline = EnhancedKnowledgePipeline(test_config)
             
             # Get current handlers
             current_sigint = signal.signal(signal.SIGINT, signal.SIG_DFL)

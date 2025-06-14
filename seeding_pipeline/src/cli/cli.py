@@ -79,7 +79,7 @@ def seed_podcasts(args: argparse.Namespace) -> int:
             config = PipelineConfig()
         
         # Initialize pipeline
-        pipeline = VTTKnowledgeExtractor(config)
+        pipeline = EnhancedKnowledgePipeline(config)
         
         # Determine podcast configs
         podcast_configs = []
@@ -153,7 +153,7 @@ def health_check(args: argparse.Namespace) -> int:
             config = PipelineConfig()
         
         # Initialize pipeline
-        pipeline = VTTKnowledgeExtractor(config)
+        pipeline = EnhancedKnowledgePipeline(config)
         
         print("Performing health check...")
         
@@ -233,7 +233,7 @@ def schema_stats(args: argparse.Namespace) -> int:
             config = PipelineConfig()
         
         # Initialize pipeline
-        pipeline = VTTKnowledgeExtractor(config)
+        pipeline = EnhancedKnowledgePipeline(config)
         
         print("Fetching schema statistics...")
         
@@ -390,12 +390,17 @@ def process_vtt_for_podcast(args: argparse.Namespace, podcast_id: str) -> Dict[s
         
         # Initialize multi-podcast pipeline
         from src.seeding.multi_podcast_orchestrator import MultiPodcastVTTKnowledgeExtractor
-        if args.semantic:
-            # For now, use single-podcast semantic pipeline
-            # TODO: Create MultiPodcastSemanticVTTKnowledgeExtractor if needed
-            pipeline = SemanticVTTKnowledgeExtractor(config)
-        else:
-            pipeline = MultiPodcastVTTKnowledgeExtractor(config)
+        # Always use EnhancedKnowledgePipeline for multi-podcast mode
+        from src.pipeline.enhanced_knowledge_pipeline import EnhancedKnowledgePipeline
+        pipeline = EnhancedKnowledgePipeline(
+            enable_all_features=True,
+            neo4j_config={
+                "uri": config.neo4j_uri,
+                "username": config.neo4j_username,
+                "password": config.neo4j_password,
+                "database": getattr(config, 'neo4j_database', 'neo4j')
+            }
+        )
         
         # Find VTT files
         folder = Path(args.folder)
@@ -495,7 +500,7 @@ def process_vtt_batch(vtt_files: List[Path], pipeline, checkpoint, args) -> int:
     
     Args:
         vtt_files: List of VTT file paths to process
-        pipeline: VTTKnowledgeExtractor pipeline instance
+        pipeline: EnhancedKnowledgePipeline pipeline instance
         checkpoint: Unused (kept for compatibility) - checkpointing handled by orchestrator
         args: Command line arguments
         
@@ -555,16 +560,14 @@ def process_vtt_batch(vtt_files: List[Path], pipeline, checkpoint, args) -> int:
         try:
             # Process single file through orchestrator (direct knowledge extraction)
             try:
-                logger.debug(f"Batch processing: Starting {'semantic' if args.semantic else 'segment'} knowledge extraction for {file_path.name}")
+                logger.debug(f"Batch processing: Starting SimpleKGPipeline knowledge extraction for {file_path.name}")
                 process_args = {
                     'vtt_files': [file_path],  # List of Path objects
                     'use_large_context': True,
                     'force_reprocess': getattr(args, 'force', False)
                 }
                 
-                # Add semantic processing flag if using SemanticVTTKnowledgeExtractor
-                if hasattr(pipeline, 'process_vtt_files') and isinstance(pipeline, SemanticVTTKnowledgeExtractor):
-                    process_args['use_semantic_processing'] = args.semantic
+                # EnhancedKnowledgePipeline uses SimpleKGPipeline internally
                 
                 batch_result = pipeline.process_vtt_files(**process_args)
                 logger.debug(f"Batch processing: Knowledge extraction completed for {file_path.name}")
@@ -654,7 +657,7 @@ def process_vtt_batch(vtt_files: List[Path], pipeline, checkpoint, args) -> int:
                     counters['skipped'] += 1
             elif result.get('success'):
                 print(f"  ✓ {file_path.name} - {result.get('segments_processed', 0)} segments")
-                if result.get('processing_type') == 'semantic' and result.get('meaningful_units', 0) > 0:
+                if result.get('meaningful_units', 0) > 0:
                     print(f"    - {result['meaningful_units']} meaningful units, {result.get('themes', 0)} themes")
                 print(f"    - {result.get('entities_extracted', 0)} entities, {result.get('relationships_found', 0)} relationships")
                 with lock:
@@ -971,13 +974,13 @@ def process_vtt(args: argparse.Namespace) -> int:
                         }
                     else:
                         # Standard or Semantic pipeline
-                        logger.info(f"Starting {'semantic' if args.semantic else 'segment'} knowledge extraction for {file_path.name}")
+                        logger.info(f"Starting standard knowledge extraction for {file_path.name}")
                         logger.debug(f"File details: size={file_path.stat().st_size} bytes, path={file_path}")
                         
                         result = pipeline.process_vtt_files(
                             vtt_files=[file_path],  # List of Path objects
                             use_large_context=True,
-                            use_semantic_processing=args.semantic if hasattr(pipeline, 'process_vtt_files') and isinstance(pipeline, SemanticVTTKnowledgeExtractor) else None
+                            use_semantic_processing=None  # Not used with SimpleKGPipeline
                         )
                         
                         logger.info(f"Knowledge extraction completed for {file_path.name}: {result.get('success', False)}")
@@ -1011,7 +1014,7 @@ def process_vtt(args: argparse.Namespace) -> int:
                 
                 if result['success']:
                     print(f"  ✓ Success - {result['segments_processed']} segments processed")
-                    if args.semantic and result.get('meaningful_units', 0) > 0:
+                    if result.get('meaningful_units', 0) > 0:
                         print(f"    - {result['meaningful_units']} meaningful units identified")
                         print(f"    - {result.get('themes', 0)} conversation themes detected")
                     print(f"    - {result.get('entities_extracted', 0)} entities extracted")
@@ -1347,7 +1350,7 @@ def export_data(args: argparse.Namespace) -> int:
             config = PipelineConfig()
         
         # Initialize pipeline
-        pipeline = VTTKnowledgeExtractor(config)
+        pipeline = EnhancedKnowledgePipeline(config)
         
         # Export data
         data = pipeline.export_knowledge_graph(
@@ -1560,7 +1563,7 @@ def episode_status_command(args: argparse.Namespace) -> int:
         config = PipelineConfig.from_file(Path(args.config)) if args.config else PipelineConfig()
         
         # Initialize pipeline to get graph storage
-        pipeline = VTTKnowledgeExtractor(config)
+        pipeline = EnhancedKnowledgePipeline(config)
         if not pipeline.initialize_components():
             print("Error: Failed to initialize components", file=sys.stderr)
             return 1

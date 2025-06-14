@@ -13,7 +13,7 @@ import pytest
 from src.core.config import Config
 from src.core.extraction_interface import Segment
 from src.extraction.extraction import KnowledgeExtractor
-from src.seeding.orchestrator import VTTKnowledgeExtractor
+from src.pipeline.enhanced_knowledge_pipeline import EnhancedKnowledgePipeline
 class TestGoldenOutputs:
     """Test extraction outputs against golden reference data."""
     

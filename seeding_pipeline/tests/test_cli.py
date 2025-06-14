@@ -11,6 +11,7 @@ import pytest
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from src.cli.cli import main, load_podcast_configs, process_vtt, checkpoint_status, checkpoint_clean, validate_vtt_file, find_vtt_files
+from src.pipeline.enhanced_knowledge_pipeline import EnhancedKnowledgePipeline
 
 
 class TestCLI:
@@ -64,7 +65,7 @@ class TestCLI:
                 load_podcast_configs(Path(f.name))
     
     @patch('src.cli.cli.PipelineConfig')
-    @patch('src.cli.cli.VTTKnowledgeExtractor')
+    @patch('src.cli.cli.EnhancedKnowledgePipeline')
     def test_process_vtt_dry_run(self, mock_pipeline_class, mock_config_class):
         """Test dry run mode for VTT processing."""
         # Create mock config

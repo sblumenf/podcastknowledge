@@ -387,7 +387,7 @@ class EnhancedKnowledgePipeline:
                     "phase_times": self.progress.phase_times,
                     "features_enabled": self.enable_all_features,
                     "lightweight_mode": self.lightweight_mode,
-                    "model_used": "gemini-1.5-flash" if self.lightweight_mode else "gemini-2.5-pro-preview"
+                    "model_used": "gemini-1.5-flash"  # Always use working model
                 }
             )
             

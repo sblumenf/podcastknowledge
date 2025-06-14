@@ -13,7 +13,7 @@ from typing import Dict, Any, List
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from src.cli.cli import setup_logging_cli
-from src.seeding import VTTKnowledgeExtractor
+from src.pipeline.enhanced_knowledge_pipeline import EnhancedKnowledgePipeline
 from src.core.config import PipelineConfig
 from src.utils.metrics import get_pipeline_metrics
 from src.utils.health_check import get_health_checker
@@ -74,7 +74,7 @@ class RealDataValidator:
             # Use real LLM for quality testing
             config.llm_provider = 'google'
             
-            pipeline = VTTKnowledgeExtractor(config)
+            pipeline = EnhancedKnowledgePipeline(config)
             
             # Process the file
             self.logger.info("Starting pipeline processing")

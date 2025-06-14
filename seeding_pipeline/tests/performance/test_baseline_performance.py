@@ -7,7 +7,7 @@ from statistics import mean, stdev
 import pytest
 
 from src.core.config import SeedingConfig
-from src.seeding.orchestrator import VTTKnowledgeExtractor
+from src.pipeline.enhanced_knowledge_pipeline import EnhancedKnowledgePipeline
 from src.storage.graph_storage import GraphStorageService
 @pytest.mark.slow
 @pytest.mark.performance
@@ -24,7 +24,7 @@ class TestBaselinePerformance:
         config.checkpoint_dir = str(temp_dir / "checkpoints")
         config.use_schemaless_extraction = True
         
-        orchestrator = VTTKnowledgeExtractor(config=config)
+        orchestrator = EnhancedKnowledgePipeline(config=config)
         orchestrator.storage_service = GraphStorageService(
             uri=config.neo4j_uri,
             username=config.neo4j_username,
@@ -82,7 +82,7 @@ class TestBaselinePerformance:
         config.batch_size = 10
         config.use_schemaless_extraction = True
         
-        orchestrator = VTTKnowledgeExtractor(config=config)
+        orchestrator = EnhancedKnowledgePipeline(config=config)
         orchestrator.storage_service = GraphStorageService(
             uri=config.neo4j_uri,
             username=config.neo4j_username,
@@ -146,7 +146,7 @@ class TestBaselinePerformance:
         config.checkpoint_dir = str(temp_dir / "checkpoints")
         config.use_schemaless_extraction = True
         
-        orchestrator = VTTKnowledgeExtractor(config=config)
+        orchestrator = EnhancedKnowledgePipeline(config=config)
         orchestrator.storage_service = GraphStorageService(
             uri=config.neo4j_uri,
             username=config.neo4j_username,

@@ -42,10 +42,12 @@ setup(
     python_requires=">=3.9",
     install_requires=[
         "neo4j>=5.14.0",
+        "neo4j-graphrag>=1.7.0",
         "python-dotenv>=1.0.0",
         "numpy>=1.24.3",
         "google-generativeai>=0.3.2",
         "google-genai>=1.0.0",
+        "langchain-google-genai>=0.0.5",
         "psutil>=5.9.6",
         "pyyaml>=6.0.1",
         "pydantic>=2.5.0",

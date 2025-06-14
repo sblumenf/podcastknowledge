@@ -82,7 +82,7 @@ class TestSeedPodcasts:
         args.verbose = False
         return args
     
-    @patch('src.cli.cli.VTTKnowledgeExtractor')
+    @patch('src.pipeline.enhanced_knowledge_pipeline.EnhancedKnowledgePipeline')
     @patch('src.cli.cli.PipelineConfig')
     @patch('src.cli.cli.get_logger')
     def test_seed_podcasts_single_rss(self, mock_logger, mock_config, mock_extractor, mock_args):
@@ -110,7 +110,7 @@ class TestSeedPodcasts:
         assert call_args['max_episodes_each'] == 10
         assert call_args['use_large_context'] is False
     
-    @patch('src.cli.cli.VTTKnowledgeExtractor')
+    @patch('src.pipeline.enhanced_knowledge_pipeline.EnhancedKnowledgePipeline')
     @patch('src.cli.cli.PipelineConfig')
     @patch('src.cli.cli.load_podcast_configs')
     @patch('src.cli.cli.get_logger')
@@ -162,7 +162,7 @@ class TestSeedPodcasts:
         
         assert result == 1
     
-    @patch('src.cli.cli.VTTKnowledgeExtractor')
+    @patch('src.pipeline.enhanced_knowledge_pipeline.EnhancedKnowledgePipeline')
     @patch('src.cli.cli.PipelineConfig')
     @patch('src.cli.cli.get_logger')
     def test_seed_podcasts_all_failed(self, mock_logger, mock_config, mock_extractor, mock_args):
@@ -180,7 +180,7 @@ class TestSeedPodcasts:
         
         assert result == 1
     
-    @patch('src.cli.cli.VTTKnowledgeExtractor')
+    @patch('src.pipeline.enhanced_knowledge_pipeline.EnhancedKnowledgePipeline')
     @patch('src.cli.cli.PipelineConfig')
     @patch('src.cli.cli.get_logger')
     def test_seed_podcasts_exception(self, mock_logger, mock_config, mock_extractor, mock_args):
@@ -191,7 +191,7 @@ class TestSeedPodcasts:
         
         assert result == 1
     
-    @patch('src.cli.cli.VTTKnowledgeExtractor')
+    @patch('src.pipeline.enhanced_knowledge_pipeline.EnhancedKnowledgePipeline')
     @patch('src.cli.cli.PipelineConfig.from_file')
     @patch('src.cli.cli.get_logger')
     def test_seed_podcasts_with_config_file(self, mock_logger, mock_from_file, mock_extractor):
@@ -286,7 +286,7 @@ class TestHealthCheck:
         
         assert result == 0
     
-    @patch('src.cli.cli.VTTKnowledgeExtractor')
+    @patch('src.pipeline.enhanced_knowledge_pipeline.EnhancedKnowledgePipeline')
     @patch('src.cli.cli.PipelineConfig.from_file')
     @patch('src.cli.cli.get_logger')
     def test_health_check_with_config(self, mock_logger, mock_from_file, mock_extractor):
@@ -307,7 +307,7 @@ class TestHealthCheck:
         assert result == 0
         mock_from_file.assert_called_once_with(Path("test_config.yaml"))
     
-    @patch('src.cli.cli.VTTKnowledgeExtractor')
+    @patch('src.pipeline.enhanced_knowledge_pipeline.EnhancedKnowledgePipeline')
     @patch('src.cli.cli.PipelineConfig')
     @patch('src.cli.cli.get_logger')
     def test_health_check_exception(self, mock_logger, mock_config, mock_extractor, mock_args):
@@ -467,7 +467,7 @@ class TestExportData:
         args.verbose = False
         return args
     
-    @patch('src.cli.cli.VTTKnowledgeExtractor')
+    @patch('src.pipeline.enhanced_knowledge_pipeline.EnhancedKnowledgePipeline')
     @patch('src.cli.cli.PipelineConfig')
     @patch('src.cli.cli.get_logger')
     @patch('builtins.open', mock_open())
@@ -486,7 +486,7 @@ class TestExportData:
         assert result == 0
         mock_pipeline.export_knowledge_graph.assert_called_once()
     
-    @patch('src.cli.cli.VTTKnowledgeExtractor')
+    @patch('src.pipeline.enhanced_knowledge_pipeline.EnhancedKnowledgePipeline')
     @patch('src.cli.cli.PipelineConfig')
     @patch('src.cli.cli.get_logger')
     def test_export_data_exception(self, mock_logger, mock_config, mock_extractor, mock_args):
