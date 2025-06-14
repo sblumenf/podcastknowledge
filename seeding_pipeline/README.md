@@ -87,13 +87,13 @@ For resource-constrained environments, see [MINIMAL_INSTALLATION.md](MINIMAL_INS
 
 ### Basic Usage
 
-#### Process a single VTT file:
+#### Process a single VTT file (uses SimpleKGPipeline by default):
 ```bash
 # Put the VTT file in a folder and use the folder pattern
 python -m src.cli.cli process-vtt --folder /path/to/folder --pattern "specific_file.vtt"
 ```
 
-#### Process a folder of VTT files:
+#### Process a folder of VTT files (uses SimpleKGPipeline by default):
 ```bash
 python -m src.cli.cli process-vtt --folder transcripts/ --pattern "*.vtt"
 ```
@@ -179,13 +179,18 @@ Processing VTT files with semantic analysis...
 
 See [Semantic Processing Documentation](docs/SEMANTIC_PROCESSING.md) for detailed information.
 
-### SimpleKGPipeline Processing (NEW!)
+### SimpleKGPipeline Processing (DEFAULT)
 
-The pipeline now supports **AI-powered entity and relationship extraction** using Neo4j's SimpleKGPipeline:
+The pipeline now uses **AI-powered entity and relationship extraction** with Neo4j's SimpleKGPipeline as the default processing method:
 
-#### Enable SimpleKGPipeline processing:
+#### Default processing (SimpleKGPipeline):
 ```bash
-python -m src.cli.cli process-vtt --folder transcripts/ --pipeline simplekgpipeline
+python -m src.cli.cli process-vtt --folder transcripts/
+```
+
+#### Use legacy pattern-based extraction:
+```bash
+python -m src.cli.cli process-vtt --folder transcripts/ --pipeline standard
 ```
 
 #### SimpleKGPipeline Features:
@@ -216,6 +221,19 @@ Processing VTT files with SimpleKGPipeline...
 - **Knowledge-intensive content** with complex entity relationships
 - **RAG applications** needing comprehensive knowledge graphs
 - **When pattern-based extraction fails** to capture nuanced entities
+
+#### Resource-Conscious Mode:
+For environments with limited resources (<4GB RAM), use the `--low-resource` flag:
+
+```bash
+python -m src.cli.cli process-vtt --folder transcripts/ --low-resource
+```
+
+This mode:
+- Uses Gemini 1.5 Flash (lighter model) instead of Gemini 2.5 Pro
+- Reduces token limits from 4096 to 2048
+- Disables some advanced features to conserve memory
+- Optimized for hobby projects and resource-constrained environments
 
 ## Multi-Podcast Support
 
@@ -536,7 +554,7 @@ response = requests.post(
 
 #### ❌ "Unknown pipeline type: simplekgpipeline"
 - **Cause**: Using outdated CLI version
-- **Solution**: Pull latest code and ensure you're using the updated CLI with --pipeline option
+- **Solution**: Pull latest code - SimpleKGPipeline is now the default pipeline
 
 #### ❌ "SimpleKGPipeline initialization failed"
 - **Cause**: Missing dependencies or Neo4j connection issues
