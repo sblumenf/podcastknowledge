@@ -19,14 +19,14 @@ class LLMService:
     """Direct Gemini LLM service."""
     
     def __init__(self, api_key: Optional[str] = None,
-                 model_name: str = 'gemini-2.5-flash', 
+                 model_name: str = 'gemini-1.5-flash', 
                  temperature: float = 0.7, max_tokens: int = 4096,
                  enable_cache: bool = True, cache_ttl: int = 3600):
         """Initialize LLM service.
         
         Args:
             api_key: Gemini API key (uses environment if not provided)
-            model_name: Model to use (default: gemini-2.5-flash)
+            model_name: Model to use (default: gemini-1.5-flash)
             temperature: Generation temperature (default: 0.7)
             max_tokens: Maximum output tokens (default: 4096)
             enable_cache: Enable response caching (default: True)
