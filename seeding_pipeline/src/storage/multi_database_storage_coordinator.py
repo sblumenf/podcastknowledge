@@ -168,10 +168,10 @@ class MultiDatabaseStorageCoordinator(StorageCoordinator):
             
             # Create relationship to episode
             self.graph_provider.create_relationship(
-                ('Episode', {'id': episode_id}),
-                'MENTIONS',
-                ('Entity', {'id': entity.id}),
-                {'confidence': entity_data['confidence']}
+                episode_id,                              # source_id: str
+                entity.id,                               # target_id: str
+                'MENTIONS',                              # rel_type: str
+                {'confidence': entity_data['confidence']}  # properties: dict
             )
             
     def switch_podcast_context(self, podcast_id: str):

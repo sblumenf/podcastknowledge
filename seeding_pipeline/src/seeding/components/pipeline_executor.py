@@ -268,10 +268,10 @@ class PipelineExecutor:
                 
                 # Create relationship between podcast and episode
                 self.graph_service.create_relationship(
-                    ('Podcast', {'id': podcast_config['id']}),
-                    'HAS_EPISODE',
-                    ('Episode', {'id': episode['id']}),
-                    {}
+                    podcast_config['id'],  # source_id: str
+                    episode['id'],         # target_id: str
+                    'HAS_EPISODE',         # rel_type: str
+                    {}                     # properties: dict
                 )
                 
                 # Store entities
@@ -290,10 +290,10 @@ class PipelineExecutor:
                     
                     # Create relationship to episode
                     self.graph_service.create_relationship(
-                        ('Episode', {'id': episode['id']}),
-                        'MENTIONS',
-                        (entity['type'], {'id': entity_data['id']}),
-                        {'confidence': entity.get('confidence', 1.0)}
+                        episode['id'],                           # source_id: str
+                        entity_data['id'],                       # target_id: str
+                        'MENTIONS',                              # rel_type: str
+                        {'confidence': entity.get('confidence', 1.0)}  # properties: dict
                     )
                 
                 # Store quotes
@@ -312,19 +312,24 @@ class PipelineExecutor:
                     
                     # Create relationship to episode
                     self.graph_service.create_relationship(
-                        ('Episode', {'id': episode['id']}),
-                        'CONTAINS_QUOTE',
-                        ('Quote', {'id': quote_data['id']}),
-                        {'importance': quote.get('importance_score', 0.5)}
+                        episode['id'],                               # source_id: str
+                        quote_data['id'],                            # target_id: str
+                        'CONTAINS_QUOTE',                            # rel_type: str
+                        {'importance': quote.get('importance_score', 0.5)}  # properties: dict
                     )
                 
                 # Store relationships
                 for relationship in relationships:
+                    # Note: This needs to be updated to use entity IDs instead of names
+                    # For now, we'll use the source/target names as IDs (requires entity lookup)
+                    source_id = f"entity_{hash(relationship['source'])}"
+                    target_id = f"entity_{hash(relationship['target'])}"
+                    
                     self.graph_service.create_relationship(
-                        ('Entity', {'name': relationship['source']}),
-                        relationship['type'],
-                        ('Entity', {'name': relationship['target']}),
-                        {
+                        source_id,             # source_id: str
+                        target_id,             # target_id: str
+                        relationship['type'],  # rel_type: str
+                        {                      # properties: dict
                             'confidence': relationship.get('confidence', 0.5),
                             'episode_id': episode['id']
                         }

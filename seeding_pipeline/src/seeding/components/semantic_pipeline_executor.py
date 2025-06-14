@@ -330,9 +330,9 @@ class SemanticPipelineExecutor:
             
             # Link podcast to episode
             self.graph_service.create_relationship(
-                ('Podcast', {'id': podcast_config['id']}),
+                podcast_config['id'],
+                episode['id'],
                 'HAS_EPISODE',
-                ('Episode', {'id': episode['id']}),
                 {'processed_semantically': True}
             )
             
@@ -394,9 +394,9 @@ class SemanticPipelineExecutor:
         
         # Link to episode
         self.graph_service.create_relationship(
-            ('Episode', {'id': episode_id}),
+            episode_id,
+            structure_data['id'],
             'HAS_STRUCTURE',
-            ('ConversationStructure', {'id': structure_data['id']}),
             {}
         )
         
@@ -413,9 +413,9 @@ class SemanticPipelineExecutor:
             
             # Link to structure
             self.graph_service.create_relationship(
-                ('ConversationStructure', {'id': structure_data['id']}),
+                structure_data['id'],
+                theme_data['id'],
                 'CONTAINS_THEME',
-                ('Theme', {'id': theme_data['id']}),
                 {'related_units': len(theme.related_units)}
             )
         
@@ -438,9 +438,9 @@ class SemanticPipelineExecutor:
             
             # Link to structure
             self.graph_service.create_relationship(
-                ('ConversationStructure', {'id': structure_data['id']}),
+                structure_data['id'],
+                unit_data['id'],
                 'CONTAINS_UNIT',
-                ('MeaningfulUnit', {'id': unit_data['id']}),
                 {'position': unit.metadata.get('original_indices', {}).get('start', 0)}
             )
             
@@ -448,9 +448,9 @@ class SemanticPipelineExecutor:
             for theme_name in unit.themes:
                 theme_id = f"{episode_id}_theme_{theme_name.replace(' ', '_')}"
                 self.graph_service.create_relationship(
-                    ('MeaningfulUnit', {'id': unit_data['id']}),
+                    unit_data['id'],
+                    theme_id,
                     'EXPLORES_THEME',
-                    ('Theme', {'id': theme_id}),
                     {}
                 )
     
@@ -480,9 +480,9 @@ class SemanticPipelineExecutor:
             
             # Link to episode
             self.graph_service.create_relationship(
-                ('Episode', {'id': episode_id}),
+                episode_id,
+                entity_data['id'],
                 'MENTIONS',
-                (entity['type'], {'id': entity_data['id']}),
                 {
                     'frequency': entity.get('total_mentions_global', 1),
                     'unit_count': len(entity.get('appears_in_units', []))
@@ -521,10 +521,10 @@ class SemanticPipelineExecutor:
                 
                 # Link to unit
                 self.graph_service.create_relationship(
-                    ('MeaningfulUnit', {'id': unit_node_id}),
+                    unit_node_id,
+                    insight_data['id'],
                     'CONTAINS_INSIGHT',
-                    ('Insight', {'id': insight_data['id']}),
-                    {'position_in_unit': i}
+                    {'position_in_unit': insight['order'] if 'order' in insight else 0}
                 )
             
             # Store quotes
@@ -543,9 +543,9 @@ class SemanticPipelineExecutor:
                 
                 # Link to unit
                 self.graph_service.create_relationship(
-                    ('MeaningfulUnit', {'id': unit_node_id}),
+                    unit_node_id,
+                    quote_data['id'],
                     'CONTAINS_QUOTE',
-                    ('Quote', {'id': quote_data['id']}),
                     {'importance': quote.get('importance_score', 0.5)}
                 )
     
@@ -567,9 +567,9 @@ class SemanticPipelineExecutor:
         
         # Link to episode
         self.graph_service.create_relationship(
-            ('Episode', {'id': episode_id}),
+            episode_id,
+            mapping_data['id'],
             'HAS_ENTITY_MAPPING',
-            ('EntityMapping', {'id': mapping_data['id']}),
             {}
         )
         
@@ -588,9 +588,9 @@ class SemanticPipelineExecutor:
                 if entity_results:
                     entity_node = entity_results[0]['e']
                     self.graph_service.create_relationship(
-                        ('Theme', {'id': theme_id}),
+                        theme_id,
+                        entity_node['id'],
                         'CONNECTED_TO',
-                        (entity_node['type'], {'id': entity_node['id']}),
                         {}
                     )
     

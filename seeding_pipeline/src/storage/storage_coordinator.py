@@ -143,10 +143,10 @@ class StorageCoordinator:
             episode_id: Episode ID
         """
         self.graph_provider.create_relationship(
-            ('Podcast', {'id': podcast_id}),
-            'HAS_EPISODE',
-            ('Episode', {'id': episode_id}),
-            {}
+            podcast_id,     # source_id: str
+            episode_id,     # target_id: str
+            'HAS_EPISODE',  # rel_type: str
+            {}              # properties: dict
         )
     
     def _store_segments(self, episode_id: str, segments: List[Dict[str, Any]]):
@@ -170,10 +170,10 @@ class StorageCoordinator:
             self.graph_provider.create_node('Segment', segment_data)
             
             self.graph_provider.create_relationship(
-                ('Episode', {'id': episode_id}),
-                'HAS_SEGMENT',
-                ('Segment', {'id': segment_data['id']}),
-                {'sequence': i}
+                episode_id,          # source_id: str
+                segment_data['id'],  # target_id: str
+                'HAS_SEGMENT',       # rel_type: str
+                {'sequence': i}      # properties: dict
             )
     
     def _store_insights(self, episode_id: str, insights: List[Dict[str, Any]]):
@@ -187,10 +187,10 @@ class StorageCoordinator:
             self.graph_provider.create_node('Insight', insight)
             
             self.graph_provider.create_relationship(
-                ('Episode', {'id': episode_id}),
-                'HAS_INSIGHT',
-                ('Insight', {'id': insight['id']}),
-                {}
+                episode_id,        # source_id: str
+                insight['id'],     # target_id: str
+                'HAS_INSIGHT',     # rel_type: str
+                {}                 # properties: dict
             )
     
     def store_entities(self, episode_id: str, entities: List[Entity]):
@@ -240,10 +240,10 @@ class StorageCoordinator:
             
             # Create relationship to episode
             self.graph_provider.create_relationship(
-                ('Episode', {'id': episode_id}),
-                'MENTIONS',
-                ('Entity', {'id': entity.id}),
-                {'confidence': entity_data['confidence']}
+                episode_id,                          # source_id: str
+                entity.id,                           # target_id: str
+                'MENTIONS',                          # rel_type: str
+                {'confidence': entity_data['confidence']}  # properties: dict
             )
     
     def store_relationships(self, relationships: List[Dict[str, Any]]):
@@ -254,10 +254,10 @@ class StorageCoordinator:
         """
         for rel in relationships:
             self.graph_provider.create_relationship(
-                ('Entity', {'id': rel['source_id']}),
-                rel['type'],
-                ('Entity', {'id': rel['target_id']}),
-                rel.get('properties', {})
+                rel['source_id'],         # source_id: str
+                rel['target_id'],         # target_id: str
+                rel['type'],              # rel_type: str
+                rel.get('properties', {}) # properties: dict
             )
     
     def _store_quotes(self, episode_id: str, quotes: List[Dict[str, Any]]):
@@ -272,10 +272,10 @@ class StorageCoordinator:
             self.graph_provider.create_node('Quote', quote)
             
             self.graph_provider.create_relationship(
-                ('Episode', {'id': episode_id}),
-                'CONTAINS_QUOTE',
-                ('Quote', {'id': quote['id']}),
-                {}
+                episode_id,        # source_id: str
+                quote['id'],       # target_id: str
+                'CONTAINS_QUOTE',  # rel_type: str
+                {}                 # properties: dict
             )
     
     def _store_emergent_themes(self, episode_id: str, 
@@ -309,10 +309,10 @@ class StorageCoordinator:
             
             # Create relationship to episode
             self.graph_provider.create_relationship(
-                ('Episode', {'id': episode_id}),
-                'HAS_EMERGENT_THEME',
-                ('EmergentTheme', {'id': theme_data['id']}),
-                {'strength': theme.get('confidence', 0.5)}
+                episode_id,                              # source_id: str
+                theme_data['id'],                        # target_id: str
+                'HAS_EMERGENT_THEME',                    # rel_type: str
+                {'strength': theme.get('confidence', 0.5)}  # properties: dict
             )
             
             # Link theme to its key concepts
@@ -324,10 +324,10 @@ class StorageCoordinator:
                 )
                 if matching_entity:
                     self.graph_provider.create_relationship(
-                        ('EmergentTheme', {'id': theme_data['id']}),
-                        'COMPOSED_OF',
-                        ('Entity', {'id': matching_entity.id}),
-                        {'role': 'key_concept'}
+                        theme_data['id'],         # source_id: str
+                        matching_entity.id,       # target_id: str
+                        'COMPOSED_OF',            # rel_type: str
+                        {'role': 'key_concept'}   # properties: dict
                     )
     
     def resolve_entities(self, entities: List[Dict[str, Any]], 
