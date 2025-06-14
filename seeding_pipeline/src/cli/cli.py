@@ -20,8 +20,7 @@ import fnmatch
 # Add src to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from src.seeding import VTTKnowledgeExtractor
-from src.seeding.semantic_orchestrator import SemanticVTTKnowledgeExtractor
+# Removed old pipeline imports - using only EnhancedKnowledgePipeline now
 from src.core.config import PipelineConfig
 from src.core.exceptions import PipelineError
 from src.vtt import VTTParser
@@ -858,42 +857,26 @@ def process_vtt(args: argparse.Namespace) -> int:
         
         # Initialize pipeline
         try:
-            # Handle pipeline selection (backward compatibility for --semantic flag)
-            if args.semantic and not hasattr(args, 'pipeline'):
-                args.pipeline = 'semantic'
-            elif args.semantic and args.pipeline == 'standard':
-                args.pipeline = 'semantic'  # --semantic flag takes precedence
+            # Always use EnhancedKnowledgePipeline (SimpleKGPipeline) - no other options
+            logger.info("Initializing EnhancedKnowledgePipeline with SimpleKGPipeline...")
+            from src.pipeline.enhanced_knowledge_pipeline import EnhancedKnowledgePipeline
             
-            pipeline_type = getattr(args, 'pipeline', 'standard')
+            # Handle low-resource mode
+            enable_all_features = not args.low_resource
+            if args.low_resource:
+                logger.info("Low-resource mode enabled - using lightweight configuration")
             
-            if pipeline_type == 'simplekgpipeline':
-                logger.info("Initializing EnhancedKnowledgePipeline with SimpleKGPipeline...")
-                from src.pipeline.enhanced_knowledge_pipeline import EnhancedKnowledgePipeline
-                
-                # Handle low-resource mode
-                enable_all_features = not args.low_resource
-                if args.low_resource:
-                    logger.info("Low-resource mode enabled - using lightweight configuration")
-                
-                pipeline = EnhancedKnowledgePipeline(
-                    enable_all_features=enable_all_features,
-                    neo4j_config={
-                        "uri": config.neo4j_uri,
-                        "username": config.neo4j_username,
-                        "password": config.neo4j_password,
-                        "database": getattr(config, 'neo4j_database', 'neo4j')
-                    },
-                    lightweight_mode=args.low_resource
-                )
-                logger.info("✓ EnhancedKnowledgePipeline initialized successfully")
-            elif pipeline_type == 'semantic' or args.semantic:
-                logger.info("Initializing SemanticVTTKnowledgeExtractor pipeline...")
-                pipeline = SemanticVTTKnowledgeExtractor(config)
-                logger.info("✓ SemanticVTTKnowledgeExtractor pipeline initialized successfully")
-            else:
-                logger.info("Initializing VTTKnowledgeExtractor pipeline...")
-                pipeline = VTTKnowledgeExtractor(config)
-                logger.info("✓ VTTKnowledgeExtractor pipeline initialized successfully")
+            pipeline = EnhancedKnowledgePipeline(
+                enable_all_features=enable_all_features,
+                neo4j_config={
+                    "uri": config.neo4j_uri,
+                    "username": config.neo4j_username,
+                    "password": config.neo4j_password,
+                    "database": getattr(config, 'neo4j_database', 'neo4j')
+                },
+                lightweight_mode=args.low_resource
+            )
+            logger.info("✓ EnhancedKnowledgePipeline initialized successfully")
         except Exception as e:
             print(f"Failed to initialize knowledge extraction pipeline: {e}", file=sys.stderr)
             logger.error(f"Pipeline initialization failed: {e}", exc_info=True)
@@ -933,46 +916,7 @@ def process_vtt(args: argparse.Namespace) -> int:
         
         # Checkpoint is now handled internally by the orchestrator
         
-        # Handle method comparison if requested
-        if args.compare_methods:
-            print("\nComparing semantic vs segment processing methods...")
-            if len(vtt_files) != 1:
-                print("Error: Method comparison only works with a single file")
-                return 1
-            
-            # Initialize semantic pipeline for comparison
-            semantic_pipeline = SemanticVTTKnowledgeExtractor(config)
-            
-            file_path = vtt_files[0]
-            comparison = semantic_pipeline.compare_processing_methods(
-                str(file_path),
-                use_large_context=True
-            )
-            
-            # Display comparison results
-            print("\n" + "="*60)
-            print("Processing Method Comparison")
-            print("="*60)
-            print(f"File: {file_path.name}")
-            print("\nSegment-by-Segment Processing:")
-            print(f"  Segments: {comparison['segment_processing']['total_segments']}")
-            print(f"  Entities: {comparison['segment_processing']['entities']}")
-            print(f"  Insights: {comparison['segment_processing']['insights']}")
-            print(f"  Relationships: {comparison['segment_processing']['relationships']}")
-            
-            print("\nSemantic Processing:")
-            print(f"  Segments: {comparison['semantic_processing']['total_segments']}")
-            print(f"  Meaningful Units: {comparison['semantic_processing']['meaningful_units']}")
-            print(f"  Entities: {comparison['semantic_processing']['entities']}")
-            print(f"  Insights: {comparison['semantic_processing']['insights']}")
-            print(f"  Relationships: {comparison['semantic_processing']['relationships']}")
-            print(f"  Themes: {comparison['semantic_processing']['themes']}")
-            
-            print("\nImprovements:")
-            print(f"  Entity Reduction: {comparison['improvements']['entity_reduction']*100:.1f}%")
-            print(f"  Segment-to-Unit Ratio: {comparison['improvements']['segment_to_unit_ratio']:.1f}:1")
-            
-            return 0
+        # Removed compare_methods functionality - only one pipeline now
         
         # Use batch processing for multiple files
         if len(vtt_files) > 1 and args.parallel:
@@ -983,7 +927,7 @@ def process_vtt(args: argparse.Namespace) -> int:
         failed = 0
         skipped = 0
         
-        print(f"\nProcessing VTT files{' with semantic analysis' if args.semantic else ''}...")
+        print(f"\nProcessing VTT files...")
         for i, file_path in enumerate(vtt_files, 1):
             print(f"\n[{i}/{len(vtt_files)}] Processing: {file_path.name}")
             
@@ -1951,20 +1895,14 @@ Examples:
   # Process all VTT files in a folder
   %(prog)s process-vtt --folder /path/to/vtt/files
   
-  # Process with semantic conversation-aware analysis
-  %(prog)s process-vtt --folder /path/to/vtt --semantic
-  
-  # Process with SimpleKGPipeline for advanced entity extraction
-  %(prog)s process-vtt --folder /path/to/vtt --pipeline simplekgpipeline
-  
-  # Compare semantic vs segment processing
-  %(prog)s process-vtt --folder /path/to/vtt --compare-methods single_file.vtt
-  
   # Process with specific pattern
   %(prog)s process-vtt --folder /path/to/vtt --pattern "episode_*.vtt"
   
-  # Recursive processing with semantic analysis and parallel processing
-  %(prog)s process-vtt --folder /path/to/vtt --recursive --semantic --parallel
+  # Recursive processing with parallel processing
+  %(prog)s process-vtt --folder /path/to/vtt --recursive --parallel
+  
+  # Process in low-resource mode (for systems with <4GB RAM)
+  %(prog)s process-vtt --folder /path/to/vtt --low-resource
   
   # Dry run to see what would be processed
   %(prog)s process-vtt --folder /path/to/vtt --dry-run
@@ -2100,25 +2038,8 @@ Examples:
         help='Process files for all configured podcasts'
     )
     
-    vtt_parser.add_argument(
-        '--semantic',
-        action='store_true',
-        help='Use semantic conversation-aware processing instead of segment-by-segment'
-    )
-    
-    vtt_parser.add_argument(
-        '--pipeline',
-        type=str,
-        choices=['standard', 'semantic', 'simplekgpipeline'],
-        default='simplekgpipeline',
-        help='Processing pipeline to use: standard, semantic, or simplekgpipeline (default)'
-    )
-    
-    vtt_parser.add_argument(
-        '--compare-methods',
-        action='store_true',
-        help='Compare semantic vs segment processing (processes twice)'
-    )
+    # Removed --semantic and --pipeline arguments as per corrective plan
+    # SimpleKGPipeline is now the ONLY processing method
     
     # List podcasts command
     list_parser = subparsers.add_parser(
