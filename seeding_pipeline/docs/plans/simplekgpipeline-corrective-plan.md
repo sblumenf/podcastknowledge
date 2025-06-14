@@ -19,13 +19,19 @@ Entity extraction returns 0 entities because it uses hardcoded test data instead
 ```python
 # Remove from CLI:
 # - Remove --pipeline argument entirely
-# - Remove --semantic flag
+# - Remove --semantic flag  
 # - Remove pipeline selection logic
 # - Always use EnhancedKnowledgePipeline
 
 # Delete these files:
 - src/seeding/VTTKnowledgeExtractor.py (old standard pipeline)
 - src/seeding/SemanticVTTKnowledgeExtractor.py (semantic pipeline)
+- src/seeding/semantic_orchestrator.py (if only used by semantic pipeline)
+
+# Clean up dependencies likely to be unused:
+- Pattern matching libraries (if only used by old extraction)
+- Semantic-specific processing libraries
+- Any NLP libraries not used by SimpleKGPipeline
 ```
 
 ### Task 1: Fix Entity Extraction Method
@@ -117,6 +123,14 @@ print(f"Entities created: {result.entities_created}")
 3. **Update tests**:
    - Remove tests for old pipelines
    - Focus only on SimpleKGPipeline tests
+
+4. **Remove unused dependencies**:
+   - Audit requirements.txt for packages only used by old pipelines
+   - Remove dependencies specific to semantic processing if not used elsewhere
+   - Remove any pattern-matching libraries used by old extraction
+   - Clean up imports in all files
+   - Run `pip freeze` to identify actually used packages
+   - Update requirements.txt to minimal set needed for SimpleKGPipeline
 
 ## Note
 
