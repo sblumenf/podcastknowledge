@@ -67,16 +67,23 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 
 # Install dependencies - Choose based on your needs:
 
-# Option 1: Core functionality only (fastest, ~60 seconds)
+# Option 1: Minimal installation for resource-constrained environments
+pip install -r requirements-minimal.txt
+
+# Option 2: Core functionality only (fastest, ~60 seconds)
 pip install -r requirements-core.txt
 
-# Option 2: Core + API server
+# Option 3: Core + API server
 pip install -r requirements-core.txt
 pip install -r requirements-api.txt
 
-# Option 3: Full installation with all features
+# Option 4: Full installation with all features
 pip install -r requirements.txt
 ```
+
+#### Minimal Installation
+
+For resource-constrained environments, see [MINIMAL_INSTALLATION.md](MINIMAL_INSTALLATION.md) for details on running with only essential dependencies. The system will use mocks for missing optional dependencies like psutil, google-generativeai, and numpy.
 
 ### Basic Usage
 
