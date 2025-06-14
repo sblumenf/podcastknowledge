@@ -49,13 +49,15 @@ entities = [
 - ❌ Produces empty knowledge graphs (0 entities)
 - ❌ Advanced features produce no meaningful output
 
-### 4. Default Pipeline ✅ PARTIAL SUCCESS
+### 4. Default Pipeline ❌ INCOMPLETE
 
-**Plan Goal**: Make SimpleKGPipeline the default
+**Plan Goal**: Replace broken extraction with SimpleKGPipeline (should be ONLY option)
 
 **Actual Result**:
-- ✅ Set as default in CLI
-- ❌ But doesn't actually extract entities
+- ⚠️ Set as default among 3 options (standard, semantic, simplekgpipeline)
+- ❌ Old pipelines still exist as options
+- ❌ Should be the ONLY pipeline, not a choice
+- ❌ Doesn't actually extract entities
 
 ## Critical Gaps Impacting Core Functionality
 
@@ -73,6 +75,11 @@ entities = [
 - Tests show deprecated model errors
 - Entity extraction doesn't use the LLM properly
 
+### 4. Redundant Code Not Removed
+- Three pipeline options still exist (standard, semantic, simplekgpipeline)
+- Old VTTKnowledgeExtractor and SemanticVTTKnowledgeExtractor classes remain
+- Increases maintenance burden and confusion
+
 ## "Good Enough" Assessment
 
 This implementation does NOT meet "good enough" standards because:
@@ -89,6 +96,8 @@ The implementation has good structure but fails at its primary purpose. A correc
 1. Fix entity extraction to use AI instead of hardcoded data
 2. Resolve APOC dependency issues
 3. Ensure entities are actually created in Neo4j
+4. Remove all redundant pipeline options (keep only SimpleKGPipeline)
+5. Delete old VTTKnowledgeExtractor and SemanticVTTKnowledgeExtractor code
 
 ## Files Reviewed
 

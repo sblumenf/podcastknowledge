@@ -11,6 +11,23 @@ Entity extraction returns 0 entities because it uses hardcoded test data instead
 
 ## Minimal Corrective Actions Required
 
+### Task 0: Remove Redundant Pipeline Options
+
+**Current Problem**: Three pipeline options exist (standard, semantic, simplekgpipeline)
+**Fix Required**: Remove all options except SimpleKGPipeline
+
+```python
+# Remove from CLI:
+# - Remove --pipeline argument entirely
+# - Remove --semantic flag
+# - Remove pipeline selection logic
+# - Always use EnhancedKnowledgePipeline
+
+# Delete these files:
+- src/seeding/VTTKnowledgeExtractor.py (old standard pipeline)
+- src/seeding/SemanticVTTKnowledgeExtractor.py (semantic pipeline)
+```
+
 ### Task 1: Fix Entity Extraction Method
 
 **Current Problem**: `_extract_basic_entities` uses hardcoded data
@@ -85,6 +102,22 @@ print(f"Entities created: {result.entities_created}")
 # Should print 50+, not 0
 ```
 
+## Code Cleanup Required
+
+1. **Remove old pipelines**:
+   - Delete VTTKnowledgeExtractor class
+   - Delete SemanticVTTKnowledgeExtractor class
+   - Remove all references to these in imports
+
+2. **Simplify CLI**:
+   - Remove --pipeline argument
+   - Remove --semantic flag
+   - Always initialize EnhancedKnowledgePipeline
+
+3. **Update tests**:
+   - Remove tests for old pipelines
+   - Focus only on SimpleKGPipeline tests
+
 ## Note
 
-All the advanced features are already built and integrated. They just need entities to work with. Fix the entity extraction and the entire system will function as designed.
+The system should have ONLY ONE way to process VTT files - through SimpleKGPipeline. Remove all other options to minimize code and improve maintainability. All the advanced features are already integrated into the EnhancedKnowledgePipeline.
