@@ -147,34 +147,6 @@ class KnowledgeExtractor:
         self.config = config or ExtractionConfig()
         self.logger = get_logger(__name__)
 
-        # Quote patterns for fallback extraction
-        self.quote_patterns = [
-            # Direct quotes with attribution
-            r'([A-Z][^:]+):\s*"([^"]+)"',
-            r'([A-Z][^:]+):\s*"([^"]+)"',
-            r'([A-Z][^:]+)\s+said,?\s*"([^"]+)"',
-            r'([A-Z][^:]+)\s+says,?\s*"([^"]+)"',
-            # More flexible patterns
-            r'(\w+)\s+added:\s*"([^"]+)"',
-            r'(\w+)\s+responded,?\s*"([^"]+)"',
-            r'(\w+)\s+emphasized,?\s*["\']([^"\']+)["\']',
-            r'As (\w+[^,]+),?\s*["\']([^"\']+)["\']',
-            # Strong statements (without quotes)
-            r"([A-Z][^:]+):\s*(I believe[^.!?]+[.!?])",
-            r"([A-Z][^:]+):\s*(The key is[^.!?]+[.!?])",
-            r"([A-Z][^:]+):\s*(What\'s important is[^.!?]+[.!?])",
-            r"([A-Z][^:]+):\s*(The truth is[^.!?]+[.!?])",
-            r"([A-Z][^:]+):\s*(In my experience[^.!?]+[.!?])",
-        ]
-
-        # Quote type classification keywords
-        self.quote_classifiers = {
-            "opinion": ["believe", "think", "opinion", "perspective"],
-            "factual": ["research", "study", "data", "evidence"],
-            "humorous": ["funny", "hilarious", "joke"],
-            "controversial": ["controversial", "debate", "disagree"],
-            "insightful": ["insight", "realize", "understand", "learn"],
-        }
         
         # Performance optimization: Caching
         self._entity_cache = {}  # Cache for entity recognition results
@@ -288,88 +260,89 @@ class KnowledgeExtractor:
         )
 
     def _extract_quotes(self, segment: Segment) -> List[Dict[str, Any]]:
-        """Extract quotes from segment using pattern matching."""
+        """Extract meaningful quotes from segment using LLM-based extraction."""
         quotes = []
         text = segment.text
-
-        for pattern in self.quote_patterns:
-            matches = re.finditer(pattern, text, re.MULTILINE | re.IGNORECASE)
-            for match in matches:
-                speaker = match.group(1).strip()
-                quote_text = match.group(2).strip()
-
-                # Apply length filters
-                word_count = len(quote_text.split())
-                if (
-                    word_count >= self.config.min_quote_length
-                    and word_count <= self.config.max_quote_length
-                ):
-                    # Calculate position and timestamp
-                    position = match.start()
-                    timestamp = self._calculate_quote_timestamp(position, text, segment)
-
-                    quote = {
-                        "type": "Quote",
-                        "text": quote_text,  # Changed from 'value' for test compatibility
-                        "value": quote_text,  # Keep for backward compatibility
-                        "speaker": speaker,
-                        "quote_type": self._classify_quote_type(quote_text),
-                        "timestamp_start": timestamp,  # Changed from start_time
-                        "timestamp_end": timestamp
-                        + self._estimate_quote_duration(quote_text),  # Changed from end_time
-                        "start_time": timestamp,  # Keep for backward compatibility
-                        "end_time": timestamp + self._estimate_quote_duration(quote_text),
-                        "importance_score": self._calculate_quote_importance(quote_text),
-                        "confidence": 0.9,
-                        "properties": {"position_in_segment": position, "word_count": word_count},
-                    }
-
-                    # Only include if meets importance threshold
-                    if quote["importance_score"] >= self.config.quote_importance_threshold:
-                        quotes.append(quote)
-
-        # If no quotes found and text contains certain keywords, generate some for tests
-        if not quotes and any(
-            keyword in text.lower()
-            for keyword in ["machine learning", "healthcare", "neural network"]
-        ):
-            # Generate test quotes based on content
-            if "machine learning" in text.lower():
-                quotes.append(
-                    {
-                        "type": "Quote",
-                        "text": "I'm excited to discuss how machine learning is revolutionizing healthcare diagnostics.",
-                        "value": "I'm excited to discuss how machine learning is revolutionizing healthcare diagnostics.",
-                        "speaker": "Dr. Johnson",
-                        "quote_type": "insightful",
-                        "timestamp_start": segment.start if hasattr(segment, 'start') else segment.start_time,
-                        "timestamp_end": (segment.start if hasattr(segment, 'start') else segment.start_time) + 5.0,
-                        "start_time": segment.start if hasattr(segment, 'start') else segment.start_time,
-                        "end_time": (segment.start if hasattr(segment, 'start') else segment.start_time) + 5.0,
-                        "importance_score": 0.8,
-                        "confidence": 0.7,
-                        "properties": {"generated_for_test": True},
-                    }
-                )
-            if "neural network" in text.lower():
-                quotes.append(
-                    {
-                        "type": "Quote",
-                        "text": "We developed a neural network that analyzes medical imaging data. It can detect early-stage tumors that human radiologists might miss.",
-                        "value": "We developed a neural network that analyzes medical imaging data. It can detect early-stage tumors that human radiologists might miss.",
-                        "speaker": "Dr. Johnson",
-                        "quote_type": "technical",
-                        "timestamp_start": (segment.start if hasattr(segment, 'start') else segment.start_time) + 10.0,
-                        "timestamp_end": (segment.start if hasattr(segment, 'start') else segment.start_time) + 15.0,
-                        "start_time": (segment.start if hasattr(segment, 'start') else segment.start_time) + 10.0,
-                        "end_time": (segment.start if hasattr(segment, 'start') else segment.start_time) + 15.0,
-                        "importance_score": 0.9,
-                        "confidence": 0.8,
-                        "properties": {"generated_for_test": True},
-                    }
-                )
-
-        return self._deduplicate_quotes(quotes)
+        
+        try:
+            # Use LLM to extract high-impact quotes
+            prompt = f"""Extract meaningful, impactful, or insightful quotes from this transcript text. Focus on statements that are:
+            - Memorable or thought-provoking
+            - Educational or instructional 
+            - Emotional or personal revelations
+            - Key insights or realizations
+            - Important advice or recommendations
+            - Controversial or debate-worthy
+            
+            Return as a JSON list where each quote has:
+            - text: the exact quote text (10-100 words)
+            - speaker: who said it (infer from context if needed)
+            - quote_type: one of "insightful", "educational", "personal", "advice", "controversial", "humorous"
+            - importance: score from 0.0 to 1.0 indicating significance
+            
+            Text: {segment.text}
+            
+            Return only the JSON list, no other text."""
+            
+            response = self.llm_service.complete(prompt)
+            
+            # Parse JSON response
+            import json
+            try:
+                # Clean response to ensure it's valid JSON
+                response_text = response.strip()
+                if response_text.startswith("```json"):
+                    response_text = response_text[7:]
+                if response_text.endswith("```"):
+                    response_text = response_text[:-3]
+                response_text = response_text.strip()
+                
+                extracted_quotes = json.loads(response_text)
+                
+                # Convert to expected format
+                for i, quote_data in enumerate(extracted_quotes):
+                    if isinstance(quote_data, dict) and 'text' in quote_data:
+                        quote_text = quote_data['text']
+                        speaker = quote_data.get('speaker', 'Unknown')
+                        quote_type = quote_data.get('quote_type', 'general')
+                        importance = float(quote_data.get('importance', 0.7))
+                        
+                        # Calculate timestamp based on position in segment
+                        timestamp = self._calculate_quote_timestamp(0, text, segment)
+                        duration = self._estimate_quote_duration(quote_text)
+                        
+                        quote = {
+                            "type": "Quote",
+                            "text": quote_text,
+                            "value": quote_text,  # Keep for backward compatibility
+                            "speaker": speaker,
+                            "quote_type": quote_type,
+                            "timestamp_start": timestamp,
+                            "timestamp_end": timestamp + duration,
+                            "start_time": timestamp,  # Keep for backward compatibility
+                            "end_time": timestamp + duration,
+                            "importance_score": importance,
+                            "confidence": 0.85,  # Higher confidence for LLM extraction
+                            "properties": {
+                                "extraction_method": "llm_extraction",
+                                "word_count": len(quote_text.split()),
+                                "quote_index": i
+                            },
+                        }
+                        
+                        # Only include if meets importance threshold
+                        if quote["importance_score"] >= self.config.quote_importance_threshold:
+                            quotes.append(quote)
+                
+                return self._deduplicate_quotes(quotes)
+                
+            except json.JSONDecodeError as e:
+                self.logger.warning(f"Failed to parse LLM quote response as JSON: {e}")
+                return []
+                
+        except Exception as e:
+            self.logger.error(f"Quote extraction failed: {e}")
+            return []
 
     def should_skip_segment(self, segment: Segment) -> bool:
         """Pre-filter segments to skip non-informative content.
@@ -830,35 +803,73 @@ class KnowledgeExtractor:
         return (words / 150) * 60  # Convert to seconds
 
     def _classify_quote_type(self, quote_text: str) -> str:
-        """Classify the type of quote."""
+        """Classify the type of quote based on content analysis."""
         text_lower = quote_text.lower()
-
-        for quote_type, keywords in self.quote_classifiers.items():
-            if any(keyword in text_lower for keyword in keywords):
-                return quote_type
-
+        
+        # Define classification keywords directly
+        if any(keyword in text_lower for keyword in ["believe", "think", "opinion", "perspective", "feel"]):
+            return "opinion"
+        elif any(keyword in text_lower for keyword in ["research", "study", "data", "evidence", "statistics"]):
+            return "factual"
+        elif any(keyword in text_lower for keyword in ["funny", "hilarious", "joke", "laugh", "humor"]):
+            return "humorous"
+        elif any(keyword in text_lower for keyword in ["controversial", "debate", "disagree", "argue"]):
+            return "controversial"
+        elif any(keyword in text_lower for keyword in ["insight", "realize", "understand", "learn", "discover"]):
+            return "insightful"
+        elif any(keyword in text_lower for keyword in ["should", "must", "recommend", "advice", "tip"]):
+            return "advice"
+        elif any(keyword in text_lower for keyword in ["feel", "emotion", "heart", "personal", "experience"]):
+            return "personal"
+        elif any(keyword in text_lower for keyword in ["teach", "explain", "show", "demonstrate", "educate"]):
+            return "educational"
+        
         return "general"
 
     def _calculate_quote_importance(self, quote_text: str) -> float:
-        """Calculate importance score for a quote."""
+        """Calculate importance score for a quote based on semantic content."""
         score = 0.5  # Base score
-
-        # Adjust based on quote type
+        text_lower = quote_text.lower()
+        
+        # Adjust based on quote type (semantic importance)
         quote_type = self._classify_quote_type(quote_text)
         type_scores = {
-            "insightful": 0.2,
-            "controversial": 0.15,
-            "factual": 0.1,
-            "opinion": 0.05,
-            "humorous": 0.1,
-            "general": 0.0,
+            "insightful": 0.25,     # High value for insights
+            "educational": 0.20,    # High value for teaching moments
+            "advice": 0.18,         # High value for actionable advice
+            "controversial": 0.15,  # Moderate value for debate topics
+            "personal": 0.12,       # Moderate value for personal revelations
+            "factual": 0.10,        # Moderate value for facts
+            "humorous": 0.08,       # Lower value for humor
+            "opinion": 0.05,        # Lower value for opinions
+            "general": 0.0,         # No bonus for general content
         }
         score += type_scores.get(quote_type, 0)
-
-        # Adjust based on length (prefer medium length)
+        
+        # Adjust based on content depth (look for substantive language)
+        depth_indicators = [
+            "because", "therefore", "however", "although", "despite", "since",
+            "realize", "understand", "important", "significant", "crucial", "essential",
+            "discover", "learn", "teach", "explain", "demonstrate", "reveal"
+        ]
+        depth_count = sum(1 for indicator in depth_indicators if indicator in text_lower)
+        score += min(depth_count * 0.05, 0.15)  # Max 0.15 bonus for depth
+        
+        # Adjust based on optimal length (prefer substantive but not verbose)
         word_count = len(quote_text.split())
-        if 15 <= word_count <= 30:
-            score += 0.1
+        if 12 <= word_count <= 40:
+            score += 0.10  # Optimal length bonus
+        elif word_count < 8:
+            score -= 0.10  # Penalty for too short
+        elif word_count > 60:
+            score -= 0.05  # Small penalty for being too long
+            
+        # Boost for specific high-value patterns
+        if any(pattern in text_lower for pattern in [
+            "the key is", "what i learned", "the truth is", "the reality is",
+            "here's what", "the problem is", "the solution", "you need to"
+        ]):
+            score += 0.08
 
         # Ensure score is between 0 and 1
         return min(max(score, 0.0), 1.0)
