@@ -2103,8 +2103,8 @@ Examples:
         '--pipeline',
         type=str,
         choices=['standard', 'semantic', 'simplekgpipeline'],
-        default='standard',
-        help='Processing pipeline to use: standard (default), semantic, or simplekgpipeline'
+        default='simplekgpipeline',
+        help='Processing pipeline to use: standard, semantic, or simplekgpipeline (default)'
     )
     
     vtt_parser.add_argument(
