@@ -147,7 +147,7 @@ class EnhancedKnowledgePipeline:
     def _create_default_llm_adapter(self) -> GeminiLLMAdapter:
         """Create default LLM adapter with working configuration."""
         return GeminiLLMAdapter(
-            model_name="gemini-1.5-flash",  # Use a known working model
+            model_name="gemini-2.5-pro-preview",  # Use latest Gemini 2.5 Pro model
             temperature=0.7,
             max_tokens=4096,
             enable_cache=True

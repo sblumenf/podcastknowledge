@@ -48,7 +48,7 @@ async def test_complete_pipeline():
         
         # Create LLM adapter with working configuration
         llm_adapter = GeminiLLMAdapter(
-            model_name="gemini-1.5-flash",
+            model_name="gemini-2.5-pro-preview",
             temperature=0.7,
             max_tokens=4096,
             enable_cache=True
