@@ -26,6 +26,7 @@ from src.extraction.extraction import KnowledgeExtractor
 from src.extraction.entity_resolution import EntityResolver
 from src.extraction.complexity_analysis import ComplexityAnalyzer
 from src.extraction.importance_scoring import ImportanceScorer
+from src.extraction.sentiment_analyzer import SentimentAnalyzer
 
 # Analysis Modules
 from src.analysis import analysis_orchestrator
@@ -102,6 +103,7 @@ class UnifiedKnowledgePipeline:
         self.entity_resolver = EntityResolver()
         self.complexity_analyzer = ComplexityAnalyzer()
         self.importance_scorer = ImportanceScorer()
+        self.sentiment_analyzer = SentimentAnalyzer(llm_service)
         
         # Logging setup with clear phase tracking
         self.logger = logger
@@ -111,6 +113,9 @@ class UnifiedKnowledgePipeline:
         self.current_phase = None
         self.phase_start_time = None
         self.phase_timings = {}
+        
+        # Episode tracking
+        self.current_episode_id = None
         
     def _start_phase(self, phase_name: str) -> None:
         """Start tracking a processing phase."""
@@ -461,15 +466,469 @@ class UnifiedKnowledgePipeline:
             self.logger.error(f"Failed to store episode structure: {e}")
             raise PipelineError(f"Episode structure storage failed: {e}") from e
     
-    async def _extract_knowledge(self, meaningful_units: List[Any]) -> Dict[str, Any]:
-        """Extract all knowledge from MeaningfulUnits."""
-        # TODO: Implement in Phase 4
-        pass
+    async def _extract_knowledge(self, meaningful_units: List[MeaningfulUnit]) -> Dict[str, Any]:
+        """
+        Extract all knowledge from MeaningfulUnits.
+        
+        This method processes MeaningfulUnits through the KnowledgeExtractor to
+        extract entities, quotes, relationships, and insights using schema-less
+        discovery. The LLM can create ANY entity or relationship type based on
+        content, not limited to predefined schemas.
+        
+        Args:
+            meaningful_units: List of MeaningfulUnits to extract knowledge from
+            
+        Returns:
+            Dict containing all extracted knowledge organized by type
+        """
+        self.logger.info(f"Starting knowledge extraction for {len(meaningful_units)} MeaningfulUnits")
+        
+        # Aggregate results across all units
+        all_entities = []
+        all_quotes = []
+        all_relationships = []
+        all_insights = []
+        all_sentiments = []
+        extraction_metadata = {
+            'units_processed': 0,
+            'extraction_errors': [],
+            'entity_types_discovered': set(),
+            'relationship_types_discovered': set(),
+            'sentiment_types_discovered': set(),
+            'total_extraction_time': 0
+        }
+        
+        # Extract knowledge from each MeaningfulUnit
+        for idx, unit in enumerate(meaningful_units):
+            try:
+                start_time = time.time()
+                
+                # Extract knowledge using the schema-less approach
+                extraction_result = self.knowledge_extractor.extract_knowledge(
+                    meaningful_unit=unit,
+                    episode_metadata={
+                        'episode_id': self.current_episode_id,
+                        'unit_index': idx,
+                        'total_units': len(meaningful_units)
+                    }
+                )
+                
+                # Aggregate results
+                if extraction_result.entities:
+                    # Don't resolve per-unit, just collect all entities
+                    all_entities.extend(extraction_result.entities)
+                    
+                    # Track discovered entity types
+                    for entity in extraction_result.entities:
+                        extraction_metadata['entity_types_discovered'].add(entity['type'])
+                
+                if extraction_result.quotes:
+                    # Score importance of quotes
+                    for quote in extraction_result.quotes:
+                        quote['importance_score'] = self.importance_scorer.score_quote(quote)
+                    all_quotes.extend(extraction_result.quotes)
+                
+                if extraction_result.relationships:
+                    all_relationships.extend(extraction_result.relationships)
+                    
+                    # Track discovered relationship types
+                    for rel in extraction_result.relationships:
+                        extraction_metadata['relationship_types_discovered'].add(rel['type'])
+                
+                if extraction_result.insights:
+                    # Analyze complexity of insights
+                    for insight in extraction_result.insights:
+                        insight['complexity'] = self.complexity_analyzer.analyze_insight(insight)
+                    all_insights.extend(extraction_result.insights)
+                
+                # Analyze sentiment for this unit
+                sentiment_result = self.sentiment_analyzer.analyze_meaningful_unit(
+                    meaningful_unit=unit,
+                    episode_context={'episode_id': self.current_episode_id}
+                )
+                
+                # Store sentiment result with unit reference
+                sentiment_data = {
+                    'unit_id': unit.id,
+                    'sentiment': sentiment_result,
+                    'unit_index': idx
+                }
+                all_sentiments.append(sentiment_data)
+                
+                # Track discovered sentiment types
+                for discovered in sentiment_result.discovered_sentiments:
+                    extraction_metadata['sentiment_types_discovered'].add(discovered.sentiment_type)
+                
+                extraction_metadata['units_processed'] += 1
+                extraction_metadata['total_extraction_time'] += time.time() - start_time
+                
+                self.logger.debug(
+                    f"Extracted from unit {idx}: "
+                    f"{len(extraction_result.entities)} entities, "
+                    f"{len(extraction_result.quotes)} quotes, "
+                    f"{len(extraction_result.relationships)} relationships, "
+                    f"{len(extraction_result.insights)} insights, "
+                    f"sentiment: {sentiment_result.overall_sentiment.polarity}"
+                )
+                
+            except Exception as e:
+                error_msg = f"Failed to extract from unit {idx}: {e}"
+                self.logger.error(error_msg)
+                extraction_metadata['extraction_errors'].append({
+                    'unit_index': idx,
+                    'unit_id': unit.id,
+                    'error': str(e)
+                })
+                # Continue with other units - don't fail entire extraction
+        
+        # Deduplicate entities across all units using entity resolver
+        unique_entities = self.entity_resolver.resolve_entities_for_meaningful_units(
+            all_entities,
+            preserve_unit_associations=True
+        )
+        
+        # Build relationship graph for analysis
+        relationship_graph = self._build_relationship_graph(unique_entities, all_relationships)
+        
+        # Log extraction summary
+        self.logger.info(
+            f"Knowledge extraction complete: "
+            f"{len(unique_entities)} unique entities ({len(extraction_metadata['entity_types_discovered'])} types), "
+            f"{len(all_quotes)} quotes, "
+            f"{len(all_relationships)} relationships ({len(extraction_metadata['relationship_types_discovered'])} types), "
+            f"{len(all_insights)} insights, "
+            f"{len(all_sentiments)} sentiment analyses"
+        )
+        
+        if extraction_metadata['entity_types_discovered']:
+            self.logger.info(
+                f"Discovered entity types: {sorted(extraction_metadata['entity_types_discovered'])}"
+            )
+        
+        if extraction_metadata['relationship_types_discovered']:
+            self.logger.info(
+                f"Discovered relationship types: {sorted(extraction_metadata['relationship_types_discovered'])}"
+            )
+        
+        if extraction_metadata['sentiment_types_discovered']:
+            self.logger.info(
+                f"Discovered sentiment types: {sorted(extraction_metadata['sentiment_types_discovered'])}"
+            )
+        
+        return {
+            'entities': unique_entities,
+            'quotes': all_quotes,
+            'relationships': all_relationships,
+            'insights': all_insights,
+            'sentiments': all_sentiments,
+            'relationship_graph': relationship_graph,
+            'metadata': extraction_metadata
+        }
     
-    async def _store_knowledge(self, extraction_results: Dict[str, Any], meaningful_units: List[Any]) -> None:
-        """Store extracted knowledge in Neo4j."""
-        # TODO: Implement in Phase 4
-        pass
+    async def _store_knowledge(self, extraction_results: Dict[str, Any], meaningful_units: List[MeaningfulUnit]) -> None:
+        """
+        Store extracted knowledge in Neo4j.
+        
+        This method stores all extracted entities, quotes, relationships, and insights,
+        linking them to their source MeaningfulUnits.
+        
+        Args:
+            extraction_results: Dict containing extracted knowledge
+            meaningful_units: List of MeaningfulUnits for reference
+        """
+        self.logger.info("Starting knowledge storage phase")
+        
+        if not extraction_results:
+            self.logger.warning("No extraction results to store")
+            return
+        
+        episode_id = self.current_episode_id
+        entities = extraction_results.get('entities', [])
+        quotes = extraction_results.get('quotes', [])
+        relationships = extraction_results.get('relationships', [])
+        insights = extraction_results.get('insights', [])
+        sentiments = extraction_results.get('sentiments', [])
+        
+        try:
+            # Store entities
+            entity_id_map = {}  # Map original entity to stored ID
+            for entity in entities:
+                entity_id = self.graph_storage.create_entity(
+                    entity_data=entity,
+                    episode_id=episode_id
+                )
+                entity_id_map[entity['value']] = entity_id
+                
+            self.logger.info(f"Stored {len(entities)} entities")
+            
+            # Store quotes linked to MeaningfulUnits
+            for quote in quotes:
+                # Find the source MeaningfulUnit
+                unit_id = quote.get('properties', {}).get('meaningful_unit_id')
+                
+                quote_id = self.graph_storage.create_quote(
+                    quote_data=quote,
+                    episode_id=episode_id,
+                    meaningful_unit_id=unit_id
+                )
+                
+            self.logger.info(f"Stored {len(quotes)} quotes")
+            
+            # Store relationships with resolved entity IDs
+            for relationship in relationships:
+                # Resolve source and target to stored entity IDs
+                source_id = entity_id_map.get(relationship['source'])
+                target_id = entity_id_map.get(relationship['target'])
+                
+                if source_id and target_id:
+                    self.graph_storage.create_relationship(
+                        relationship_data=relationship,
+                        source_id=source_id,
+                        target_id=target_id,
+                        episode_id=episode_id
+                    )
+                    
+            self.logger.info(f"Stored {len(relationships)} relationships")
+            
+            # Store insights linked to MeaningfulUnits
+            for insight in insights:
+                unit_id = insight.get('properties', {}).get('meaningful_unit_id')
+                
+                insight_id = self.graph_storage.create_insight(
+                    insight_data=insight,
+                    episode_id=episode_id,
+                    meaningful_unit_id=unit_id
+                )
+                
+            self.logger.info(f"Stored {len(insights)} insights")
+            
+            # Store sentiment analyses linked to MeaningfulUnits
+            for sentiment_data in sentiments:
+                unit_id = sentiment_data['unit_id']
+                sentiment_result = sentiment_data['sentiment']
+                
+                # Convert sentiment result to storable format
+                sentiment_dict = {
+                    'unit_id': unit_id,
+                    'overall_polarity': sentiment_result.overall_sentiment.polarity,
+                    'overall_score': sentiment_result.overall_sentiment.score,
+                    'emotions': sentiment_result.overall_sentiment.emotions,
+                    'attitudes': sentiment_result.overall_sentiment.attitudes,
+                    'energy_level': sentiment_result.overall_sentiment.energy_level,
+                    'engagement_level': sentiment_result.overall_sentiment.engagement_level,
+                    'speaker_sentiments': {
+                        speaker: {
+                            'polarity': sent.overall_sentiment.polarity,
+                            'score': sent.overall_sentiment.score,
+                            'dominant_emotion': sent.dominant_emotion,
+                            'emotional_range': sent.emotional_range
+                        }
+                        for speaker, sent in sentiment_result.speaker_sentiments.items()
+                    },
+                    'emotional_moments': [
+                        {
+                            'text': moment.text,
+                            'speaker': moment.speaker,
+                            'emotion': moment.emotion,
+                            'intensity': moment.intensity
+                        }
+                        for moment in sentiment_result.emotional_moments
+                    ],
+                    'sentiment_flow': sentiment_result.sentiment_flow.trajectory,
+                    'interaction_harmony': sentiment_result.interaction_dynamics.harmony_score,
+                    'discovered_sentiments': [
+                        {
+                            'type': ds.sentiment_type,
+                            'description': ds.description,
+                            'confidence': ds.confidence
+                        }
+                        for ds in sentiment_result.discovered_sentiments
+                    ],
+                    'confidence': sentiment_result.confidence
+                }
+                
+                # Store sentiment data (would need to add this method to graph_storage)
+                # For now, log that we would store it
+                self.logger.debug(f"Would store sentiment for unit {unit_id}: {sentiment_dict['overall_polarity']}")
+                
+            self.logger.info(f"Processed {len(sentiments)} sentiment analyses")
+            
+            self.logger.info("Knowledge storage complete")
+            
+        except Exception as e:
+            self.logger.error(f"Knowledge storage failed: {e}")
+            raise PipelineError(f"Failed to store knowledge: {e}") from e
+    
+    def _deduplicate_entities_globally(self, entities: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """
+        Deduplicate entities across all MeaningfulUnits.
+        
+        This method identifies and merges duplicate entities that may appear
+        across different units, preserving the most complete information.
+        
+        Args:
+            entities: List of all entities from all units
+            
+        Returns:
+            List of unique entities with merged information
+        """
+        entity_map = {}  # Key: (type, normalized_name) -> merged entity
+        
+        for entity in entities:
+            # Create a key for deduplication
+            entity_type = entity['type']
+            entity_name = entity['value'].strip().lower()
+            key = (entity_type, entity_name)
+            
+            if key in entity_map:
+                # Merge with existing entity
+                existing = entity_map[key]
+                
+                # Keep higher confidence
+                if entity.get('confidence', 0) > existing.get('confidence', 0):
+                    existing['confidence'] = entity['confidence']
+                
+                # Merge properties
+                existing_props = existing.get('properties', {})
+                new_props = entity.get('properties', {})
+                
+                # Combine descriptions
+                existing_desc = existing_props.get('description', '')
+                new_desc = new_props.get('description', '')
+                if new_desc and new_desc not in existing_desc:
+                    if existing_desc:
+                        existing_props['description'] = f"{existing_desc}. {new_desc}"
+                    else:
+                        existing_props['description'] = new_desc
+                
+                # Collect all MeaningfulUnit IDs
+                existing_units = existing_props.get('meaningful_unit_ids', [])
+                if not isinstance(existing_units, list):
+                    existing_units = [existing_units]
+                new_unit_id = new_props.get('meaningful_unit_id')
+                if new_unit_id and new_unit_id not in existing_units:
+                    existing_units.append(new_unit_id)
+                existing_props['meaningful_unit_ids'] = existing_units
+                
+                # Update properties
+                existing['properties'] = existing_props
+                
+            else:
+                # First occurrence of this entity
+                # Convert single unit_id to list for consistency
+                props = entity.get('properties', {})
+                if 'meaningful_unit_id' in props:
+                    props['meaningful_unit_ids'] = [props['meaningful_unit_id']]
+                entity['properties'] = props
+                entity_map[key] = entity
+        
+        # Return unique entities
+        unique_entities = list(entity_map.values())
+        
+        self.logger.info(
+            f"Deduplicated {len(entities)} entities to {len(unique_entities)} unique entities"
+        )
+        
+        return unique_entities
+    
+    def _build_relationship_graph(
+        self, entities: List[Dict[str, Any]], relationships: List[Dict[str, Any]]
+    ) -> Dict[str, Any]:
+        """
+        Build a graph structure from entities and relationships.
+        
+        This creates an adjacency representation of the knowledge graph
+        for analysis and visualization.
+        
+        Args:
+            entities: List of unique entities
+            relationships: List of all relationships
+            
+        Returns:
+            Graph structure with nodes and edges
+        """
+        # Create entity index for fast lookup
+        entity_index = {entity['value']: entity for entity in entities}
+        
+        # Build adjacency lists
+        graph = {
+            'nodes': entities,
+            'edges': relationships,
+            'adjacency': {},  # entity_value -> list of connected entities
+            'degree': {},     # entity_value -> number of connections
+            'type_distribution': {
+                'entities': {},
+                'relationships': {}
+            }
+        }
+        
+        # Initialize adjacency lists
+        for entity in entities:
+            entity_value = entity['value']
+            graph['adjacency'][entity_value] = []
+            graph['degree'][entity_value] = 0
+            
+            # Count entity types
+            entity_type = entity['type']
+            graph['type_distribution']['entities'][entity_type] = \
+                graph['type_distribution']['entities'].get(entity_type, 0) + 1
+        
+        # Build adjacency from relationships
+        for rel in relationships:
+            source = rel['source']
+            target = rel['target']
+            rel_type = rel['type']
+            
+            # Count relationship types
+            graph['type_distribution']['relationships'][rel_type] = \
+                graph['type_distribution']['relationships'].get(rel_type, 0) + 1
+            
+            # Add to adjacency if both entities exist
+            if source in entity_index and target in entity_index:
+                graph['adjacency'][source].append({
+                    'target': target,
+                    'type': rel_type,
+                    'properties': rel.get('properties', {})
+                })
+                graph['degree'][source] += 1
+                
+                # Handle bidirectional relationships
+                if rel.get('properties', {}).get('bidirectional', False):
+                    graph['adjacency'][target].append({
+                        'target': source,
+                        'type': rel_type,
+                        'properties': rel.get('properties', {})
+                    })
+                    graph['degree'][target] += 1
+        
+        # Calculate graph metrics
+        graph['metrics'] = {
+            'node_count': len(entities),
+            'edge_count': len(relationships),
+            'avg_degree': sum(graph['degree'].values()) / max(len(entities), 1),
+            'max_degree': max(graph['degree'].values()) if graph['degree'] else 0,
+            'connected_components': self._count_connected_components(graph['adjacency'])
+        }
+        
+        return graph
+    
+    def _count_connected_components(self, adjacency: Dict[str, List]) -> int:
+        """Count the number of connected components in the graph."""
+        visited = set()
+        components = 0
+        
+        def dfs(node):
+            visited.add(node)
+            for neighbor in adjacency.get(node, []):
+                if neighbor['target'] not in visited:
+                    dfs(neighbor['target'])
+        
+        for node in adjacency:
+            if node not in visited:
+                components += 1
+                dfs(node)
+        
+        return components
     
     async def _run_analysis(self, episode_id: str) -> Dict[str, Any]:
         """Run all analysis modules."""
@@ -571,6 +1030,9 @@ class UnifiedKnowledgePipeline:
         
         if not episode_id:
             raise PipelineError("episode_id is required in metadata")
+            
+        # Set current episode for extraction context
+        self.current_episode_id = episode_id
         
         self.logger.info(f"Starting pipeline processing for episode {episode_id}")
         self.logger.info(f"VTT file: {vtt_path}")
