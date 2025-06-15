@@ -535,7 +535,7 @@ class GraphStorageService:
             constraints = [
                 "CREATE CONSTRAINT IF NOT EXISTS FOR (p:Podcast) REQUIRE p.id IS UNIQUE",
                 "CREATE CONSTRAINT IF NOT EXISTS FOR (e:Episode) REQUIRE e.id IS UNIQUE",
-                "CREATE CONSTRAINT IF NOT EXISTS FOR (s:Segment) REQUIRE s.id IS UNIQUE",
+                # "CREATE CONSTRAINT IF NOT EXISTS FOR (s:Segment) REQUIRE s.id IS UNIQUE",  # REMOVED - only MeaningfulUnit
                 "CREATE CONSTRAINT IF NOT EXISTS FOR (m:MeaningfulUnit) REQUIRE m.id IS UNIQUE",
                 "CREATE CONSTRAINT IF NOT EXISTS FOR (en:Entity) REQUIRE en.id IS UNIQUE",
                 "CREATE CONSTRAINT IF NOT EXISTS FOR (t:Topic) REQUIRE t.name IS UNIQUE"
@@ -547,8 +547,8 @@ class GraphStorageService:
                 "CREATE INDEX IF NOT EXISTS FOR (e:Episode) ON (e.title)",
                 "CREATE INDEX IF NOT EXISTS FOR (e:Episode) ON (e.published_date)",
                 "CREATE INDEX IF NOT EXISTS FOR (e:Episode) ON (e.youtube_url)",
-                "CREATE INDEX IF NOT EXISTS FOR (s:Segment) ON (s.speaker)",
-                "CREATE INDEX IF NOT EXISTS FOR (s:Segment) ON (s.start_time)",
+                # "CREATE INDEX IF NOT EXISTS FOR (s:Segment) ON (s.speaker)",  # REMOVED - only MeaningfulUnit
+                # "CREATE INDEX IF NOT EXISTS FOR (s:Segment) ON (s.start_time)",  # REMOVED - only MeaningfulUnit
                 "CREATE INDEX IF NOT EXISTS FOR (m:MeaningfulUnit) ON (m.start_time)",
                 "CREATE INDEX IF NOT EXISTS FOR (m:MeaningfulUnit) ON (m.speaker_distribution)",
                 "CREATE INDEX IF NOT EXISTS FOR (en:Entity) ON (en.name)",
@@ -877,11 +877,7 @@ class GraphStorageService:
         Common relationship types:
             - MENTIONED_IN: Entity mentioned in MeaningfulUnit
             - EXTRACTED_FROM: Insight/Quote extracted from MeaningfulUnit
-            - FROM_SEGMENT: Alias for EXTRACTED_FROM (for backwards compatibility)
         """
-        # Map FROM_SEGMENT to EXTRACTED_FROM for consistency
-        if rel_type == "FROM_SEGMENT":
-            rel_type = "EXTRACTED_FROM"
             
         # Use the generic create_relationship method which works with any node type
         self.create_relationship(source_id, unit_id, rel_type, properties)
