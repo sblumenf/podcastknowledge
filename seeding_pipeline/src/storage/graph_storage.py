@@ -3,6 +3,7 @@
 from contextlib import contextmanager
 from datetime import datetime
 from typing import Dict, Any, List, Optional, Tuple
+import hashlib
 import json
 import logging
 import threading
@@ -882,6 +883,483 @@ class GraphStorageService:
         # Use the generic create_relationship method which works with any node type
         self.create_relationship(source_id, unit_id, rel_type, properties)
         logger.debug(f"Created {rel_type} relationship from {source_id} to MeaningfulUnit {unit_id}")
+    
+    def create_episode(self, episode_metadata: Dict[str, Any]) -> str:
+        """Create or retrieve an episode node in Neo4j.
+        
+        This method is idempotent - if the episode already exists, it returns the existing ID.
+        
+        Args:
+            episode_metadata: Dictionary containing:
+                - episode_id: Unique identifier (required)
+                - title: Episode title
+                - description: Episode description
+                - published_date: Publication date
+                - youtube_url: YouTube URL
+                - podcast_info: Optional podcast metadata dict
+                
+        Returns:
+            Episode ID
+            
+        Raises:
+            ValueError: If episode_id is missing
+            ProviderError: If creation fails
+        """
+        if 'episode_id' not in episode_metadata:
+            raise ValueError("episode_metadata must contain 'episode_id'")
+            
+        episode_id = episode_metadata['episode_id']
+        
+        with self._lock:
+            try:
+                with self.session() as session:
+                    # First check if episode already exists
+                    check_query = """
+                    MATCH (e:Episode {id: $episode_id})
+                    RETURN e.id AS id
+                    """
+                    result = session.run(check_query, episode_id=episode_id)
+                    existing = result.single()
+                    
+                    if existing:
+                        logger.debug(f"Episode {episode_id} already exists")
+                        return existing['id']
+                    
+                    # Create new episode
+                    episode_data = {
+                        'id': episode_id,
+                        'title': episode_metadata.get('title', ''),
+                        'description': episode_metadata.get('description', ''),
+                        'published_date': episode_metadata.get('published_date', ''),
+                        'youtube_url': episode_metadata.get('youtube_url', ''),
+                        'created_at': datetime.now().isoformat(),
+                        'updated_at': datetime.now().isoformat()
+                    }
+                    
+                    # Handle podcast relationship if podcast_info provided
+                    podcast_info = episode_metadata.get('podcast_info', {})
+                    if podcast_info and 'name' in podcast_info:
+                        # Create episode and podcast, link them
+                        cypher = """
+                        MERGE (p:Podcast {id: $podcast_id})
+                        ON CREATE SET p.name = $podcast_name, p.host = $podcast_host
+                        CREATE (e:Episode {
+                            id: $id,
+                            title: $title,
+                            description: $description,
+                            published_date: $published_date,
+                            youtube_url: $youtube_url,
+                            created_at: $created_at,
+                            updated_at: $updated_at
+                        })
+                        CREATE (e)-[:PART_OF]->(p)
+                        RETURN e.id AS id
+                        """
+                        params = {
+                            **episode_data,
+                            'podcast_id': podcast_info['name'],
+                            'podcast_name': podcast_info['name'],
+                            'podcast_host': podcast_info.get('host', '')
+                        }
+                    else:
+                        # Just create episode
+                        cypher = """
+                        CREATE (e:Episode {
+                            id: $id,
+                            title: $title,
+                            description: $description,
+                            published_date: $published_date,
+                            youtube_url: $youtube_url,
+                            created_at: $created_at,
+                            updated_at: $updated_at
+                        })
+                        RETURN e.id AS id
+                        """
+                        params = episode_data
+                    
+                    result = session.run(cypher, **params)
+                    created = result.single()
+                    
+                    if not created:
+                        raise ProviderError("neo4j", "Failed to create episode")
+                        
+                    logger.info(f"Created episode {episode_id}")
+                    return created['id']
+                    
+            except Exception as e:
+                logger.error(f"Failed to create episode: {e}")
+                raise ProviderError("neo4j", f"Failed to create episode: {e}") from e
+    
+    def create_entity(self, entity_data: Dict[str, Any], episode_id: str) -> str:
+        """Create an entity node with schema-less type support.
+        
+        Args:
+            entity_data: Dictionary containing:
+                - type: Entity type (schema-less, e.g., PERSON, TECHNOLOGY, QUANTUM_RESEARCHER)
+                - value: Entity name/value
+                - confidence: Confidence score
+                - start_time/end_time: Timing information
+                - properties: Additional properties dict
+            episode_id: ID of the episode this entity belongs to
+            
+        Returns:
+            Generated entity ID
+            
+        Raises:
+            ValueError: If required fields are missing
+            ProviderError: If creation fails
+        """
+        # Validate required fields
+        required_fields = ['type', 'value']
+        for field in required_fields:
+            if field not in entity_data:
+                raise ValueError(f"entity_data missing required field: {field}")
+        
+        # Generate unique ID
+        entity_type = entity_data['type'].upper()
+        entity_value = entity_data['value']
+        entity_hash = hashlib.md5(f"{entity_value}{entity_type}".encode()).hexdigest()[:8]
+        entity_id = f"entity_{episode_id}_{entity_type.lower()}_{entity_hash}"
+        
+        with self._lock:
+            try:
+                with self.session() as session:
+                    # Flatten properties for storage
+                    properties = entity_data.get('properties', {})
+                    
+                    # Build entity node properties
+                    node_props = {
+                        'id': entity_id,
+                        'name': entity_value,
+                        'entity_type': entity_type,
+                        'confidence': float(entity_data.get('confidence', 0.85)),
+                        'start_time': float(entity_data.get('start_time', 0)),
+                        'end_time': float(entity_data.get('end_time', 0)),
+                        'extraction_method': properties.get('extraction_method', 'unknown'),
+                        'description': properties.get('description', ''),
+                        'meaningful_unit_id': properties.get('meaningful_unit_id', '')
+                    }
+                    
+                    # Add any additional properties
+                    for key, value in properties.items():
+                        if key not in node_props and value is not None:
+                            # Convert complex types to JSON strings
+                            if isinstance(value, (dict, list)):
+                                node_props[key] = json.dumps(value)
+                            else:
+                                node_props[key] = value
+                    
+                    # Create entity node and relationship to episode
+                    cypher = """
+                    MATCH (e:Episode {id: $episode_id})
+                    CREATE (en:Entity {
+                        id: $id,
+                        name: $name,
+                        entity_type: $entity_type,
+                        confidence: $confidence,
+                        start_time: $start_time,
+                        end_time: $end_time,
+                        extraction_method: $extraction_method,
+                        description: $description,
+                        meaningful_unit_id: $meaningful_unit_id
+                    })
+                    CREATE (en)-[:MENTIONED_IN {confidence: $confidence}]->(e)
+                    RETURN en.id AS id
+                    """
+                    
+                    result = session.run(cypher, episode_id=episode_id, **node_props)
+                    created = result.single()
+                    
+                    if not created:
+                        raise ProviderError("neo4j", "Failed to create entity")
+                    
+                    logger.debug(f"Created entity {entity_id} of type {entity_type}")
+                    return created['id']
+                    
+            except Exception as e:
+                logger.error(f"Failed to create entity: {e}")
+                raise ProviderError("neo4j", f"Failed to create entity: {e}") from e
+    
+    def create_quote(self, quote_data: Dict[str, Any], episode_id: str, meaningful_unit_id: str) -> str:
+        """Create a quote node linked to a MeaningfulUnit.
+        
+        Args:
+            quote_data: Dictionary containing quote information
+            episode_id: ID of the episode
+            meaningful_unit_id: ID of the source MeaningfulUnit
+            
+        Returns:
+            Generated quote ID
+            
+        Raises:
+            ValueError: If required fields are missing
+            ProviderError: If creation fails
+        """
+        # Validate required fields
+        if 'text' not in quote_data:
+            raise ValueError("quote_data must contain 'text'")
+        
+        # Generate unique ID
+        quote_text = quote_data['text']
+        quote_hash = hashlib.md5(quote_text[:50].encode()).hexdigest()[:8]
+        quote_id = f"quote_{episode_id}_{meaningful_unit_id}_{quote_hash}"
+        
+        with self._lock:
+            try:
+                with self.session() as session:
+                    # Get properties
+                    properties = quote_data.get('properties', {})
+                    
+                    # Build quote node properties
+                    node_props = {
+                        'id': quote_id,
+                        'text': quote_text,
+                        'speaker': quote_data.get('speaker', 'Unknown'),
+                        'quote_type': quote_data.get('quote_type', 'general'),
+                        'importance_score': float(quote_data.get('importance_score', 0.7)),
+                        'confidence': float(quote_data.get('confidence', 0.85)),
+                        'timestamp_start': float(quote_data.get('timestamp_start', 0)),
+                        'timestamp_end': float(quote_data.get('timestamp_end', 0)),
+                        'word_count': int(properties.get('word_count', len(quote_text.split()))),
+                        'context': properties.get('context', ''),
+                        'extraction_method': properties.get('extraction_method', 'unknown')
+                    }
+                    
+                    # Create quote with relationships to both MeaningfulUnit and Episode
+                    cypher = """
+                    MATCH (e:Episode {id: $episode_id})
+                    MATCH (m:MeaningfulUnit {id: $meaningful_unit_id})
+                    CREATE (q:Quote {
+                        id: $id,
+                        text: $text,
+                        speaker: $speaker,
+                        quote_type: $quote_type,
+                        importance_score: $importance_score,
+                        confidence: $confidence,
+                        timestamp_start: $timestamp_start,
+                        timestamp_end: $timestamp_end,
+                        word_count: $word_count,
+                        context: $context,
+                        extraction_method: $extraction_method
+                    })
+                    CREATE (q)-[:EXTRACTED_FROM]->(m)
+                    CREATE (q)-[:PART_OF]->(e)
+                    RETURN q.id AS id
+                    """
+                    
+                    result = session.run(
+                        cypher,
+                        episode_id=episode_id,
+                        meaningful_unit_id=meaningful_unit_id,
+                        **node_props
+                    )
+                    created = result.single()
+                    
+                    if not created:
+                        raise ProviderError("neo4j", "Failed to create quote")
+                    
+                    logger.debug(f"Created quote {quote_id} from unit {meaningful_unit_id}")
+                    return created['id']
+                    
+            except Exception as e:
+                logger.error(f"Failed to create quote: {e}")
+                raise ProviderError("neo4j", f"Failed to create quote: {e}") from e
+    
+    def create_insight(self, insight_data: Dict[str, Any], episode_id: str, meaningful_unit_id: str) -> str:
+        """Create an insight node linked to a MeaningfulUnit.
+        
+        Args:
+            insight_data: Dictionary containing insight information
+            episode_id: ID of the episode
+            meaningful_unit_id: ID of the source MeaningfulUnit
+            
+        Returns:
+            Generated insight ID
+            
+        Raises:
+            ValueError: If required fields are missing
+            ProviderError: If creation fails
+        """
+        # Validate required fields
+        if 'text' not in insight_data:
+            raise ValueError("insight_data must contain 'text'")
+        
+        # Generate unique ID
+        insight_text = insight_data['text']
+        insight_hash = hashlib.md5(insight_text[:50].encode()).hexdigest()[:8]
+        insight_id = f"insight_{episode_id}_{meaningful_unit_id}_{insight_hash}"
+        
+        with self._lock:
+            try:
+                with self.session() as session:
+                    # Get properties
+                    properties = insight_data.get('properties', {})
+                    
+                    # Build insight node properties
+                    node_props = {
+                        'id': insight_id,
+                        'text': insight_text,
+                        'insight_type': insight_data.get('insight_type', 'observation'),
+                        'importance': float(insight_data.get('importance', 0.7)),
+                        'confidence': float(insight_data.get('confidence', 0.85)),
+                        'timestamp': float(insight_data.get('timestamp', 0)),
+                        'supporting_evidence': properties.get('supporting_evidence', ''),
+                        'extraction_method': properties.get('extraction_method', 'unknown')
+                    }
+                    
+                    # Handle themes list
+                    themes = properties.get('themes', [])
+                    if themes:
+                        node_props['themes'] = json.dumps(themes)
+                    
+                    # Create insight with relationships to both MeaningfulUnit and Episode
+                    cypher = """
+                    MATCH (e:Episode {id: $episode_id})
+                    MATCH (m:MeaningfulUnit {id: $meaningful_unit_id})
+                    CREATE (i:Insight {
+                        id: $id,
+                        text: $text,
+                        insight_type: $insight_type,
+                        importance: $importance,
+                        confidence: $confidence,
+                        timestamp: $timestamp,
+                        supporting_evidence: $supporting_evidence,
+                        extraction_method: $extraction_method
+                    })
+                    CREATE (i)-[:EXTRACTED_FROM]->(m)
+                    CREATE (i)-[:PART_OF]->(e)
+                    RETURN i.id AS id
+                    """
+                    
+                    result = session.run(
+                        cypher,
+                        episode_id=episode_id,
+                        meaningful_unit_id=meaningful_unit_id,
+                        **node_props
+                    )
+                    created = result.single()
+                    
+                    if not created:
+                        raise ProviderError("neo4j", "Failed to create insight")
+                    
+                    logger.debug(f"Created insight {insight_id} from unit {meaningful_unit_id}")
+                    return created['id']
+                    
+            except Exception as e:
+                logger.error(f"Failed to create insight: {e}")
+                raise ProviderError("neo4j", f"Failed to create insight: {e}") from e
+    
+    def create_sentiment(self, sentiment_data: Dict[str, Any], episode_id: str, meaningful_unit_id: str) -> str:
+        """Create a sentiment analysis node linked to a MeaningfulUnit.
+        
+        Args:
+            sentiment_data: Dictionary containing sentiment analysis results
+            episode_id: ID of the episode
+            meaningful_unit_id: ID of the analyzed MeaningfulUnit
+            
+        Returns:
+            Generated sentiment ID
+            
+        Raises:
+            ProviderError: If creation fails
+        """
+        # Generate unique ID
+        sentiment_id = f"sentiment_{episode_id}_{meaningful_unit_id}"
+        
+        with self._lock:
+            try:
+                with self.session() as session:
+                    # Build sentiment node properties
+                    node_props = {
+                        'id': sentiment_id,
+                        'polarity': sentiment_data.get('overall_polarity', 'neutral'),
+                        'score': float(sentiment_data.get('overall_score', 0.0)),
+                        'energy_level': float(sentiment_data.get('energy_level', 0.5)),
+                        'engagement_level': float(sentiment_data.get('engagement_level', 0.5)),
+                        'sentiment_flow': sentiment_data.get('sentiment_flow', 'stable'),
+                        'interaction_harmony': float(sentiment_data.get('interaction_harmony', 0.5)),
+                        'confidence': float(sentiment_data.get('confidence', 0.85))
+                    }
+                    
+                    # Store complex properties as JSON strings
+                    complex_props = ['emotions', 'attitudes', 'speaker_sentiments', 
+                                   'emotional_moments', 'discovered_sentiments']
+                    for prop in complex_props:
+                        if prop in sentiment_data and sentiment_data[prop]:
+                            node_props[prop] = json.dumps(sentiment_data[prop])
+                    
+                    # Create sentiment with relationship to MeaningfulUnit
+                    cypher = """
+                    MATCH (m:MeaningfulUnit {id: $meaningful_unit_id})
+                    CREATE (s:Sentiment {
+                        id: $id,
+                        polarity: $polarity,
+                        score: $score,
+                        energy_level: $energy_level,
+                        engagement_level: $engagement_level,
+                        sentiment_flow: $sentiment_flow,
+                        interaction_harmony: $interaction_harmony,
+                        confidence: $confidence
+                    })
+                    CREATE (s)-[:ANALYZED_FROM]->(m)
+                    RETURN s.id AS id
+                    """
+                    
+                    result = session.run(
+                        cypher,
+                        meaningful_unit_id=meaningful_unit_id,
+                        **node_props
+                    )
+                    created = result.single()
+                    
+                    if not created:
+                        raise ProviderError("neo4j", "Failed to create sentiment")
+                    
+                    logger.debug(f"Created sentiment {sentiment_id} for unit {meaningful_unit_id}")
+                    return created['id']
+                    
+            except Exception as e:
+                logger.error(f"Failed to create sentiment: {e}")
+                raise ProviderError("neo4j", f"Failed to create sentiment: {e}") from e
+    
+    def create_topic_for_episode(self, topic_name: str, episode_id: str) -> bool:
+        """Create a Topic node and link it to an Episode.
+        
+        This method is idempotent - it creates the Topic if it doesn't exist
+        and creates the HAS_TOPIC relationship if it doesn't exist.
+        
+        Args:
+            topic_name: Name of the topic/theme
+            episode_id: ID of the episode
+            
+        Returns:
+            True if successful, False otherwise
+        """
+        with self._lock:
+            try:
+                with self.session() as session:
+                    # Create topic and relationship in one query
+                    cypher = """
+                    MATCH (e:Episode {id: $episode_id})
+                    MERGE (t:Topic {name: $topic_name})
+                    MERGE (e)-[:HAS_TOPIC]->(t)
+                    RETURN t.name AS topic
+                    """
+                    
+                    result = session.run(
+                        cypher,
+                        episode_id=episode_id,
+                        topic_name=topic_name
+                    )
+                    
+                    if result.single():
+                        logger.debug(f"Created/linked topic '{topic_name}' to episode {episode_id}")
+                        return True
+                    return False
+                    
+            except Exception as e:
+                logger.error(f"Failed to create topic: {e}")
+                return False
     
     def get_performance_metrics(self) -> Dict[str, Any]:
         """Get performance metrics.

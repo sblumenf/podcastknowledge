@@ -836,3 +836,230 @@ class EntityResolver:
         end = min(len(text), max(pos1 + len(name1), pos2 + len(name2)) + window)
         
         return text[start:end].strip()
+    
+    def resolve_entities_for_meaningful_units(
+        self,
+        entities: List[Dict[str, Any]],
+        preserve_unit_associations: bool = True
+    ) -> List[Dict[str, Any]]:
+        """
+        Resolve entities extracted from MeaningfulUnits with special handling.
+        
+        This method is optimized for schema-less entities from MeaningfulUnits,
+        preserving unit associations and handling dynamic entity types.
+        
+        Args:
+            entities: List of entity dictionaries from MeaningfulUnits
+            preserve_unit_associations: Whether to track all unit associations
+            
+        Returns:
+            List of resolved entities with merged properties
+        """
+        if not entities:
+            return []
+        
+        # Group entities by type and normalized name for efficient resolution
+        entity_groups = defaultdict(list)
+        
+        for entity in entities:
+            entity_type = entity.get('type', 'UNKNOWN')
+            entity_name = entity.get('value', entity.get('name', ''))
+            normalized_name = self.normalize_entity_name(entity_name)
+            
+            # Create key including type for schema-less entities
+            key = (entity_type, normalized_name)
+            entity_groups[key].append(entity)
+        
+        # Resolve each group
+        resolved_entities = []
+        
+        for (entity_type, normalized_name), group in entity_groups.items():
+            if len(group) == 1:
+                # No duplicates, just clean up the entity
+                entity = group[0].copy()
+                if preserve_unit_associations:
+                    # Ensure meaningful_unit_ids is a list
+                    unit_id = entity.get('properties', {}).get('meaningful_unit_id')
+                    if unit_id:
+                        entity.setdefault('properties', {})['meaningful_unit_ids'] = [unit_id]
+                resolved_entities.append(entity)
+            else:
+                # Merge duplicates
+                merged = self._merge_meaningful_unit_entities(group, preserve_unit_associations)
+                resolved_entities.append(merged)
+                self.resolution_metrics["merges_performed"] += len(group) - 1
+                self.resolution_metrics["merge_types"]["meaningful_unit_merge"] += 1
+        
+        # Check for cross-type matches (same name, different types)
+        if self.config.merge_singular_plural:
+            resolved_entities = self._merge_cross_type_entities(resolved_entities)
+        
+        self.resolution_metrics["entities_after"] = len(resolved_entities)
+        
+        logger.info(
+            f"Resolved {len(entities)} entities to {len(resolved_entities)} "
+            f"({self.resolution_metrics['merges_performed']} merges)"
+        )
+        
+        return resolved_entities
+    
+    def _merge_meaningful_unit_entities(
+        self,
+        entity_group: List[Dict[str, Any]],
+        preserve_unit_associations: bool
+    ) -> Dict[str, Any]:
+        """
+        Merge entities from multiple MeaningfulUnits.
+        
+        Args:
+            entity_group: List of similar entities to merge
+            preserve_unit_associations: Whether to track all unit associations
+            
+        Returns:
+            Merged entity with combined properties
+        """
+        # Start with highest confidence entity
+        sorted_group = sorted(entity_group, key=lambda x: x.get('confidence', 0.5), reverse=True)
+        merged = sorted_group[0].copy()
+        
+        # Collect all unique properties
+        all_descriptions = []
+        all_unit_ids = []
+        all_properties = {}
+        max_confidence = merged.get('confidence', 0.5)
+        
+        for entity in entity_group:
+            # Collect descriptions
+            props = entity.get('properties', {})
+            desc = props.get('description', '')
+            if desc and desc not in all_descriptions:
+                all_descriptions.append(desc)
+            
+            # Collect unit IDs
+            unit_id = props.get('meaningful_unit_id')
+            if unit_id and unit_id not in all_unit_ids:
+                all_unit_ids.append(unit_id)
+            
+            # Track max confidence
+            confidence = entity.get('confidence', 0.5)
+            max_confidence = max(max_confidence, confidence)
+            
+            # Merge additional properties
+            for key, value in props.items():
+                if key not in ['description', 'meaningful_unit_id', 'meaningful_unit_ids']:
+                    if key not in all_properties:
+                        all_properties[key] = value
+        
+        # Update merged entity
+        merged['confidence'] = max_confidence
+        
+        # Merge properties
+        merged_props = merged.get('properties', {})
+        
+        # Combine descriptions
+        if all_descriptions:
+            merged_props['description'] = ' | '.join(all_descriptions)
+        
+        # Track all unit associations
+        if preserve_unit_associations and all_unit_ids:
+            merged_props['meaningful_unit_ids'] = all_unit_ids
+            merged_props['unit_count'] = len(all_unit_ids)
+        
+        # Add other properties
+        merged_props.update(all_properties)
+        
+        merged['properties'] = merged_props
+        
+        return merged
+    
+    def _merge_cross_type_entities(self, entities: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """
+        Merge entities with same name but different types if appropriate.
+        
+        This handles cases where the LLM might classify the same entity
+        differently in different contexts.
+        
+        Args:
+            entities: List of resolved entities
+            
+        Returns:
+            Further resolved entities with cross-type merges
+        """
+        # Group by normalized name only
+        name_groups = defaultdict(list)
+        
+        for entity in entities:
+            entity_name = entity.get('value', entity.get('name', ''))
+            normalized_name = self.normalize_entity_name(entity_name)
+            name_groups[normalized_name].append(entity)
+        
+        # Check each group for potential cross-type merges
+        final_entities = []
+        
+        for normalized_name, group in name_groups.items():
+            if len(group) == 1:
+                final_entities.append(group[0])
+            else:
+                # Check if types are compatible for merging
+                types = [e.get('type', 'UNKNOWN') for e in group]
+                unique_types = set(types)
+                
+                # Define compatible type groups
+                compatible_groups = [
+                    {'PERSON', 'RESEARCHER', 'AUTHOR', 'SCIENTIST', 'EXPERT'},
+                    {'ORGANIZATION', 'COMPANY', 'INSTITUTION', 'UNIVERSITY'},
+                    {'TECHNOLOGY', 'FRAMEWORK', 'TOOL', 'LIBRARY', 'PLATFORM'},
+                    {'CONCEPT', 'THEORY', 'METHODOLOGY', 'PRINCIPLE'}
+                ]
+                
+                # Check if all types are in same compatible group
+                should_merge = False
+                for compat_group in compatible_groups:
+                    if all(t.upper() in compat_group for t in unique_types):
+                        should_merge = True
+                        break
+                
+                if should_merge:
+                    # Merge compatible types
+                    merged = self._merge_meaningful_unit_entities(group, True)
+                    # Keep the most specific type
+                    merged['type'] = self._get_most_specific_type(unique_types)
+                    final_entities.append(merged)
+                    self.resolution_metrics["merges_performed"] += len(group) - 1
+                    self.resolution_metrics["merge_types"]["cross_type_merge"] += 1
+                else:
+                    # Keep separate if types are incompatible
+                    final_entities.extend(group)
+        
+        return final_entities
+    
+    def _get_most_specific_type(self, types: Set[str]) -> str:
+        """
+        Select the most specific type from a set of compatible types.
+        
+        Args:
+            types: Set of entity types
+            
+        Returns:
+            Most specific type
+        """
+        # Type specificity hierarchy
+        specificity_order = [
+            # Most specific first
+            'RESEARCHER', 'SCIENTIST', 'AUTHOR', 'EXPERT',
+            'UNIVERSITY', 'INSTITUTION', 'COMPANY',
+            'FRAMEWORK', 'LIBRARY', 'PLATFORM', 'TOOL',
+            'METHODOLOGY', 'PRINCIPLE', 'THEORY',
+            # More general
+            'PERSON', 'ORGANIZATION', 'TECHNOLOGY', 'CONCEPT',
+            # Fallback
+            'ENTITY', 'UNKNOWN'
+        ]
+        
+        # Find the most specific type present
+        for specific_type in specificity_order:
+            if specific_type in types:
+                return specific_type
+        
+        # Return the first type if none match
+        return list(types)[0] if types else 'UNKNOWN'

@@ -157,13 +157,16 @@ class KnowledgeExtractor:
     @track_component_impact("knowledge_extractor", "2.0.0")
     @trace_operation("extract_knowledge")
     def extract_knowledge(
-        self, segment: Segment, episode_metadata: Optional[Dict[str, Any]] = None, **kwargs
+        self, meaningful_unit: Any, episode_metadata: Optional[Dict[str, Any]] = None, **kwargs
     ) -> ExtractionResult:
         """
-        Extract knowledge from a segment using schemaless approach.
+        Extract knowledge from a MeaningfulUnit using schemaless approach.
+        
+        This method now works with MeaningfulUnits instead of segments,
+        allowing for better context and more accurate extraction.
 
         Args:
-            segment: Segment to extract knowledge from
+            meaningful_unit: MeaningfulUnit to extract knowledge from
             episode_metadata: Episode context information
             **kwargs: Additional context
 
@@ -174,20 +177,20 @@ class KnowledgeExtractor:
         start_time = time.time()
         
         if self.config.dry_run:
-            return self._preview_extraction(segment)
+            return self._preview_extraction(meaningful_unit)
 
-        # Handle both Segment types (models.Segment and interfaces.TranscriptSegment)
-        if hasattr(segment, "confidence") and not hasattr(segment, "episode_id"):
-            # Convert interfaces.TranscriptSegment to models.Segment format
-            from src.core.models import Segment as ModelsSegment
-
-            segment = ModelsSegment(
-                id=segment.id,
-                text=segment.text,
-                start_time=segment.start_time,
-                end_time=segment.end_time,
-                speaker=getattr(segment, "speaker", None),
-            )
+        # Create a segment-like object for compatibility with existing methods
+        # This allows minimal changes while supporting MeaningfulUnits
+        from src.core.models import Segment as ModelsSegment
+        
+        # MeaningfulUnit has text property and timing information
+        segment_adapter = ModelsSegment(
+            id=getattr(meaningful_unit, 'id', f"unit_{meaningful_unit.start_time}"),
+            text=meaningful_unit.text,  # MeaningfulUnit concatenates all segment texts
+            start_time=meaningful_unit.start_time,
+            end_time=meaningful_unit.end_time,
+            speaker=None  # Will use speaker_distribution instead
+        )
 
         # Extract different types of knowledge
         entities = []
@@ -196,44 +199,53 @@ class KnowledgeExtractor:
         insights = []
 
         # Extract quotes using pattern matching and LLM
+        # Now with full context from MeaningfulUnit
         if self.config.extract_quotes:
-            quotes = self._extract_quotes(segment)
+            quotes = self._extract_quotes_from_unit(meaningful_unit, segment_adapter)
 
-        # For now, use simplified entity extraction
-        # In a full implementation, this would integrate with SimpleKGPipeline
-        entities = self._extract_basic_entities(segment)
+        # Extract entities with schema-less approach
+        # Allow LLM to discover ANY entity type based on content
+        entities = self._extract_entities_schemaless(meaningful_unit, segment_adapter)
 
         # Extract relationships between entities
-        relationships = self._extract_relationships(entities, quotes, segment)
+        relationships = self._extract_relationships_schemaless(entities, quotes, meaningful_unit)
         
-        # Extract insights from the segment
-        insights = self._extract_insights_from_segment(segment)
+        # Extract insights from the meaningful unit
+        insights = self._extract_insights_from_unit(meaningful_unit, segment_adapter)
 
         # Build metadata
         metadata = {
             "extraction_timestamp": datetime.now().isoformat(),
-            "segment_id": getattr(segment, 'id', None),
+            "meaningful_unit_id": meaningful_unit.id,
             "extraction_mode": "schemaless",
-            "text_length": len(segment.text),
+            "text_length": len(meaningful_unit.text),
             "entity_count": len(entities),
             "quote_count": len(quotes),
             "relationship_count": len(relationships),
+            "insight_count": len(insights),
+            "speaker_distribution": meaningful_unit.speaker_distribution,
+            "unit_type": meaningful_unit.unit_type,
+            "themes": meaningful_unit.themes,
             "episode_metadata": episode_metadata,
         }
 
-        # Track contribution (simplified for testing)
-        if entities or quotes or relationships:
+        # Track contribution
+        if entities or quotes or relationships or insights:
             try:
                 tracker = get_tracker()
                 # Use track_impact context manager approach
                 with tracker.track_impact("knowledge_extractor") as impact:
-                    impact.add_items(len(entities) + len(quotes) + len(relationships))
+                    impact.add_items(len(entities) + len(quotes) + len(relationships) + len(insights))
                     impact.add_metadata(
                         "entity_types", list(set(e.get("type", "Unknown") for e in entities))
                     )
                     impact.add_metadata(
                         "quote_types", list(set(q.get("type", "general") for q in quotes))
                     )
+                    impact.add_metadata(
+                        "insight_types", list(set(i.get("type", "Unknown") for i in insights))
+                    )
+                    impact.add_metadata("unit_type", meaningful_unit.unit_type)
             except Exception:
                 # Don't fail extraction if tracking fails
                 pass
@@ -242,15 +254,18 @@ class KnowledgeExtractor:
         extraction_time = time.time() - start_time
         log_performance_metric(
             logger,
-            "extraction.segment_time",
+            "extraction.meaningful_unit_time",
             extraction_time,
             unit="seconds",
             operation="extract_knowledge",
             tags={
-                'segment_id': str(getattr(segment, 'id', 'unknown')),
+                'meaningful_unit_id': str(meaningful_unit.id),
                 'entity_count': str(len(entities)),
                 'quote_count': str(len(quotes)),
-                'relationship_count': str(len(relationships))
+                'relationship_count': str(len(relationships)),
+                'insight_count': str(len(insights)),
+                'unit_type': meaningful_unit.unit_type,
+                'text_length': str(len(meaningful_unit.text))
             }
         )
         
@@ -772,6 +787,430 @@ class KnowledgeExtractor:
                     )
 
         return relationships
+
+    def _extract_quotes_from_unit(self, meaningful_unit: Any, segment_adapter: Segment) -> List[Dict[str, Any]]:
+        """
+        Extract quotes from a MeaningfulUnit using LLM-based extraction.
+        
+        This method handles larger text chunks and multiple speakers.
+        
+        Args:
+            meaningful_unit: MeaningfulUnit containing concatenated segment texts
+            segment_adapter: Segment-like adapter for compatibility
+            
+        Returns:
+            List of quote dictionaries
+        """
+        quotes = []
+        
+        try:
+            # Build context about speakers in this unit
+            speaker_context = ""
+            if meaningful_unit.speaker_distribution:
+                speakers = list(meaningful_unit.speaker_distribution.keys())
+                speaker_context = f"Speakers in this conversation: {', '.join(speakers)}"
+            
+            # Use LLM to extract high-impact quotes from the larger context
+            prompt = f"""Extract meaningful, impactful, or insightful quotes from this conversation segment. 
+            {speaker_context}
+            
+            Focus on statements that are:
+            - Memorable or thought-provoking
+            - Educational or instructional 
+            - Emotional or personal revelations
+            - Key insights or realizations
+            - Important advice or recommendations
+            - Controversial or debate-worthy
+            - Humorous or entertaining
+            
+            Return as a JSON list where each quote has:
+            - text: the exact quote text (10-100 words)
+            - speaker: who said it (must be one of the speakers mentioned above)
+            - quote_type: one of "insightful", "educational", "personal", "advice", "controversial", "humorous", "philosophical", "technical"
+            - importance: score from 0.0 to 1.0 indicating significance
+            - context: brief description of why this quote is meaningful
+            
+            Text: {meaningful_unit.text}
+            
+            Return only the JSON list, no other text."""
+            
+            response = self.llm_service.complete(prompt)
+            
+            # Parse JSON response
+            import json
+            try:
+                # Clean response to ensure it's valid JSON
+                response_text = response.strip()
+                if response_text.startswith("```json"):
+                    response_text = response_text[7:]
+                if response_text.endswith("```"):
+                    response_text = response_text[:-3]
+                response_text = response_text.strip()
+                
+                extracted_quotes = json.loads(response_text)
+                
+                # Convert to expected format
+                for i, quote_data in enumerate(extracted_quotes):
+                    if isinstance(quote_data, dict) and 'text' in quote_data:
+                        quote_text = quote_data['text']
+                        speaker = quote_data.get('speaker', 'Unknown')
+                        quote_type = quote_data.get('quote_type', 'general')
+                        importance = float(quote_data.get('importance', 0.7))
+                        context = quote_data.get('context', '')
+                        
+                        # For MeaningfulUnits, we use the unit's time range
+                        # Position quotes relative to unit start
+                        relative_position = i / max(len(extracted_quotes), 1)
+                        duration = meaningful_unit.end_time - meaningful_unit.start_time
+                        timestamp = meaningful_unit.start_time + (duration * relative_position)
+                        
+                        quote = {
+                            "type": "Quote",
+                            "text": quote_text,
+                            "value": quote_text,  # Keep for backward compatibility
+                            "speaker": speaker,
+                            "quote_type": quote_type,
+                            "timestamp_start": timestamp,
+                            "timestamp_end": timestamp + self._estimate_quote_duration(quote_text),
+                            "start_time": timestamp,  # Keep for backward compatibility
+                            "end_time": timestamp + self._estimate_quote_duration(quote_text),
+                            "importance_score": importance,
+                            "confidence": 0.9,  # Higher confidence for MeaningfulUnit extraction
+                            "properties": {
+                                "extraction_method": "meaningful_unit_llm",
+                                "word_count": len(quote_text.split()),
+                                "quote_index": i,
+                                "meaningful_unit_id": meaningful_unit.id,
+                                "context": context,
+                                "unit_type": meaningful_unit.unit_type
+                            },
+                        }
+                        
+                        # Only include if meets importance threshold
+                        if quote["importance_score"] >= self.config.quote_importance_threshold:
+                            quotes.append(quote)
+                
+                return self._deduplicate_quotes(quotes)
+                
+            except json.JSONDecodeError as e:
+                self.logger.warning(f"Failed to parse LLM quote response as JSON: {e}")
+                return []
+                
+        except Exception as e:
+            self.logger.error(f"Quote extraction from MeaningfulUnit failed: {e}")
+            return []
+    
+    def _extract_entities_schemaless(self, meaningful_unit: Any, segment_adapter: Segment) -> List[Dict[str, Any]]:
+        """
+        Extract entities using schema-less approach allowing ANY entity type.
+        
+        This method allows the LLM to discover and create any entity type based
+        on the content, not limited to predefined types. Base types are provided
+        as examples only.
+        
+        Args:
+            meaningful_unit: MeaningfulUnit to extract entities from
+            segment_adapter: Segment adapter for compatibility
+            
+        Returns:
+            List of entity dictionaries with dynamic types
+        """
+        # Check cache first using unit text
+        cached = self._check_entity_cache(meaningful_unit.text)
+        if cached is not None:
+            return cached
+            
+        try:
+            # Build context about the unit
+            context_info = f"""
+            Unit Type: {meaningful_unit.unit_type}
+            Themes: {', '.join(meaningful_unit.themes) if meaningful_unit.themes else 'Not specified'}
+            Summary: {meaningful_unit.summary[:200] if meaningful_unit.summary else 'Not available'}
+            """
+            
+            # Use LLM to extract entities with schema-less approach
+            prompt = f"""Extract ALL entities from this conversation segment using a schema-less approach.
+            
+            {context_info}
+            
+            You are NOT limited to predefined entity types. Discover and create ANY entity type that 
+            makes sense for the content. Examples include but are NOT limited to:
+            - PERSON, ORGANIZATION, LOCATION (traditional entities)
+            - TECHNOLOGY, FRAMEWORK, TOOL, LIBRARY (technical entities)
+            - CONCEPT, THEORY, METHODOLOGY, PRINCIPLE (abstract entities)
+            - METRIC, MEASUREMENT, STATISTIC (quantitative entities)
+            - TREND, PATTERN, PHENOMENON (observational entities)
+            - CHALLENGE, PROBLEM, SOLUTION (problem-solving entities)
+            - Any other type that captures important elements in the content
+            
+            Return as a JSON list where each entity has:
+            - name: the entity name
+            - type: the entity type (create appropriate types based on content)
+            - description: detailed description of the entity and its relevance
+            - confidence: confidence score from 0.0 to 1.0
+            - properties: any additional relevant properties (flexible schema)
+            
+            Text: {meaningful_unit.text}
+            
+            Return only the JSON list, no other text."""
+            
+            response = self.llm_service.complete(prompt)
+            
+            # Parse JSON response
+            import json
+            try:
+                # Clean response to ensure it's valid JSON
+                response_text = response.strip()
+                if response_text.startswith("```json"):
+                    response_text = response_text[7:]
+                if response_text.endswith("```"):
+                    response_text = response_text[:-3]
+                response_text = response_text.strip()
+                
+                extracted_entities = json.loads(response_text)
+                
+                # Convert to expected format
+                found_entities = []
+                for entity in extracted_entities:
+                    if isinstance(entity, dict) and 'name' in entity and 'type' in entity:
+                        # Allow any entity type - true schema-less approach
+                        entity_type = entity['type'].upper()
+                        
+                        found_entities.append({
+                            "type": entity_type,
+                            "value": entity['name'],
+                            "entity_type": entity_type.lower(),
+                            "confidence": float(entity.get('confidence', 0.85)),
+                            "start_time": meaningful_unit.start_time,
+                            "end_time": meaningful_unit.end_time,
+                            "properties": {
+                                "extraction_method": "schemaless_llm",
+                                "description": entity.get('description', ''),
+                                "meaningful_unit_id": meaningful_unit.id,
+                                "unit_type": meaningful_unit.unit_type,
+                                "discovered_type": True,  # Mark as dynamically discovered
+                                **entity.get('properties', {})  # Include any additional properties
+                            },
+                        })
+                
+                # Cache successful extraction
+                if found_entities:
+                    self._cache_entities(meaningful_unit.text, found_entities)
+                    
+                self.logger.info(
+                    f"Extracted {len(found_entities)} entities from MeaningfulUnit {meaningful_unit.id} "
+                    f"with {len(set(e['type'] for e in found_entities))} unique types"
+                )
+                    
+                return found_entities
+                
+            except json.JSONDecodeError as e:
+                self.logger.warning(f"Failed to parse LLM entity response as JSON: {e}")
+                return []
+                
+        except Exception as e:
+            self.logger.error(f"Schema-less entity extraction failed: {e}")
+            return []
+    
+    def _extract_relationships_schemaless(
+        self, entities: List[Dict[str, Any]], quotes: List[Dict[str, Any]], meaningful_unit: Any
+    ) -> List[Dict[str, Any]]:
+        """
+        Extract relationships using schema-less approach.
+        
+        This method allows the LLM to discover any type of relationship between
+        entities, not limited to predefined relationship types.
+        
+        Args:
+            entities: List of extracted entities
+            quotes: List of extracted quotes
+            meaningful_unit: The MeaningfulUnit being processed
+            
+        Returns:
+            List of relationship dictionaries with dynamic types
+        """
+        relationships = []
+        
+        # First, add quote-speaker relationships
+        for quote in quotes:
+            if quote.get("speaker"):
+                relationships.append({
+                    "type": "SAID",
+                    "source": quote["speaker"],
+                    "target": quote["value"][:100],  # Increased from 50 for better context
+                    "confidence": quote.get("confidence", 0.9),
+                    "properties": {
+                        "quote_type": quote.get("quote_type", "general"),
+                        "timestamp": quote.get("start_time", 0),
+                        "meaningful_unit_id": meaningful_unit.id
+                    },
+                })
+        
+        # If we have entities, use LLM to discover relationships
+        if len(entities) >= 2:
+            try:
+                # Prepare entity list for LLM
+                entity_list = []
+                for e in entities:
+                    entity_list.append({
+                        "name": e["value"],
+                        "type": e["type"],
+                        "description": e.get("properties", {}).get("description", "")
+                    })
+                
+                prompt = f"""Analyze the relationships between entities in this conversation segment.
+                
+                Entities found:
+                {json.dumps(entity_list, indent=2)}
+                
+                Conversation context:
+                {meaningful_unit.text[:1000]}...
+                
+                Discover ANY type of relationship between these entities based on the conversation.
+                You are NOT limited to predefined relationship types. Examples include but are NOT limited to:
+                - Technical relationships: USES, IMPLEMENTS, EXTENDS, DEPENDS_ON, INTEGRATES_WITH
+                - Comparison relationships: BETTER_THAN, ALTERNATIVE_TO, SIMILAR_TO, REPLACES
+                - Organizational: WORKS_AT, FOUNDED, LEADS, COLLABORATES_WITH
+                - Conceptual: EXPLAINS, CONTRADICTS, SUPPORTS, CHALLENGES, ENABLES
+                - Temporal: PRECEDED_BY, FOLLOWS, CONCURRENT_WITH
+                - Any other relationship type that captures the connection
+                
+                Return as a JSON list where each relationship has:
+                - source: source entity name
+                - target: target entity name
+                - type: relationship type (create appropriate types)
+                - confidence: confidence score from 0.0 to 1.0
+                - context: brief explanation of the relationship
+                - bidirectional: true/false if relationship goes both ways
+                
+                Return only the JSON list, no other text."""
+                
+                response = self.llm_service.complete(prompt)
+                
+                # Parse JSON response
+                try:
+                    response_text = response.strip()
+                    if response_text.startswith("```json"):
+                        response_text = response_text[7:]
+                    if response_text.endswith("```"):
+                        response_text = response_text[:-3]
+                    response_text = response_text.strip()
+                    
+                    extracted_relationships = json.loads(response_text)
+                    
+                    for rel in extracted_relationships:
+                        if isinstance(rel, dict) and all(k in rel for k in ['source', 'target', 'type']):
+                            relationships.append({
+                                "type": rel['type'].upper(),
+                                "source": rel['source'],
+                                "target": rel['target'],
+                                "confidence": float(rel.get('confidence', 0.8)),
+                                "properties": {
+                                    "extraction_method": "schemaless_llm",
+                                    "context": rel.get('context', ''),
+                                    "bidirectional": rel.get('bidirectional', False),
+                                    "meaningful_unit_id": meaningful_unit.id,
+                                    "discovered_type": True
+                                },
+                            })
+                    
+                except json.JSONDecodeError as e:
+                    self.logger.warning(f"Failed to parse LLM relationship response: {e}")
+                    
+            except Exception as e:
+                self.logger.error(f"Schema-less relationship extraction failed: {e}")
+        
+        return relationships
+    
+    def _extract_insights_from_unit(self, meaningful_unit: Any, segment_adapter: Segment) -> List[Dict[str, Any]]:
+        """
+        Extract insights from a MeaningfulUnit.
+        
+        Args:
+            meaningful_unit: MeaningfulUnit to extract insights from
+            segment_adapter: Segment adapter for compatibility
+            
+        Returns:
+            List of insight dictionaries
+        """
+        insights = []
+        
+        try:
+            # Build context
+            context_info = f"""
+            Unit Type: {meaningful_unit.unit_type}
+            Themes: {', '.join(meaningful_unit.themes) if meaningful_unit.themes else 'Not specified'}
+            Summary: {meaningful_unit.summary}
+            Duration: {meaningful_unit.duration:.1f} seconds
+            """
+            
+            # Use LLM to extract insights
+            prompt = f"""Extract key insights from this conversation segment.
+            
+            {context_info}
+            
+            Look for:
+            - Key learnings or takeaways
+            - Important observations or patterns
+            - Predictions or future implications
+            - Recommendations or advice
+            - Counterintuitive findings
+            - Challenges or problems identified
+            - Solutions or approaches discussed
+            
+            Return as a JSON list where each insight has:
+            - text: the insight statement (20-200 words)
+            - type: type of insight (e.g., "learning", "observation", "prediction", "recommendation", "challenge", "solution", etc.)
+            - importance: score from 0.0 to 1.0
+            - supporting_evidence: key quotes or points that support this insight
+            
+            Text: {meaningful_unit.text}
+            
+            Return only the JSON list, no other text."""
+            
+            response = self.llm_service.complete(prompt)
+            
+            # Parse JSON response
+            import json
+            try:
+                response_text = response.strip()
+                if response_text.startswith("```json"):
+                    response_text = response_text[7:]
+                if response_text.endswith("```"):
+                    response_text = response_text[:-3]
+                response_text = response_text.strip()
+                
+                extracted_insights = json.loads(response_text)
+                
+                for i, insight_data in enumerate(extracted_insights):
+                    if isinstance(insight_data, dict) and 'text' in insight_data:
+                        insights.append({
+                            "type": "Insight",
+                            "text": insight_data['text'],
+                            "insight_type": insight_data.get('type', 'observation'),
+                            "importance": float(insight_data.get('importance', 0.7)),
+                            "confidence": 0.85,
+                            "timestamp": meaningful_unit.start_time,
+                            "properties": {
+                                "extraction_method": "meaningful_unit_llm",
+                                "supporting_evidence": insight_data.get('supporting_evidence', ''),
+                                "meaningful_unit_id": meaningful_unit.id,
+                                "unit_type": meaningful_unit.unit_type,
+                                "themes": meaningful_unit.themes
+                            }
+                        })
+                
+                self.logger.info(
+                    f"Extracted {len(insights)} insights from MeaningfulUnit {meaningful_unit.id}"
+                )
+                
+            except json.JSONDecodeError as e:
+                self.logger.warning(f"Failed to parse LLM insight response: {e}")
+                
+        except Exception as e:
+            self.logger.error(f"Insight extraction from MeaningfulUnit failed: {e}")
+            
+        return insights
 
     def _calculate_quote_timestamp(self, position: int, text: str, segment: Segment) -> float:
         """Calculate timestamp for quote based on position in text."""

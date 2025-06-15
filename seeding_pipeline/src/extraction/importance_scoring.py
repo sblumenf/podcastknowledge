@@ -782,6 +782,177 @@ class ImportanceScorer:
             if hasattr(e, 'importance_score') and e.importance_score >= threshold
         ]
     
+    def score_quote(self, quote: Dict[str, Any]) -> float:
+        """
+        Score the importance of a quote extracted from a MeaningfulUnit.
+        
+        This method considers:
+        - Quote type and context
+        - Speaker authority (if available)
+        - Semantic richness
+        - Position within MeaningfulUnit
+        
+        Args:
+            quote: Quote dictionary with text, type, speaker, etc.
+            
+        Returns:
+            Importance score between 0.0 and 1.0
+        """
+        # Base score from quote properties
+        base_score = quote.get('importance_score', 0.7)  # Use existing score if available
+        
+        # Quote type modifiers
+        quote_type = quote.get('quote_type', 'general')
+        type_modifiers = {
+            'insightful': 0.15,
+            'philosophical': 0.12,
+            'technical': 0.10,
+            'controversial': 0.10,
+            'educational': 0.08,
+            'advice': 0.08,
+            'personal': 0.05,
+            'humorous': 0.03,
+            'general': 0.0
+        }
+        type_bonus = type_modifiers.get(quote_type, 0.0)
+        
+        # Context quality bonus
+        context = quote.get('properties', {}).get('context', '')
+        context_bonus = 0.0
+        if context:
+            # Longer, more detailed context indicates higher importance
+            context_length = len(context.split())
+            if context_length > 20:
+                context_bonus = 0.10
+            elif context_length > 10:
+                context_bonus = 0.05
+        
+        # Speaker authority (if we have speaker metrics)
+        speaker_bonus = 0.0
+        speaker = quote.get('speaker', '')
+        if speaker and speaker != 'Unknown':
+            # Could enhance this with actual speaker metrics if available
+            speaker_bonus = 0.05
+        
+        # Semantic richness of the quote text
+        quote_text = quote.get('text', '')
+        semantic_bonus = 0.0
+        if quote_text:
+            # Check for meaningful keywords
+            meaningful_keywords = [
+                'important', 'key', 'critical', 'essential', 'fundamental',
+                'breakthrough', 'discovery', 'realize', 'understand', 'insight',
+                'challenge', 'problem', 'solution', 'innovation', 'future'
+            ]
+            keyword_count = sum(1 for keyword in meaningful_keywords if keyword in quote_text.lower())
+            semantic_bonus = min(0.10, keyword_count * 0.02)
+            
+            # Length bonus (substantial quotes often more important)
+            word_count = len(quote_text.split())
+            if 20 <= word_count <= 50:
+                semantic_bonus += 0.05
+            elif word_count > 50:
+                semantic_bonus += 0.03
+        
+        # MeaningfulUnit context bonus
+        unit_type = quote.get('properties', {}).get('unit_type', '')
+        unit_modifiers = {
+            'technical_deep_dive': 0.08,
+            'debate': 0.06,
+            'explanation': 0.05,
+            'discussion': 0.04,
+            'conclusion': 0.03,
+            'introduction': 0.02,
+            'transition': 0.0
+        }
+        unit_bonus = unit_modifiers.get(unit_type.lower(), 0.02)
+        
+        # Calculate final score
+        final_score = base_score + type_bonus + context_bonus + speaker_bonus + semantic_bonus + unit_bonus
+        
+        # Ensure score is between 0 and 1
+        return min(1.0, max(0.0, final_score))
+    
+    def score_entity_for_meaningful_unit(
+        self,
+        entity: Dict[str, Any],
+        meaningful_unit: Any,
+        all_entities_in_unit: List[Dict[str, Any]]
+    ) -> float:
+        """
+        Score entity importance within a MeaningfulUnit context.
+        
+        Args:
+            entity: Entity dictionary
+            meaningful_unit: The MeaningfulUnit containing this entity
+            all_entities_in_unit: All entities found in this unit
+            
+        Returns:
+            Importance score between 0.0 and 1.0
+        """
+        # Base confidence score
+        base_score = entity.get('confidence', 0.85)
+        
+        # Entity type importance
+        entity_type = entity.get('type', 'UNKNOWN')
+        
+        # Schema-less types get scored by semantic indicators
+        type_score = 0.0
+        type_lower = entity_type.lower()
+        
+        # High importance indicators
+        if any(ind in type_lower for ind in ['person', 'organization', 'technology', 'framework']):
+            type_score = 0.15
+        # Medium importance
+        elif any(ind in type_lower for ind in ['concept', 'theory', 'methodology', 'tool']):
+            type_score = 0.10
+        # Lower importance
+        elif any(ind in type_lower for ind in ['metric', 'measurement', 'location']):
+            type_score = 0.05
+        # Novel/discovered types get moderate score
+        elif entity.get('properties', {}).get('discovered_type', False):
+            type_score = 0.08
+        
+        # Description quality bonus
+        description = entity.get('properties', {}).get('description', '')
+        description_bonus = 0.0
+        if description:
+            desc_length = len(description.split())
+            if desc_length > 20:
+                description_bonus = 0.10
+            elif desc_length > 10:
+                description_bonus = 0.05
+        
+        # Relative prominence in unit
+        prominence_bonus = 0.0
+        if all_entities_in_unit and len(all_entities_in_unit) > 1:
+            # Being one of few entities makes each more important
+            if len(all_entities_in_unit) <= 5:
+                prominence_bonus = 0.10
+            elif len(all_entities_in_unit) <= 10:
+                prominence_bonus = 0.05
+        
+        # Unit context bonus
+        unit_themes = meaningful_unit.themes or []
+        theme_bonus = 0.0
+        entity_name = entity.get('value', '').lower()
+        
+        for theme in unit_themes:
+            if entity_name in theme.lower() or theme.lower() in entity_name:
+                theme_bonus = 0.10
+                break
+        
+        # Calculate final score
+        final_score = (
+            base_score * 0.4 +  # Base confidence is important
+            type_score +
+            description_bonus +
+            prominence_bonus +
+            theme_bonus
+        )
+        
+        return min(1.0, max(0.0, final_score))
+
     def get_entities_by_factor(
         self, 
         entities: List[Entity], 

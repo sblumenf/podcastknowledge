@@ -545,7 +545,7 @@ Focus on moments with intensity > {self.config.moment_intensity_threshold}."""
                 peak_moment = max(positive_moments, key=lambda m: m.intensity)
             
             # Find most negative moment
-            negative_moments = [m for m in emotional_moments if m.emotion in {'sadness', 'anger', 'fear', 'disgust'}}]
+            negative_moments = [m for m in emotional_moments if m.emotion in {'sadness', 'anger', 'fear', 'disgust'}]
             if negative_moments:
                 valley_moment = max(negative_moments, key=lambda m: m.intensity)
         

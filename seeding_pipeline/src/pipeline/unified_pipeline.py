@@ -404,9 +404,10 @@ class UnifiedKnowledgePipeline:
         
         return meaningful_units
     
-    async def _store_episode_structure(self, episode_metadata: Dict, meaningful_units: List[MeaningfulUnit]) -> None:
+    async def _store_episode_structure(self, episode_metadata: Dict, meaningful_units: List[MeaningfulUnit], 
+                                       conversation_structure: ConversationStructure) -> None:
         """
-        Store episode and MeaningfulUnits in Neo4j.
+        Store episode, topics, and MeaningfulUnits in Neo4j.
         
         CRITICAL: DO NOT store individual segments - only MeaningfulUnits.
         All operations are transactional - either all succeed or all rollback.
@@ -414,6 +415,7 @@ class UnifiedKnowledgePipeline:
         Args:
             episode_metadata: Episode information
             meaningful_units: List of MeaningfulUnits to store
+            conversation_structure: ConversationStructure containing themes
         """
         self.logger.info(f"Storing episode structure with {len(meaningful_units)} MeaningfulUnits")
         
@@ -426,6 +428,19 @@ class UnifiedKnowledgePipeline:
             # Store episode if not exists
             episode_node_id = self.graph_storage.create_episode(episode_metadata)
             self.logger.info(f"Episode node created/retrieved: {episode_node_id}")
+            
+            # Store topics/themes from conversation structure
+            if conversation_structure and conversation_structure.themes:
+                self.logger.info(f"Creating {len(conversation_structure.themes)} topic nodes")
+                for theme in conversation_structure.themes:
+                    success = self.graph_storage.create_topic_for_episode(
+                        topic_name=theme.name,
+                        episode_id=episode_id
+                    )
+                    if success:
+                        self.logger.debug(f"Created/linked topic: {theme.name}")
+                    else:
+                        self.logger.warning(f"Failed to create/link topic: {theme.name}")
             
             # Store each MeaningfulUnit with PART_OF relationship
             # Simple loop - no complex batch processing
@@ -662,6 +677,7 @@ class UnifiedKnowledgePipeline:
             self.logger.info(f"Stored {len(entities)} entities")
             
             # Store quotes linked to MeaningfulUnits
+            quote_id_map = {}  # Map quote text to stored ID for relationships
             for quote in quotes:
                 # Find the source MeaningfulUnit
                 unit_id = quote.get('properties', {}).get('meaningful_unit_id')
@@ -672,20 +688,31 @@ class UnifiedKnowledgePipeline:
                     meaningful_unit_id=unit_id
                 )
                 
+                # Map quote text (truncated as used in relationships) to ID
+                quote_text_key = quote['text'][:100] if 'text' in quote else quote.get('value', '')[:100]
+                quote_id_map[quote_text_key] = quote_id
+                
             self.logger.info(f"Stored {len(quotes)} quotes")
             
             # Store relationships with resolved entity IDs
             for relationship in relationships:
                 # Resolve source and target to stored entity IDs
-                source_id = entity_id_map.get(relationship['source'])
-                target_id = entity_id_map.get(relationship['target'])
+                # Check both entity and quote maps
+                source_id = entity_id_map.get(relationship['source']) or quote_id_map.get(relationship['source'])
+                target_id = entity_id_map.get(relationship['target']) or quote_id_map.get(relationship['target'])
                 
                 if source_id and target_id:
+                    # Extract relationship properties
+                    rel_type = relationship.get('type', 'RELATED_TO')
+                    properties = relationship.get('properties', {})
+                    properties['confidence'] = relationship.get('confidence', 0.85)
+                    properties['episode_id'] = episode_id
+                    
                     self.graph_storage.create_relationship(
-                        relationship_data=relationship,
                         source_id=source_id,
                         target_id=target_id,
-                        episode_id=episode_id
+                        rel_type=rel_type,
+                        properties=properties
                     )
                     
             self.logger.info(f"Stored {len(relationships)} relationships")
@@ -747,9 +774,12 @@ class UnifiedKnowledgePipeline:
                     'confidence': sentiment_result.confidence
                 }
                 
-                # Store sentiment data (would need to add this method to graph_storage)
-                # For now, log that we would store it
-                self.logger.debug(f"Would store sentiment for unit {unit_id}: {sentiment_dict['overall_polarity']}")
+                # Store sentiment data
+                sentiment_id = self.graph_storage.create_sentiment(
+                    sentiment_data=sentiment_dict,
+                    episode_id=episode_id,
+                    meaningful_unit_id=unit_id
+                )
                 
             self.logger.info(f"Processed {len(sentiments)} sentiment analyses")
             
@@ -931,9 +961,79 @@ class UnifiedKnowledgePipeline:
         return components
     
     async def _run_analysis(self, episode_id: str) -> Dict[str, Any]:
-        """Run all analysis modules."""
-        # TODO: Implement in Phase 5
-        pass
+        """Run all analysis modules after knowledge extraction.
+        
+        This includes:
+        - Gap detection
+        - Diversity metrics
+        - Missing links analysis
+        - Analysis orchestration
+        
+        Args:
+            episode_id: ID of the episode to analyze
+            
+        Returns:
+            Dict with analysis results from all modules
+        """
+        self.logger.info(f"Starting analysis phase for episode {episode_id}")
+        
+        analysis_results = {
+            'gap_detection': {},
+            'diversity_metrics': {},
+            'missing_links': {},
+            'orchestrator': {},
+            'errors': []
+        }
+        
+        # Task 5.4: Run coordinated knowledge discovery analysis
+        # Use analysis orchestrator to coordinate all analysis modules
+        with self.graph_storage.session() as session:
+            try:
+                self.logger.info("Running coordinated knowledge discovery analysis...")
+                orchestrator_results = analysis_orchestrator.run_knowledge_discovery(episode_id, session)
+                
+                # Merge orchestrator results into analysis_results
+                analysis_results.update(orchestrator_results)
+                
+                # Log comprehensive results
+                completed = orchestrator_results.get('analyses_completed', [])
+                failed = orchestrator_results.get('analyses_failed', [])
+                total_time = orchestrator_results.get('total_time', 0)
+                
+                self.logger.info(
+                    f"Knowledge discovery complete in {total_time:.2f}s: "
+                    f"{len(completed)} analyses completed, {len(failed)} failed"
+                )
+                
+                # Log completed analyses
+                if completed:
+                    self.logger.info(f"Completed analyses: {', '.join(completed)}")
+                
+                # Log failures
+                if failed:
+                    self.logger.warning(f"Failed analyses: {', '.join(failed)}")
+                
+                # Log summary findings
+                summary = orchestrator_results.get('summary', {})
+                key_findings = summary.get('key_findings', [])
+                if key_findings:
+                    self.logger.info(f"Key findings: {len(key_findings)} insights discovered")
+                    for finding in key_findings[:3]:  # Log top 3 findings
+                        self.logger.info(f"  - {finding}")
+                
+                # Log recommendations
+                recommendations = summary.get('recommendations', [])
+                if recommendations:
+                    self.logger.info(f"Generated {len(recommendations)} analysis recommendations")
+                    
+            except Exception as e:
+                self.logger.error(f"Knowledge discovery orchestration failed: {e}")
+                analysis_results['errors'].append({
+                    'module': 'analysis_orchestrator',
+                    'error': str(e)
+                })
+        
+        return analysis_results
     
     async def _cleanup_on_error(self, episode_id: str) -> None:
         """
@@ -1093,7 +1193,7 @@ class UnifiedKnowledgePipeline:
             
             # PHASE 5: Store Episode Structure
             self._start_phase("EPISODE_STORAGE")
-            await self._store_episode_structure(episode_metadata, meaningful_units)
+            await self._store_episode_structure(episode_metadata, meaningful_units, conversation_structure)
             result['phases_completed'].append("EPISODE_STORAGE")
             self._end_phase()
             

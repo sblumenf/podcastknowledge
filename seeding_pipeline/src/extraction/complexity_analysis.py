@@ -457,6 +457,230 @@ class ComplexityAnalyzer:
             'fact_density': fact_density
         }
     
+    def analyze_insight(self, insight: Dict[str, Any]) -> float:
+        """
+        Analyze complexity of an insight for MeaningfulUnits.
+        
+        Args:
+            insight: Insight dictionary with text and properties
+            
+        Returns:
+            Complexity score (0.0 to 1.0)
+        """
+        insight_text = insight.get('text', '')
+        insight_type = insight.get('insight_type', 'general')
+        
+        # Analyze vocabulary complexity of the insight
+        vocab_metrics = self.analyze_vocabulary_complexity(insight_text)
+        
+        # Base complexity from vocabulary metrics
+        base_complexity = (
+            vocab_metrics.technical_density * 0.3 +
+            vocab_metrics.syllable_complexity * 0.2 +
+            (1.0 - vocab_metrics.lexical_diversity) * 0.2 +  # Lower diversity = more complex
+            min(vocab_metrics.avg_word_length / 10, 1.0) * 0.3
+        )
+        
+        # Adjust based on insight type
+        type_complexity_modifiers = {
+            'technical': 0.2,
+            'methodological': 0.15,
+            'prediction': 0.1,
+            'recommendation': 0.05,
+            'observation': 0.0,
+            'learning': 0.0,
+            'challenge': 0.05,
+            'solution': 0.1
+        }
+        
+        type_modifier = type_complexity_modifiers.get(insight_type.lower(), 0.0)
+        
+        # Calculate final complexity
+        final_complexity = min(1.0, base_complexity + type_modifier)
+        
+        return final_complexity
+    
+    def analyze_meaningful_unit_complexity(
+        self,
+        meaningful_unit: Any,
+        entities: Optional[List[Dict[str, Any]]] = None,
+        insights: Optional[List[Dict[str, Any]]] = None
+    ) -> Dict[str, Any]:
+        """
+        Analyze complexity of a MeaningfulUnit with full context.
+        
+        This method is optimized for MeaningfulUnits which contain
+        larger, more coherent text chunks than individual segments.
+        
+        Args:
+            meaningful_unit: MeaningfulUnit object with text, themes, etc.
+            entities: Optional extracted entities from the unit
+            insights: Optional extracted insights from the unit
+            
+        Returns:
+            Dictionary with comprehensive complexity analysis
+        """
+        # Extract text and metadata
+        text = meaningful_unit.text
+        unit_type = meaningful_unit.unit_type
+        themes = meaningful_unit.themes or []
+        duration = meaningful_unit.duration
+        
+        # Analyze vocabulary complexity with domain hints from themes
+        domain_hints = []
+        for theme in themes:
+            theme_lower = theme.lower()
+            if any(tech in theme_lower for tech in ['tech', 'software', 'ai', 'data']):
+                domain_hints.append('technology')
+            elif any(med in theme_lower for med in ['health', 'medical', 'disease', 'treatment']):
+                domain_hints.append('medical')
+            elif any(sci in theme_lower for sci in ['research', 'study', 'experiment', 'theory']):
+                domain_hints.append('science')
+            elif any(bus in theme_lower for bus in ['business', 'market', 'finance', 'revenue']):
+                domain_hints.append('business')
+        
+        vocab_metrics = self.analyze_vocabulary_complexity(text, domain_hints)
+        
+        # Calculate segment complexity
+        segment_complexity = self.classify_segment_complexity(
+            text=text,
+            entities=[Entity(**e) for e in entities] if entities else None,
+            vocab_metrics=vocab_metrics
+        )
+        
+        # Additional analysis for MeaningfulUnits
+        
+        # Information density (higher for MeaningfulUnits due to coherent context)
+        info_density = self.calculate_information_density(
+            text=text,
+            entities=[Entity(**e) for e in entities] if entities else None,
+            insights=[Insight(**i) for i in insights] if insights else None
+        )
+        
+        # Theme complexity
+        theme_complexity = self._analyze_theme_complexity(themes)
+        
+        # Speaker distribution complexity
+        speaker_complexity = self._analyze_speaker_complexity(meaningful_unit.speaker_distribution)
+        
+        # Unit type complexity modifiers
+        type_complexity = {
+            'introduction': 0.0,
+            'explanation': 0.1,
+            'discussion': 0.2,
+            'technical_deep_dive': 0.4,
+            'debate': 0.3,
+            'conclusion': 0.1,
+            'transition': 0.0
+        }.get(unit_type.lower(), 0.15)
+        
+        # Calculate overall unit complexity
+        unit_complexity_score = (
+            segment_complexity.complexity_score * 0.4 +
+            theme_complexity * 100 * 0.2 +
+            speaker_complexity * 100 * 0.1 +
+            type_complexity * 100 * 0.1 +
+            info_density['information_density'] * 20 * 0.2  # Scale to 0-100
+        )
+        
+        # Accessibility score for the unit
+        accessibility = self.calculate_accessibility_score(
+            text=text,
+            insights=[Insight(**i) for i in insights] if insights else None,
+            complexity_metrics=segment_complexity
+        )
+        
+        return {
+            'unit_id': meaningful_unit.id,
+            'unit_type': unit_type,
+            'complexity_score': min(100, max(0, unit_complexity_score)),
+            'complexity_level': segment_complexity.complexity_level.value,
+            'vocabulary_metrics': {
+                'unique_words': vocab_metrics.unique_word_count,
+                'total_words': vocab_metrics.total_word_count,
+                'vocabulary_richness': vocab_metrics.vocabulary_richness,
+                'technical_density': vocab_metrics.technical_density,
+                'avg_word_length': vocab_metrics.avg_word_length
+            },
+            'readability_score': segment_complexity.readability_score,
+            'information_density': info_density,
+            'theme_complexity': theme_complexity,
+            'speaker_complexity': speaker_complexity,
+            'accessibility_score': accessibility['accessibility_score'],
+            'duration': duration,
+            'words_per_second': vocab_metrics.total_word_count / duration if duration > 0 else 0,
+            'is_technical': vocab_metrics.technical_density > 0.1,
+            'requires_background': unit_complexity_score > 60,
+            'recommendation': self._get_complexity_recommendation(unit_complexity_score)
+        }
+    
+    def _analyze_theme_complexity(self, themes: List[str]) -> float:
+        """Analyze complexity based on themes."""
+        if not themes:
+            return 0.0
+        
+        # Technical/complex theme indicators
+        complex_indicators = [
+            'technical', 'advanced', 'research', 'theory', 'algorithm',
+            'architecture', 'framework', 'methodology', 'analysis',
+            'optimization', 'implementation', 'protocol', 'quantum',
+            'molecular', 'statistical', 'mathematical'
+        ]
+        
+        complexity_score = 0.0
+        for theme in themes:
+            theme_lower = theme.lower()
+            # Check for complex indicators
+            for indicator in complex_indicators:
+                if indicator in theme_lower:
+                    complexity_score += 0.2
+                    break
+            
+            # Multi-word technical themes are more complex
+            if len(theme.split()) > 2 and any(ind in theme_lower for ind in complex_indicators[:5]):
+                complexity_score += 0.1
+        
+        return min(1.0, complexity_score)
+    
+    def _analyze_speaker_complexity(self, speaker_distribution: Dict[str, float]) -> float:
+        """Analyze complexity based on speaker distribution."""
+        if not speaker_distribution:
+            return 0.0
+        
+        # More speakers generally means more complex discussion
+        num_speakers = len(speaker_distribution)
+        
+        # Calculate entropy of speaker distribution
+        entropy = 0.0
+        for proportion in speaker_distribution.values():
+            if proportion > 0:
+                entropy -= proportion * math.log2(proportion)
+        
+        # Normalize entropy (max entropy = log2(num_speakers))
+        if num_speakers > 1:
+            normalized_entropy = entropy / math.log2(num_speakers)
+        else:
+            normalized_entropy = 0.0
+        
+        # Complexity increases with balanced multi-speaker discussions
+        if num_speakers == 1:
+            return 0.0  # Monologue - baseline complexity
+        elif num_speakers == 2:
+            return normalized_entropy * 0.3  # Dialogue
+        else:
+            return normalized_entropy * 0.5  # Multi-party discussion
+    
+    def _get_complexity_recommendation(self, complexity_score: float) -> str:
+        """Get recommendation based on complexity score."""
+        if complexity_score < 30:
+            return "Suitable for general audience with no specialized knowledge required"
+        elif complexity_score < 50:
+            return "Accessible to most audiences with basic familiarity of the topic"
+        elif complexity_score < 70:
+            return "Best suited for audiences with domain knowledge or strong interest"
+        else:
+            return "Highly technical content requiring specialized background knowledge"
+
     def analyze_segment_transitions(
         self,
         segments: List[Dict[str, Any]]
