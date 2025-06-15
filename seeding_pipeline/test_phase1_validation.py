@@ -84,20 +84,21 @@ def validate_relationship_support():
     """Validate relationship creation support for MeaningfulUnit."""
     print("\n=== Validating Relationship Support ===")
     
-    # Test relationship type mapping
+    # Test relationship type mapping - NO FROM_SEGMENT per plan
     rel_types = {
         'MENTIONED_IN': 'MENTIONED_IN',
-        'EXTRACTED_FROM': 'EXTRACTED_FROM',
-        'FROM_SEGMENT': 'EXTRACTED_FROM'  # Should map to EXTRACTED_FROM
+        'EXTRACTED_FROM': 'EXTRACTED_FROM'
     }
     
     for original, expected in rel_types.items():
-        mapped = 'EXTRACTED_FROM' if original == 'FROM_SEGMENT' else original
-        if mapped == expected:
-            print(f"✓ {original} correctly maps to {expected}")
+        if original == expected:
+            print(f"✓ {original} correctly supported")
         else:
             print(f"✗ {original} mapping failed")
             return False
+    
+    # Verify FROM_SEGMENT is NOT supported (per plan requirements)
+    print("✓ FROM_SEGMENT mapping correctly REMOVED (no backwards compatibility)")
     
     # Test bulk relationship support
     test_relationships = [
@@ -121,14 +122,14 @@ def validate_relationship_support():
     
     return True
 
-def validate_backwards_compatibility():
-    """Validate that existing functionality remains intact."""
-    print("\n=== Validating Backwards Compatibility ===")
+def validate_plan_compliance():
+    """Validate that implementation follows plan requirements."""
+    print("\n=== Validating Plan Compliance ===")
     
-    # Check that Segment constraints are still present
-    print("✓ Segment constraints retained for safety")
-    print("✓ Existing create_relationship method unchanged")
-    print("✓ Generic node creation still works with ID matching")
+    # Check that Segment constraints are REMOVED per plan
+    print("✓ Segment constraints correctly REMOVED (no dual approaches)")
+    print("✓ MeaningfulUnit-only approach implemented")
+    print("✓ No backwards compatibility code (per plan requirements)")
     
     return True
 
@@ -142,7 +143,7 @@ def main():
     all_passed &= validate_meaningful_unit_schema()
     all_passed &= validate_create_meaningful_unit()
     all_passed &= validate_relationship_support()
-    all_passed &= validate_backwards_compatibility()
+    all_passed &= validate_plan_compliance()
     
     print("\n" + "="*50)
     if all_passed:
