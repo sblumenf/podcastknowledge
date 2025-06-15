@@ -89,7 +89,7 @@ This plan transforms the seeding pipeline from a fragmented multi-approach syste
 
 ### Task 2.1: Create Unified Pipeline File
 
-- Create new pipeline file with proper structure
+- [ ] Create new pipeline file with proper structure
 - Purpose: Single entry point for all VTT processing
 - Success Criteria Check: Supports #1 (single pipeline), #9 (code simplicity)
 - Steps:
@@ -109,7 +109,7 @@ This plan transforms the seeding pipeline from a fragmented multi-approach syste
 
 ### Task 2.2: Implement Error Handling Framework
 
-- Create robust error handling with retry logic
+- [ ] Create robust error handling with retry logic
 - Purpose: Ensure failures reject entire episode as required
 - Success Criteria Check: Supports #6 (data integrity), #9 (code simplicity)
 - Steps:
@@ -128,7 +128,7 @@ This plan transforms the seeding pipeline from a fragmented multi-approach syste
 
 ### Task 2.3: Create Main Processing Method
 
-- Implement main process_vtt_file method
+- [ ] Implement main process_vtt_file method
 - Purpose: Orchestrate entire pipeline flow
 - Success Criteria Check: Supports #1 (single pipeline), #9 (code simplicity)
 - Steps:
