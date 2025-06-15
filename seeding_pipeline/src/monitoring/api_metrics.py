@@ -284,6 +284,16 @@ class MetricsCollector:
             }
         }
     
+    def get_metrics(self) -> Dict[str, Any]:
+        """Get metrics in dictionary format (alias for get_summary).
+        
+        This method exists for backward compatibility with tests.
+        
+        Returns:
+            Dictionary containing all metric summaries
+        """
+        return self.get_summary()
+    
     def cleanup(self):
         """Clean up resources."""
         self.resource_monitor.stop_monitoring()

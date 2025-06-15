@@ -7,7 +7,7 @@ components of the podcast knowledge graph pipeline.
 
 from typing import Dict, Any
 
-from .metrics import get_metrics_collector, track_duration, track_provider_call
+from ..monitoring import get_metrics_collector, track_duration, track_api_call
 # Example: Orchestrator integration
 def process_episode_with_metrics(episode_data: Dict[str, Any]) -> Dict[str, Any]:
     """Process an episode with full metrics tracking."""
@@ -72,7 +72,7 @@ class MetricsAwareProvider:
         self.provider_name = provider_name
         self.collector = get_metrics_collector()
     
-    @track_provider_call("example_provider", "generate")
+    @track_api_call("example_provider", "generate")
     def generate(self, prompt: str) -> str:
         """Generate response with metrics tracking."""
         # Provider logic here

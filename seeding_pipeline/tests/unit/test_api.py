@@ -132,7 +132,7 @@ class TestHealthEndpoints:
 class TestMetricsEndpoint:
     Test metrics endpoint.
     
-    @patch('src.api.metrics.MetricsCollector.get_metrics')
+    @patch('src.monitoring.api_metrics.MetricsCollector.get_metrics')
     def test_metrics_endpoint(self, mock_get_metrics):
         Test metrics endpoint.
         mock_get_metrics.return_value = {
