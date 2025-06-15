@@ -115,8 +115,6 @@ class VTTParser:
         if not file_path.exists():
             raise ValidationError(f"VTT file not found: {file_path}")
         
-        # For now, always use full parsing for metadata extraction
-        # TODO: Implement streaming metadata extraction for large files
         try:
             with open(file_path, 'r', encoding='utf-8') as f:
                 content = f.read()

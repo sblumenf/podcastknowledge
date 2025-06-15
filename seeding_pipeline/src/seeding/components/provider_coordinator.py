@@ -89,12 +89,7 @@ class ProviderCoordinator:
             )
             
             # Initialize processing components
-            segmenter_config = getattr(self.config, 'segmenter_config', {})
-            if hasattr(segmenter_config, '__dataclass_fields__'):
-                segmenter_config = asdict(segmenter_config)
-            # Note: Audio provider removed with provider pattern
-            # Segmenter will need to be updated to work without it
-            self.segmenter = None  # TODO: Update segmenter for direct usage
+            # Note: Audio provider and segmenter removed with provider pattern migration
             
             self.knowledge_extractor = KnowledgeExtractor(
                 self.llm_service,

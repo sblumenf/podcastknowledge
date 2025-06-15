@@ -10,7 +10,12 @@ from typing import Dict, Any
 from ..monitoring import get_metrics_collector, track_duration, track_api_call
 # Example: Orchestrator integration
 def process_episode_with_metrics(episode_data: Dict[str, Any]) -> Dict[str, Any]:
-    """Process an episode with full metrics tracking."""
+    """
+    Example of processing an episode with full metrics tracking.
+    
+    In production, this would call the actual episode processing logic
+    from the main pipeline (e.g., MultiPodcastVTTKnowledgeExtractor).
+    """
     collector = get_metrics_collector()
     
     # Track queue wait time
@@ -21,8 +26,12 @@ def process_episode_with_metrics(episode_data: Dict[str, Any]) -> Dict[str, Any]
     collector.queue_size.dec()
     
     try:
-        # Process episode (simplified)
-        result = _process_episode(episode_data)
+        # In production, replace this with actual processing:
+        # from ..processing import process_episode
+        # result = process_episode(episode_data)
+        
+        # For this example, we'll just show the structure
+        result = episode_data  # This would be the actual processing result
         
         # Track success
         collector.episodes_processed.inc()
@@ -196,18 +205,3 @@ def create_metrics_middleware(app):
         pass
 
 
-def _process_episode(episode_data: Dict[str, Any]) -> Dict[str, Any]:
-    """Dummy episode processing function."""
-    return {
-        "quality_score": 0.85,
-        "entities": ["Entity1", "Entity2", "Entity3"],
-        "nodes_created": {
-            "Episode": 1,
-            "Entity": 3,
-            "Insight": 5
-        },
-        "relationships_created": {
-            "DISCUSSES": 8,
-            "MENTIONS": 12
-        }
-    }
