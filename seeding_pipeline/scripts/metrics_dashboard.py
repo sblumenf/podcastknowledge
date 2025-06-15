@@ -11,7 +11,7 @@ from typing import Dict, Any, Optional
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from src.utils.metrics import get_pipeline_metrics
+from src.monitoring import get_pipeline_metrics
 
 
 class MetricsDashboard:

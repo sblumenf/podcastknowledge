@@ -10,8 +10,10 @@ from datetime import datetime
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from src.utils.metrics import get_pipeline_metrics, cleanup_metrics
-from src.utils.logging_enhanced import setup_enhanced_logging
+from src.monitoring import get_pipeline_metrics
+from src.utils.logging import get_logger
+
+logger = get_logger(__name__)
 
 
 def simulate_file_processing():

@@ -15,10 +15,10 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 from src.cli.cli import setup_logging_cli
 from src.pipeline.enhanced_knowledge_pipeline import EnhancedKnowledgePipeline
 from src.core.config import PipelineConfig
-from src.utils.metrics import get_pipeline_metrics
+from src.monitoring import get_pipeline_metrics
 from src.utils.health_check import get_health_checker
 from src.storage import GraphStorageService
-from src.utils.log_utils import get_logger, set_correlation_id, generate_correlation_id
+from src.utils.logging import get_logger, set_correlation_id, generate_correlation_id
 
 
 class RealDataValidator:

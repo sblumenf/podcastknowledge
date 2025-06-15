@@ -10,9 +10,11 @@ from src.core.models import (
     Entity, Insight, Quote, Episode, Segment,
     EntityType, InsightType, QuoteType, ComplexityLevel
 )
-from src.processing.metrics import (
-    MetricsCalculator, ComplexityMetrics, 
-    InformationDensityMetrics, AccessibilityMetrics
+from src.monitoring.content_metrics import (
+    ContentMetricsCalculator as MetricsCalculator, 
+    ComplexityMetrics, 
+    InformationDensityMetrics, 
+    AccessibilityMetrics
 )
 
 

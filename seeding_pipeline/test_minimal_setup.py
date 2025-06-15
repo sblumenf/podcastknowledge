@@ -18,19 +18,23 @@ def test_imports():
     
     # Test optional dependency handling
     try:
-        from src.utils.optional_dependencies import PSUTIL_AVAILABLE, get_memory_info
-        results.append(("psutil handling", True, f"Available: {PSUTIL_AVAILABLE}"))
+        from src.core.dependencies import is_available, get_dependency
+        from src.monitoring.resource_monitor import ResourceMonitor
         
-        mem_info = get_memory_info()
+        psutil_available = is_available('psutil')
+        results.append(("psutil handling", True, f"Available: {psutil_available}"))
+        
+        monitor = ResourceMonitor()
+        mem_info = monitor.get_memory_info()
         results.append(("Memory info mock", True, f"Memory: {mem_info['process_memory_mb']}MB"))
     except Exception as e:
         results.append(("psutil handling", False, str(e)))
     
     try:
-        from src.utils.optional_google import GOOGLE_AI_AVAILABLE, get_genai
+        from src.core.dependencies import GOOGLE_AI_AVAILABLE, get_dependency
         results.append(("google-ai handling", True, f"Available: {GOOGLE_AI_AVAILABLE}"))
         
-        genai = get_genai()
+        genai = get_dependency('google.generativeai')
         results.append(("Gemini mock", True, f"Type: {type(genai).__name__}"))
     except Exception as e:
         results.append(("google-ai handling", False, str(e)))
@@ -82,7 +86,7 @@ def test_mock_functionality():
     
     # Test mock embeddings
     try:
-        from src.services.embeddings_gemini import GeminiEmbeddingsService
+        from src.services.embeddings import GeminiEmbeddingsService
         
         service = GeminiEmbeddingsService(api_key="test_key")
         embedding = service.generate_embedding("test text")

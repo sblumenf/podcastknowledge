@@ -5,8 +5,7 @@ from pathlib import Path
 import logging
 
 from ..storage import GraphStorageService
-from .embeddings import EmbeddingsService
-from .embeddings_gemini import GeminiEmbeddingsService
+from .embeddings import EmbeddingsService, GeminiEmbeddingsService
 from .llm import LLMService
 from .llm_gemini_direct import GeminiDirectService
 from .llm_factory import LLMServiceFactory, LLMServiceType
