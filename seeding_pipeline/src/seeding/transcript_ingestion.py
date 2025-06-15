@@ -14,8 +14,9 @@ from src.core.config import PipelineConfig
 from src.core.exceptions import ValidationError, PipelineError
 from src.core.interfaces import TranscriptSegment
 from src.core.models import Podcast, Episode
-from src.utils.log_utils import get_logger
+from src.utils.logging import get_logger
 from src.vtt import VTTParser
+from src.utils.vtt_validation import validate_vtt_file as validate_vtt_file_util
 try:
     from src.utils.youtube_search import YouTubeSearcher
 except ImportError:
@@ -407,12 +408,8 @@ class TranscriptIngestion:
         Returns:
             True if valid VTT file
         """
-        try:
-            with open(file_path, 'r', encoding='utf-8') as f:
-                first_line = f.readline().strip()
-                return first_line.startswith('WEBVTT')
-        except Exception:
-            return False
+        is_valid, _ = validate_vtt_file_util(file_path)
+        return is_valid
     
     def process_file(self, file_path: Union[str, Path]) -> Dict[str, Any]:
         """Process a single VTT file by path.

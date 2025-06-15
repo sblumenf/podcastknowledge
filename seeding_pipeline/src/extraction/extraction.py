@@ -13,8 +13,8 @@ import logging
 import re
 import time
 
-from src.utils.log_utils import get_logger
-from src.utils.logging_enhanced import (
+from src.utils.logging import get_logger
+from src.utils.logging import (
     trace_operation,
     log_performance_metric,
     ProcessingTraceLogger

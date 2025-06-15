@@ -7,7 +7,7 @@ import os
 from src.core.models import Entity
 from src.storage.storage_coordinator import StorageCoordinator
 from src.storage.multi_database_graph_storage import MultiDatabaseGraphStorage
-from src.utils.log_utils import get_logger
+from src.utils.logging import get_logger
 
 logger = get_logger(__name__)
 

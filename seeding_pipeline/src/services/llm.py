@@ -9,7 +9,7 @@ from datetime import datetime
 
 from src.core.exceptions import ProviderError, RateLimitError
 from src.utils.retry import ExponentialBackoff
-from src.utils.metrics import get_pipeline_metrics
+from src.monitoring import get_pipeline_metrics
 from src.utils.api_key import get_gemini_api_key
 
 logger = logging.getLogger(__name__)

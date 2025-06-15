@@ -27,6 +27,7 @@ sys.path.insert(0, str(project_root))
 
 # Only import standard library at module level for fast startup  
 # Heavy imports are deferred until actually needed
+from src.utils.vtt_validation import validate_vtt_file
 
 
 def create_parser() -> argparse.ArgumentParser:
@@ -71,30 +72,7 @@ Examples:
     return parser
 
 
-def validate_vtt_file(file_path: Path) -> Tuple[bool, Optional[str]]:
-    """Validate VTT file with minimal overhead - no heavy imports."""
-    # Check file existence and basic properties
-    if not file_path.exists():
-        return False, f"File not found: {file_path}"
-    
-    if not file_path.is_file():
-        return False, f"Not a file: {file_path}"
-    
-    if file_path.suffix.lower() != '.vtt':
-        return False, f"Not a VTT file (expected .vtt extension): {file_path}"
-    
-    # Quick VTT format validation - check header
-    try:
-        with open(file_path, 'r', encoding='utf-8') as f:
-            first_line = f.readline().strip()
-            if not first_line.upper().startswith('WEBVTT'):
-                return False, "Invalid VTT format (missing WEBVTT header)"
-    except UnicodeDecodeError:
-        return False, "Cannot read file (invalid UTF-8 encoding)"
-    except Exception as e:
-        return False, f"Cannot read file: {e}"
-    
-    return True, None
+# validate_vtt_file is now imported from src.utils.vtt_validation
 
 
 def simple_progress(message: str, show: bool = True) -> None:

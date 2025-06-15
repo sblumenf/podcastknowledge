@@ -19,7 +19,7 @@ sys.path.append(str(Path(__file__).parent / "src"))
 from src.pipeline.enhanced_knowledge_pipeline import EnhancedKnowledgePipeline, ProcessingResult
 from src.adapters.gemini_llm_adapter import GeminiLLMAdapter
 from src.core.exceptions import ProviderError
-from src.utils.log_utils import get_logger
+from src.utils.logging import get_logger
 
 # Configure logging
 logging.basicConfig(

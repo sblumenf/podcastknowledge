@@ -9,7 +9,7 @@ from pathlib import Path
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from src.utils.logging_enhanced import (
+from src.utils.logging import (
     setup_enhanced_logging,
     get_logger,
     log_performance_metric,

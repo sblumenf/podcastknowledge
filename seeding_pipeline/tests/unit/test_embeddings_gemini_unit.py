@@ -7,7 +7,7 @@ import numpy as np
 import pytest
 
 from src.core.exceptions import ProviderError, RateLimitError
-from src.services.embeddings_gemini import GeminiEmbeddingsService
+from src.services.embeddings import GeminiEmbeddingsService
 from src.utils.key_rotation_manager import KeyRotationManager
 class TestGeminiEmbeddingsService:
     """Test GeminiEmbeddingsService functionality."""
@@ -69,7 +69,7 @@ class TestGeminiEmbeddingsService:
         assert status == expected_status
         mock_rotation_manager.get_status_summary.assert_called_once()
     
-    @patch('src.services.embeddings_gemini.genai')
+    @patch('src.services.embeddings.genai')
     def test_ensure_configured(self, mock_genai, embeddings_service):
         """Test API configuration."""
         embeddings_service._ensure_configured()
@@ -81,7 +81,7 @@ class TestGeminiEmbeddingsService:
         embeddings_service._ensure_configured()
         mock_genai.configure.assert_called_once()
     
-    @patch('src.services.embeddings_gemini.genai')
+    @patch('src.services.embeddings.genai')
     def test_generate_embedding_success(self, mock_genai, embeddings_service):
         """Test successful single embedding generation."""
         mock_response = {'embedding': [0.1, 0.2, 0.3] + [0.0] * 765}  # 768 dimensions
@@ -100,7 +100,7 @@ class TestGeminiEmbeddingsService:
         )
         embeddings_service.rate_limiter.record_request.assert_called_once()
     
-    @patch('src.services.embeddings_gemini.genai')
+    @patch('src.services.embeddings.genai')
     def test_generate_embedding_empty_text(self, mock_genai, embeddings_service):
         """Test embedding generation with empty text."""
         result = embeddings_service.generate_embedding("")
@@ -109,7 +109,7 @@ class TestGeminiEmbeddingsService:
         assert all(v == 0.0 for v in result)
         mock_genai.embed_content.assert_not_called()
     
-    @patch('src.services.embeddings_gemini.genai')
+    @patch('src.services.embeddings.genai')
     def test_generate_embedding_whitespace_text(self, mock_genai, embeddings_service):
         """Test embedding generation with whitespace-only text."""
         result = embeddings_service.generate_embedding("   \n\t   ")
@@ -118,7 +118,7 @@ class TestGeminiEmbeddingsService:
         assert all(v == 0.0 for v in result)
         mock_genai.embed_content.assert_not_called()
     
-    @patch('src.services.embeddings_gemini.genai')
+    @patch('src.services.embeddings.genai')
     def test_generate_embedding_text_cleaning(self, mock_genai, embeddings_service):
         """Test that text is cleaned before embedding."""
         mock_response = {'embedding': [0.1] * 768}
@@ -135,7 +135,7 @@ class TestGeminiEmbeddingsService:
             task_type="retrieval_document"
         )
     
-    @patch('src.services.embeddings_gemini.genai')
+    @patch('src.services.embeddings.genai')
     def test_generate_embedding_rate_limit_exceeded(self, mock_genai, embeddings_service):
         """Test embedding generation when rate limit is exceeded."""
         embeddings_service.rate_limiter.can_make_request = Mock(return_value=False)
@@ -143,7 +143,7 @@ class TestGeminiEmbeddingsService:
         with pytest.raises(RateLimitError, match="Rate limit exceeded"):
             embeddings_service.generate_embedding("Test text")
     
-    @patch('src.services.embeddings_gemini.genai')
+    @patch('src.services.embeddings.genai')
     def test_generate_embedding_no_embedding_in_response(self, mock_genai, embeddings_service):
         """Test handling response without embedding field."""
         mock_genai.embed_content.return_value = {}
@@ -156,7 +156,7 @@ class TestGeminiEmbeddingsService:
         
         embeddings_service.rate_limiter.record_error.assert_called_once()
     
-    @patch('src.services.embeddings_gemini.genai')
+    @patch('src.services.embeddings.genai')
     def test_generate_embedding_quota_error(self, mock_genai, embeddings_service):
         """Test handling quota exceeded error."""
         mock_genai.embed_content.side_effect = Exception("Quota exceeded")
@@ -167,7 +167,7 @@ class TestGeminiEmbeddingsService:
         with pytest.raises(RateLimitError, match="Gemini rate limit error"):
             embeddings_service.generate_embedding("Test text")
     
-    @patch('src.services.embeddings_gemini.genai')
+    @patch('src.services.embeddings.genai')
     def test_generate_embedding_invalid_request(self, mock_genai, embeddings_service):
         """Test handling invalid request error."""
         mock_genai.embed_content.side_effect = Exception("Invalid model name")
@@ -178,7 +178,7 @@ class TestGeminiEmbeddingsService:
         with pytest.raises(ProviderError, match="Invalid request"):
             embeddings_service.generate_embedding("Test text")
     
-    @patch('src.services.embeddings_gemini.genai')
+    @patch('src.services.embeddings.genai')
     def test_generate_embeddings_batch_success(self, mock_genai, embeddings_service):
         """Test successful batch embedding generation."""
         texts = ["Text 1", "Text 2", "Text 3"]
@@ -200,7 +200,7 @@ class TestGeminiEmbeddingsService:
         assert all(len(emb) == 768 for emb in results)
         mock_genai.embed_content.assert_called_once()
     
-    @patch('src.services.embeddings_gemini.genai')
+    @patch('src.services.embeddings.genai')
     def test_generate_embeddings_with_empty_texts(self, mock_genai, embeddings_service):
         """Test batch generation with some empty texts."""
         texts = ["Text 1", "", "Text 3", "   ", "Text 5"]
@@ -227,7 +227,7 @@ class TestGeminiEmbeddingsService:
         assert results[2] == [0.3] * 768
         assert results[4] == [0.5] * 768
     
-    @patch('src.services.embeddings_gemini.genai')
+    @patch('src.services.embeddings.genai')
     def test_generate_embeddings_large_batch(self, mock_genai, embeddings_service):
         """Test batch generation with texts exceeding batch size."""
         embeddings_service.batch_size = 2
@@ -248,7 +248,7 @@ class TestGeminiEmbeddingsService:
         assert len(results) == 5
         assert mock_genai.embed_content.call_count == 3
     
-    @patch('src.services.embeddings_gemini.genai')
+    @patch('src.services.embeddings.genai')
     def test_generate_embeddings_single_embedding_response(self, mock_genai, embeddings_service):
         """Test handling single embedding response format."""
         texts = ["Single text"]
@@ -356,7 +356,7 @@ class TestGeminiEmbeddingsService:
         
         assert status == mock_status
     
-    @patch('src.services.embeddings_gemini.logger')
+    @patch('src.services.embeddings.logger')
     def test_logging(self, mock_logger):
         """Test that initialization is logged."""
         service = GeminiEmbeddingsService(api_key="test_key")
@@ -365,7 +365,7 @@ class TestGeminiEmbeddingsService:
             "Initialized GeminiEmbeddingsService with model: models/text-embedding-004"
         )
     
-    @patch('src.services.embeddings_gemini.genai')
+    @patch('src.services.embeddings.genai')
     def test_token_estimation(self, mock_genai, embeddings_service):
         """Test token estimation for rate limiting."""
         text = "This is a test text"  # 5 characters + 12 characters = 17 total

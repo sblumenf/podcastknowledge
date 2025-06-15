@@ -126,7 +126,7 @@ def test_enhanced_logging():
     print("\n🔍 Testing Enhanced Logging")
     
     try:
-        from src.utils.logging_enhanced import (
+        from src.utils.logging import (
             get_logger, set_correlation_id, get_correlation_id,
             with_correlation_id, StandardizedLogger
         )

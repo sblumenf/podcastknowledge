@@ -9,8 +9,8 @@ import logging
 from dataclasses import dataclass
 
 from src.config.podcast_databases import PodcastDatabaseConfig
-from src.utils.log_utils import get_logger
-from src.utils.metrics import get_pipeline_metrics
+from src.utils.logging import get_logger
+from src.monitoring import get_pipeline_metrics
 
 logger = get_logger(__name__)
 

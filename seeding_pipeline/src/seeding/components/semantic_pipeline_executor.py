@@ -20,7 +20,7 @@ from src.extraction.meaningful_unit_extractor import MeaningfulUnitExtractor
 from src.extraction.meaningful_unit_entity_resolver import MeaningfulUnitEntityResolver
 from src.extraction.meaningful_unit_prompts import MeaningfulUnitPromptBuilder
 from src.core.monitoring import trace_operation
-from src.utils.log_utils import get_logger
+from src.utils.logging import get_logger
 from src.utils.memory import cleanup_memory
 
 logger = get_logger(__name__)

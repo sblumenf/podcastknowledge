@@ -7,7 +7,7 @@ import os
 
 from ..core.config import SeedingConfig as PipelineConfig
 from ..seeding import VTTKnowledgeExtractor as PodcastKnowledgePipeline
-from ..utils.log_utils import get_logger
+from ..utils.logging import get_logger
 from .health import create_health_endpoints
 from .metrics import setup_metrics
 from fastapi import FastAPI, HTTPException, Request, status

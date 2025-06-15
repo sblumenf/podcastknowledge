@@ -1,14 +1,18 @@
-"""Metrics and scoring functionality for content analysis."""
+"""Content analysis metrics for text complexity, density, and accessibility.
+
+This module preserves the content analysis functionality from the original
+processing/metrics.py, maintaining all algorithms and calculations.
+"""
 
 from collections import Counter
 from dataclasses import dataclass
-from typing import Dict, Any, List, Optional, Tuple
+from typing import Dict, Any, List, Optional
 import logging
 import re
-
 from statistics import mean, stdev
 
 from src.core.models import Entity, Insight, ComplexityLevel
+
 logger = logging.getLogger(__name__)
 
 
@@ -23,7 +27,7 @@ class ComplexityMetrics:
     syllable_complexity: float
     unique_ratio: float
     technical_entity_count: int
-    
+
 
 @dataclass
 class InformationDensityMetrics:
@@ -36,7 +40,7 @@ class InformationDensityMetrics:
     duration_minutes: float
     insights_per_minute: float
     entities_per_minute: float
-    
+
 
 @dataclass
 class AccessibilityMetrics:
@@ -46,10 +50,14 @@ class AccessibilityMetrics:
     jargon_percentage: float
     explanation_quality: float
     readability_score: float
-    
 
-class MetricsCalculator:
-    """Calculator for various content metrics."""
+
+class ContentMetricsCalculator:
+    """Calculator for various content metrics.
+    
+    This class preserves all the original algorithms from MetricsCalculator
+    in processing/metrics.py.
+    """
     
     def __init__(self):
         """Initialize metrics calculator."""
@@ -79,22 +87,13 @@ class MetricsCalculator:
             r'\b(?:statistically|significantly|correlation)',
             r'\b\d{4}\b',  # Years (potential citations)
         ]
-        
+    
     def calculate_complexity(
         self,
         text: str,
         entities: Optional[List[Entity]] = None
     ) -> ComplexityMetrics:
-        """
-        Calculate text complexity metrics.
-        
-        Args:
-            text: Text to analyze
-            entities: Optional list of detected entities
-            
-        Returns:
-            ComplexityMetrics object
-        """
+        """Calculate text complexity metrics."""
         # Get vocabulary metrics
         vocab_metrics = self._analyze_vocabulary_complexity(text)
         
@@ -112,7 +111,7 @@ class MetricsCalculator:
                 1 for entity in entities
                 if str(entity.entity_type).split('.')[-1] in technical_types
             )
-            
+        
         # Calculate composite complexity score
         complexity_score = (
             vocab_metrics['avg_word_length'] * 0.2 +
@@ -125,7 +124,7 @@ class MetricsCalculator:
         if entities and len(entities) > 0:
             entity_ratio = technical_entity_count / len(entities)
             complexity_score += entity_ratio * 2
-            
+        
         # Classify based on score
         if complexity_score < 3:
             classification = ComplexityLevel.LAYPERSON
@@ -133,13 +132,13 @@ class MetricsCalculator:
             classification = ComplexityLevel.INTERMEDIATE
         else:
             classification = ComplexityLevel.EXPERT
-            
+        
         # Override based on technical density
         if vocab_metrics['technical_density'] > 0.1:
             classification = ComplexityLevel.EXPERT
         elif vocab_metrics['technical_density'] > 0.05 and classification == ComplexityLevel.LAYPERSON:
             classification = ComplexityLevel.INTERMEDIATE
-            
+        
         return ComplexityMetrics(
             classification=classification,
             complexity_score=complexity_score,
@@ -150,24 +149,14 @@ class MetricsCalculator:
             unique_ratio=vocab_metrics['unique_ratio'],
             technical_entity_count=technical_entity_count
         )
-        
+    
     def calculate_information_density(
         self,
         text: str,
         insights: Optional[List[Insight]] = None,
         entities: Optional[List[Entity]] = None
     ) -> InformationDensityMetrics:
-        """
-        Calculate information density metrics.
-        
-        Args:
-            text: Text to analyze
-            insights: Optional list of extracted insights
-            entities: Optional list of detected entities
-            
-        Returns:
-            InformationDensityMetrics object
-        """
+        """Calculate information density metrics."""
         # Basic text metrics
         words = text.split()
         word_count = len(words)
@@ -183,7 +172,7 @@ class MetricsCalculator:
                 insights_per_minute=0,
                 entities_per_minute=0
             )
-            
+        
         # Calculate densities
         insight_count = len(insights) if insights else 0
         entity_count = len(entities) if entities else 0
@@ -220,22 +209,13 @@ class MetricsCalculator:
             insights_per_minute=insights_per_minute,
             entities_per_minute=entities_per_minute
         )
-        
+    
     def calculate_accessibility(
         self,
         text: str,
         complexity_score: float
     ) -> AccessibilityMetrics:
-        """
-        Calculate accessibility metrics.
-        
-        Args:
-            text: Text to analyze
-            complexity_score: Complexity score from complexity analysis
-            
-        Returns:
-            AccessibilityMetrics object
-        """
+        """Calculate accessibility metrics."""
         # Split into sentences and words
         sentences = re.split(r'[.!?]+', text)
         sentences = [s.strip() for s in sentences if s.strip()]
@@ -249,7 +229,7 @@ class MetricsCalculator:
                 explanation_quality=0,
                 readability_score=0
             )
-            
+        
         # Average sentence length
         avg_sentence_length = len(words) / len(sentences)
         
@@ -299,27 +279,17 @@ class MetricsCalculator:
             explanation_quality=explanation_quality / 100,  # Normalize to 0-1
             readability_score=readability_score / 100  # Normalize to 0-1
         )
-        
+    
     def aggregate_episode_metrics(
         self,
         segment_complexities: List[ComplexityMetrics],
         segment_densities: List[InformationDensityMetrics],
         segment_accessibilities: List[AccessibilityMetrics]
     ) -> Dict[str, Any]:
-        """
-        Aggregate segment metrics to episode level.
-        
-        Args:
-            segment_complexities: List of segment complexity metrics
-            segment_densities: List of segment density metrics
-            segment_accessibilities: List of segment accessibility metrics
-            
-        Returns:
-            Dictionary with episode-level metrics
-        """
+        """Aggregate segment metrics to episode level."""
         if not segment_complexities:
             return self._empty_episode_metrics()
-            
+        
         # Complexity aggregation
         complexity_scores = [m.complexity_score for m in segment_complexities]
         avg_complexity = mean(complexity_scores)
@@ -356,13 +326,13 @@ class MetricsCalculator:
             total_insights = 0
             total_entities = 0
             info_variance = 0
-            
+        
         # Accessibility aggregation
         if segment_accessibilities:
             avg_accessibility = mean(m.accessibility_score for m in segment_accessibilities)
         else:
             avg_accessibility = 0
-            
+        
         # Technical characteristics
         avg_technical_density = mean(m.technical_density for m in segment_complexities)
         is_technical = avg_technical_density > 0.05
@@ -394,7 +364,7 @@ class MetricsCalculator:
             # Counts
             'segment_count': total_segments
         }
-        
+    
     # Helper methods
     
     def _analyze_vocabulary_complexity(self, text: str) -> Dict[str, float]:
@@ -409,7 +379,7 @@ class MetricsCalculator:
                 'syllable_complexity': 0,
                 'avg_sentence_length': 0
             }
-            
+        
         # Average word length
         avg_word_length = mean(len(word) for word in words)
         
@@ -444,7 +414,7 @@ class MetricsCalculator:
             'syllable_complexity': syllable_complexity,
             'avg_sentence_length': avg_sentence_length
         }
-        
+    
     def _estimate_syllables(self, text: str) -> int:
         """Estimate syllable count in text."""
         # Simple syllable estimation
@@ -466,15 +436,15 @@ class MetricsCalculator:
                     if is_vowel and not prev_was_vowel:
                         word_syllables += 1
                     prev_was_vowel = is_vowel
-                    
+                
                 # Adjust for silent e
                 if word.endswith('e') and word_syllables > 1:
                     word_syllables -= 1
-                    
-                syllable_count += max(1, word_syllables)
                 
-        return syllable_count
+                syllable_count += max(1, word_syllables)
         
+        return syllable_count
+    
     def _count_facts(self, text: str) -> int:
         """Count fact-like statements in text."""
         fact_count = sum(
@@ -487,9 +457,9 @@ class MetricsCalculator:
         for sentence in sentences:
             if re.search(r'\d+', sentence):
                 fact_count += 0.5  # Half weight for general numeric content
-                
-        return int(fact_count)
         
+        return int(fact_count)
+    
     def _empty_episode_metrics(self) -> Dict[str, Any]:
         """Return empty episode metrics structure."""
         return {

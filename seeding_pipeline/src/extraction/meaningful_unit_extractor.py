@@ -16,7 +16,7 @@ from src.services.segment_regrouper import MeaningfulUnit
 from src.services.performance_optimizer import PerformanceOptimizer
 from src.core.interfaces import TranscriptSegment
 from src.core.monitoring import trace_operation
-from src.utils.log_utils import get_logger
+from src.utils.logging import get_logger
 
 logger = get_logger(__name__)
 

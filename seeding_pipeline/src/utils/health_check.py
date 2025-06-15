@@ -7,9 +7,9 @@ from pathlib import Path
 from typing import Dict, Any, List, Optional, Tuple
 import shutil
 
-from src.utils.log_utils import get_logger
-from src.utils.metrics import get_pipeline_metrics
-from src.utils.optional_dependencies import get_psutil, get_memory_info, get_cpu_info, PSUTIL_AVAILABLE
+from src.utils.logging import get_logger
+from src.monitoring import get_pipeline_metrics
+from src.core.dependencies import get_psutil, get_memory_info, get_cpu_info, PSUTIL_AVAILABLE
 
 
 class HealthStatus:

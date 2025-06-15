@@ -86,7 +86,7 @@ class PerformanceBenchmark:
         """Benchmark enhanced logging."""
         print("\n📊 Benchmarking Enhanced Logging")
         
-        from src.utils.logging_enhanced import get_logger, with_correlation_id, set_correlation_id
+        from src.utils.logging import get_logger, with_correlation_id, set_correlation_id
         import logging
         
         # Disable actual logging to measure pure overhead
@@ -211,7 +211,7 @@ class PerformanceBenchmark:
         
         # Import and create instances
         from src.utils.error_handling import with_error_handling
-        from src.utils.logging_enhanced import get_logger, StandardizedLogger
+        from src.utils.logging import get_logger, StandardizedLogger
         from src.core.exceptions import (
             ExtractionError, RateLimitError, TimeoutError,
             ResourceError, DataIntegrityError

@@ -72,6 +72,21 @@ from .feature_flags import (
 
 from . import constants
 
+# Optional dependencies
+from .dependencies import (
+    get_dependency,
+    is_available,
+    require,
+    get_psutil,
+    get_memory_info,
+    get_cpu_info,
+    PSUTIL_AVAILABLE,
+    HAS_NETWORKX,
+    HAS_NUMPY,
+    HAS_SCIPY,
+    GOOGLE_AI_AVAILABLE,
+)
+
 __all__ = [
     # Protocols
     "HealthCheckable",
@@ -134,4 +149,16 @@ __all__ = [
     "requires_flag",
     # Constants module
     "constants",
+    # Optional dependencies
+    "get_dependency",
+    "is_available",
+    "require",
+    "get_psutil",
+    "get_memory_info", 
+    "get_cpu_info",
+    "PSUTIL_AVAILABLE",
+    "HAS_NETWORKX",
+    "HAS_NUMPY",
+    "HAS_SCIPY",
+    "GOOGLE_AI_AVAILABLE",
 ]

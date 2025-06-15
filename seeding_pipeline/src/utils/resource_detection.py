@@ -9,7 +9,7 @@ import os
 import multiprocessing
 from typing import Dict, Any, Tuple
 
-from src.utils.optional_dependencies import get_psutil, PSUTIL_AVAILABLE, get_memory_info
+from src.core.dependencies import get_psutil, PSUTIL_AVAILABLE, get_memory_info
 
 
 def get_available_memory_mb() -> int:

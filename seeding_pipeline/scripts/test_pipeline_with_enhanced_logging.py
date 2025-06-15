@@ -13,8 +13,8 @@ from src.cli.cli import setup_logging_cli
 from src.pipeline.enhanced_knowledge_pipeline import EnhancedKnowledgePipeline
 from src.core.config import PipelineConfig
 from src.vtt import VTTParser
-from src.utils.logging_enhanced import get_logger, get_metrics_collector
-from src.utils.log_utils import set_correlation_id, generate_correlation_id
+from src.utils.logging import get_logger, get_metrics_collector
+from src.utils.logging import set_correlation_id, generate_correlation_id
 
 
 def create_test_vtt():

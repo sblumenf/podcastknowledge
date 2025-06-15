@@ -13,7 +13,7 @@ from collections import defaultdict
 from src.extraction.entity_resolution import EntityResolver, EntityResolutionConfig, EntityMatch
 from src.services.segment_regrouper import MeaningfulUnit
 from src.core.monitoring import trace_operation
-from src.utils.log_utils import get_logger
+from src.utils.logging import get_logger
 
 logger = get_logger(__name__)
 

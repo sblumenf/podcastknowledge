@@ -11,7 +11,7 @@ from datetime import datetime
 
 from src.api.app import create_app
 from src.api.health import HealthStatus, HealthStatus
-from src.api.metrics import RequestMetrics, MetricsCollector
+from src.monitoring import MetricsCollector
 
 
 class TestAPIApp:

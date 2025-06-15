@@ -10,7 +10,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from src.utils.health_check import get_health_checker, HealthStatus
-from src.utils.logging_enhanced import setup_enhanced_logging
+from src.utils.logging import setup_enhanced_logging
 
 
 def test_health_checks():

@@ -3,111 +3,23 @@
 from typing import Dict, Any, List, Optional
 import logging
 
-from src.core.models import Entity
-from src.utils.log_utils import get_logger
+from .base_storage_coordinator import BaseStorageCoordinator
+from ..core.models import Entity
+from ..utils.logging import get_logger
+
 logger = get_logger(__name__)
 
 
-class StorageCoordinator:
-    """Coordinates all storage operations to the knowledge graph."""
+class StorageCoordinator(BaseStorageCoordinator):
+    """Coordinates all storage operations to the knowledge graph for single database."""
     
-    def __init__(self, graph_provider: Any, graph_enhancer: Any, config):
-        """Initialize storage coordinator.
+    def _get_podcast_context(self) -> Optional[str]:
+        """Get the current podcast context for multi-database routing.
         
-        Args:
-            graph_provider: Graph database provider
-            graph_enhancer: Graph enhancement component
-            config: Pipeline configuration
+        Returns:
+            None for single database implementation
         """
-        self.graph_provider = graph_provider
-        self.graph_enhancer = graph_enhancer
-        self.config = config
-    
-    def store_all(self, podcast_config: Dict[str, Any],
-                  episode: Dict[str, Any],
-                  segments: List[Dict[str, Any]],
-                  extraction_result: Dict[str, Any],
-                  resolved_entities: List[Entity]):
-        """Store all extracted data to the knowledge graph.
-        
-        Args:
-            podcast_config: Podcast configuration
-            episode: Episode information
-            segments: Processed segments
-            extraction_result: Extraction results
-            resolved_entities: Resolved entities
-        """
-        logger.info("Saving to knowledge graph...")
-        
-        # Store podcast
-        self._store_podcast(podcast_config)
-        
-        # Store episode
-        self._store_episode(episode, extraction_result)
-        
-        # Create podcast-episode relationship
-        self._create_podcast_episode_relationship(podcast_config['id'], episode['id'])
-        
-        # Store segments
-        self._store_segments(episode['id'], segments)
-        
-        # Store insights
-        self._store_insights(episode['id'], extraction_result.get('insights', []))
-        
-        # Store entities
-        self._store_entities(episode['id'], resolved_entities)
-        
-        # Store quotes
-        self._store_quotes(episode['id'], extraction_result.get('quotes', []))
-        
-        # Store emergent themes
-        self._store_emergent_themes(episode['id'], 
-                                  extraction_result.get('emergent_themes', {}),
-                                  resolved_entities)
-        
-        # Enhance graph if configured
-        if getattr(self.config, 'enhance_graph', True):
-            logger.info("Enhancing knowledge graph...")
-            self.graph_enhancer.enhance_episode(episode['id'])
-        
-        # Run knowledge discovery analyses if configured
-        if getattr(self.config, 'enable_knowledge_discovery', True):
-            try:
-                from src.analysis.analysis_orchestrator import run_knowledge_discovery
-                logger.info(f"Running knowledge discovery for episode {episode['id']}...")
-                
-                # Run analyses with a new session to avoid conflicts
-                with self.graph_provider.driver.session() as discovery_session:
-                    discovery_results = run_knowledge_discovery(episode['id'], discovery_session)
-                    
-                    if discovery_results.get('summary', {}).get('status') == 'healthy':
-                        logger.info(f"Knowledge discovery completed successfully for episode {episode['id']}")
-                        if discovery_results.get('summary', {}).get('key_findings'):
-                            logger.info(f"Key findings: {discovery_results['summary']['key_findings']}")
-                    else:
-                        logger.warning(f"Knowledge discovery partially completed for episode {episode['id']}")
-                        
-            except ImportError:
-                logger.warning("Knowledge discovery module not available")
-            except Exception as e:
-                logger.error(f"Error running knowledge discovery: {e}")
-                # Don't fail the pipeline if knowledge discovery fails
-    
-    def _store_podcast(self, podcast_config: Dict[str, Any]):
-        """Store podcast node.
-        
-        Args:
-            podcast_config: Podcast configuration
-        """
-        self.graph_provider.create_node(
-            'Podcast',
-            {
-                'id': podcast_config['id'],
-                'name': podcast_config.get('name', podcast_config['id']),
-                'description': podcast_config.get('description', ''),
-                'rss_url': podcast_config.get('rss_url', '')
-            }
-        )
+        return None
     
     def _store_episode(self, episode: Dict[str, Any], extraction_result: Dict[str, Any]):
         """Store episode node with flow data.

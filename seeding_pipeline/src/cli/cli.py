@@ -24,10 +24,11 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 from src.core.config import PipelineConfig
 from src.core.exceptions import PipelineError
 from src.vtt import VTTParser
-from src.utils.log_utils import get_logger
-from src.utils.logging_enhanced import setup_enhanced_logging, log_performance_metric, trace_operation, log_batch_progress, get_metrics_collector
+from src.utils.logging import get_logger
+from src.utils.logging import setup_enhanced_logging, log_performance_metric, trace_operation, log_batch_progress, get_metrics_collector
 from src.utils.health_check import get_health_checker
 from src.seeding.checkpoint import ProgressCheckpoint
+from src.utils.vtt_validation import validate_vtt_file
 from src.seeding.batch_processor import BatchProcessor, BatchItem, BatchResult
 import time
 import threading
@@ -329,39 +330,7 @@ def find_vtt_files(folder: Path, pattern: str = "*.vtt", recursive: bool = False
     return sorted(vtt_files)  # Sort for consistent ordering
 
 
-def validate_vtt_file(file_path: Path) -> Tuple[bool, Optional[str]]:
-    """Validate a VTT file.
-    
-    Args:
-        file_path: Path to VTT file
-        
-    Returns:
-        Tuple of (is_valid, error_message)
-    """
-    try:
-        # Check if file exists
-        if not file_path.exists():
-            return False, f"File does not exist: {file_path}"
-        
-        # Check if file is readable
-        if not file_path.is_file():
-            return False, f"Not a file: {file_path}"
-        
-        # Check file extension
-        if file_path.suffix.lower() != '.vtt':
-            return False, f"Not a VTT file: {file_path}"
-        
-        # Try to read first few lines to check format
-        with open(file_path, 'r', encoding='utf-8') as f:
-            first_line = f.readline().strip()
-            # VTT files should start with WEBVTT
-            if not first_line.startswith('WEBVTT'):
-                return False, f"Invalid VTT format (missing WEBVTT header): {file_path}"
-        
-        return True, None
-        
-    except Exception as e:
-        return False, f"Error validating file {file_path}: {str(e)}"
+# validate_vtt_file is now imported from src.utils.vtt_validation
 
 
 @trace_operation("batch_vtt_processing")

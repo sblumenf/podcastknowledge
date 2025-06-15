@@ -15,10 +15,9 @@ import logging
 import math
 
 from ..core.models import Entity, Insight, Segment
-from ..utils.optional_deps import (
+from ..core.dependencies import (
     HAS_NETWORKX, HAS_NUMPY, 
-    fallback_degree_centrality, fallback_betweenness_centrality, 
-    fallback_eigenvector_centrality, _warn_once
+    get_fallback, _warn_once
 )
 
 logger = logging.getLogger(__name__)
@@ -178,9 +177,14 @@ class ImportanceScorer:
             return 0.0
         
         # Use fallback implementations
-        degree_centrality = fallback_degree_centrality(graph_dict)
-        between_centrality = fallback_betweenness_centrality(graph_dict)
-        eigen_centrality = fallback_eigenvector_centrality(graph_dict)
+        degree_centrality_func = get_fallback('networkx', 'degree_centrality')
+        betweenness_centrality_func = get_fallback('networkx', 'betweenness_centrality')
+        eigenvector_centrality_func = get_fallback('networkx', 'eigenvector_centrality')
+        
+        # Calculate centrality values
+        degree_centrality = degree_centrality_func(graph_dict) if degree_centrality_func else {}
+        between_centrality = betweenness_centrality_func(graph_dict) if betweenness_centrality_func else {}
+        eigen_centrality = eigenvector_centrality_func(graph_dict) if eigenvector_centrality_func else {}
         
         degree_cent = degree_centrality.get(entity_id, 0.0)
         between_cent = between_centrality.get(entity_id, 0.0)

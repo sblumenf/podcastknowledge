@@ -6,7 +6,7 @@ from contextlib import contextmanager
 
 from src.storage.graph_storage import GraphStorageService
 from src.config.podcast_databases import PodcastDatabaseConfig
-from src.utils.log_utils import get_logger
+from src.utils.logging import get_logger
 
 logger = get_logger(__name__)
 

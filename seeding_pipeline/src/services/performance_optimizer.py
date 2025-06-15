@@ -18,8 +18,8 @@ import logging
 import gc
 import os
 
-from src.utils.log_utils import get_logger
-from src.utils.optional_dependencies import get_psutil, get_memory_info
+from src.utils.logging import get_logger
+from src.core.dependencies import get_psutil, get_memory_info
 
 logger = get_logger(__name__)
 

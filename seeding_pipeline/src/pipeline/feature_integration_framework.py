@@ -19,7 +19,7 @@ from src.extraction.extraction import KnowledgeExtractor, ExtractionResult
 from src.extraction.complexity_analysis import ComplexityAnalyzer, SegmentComplexity, EpisodeComplexity
 from src.extraction.importance_scoring import ImportanceScorer
 from src.storage.graph_storage import GraphStorageService
-from src.utils.log_utils import get_logger
+from src.utils.logging import get_logger
 
 logger = get_logger(__name__)
 

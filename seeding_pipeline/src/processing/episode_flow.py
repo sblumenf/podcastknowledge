@@ -5,10 +5,39 @@ from typing import List, Dict, Any, Optional, Tuple
 import logging
 
 from src.core.models import Entity, Segment
-from src.utils.log_utils import get_logger
-from src.utils.optional_deps import cosine_distance, HAS_SCIPY, HAS_NUMPY, _warn_once
+from src.utils.logging import get_logger
+from src.core.dependencies import HAS_SCIPY, HAS_NUMPY, get_fallback, _warn_once, get_dependency
 
 logger = get_logger(__name__)
+
+
+def cosine_distance(vec1, vec2):
+    """Compute cosine distance with scipy fallback to pure Python."""
+    if HAS_SCIPY and HAS_NUMPY:
+        try:
+            import numpy as np
+            from scipy.spatial.distance import cosine as scipy_cosine
+            arr1 = np.array(vec1)
+            arr2 = np.array(vec2)
+            return float(scipy_cosine(arr1, arr2))
+        except Exception:
+            pass
+    
+    # Use fallback
+    cosine_sim_func = get_fallback('scipy', 'cosine_similarity')
+    if cosine_sim_func:
+        similarity = cosine_sim_func(vec1, vec2)
+        return 1.0 - similarity
+    else:
+        # Last resort - basic implementation
+        if len(vec1) != len(vec2):
+            return 1.0
+        dot_product = sum(a * b for a, b in zip(vec1, vec2))
+        mag1 = sum(a * a for a in vec1) ** 0.5
+        mag2 = sum(b * b for b in vec2) ** 0.5
+        if mag1 == 0 or mag2 == 0:
+            return 1.0
+        return 1.0 - (dot_product / (mag1 * mag2))
 
 
 class EpisodeFlowAnalyzer:

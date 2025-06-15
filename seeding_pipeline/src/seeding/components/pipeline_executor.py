@@ -1,42 +1,20 @@
 """Simplified pipeline execution component for VTT processing."""
 
 from datetime import datetime
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, List, Optional, Tuple
 import logging
 import os
 
-from src.core.exceptions import PipelineError
-from src.core.interfaces import TranscriptSegment
-from src.core.models import Podcast, Episode, Segment
-from src.utils.log_utils import get_logger
-from src.utils.memory import cleanup_memory
-def add_span_attributes(attributes: Dict[str, Any]) -> None:
-    """Mock implementation for tracing/observability attributes."""
-    # This is a placeholder for actual tracing implementation
-    pass
-
-
-def create_span(name: str, **kwargs) -> 'MockSpan':
-    """Mock implementation for tracing/observability spans."""
-    return MockSpan(name)
-
-
-class MockSpan:
-    """Mock implementation for tracing spans."""
-    
-    def __init__(self, name: str):
-        self.name = name
-    
-    def __enter__(self):
-        return self
-    
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        pass
-
+from .base_pipeline_executor import BasePipelineExecutor
+from ...core.exceptions import PipelineError
+from ...core.interfaces import TranscriptSegment
+from ...core.models import Podcast, Episode, Segment, Entity
+from ...utils.logging import get_logger
+from ...utils.memory import cleanup_memory
 logger = get_logger(__name__)
 
 
-class PipelineExecutor:
+class PipelineExecutor(BasePipelineExecutor):
     """Simplified pipeline executor for VTT knowledge extraction."""
     
     def __init__(self, config, provider_coordinator, checkpoint_manager, storage_coordinator=None):
@@ -48,22 +26,113 @@ class PipelineExecutor:
             checkpoint_manager: Checkpoint manager instance
             storage_coordinator: Storage coordinator instance (optional)
         """
-        self.config = config
-        self.provider_coordinator = provider_coordinator
-        self.checkpoint_manager = checkpoint_manager
-        self.storage_coordinator = storage_coordinator
+        # Initialize base class
+        super().__init__(config, provider_coordinator, checkpoint_manager)
         
-        # Get services directly from provider coordinator
+        # Set storage coordinator if provided (overrides base class default)
+        if storage_coordinator:
+            self.storage_coordinator = storage_coordinator
+        
+        # Additional services from provider coordinator
         self.llm_service = provider_coordinator.llm_service
         self.graph_service = provider_coordinator.graph_service
         self.embedding_service = provider_coordinator.embedding_service
-        
-        # Get processing components
-        self.knowledge_extractor = provider_coordinator.knowledge_extractor
-        self.entity_resolver = provider_coordinator.entity_resolver
         self.segmenter = provider_coordinator.segmenter
+    
+    def _process_segments_impl(
+        self,
+        podcast_config: Dict[str, Any],
+        episode: Dict[str, Any],
+        segments: List[Dict[str, Any]],
+        use_large_context: bool
+    ) -> Dict[str, Any]:
+        """Implementation-specific segment processing logic.
         
-        # No longer using rotation checkpoint integration since we simplified to single API key
+        Args:
+            podcast_config: Podcast configuration
+            episode: Episode information
+            segments: VTT segments to process
+            use_large_context: Whether to use large context model
+            
+        Returns:
+            Processing result with extracted knowledge
+        """
+        episode_id = episode['id']
+        
+        # Convert to Segment objects if needed
+        if segments and isinstance(segments[0], (dict, TranscriptSegment)):
+            segment_objects = self._convert_segments(segments, episode_id)
+        else:
+            segment_objects = segments
+        
+        # Save segments checkpoint
+        self.checkpoint_manager.save_progress(episode_id, "segments", segment_objects)
+        
+        # Perform knowledge extraction
+        extraction_result = self._extract_knowledge_direct(
+            podcast_config, episode, segment_objects, episode_id
+        )
+        
+        return extraction_result
+    
+    def _prepare_storage_data(
+        self,
+        podcast_config: Dict[str, Any],
+        episode: Dict[str, Any],
+        segments: List[Dict[str, Any]],
+        extraction_result: Dict[str, Any]
+    ) -> Tuple[Dict[str, Any], Dict[str, Any], List[Dict[str, Any]], Dict[str, Any], List[Entity]]:
+        """Prepare data for storage based on implementation specifics.
+        
+        Args:
+            podcast_config: Podcast configuration
+            episode: Episode information
+            segments: Processed segments
+            extraction_result: Raw extraction results
+            
+        Returns:
+            Tuple of (podcast_config, episode, segments, extraction_result, resolved_entities)
+        """
+        # Extract entities from result - they're already Entity objects from resolver
+        entities = extraction_result.get('entities', [])
+        quotes = extraction_result.get('quotes', [])
+        relationships = extraction_result.get('relationships', [])
+        
+        # Convert segments to dict format for storage
+        segment_dicts = []
+        for seg in segments:
+            if isinstance(seg, Segment):
+                segment_dicts.append({
+                    'id': seg.id,
+                    'text': seg.text,
+                    'start': seg.start_time,
+                    'end': seg.end_time,
+                    'speaker': seg.speaker,
+                    'segment_number': seg.segment_number
+                })
+            elif hasattr(seg, 'text'):  # TranscriptSegment
+                segment_dicts.append({
+                    'id': f"{episode['id']}_segment_{len(segment_dicts)}",
+                    'text': seg.text,
+                    'start': seg.start_time,
+                    'end': seg.end_time,
+                    'speaker': getattr(seg, 'speaker', 'Unknown'),
+                    'segment_number': len(segment_dicts) + 1
+                })
+            else:
+                segment_dicts.append(seg)
+        
+        # Prepare extraction result for storage coordinator
+        storage_extraction_result = {
+            'entities': [],  # Entities are passed separately as Entity objects
+            'quotes': quotes,
+            'relationships': relationships,
+            'insights': [],  # No insights in direct extraction
+            'emergent_themes': {},  # No themes in direct extraction
+            'metadata': extraction_result.get('extraction_metadata', {})
+        }
+        
+        return podcast_config, episode, segment_dicts, storage_extraction_result, entities
     
     def process_vtt_segments(self,
                            podcast_config: Dict[str, Any],
@@ -196,15 +265,14 @@ class PipelineExecutor:
             else:
                 resolved_entities = []
             
-            # Store to graph database
-            self._store_to_graph(podcast_config, episode, segments, resolved_entities, all_quotes, all_relationships)
+            # Note: Storage is handled by base class via _prepare_storage_data
             
-            # Build result summary
+            # Build result summary with actual data for base class
             result = {
                 'segments': len(segments),
-                'entities': len(resolved_entities),
-                'quotes': len(all_quotes),
-                'relationships': len(all_relationships),
+                'entities': resolved_entities,  # Return actual entities
+                'quotes': all_quotes,
+                'relationships': all_relationships,
                 'mode': 'direct_schemaless',
                 'extraction_metadata': {
                     'total_text_length': sum(len(s.text) for s in segments),
@@ -212,13 +280,6 @@ class PipelineExecutor:
                     'processing_timestamp': datetime.now().isoformat()
                 }
             }
-            
-            # Add metrics to tracing
-            add_span_attributes({
-                "result.entities": len(resolved_entities),
-                "result.quotes": len(all_quotes),
-                "result.relationships": len(all_relationships)
-            })
             
             return result
     
@@ -341,16 +402,6 @@ class PipelineExecutor:
                 logger.error(f"Failed to store knowledge to graph: {e}")
                 # Don't fail the entire pipeline if storage fails
     
-    def _is_episode_completed(self, episode_id: str) -> bool:
-        """Check if episode is already completed.
-        
-        Args:
-            episode_id: Episode identifier
-            
-        Returns:
-            True if episode is already completed
-        """
-        return self.checkpoint_manager.is_completed(episode_id)
     
     def _add_episode_context(self, episode: Dict[str, Any], 
                             podcast_config: Dict[str, Any]) -> None:
@@ -368,54 +419,9 @@ class PipelineExecutor:
         })
     
     def _finalize_episode_processing(self, episode_id: str, result: Dict[str, Any]) -> None:
-        """Finalize episode processing.
-        
-        Args:
-            episode_id: Episode identifier
-            result: Processing results
-        """
-        # Mark episode as complete
+        """Override to add custom finalization."""
+        # Mark episode as complete with checkpoint manager's specific method
         self.checkpoint_manager.mark_completed(episode_id, result)
         
-        # Clean up memory
-        cleanup_memory()
-        
-        # Add result metrics to span
-        add_span_attributes({
-            "result.segments": result["segments"],
-            "result.entities": result.get("entities", 0),
-            "result.quotes": result.get("quotes", 0),
-            "result.relationships": result.get("relationships", 0),
-            "result.mode": result.get("mode", "direct_schemaless")
-        })
-        
-        logger.info(f"Episode {episode_id} processing completed: {result}")
-    
-    # Legacy method for backward compatibility
-    def process_episode(self, podcast_config: Dict[str, Any], 
-                       episode: Dict[str, Any],
-                       use_large_context: bool) -> Dict[str, Any]:
-        """Legacy episode processing method (deprecated for VTT workflow).
-        
-        This method is kept for backward compatibility but should not be used
-        for VTT-based processing. Use process_vtt_segments instead.
-        
-        Args:
-            podcast_config: Podcast configuration
-            episode: Episode information
-            use_large_context: Whether to use large context
-            
-        Returns:
-            Episode processing results
-        """
-        logger.warning("process_episode is deprecated for VTT workflow. Use process_vtt_segments instead.")
-        
-        # Return minimal result to maintain compatibility
-        return {
-            'segments': 0,
-            'entities': 0,
-            'quotes': 0,
-            'relationships': 0,
-            'mode': 'deprecated',
-            'message': 'Use process_vtt_segments for VTT-based processing'
-        }
+        # Call parent implementation
+        super()._finalize_episode_processing(episode_id, result)

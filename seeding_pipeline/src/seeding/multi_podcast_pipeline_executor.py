@@ -7,7 +7,7 @@ import logging
 from src.seeding.components.pipeline_executor import PipelineExecutor
 from src.core.interfaces import TranscriptSegment
 from src.core.models import Segment
-from src.utils.log_utils import get_logger
+from src.utils.logging import get_logger
 
 logger = get_logger(__name__)
 

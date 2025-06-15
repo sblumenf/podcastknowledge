@@ -7,7 +7,7 @@ import logging
 from src.pipeline.enhanced_knowledge_pipeline import EnhancedKnowledgePipeline
 from src.storage.multi_database_graph_storage import MultiDatabaseGraphStorage
 from src.storage.multi_database_storage_coordinator import MultiDatabaseStorageCoordinator
-from src.utils.log_utils import get_logger
+from src.utils.logging import get_logger
 
 logger = get_logger(__name__)
 

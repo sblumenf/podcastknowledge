@@ -17,7 +17,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from src.core.feature_flags import FeatureFlag, set_flag, get_all_flags
 from src.utils.component_tracker import get_component_tracker
-from src.utils.log_utils import get_logger, setup_logging
+from src.utils.logging import get_logger, setup_logging
 import yaml
 
 logger = get_logger(__name__)

@@ -10,10 +10,10 @@ from typing import Any, Callable, Dict, List, Optional
 import functools
 import time
 
-from ..api.metrics import get_metrics_collector
+from ..monitoring import get_metrics_collector
 from ..utils.component_tracker import get_component_tracker
-from ..utils.log_utils import get_logger
-from ..utils.optional_dependencies import get_psutil, PSUTIL_AVAILABLE
+from ..utils.logging import get_logger
+from ..core.dependencies import get_psutil, PSUTIL_AVAILABLE
 psutil = get_psutil()
 import tracemalloc
 logger = get_logger(__name__)

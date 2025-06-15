@@ -11,7 +11,7 @@ import os
 import sys
 
 from ..core.feature_flags import FeatureFlag, get_feature_flag_manager, get_all_flags
-from ..utils.log_utils import get_logger
+from ..utils.logging import get_logger
 import yaml
 logger = get_logger(__name__)
 

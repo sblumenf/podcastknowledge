@@ -12,7 +12,7 @@ import random
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from src.utils.log_utils import get_logger
+from src.utils.logging import get_logger
 
 
 class MockRealDataValidator:

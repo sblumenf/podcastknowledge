@@ -15,7 +15,7 @@ from src.extraction.speaker_database import SpeakerDatabase
 from src.extraction.speaker_metrics import SpeakerIdentificationMetrics
 from src.services.llm_gemini_direct import GeminiDirectService
 from src.utils.retry import ExponentialBackoff
-from src.utils.metrics import get_pipeline_metrics
+from src.monitoring import get_pipeline_metrics
 
 logger = logging.getLogger(__name__)
 

@@ -8,7 +8,7 @@ import logging
 from pydantic import ValidationError
 
 from src.config.podcast_config_models import PodcastRegistry, PodcastConfig
-from src.utils.log_utils import get_logger
+from src.utils.logging import get_logger
 
 logger = get_logger(__name__)
 

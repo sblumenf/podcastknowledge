@@ -27,7 +27,7 @@ import time
 
 import pytest
 
-from src.utils.log_utils import (
+from src.utils.logging import (
     StructuredFormatter,
     ContextFilter,
     # PerformanceFilter,  # Does not exist in logging module

@@ -12,7 +12,7 @@ import tempfile
 import weakref
 
 import atexit
-from src.utils.optional_dependencies import get_psutil, PSUTIL_AVAILABLE
+from src.core.dependencies import get_psutil, PSUTIL_AVAILABLE
 psutil = get_psutil()
 logger = logging.getLogger(__name__)
 

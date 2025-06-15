@@ -92,7 +92,7 @@ class TestRefactoredComponents(unittest.TestCase):
     
     def test_enhanced_logging(self):
         """Test enhanced logging functionality."""
-        from src.utils.logging_enhanced import (
+        from src.utils.logging import (
             get_logger, set_correlation_id, get_correlation_id,
             with_correlation_id, StandardizedLogger
         )

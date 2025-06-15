@@ -12,13 +12,13 @@ from queue import Queue, Empty
 from src.core.exceptions import ProviderError, ConnectionError
 from src.core.models import Podcast, Episode, Segment
 from src.utils.retry import retry, ExponentialBackoff
-from src.utils.log_utils import get_logger
-from src.utils.logging_enhanced import (
+from src.utils.logging import get_logger
+from src.utils.logging import (
     trace_operation,
     log_performance_metric,
     ProcessingTraceLogger
 )
-from src.utils.metrics import get_pipeline_metrics
+from src.monitoring import get_pipeline_metrics
 
 logger = get_logger(__name__)
 

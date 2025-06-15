@@ -36,9 +36,9 @@ from src.analysis import missing_links
 from src.reports import content_intelligence
 from src.storage.graph_storage import GraphStorageService
 from src.vtt.vtt_parser import VTTParser
-from src.utils.log_utils import get_logger
-from src.utils.logging_enhanced import trace_operation, ProcessingTraceLogger
-from src.utils.metrics import get_pipeline_metrics
+from src.utils.logging import get_logger
+from src.utils.logging import trace_operation, ProcessingTraceLogger
+from src.monitoring import get_pipeline_metrics
 
 logger = get_logger(__name__)
 

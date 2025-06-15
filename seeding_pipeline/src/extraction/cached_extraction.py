@@ -10,7 +10,7 @@ from src.services.llm_gemini_direct import GeminiDirectService
 from src.services.cache_manager import CacheManager
 from src.services.cached_prompt_service import CachedPromptService
 from src.extraction.prompts import PromptBuilder
-from src.utils.metrics import get_pipeline_metrics
+from src.monitoring import get_pipeline_metrics
 
 logger = logging.getLogger(__name__)
 
