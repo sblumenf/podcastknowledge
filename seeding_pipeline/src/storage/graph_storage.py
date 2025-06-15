@@ -536,6 +536,7 @@ class GraphStorageService:
                 "CREATE CONSTRAINT IF NOT EXISTS FOR (p:Podcast) REQUIRE p.id IS UNIQUE",
                 "CREATE CONSTRAINT IF NOT EXISTS FOR (e:Episode) REQUIRE e.id IS UNIQUE",
                 "CREATE CONSTRAINT IF NOT EXISTS FOR (s:Segment) REQUIRE s.id IS UNIQUE",
+                "CREATE CONSTRAINT IF NOT EXISTS FOR (m:MeaningfulUnit) REQUIRE m.id IS UNIQUE",
                 "CREATE CONSTRAINT IF NOT EXISTS FOR (en:Entity) REQUIRE en.id IS UNIQUE",
                 "CREATE CONSTRAINT IF NOT EXISTS FOR (t:Topic) REQUIRE t.name IS UNIQUE"
             ]
@@ -548,6 +549,8 @@ class GraphStorageService:
                 "CREATE INDEX IF NOT EXISTS FOR (e:Episode) ON (e.youtube_url)",
                 "CREATE INDEX IF NOT EXISTS FOR (s:Segment) ON (s.speaker)",
                 "CREATE INDEX IF NOT EXISTS FOR (s:Segment) ON (s.start_time)",
+                "CREATE INDEX IF NOT EXISTS FOR (m:MeaningfulUnit) ON (m.start_time)",
+                "CREATE INDEX IF NOT EXISTS FOR (m:MeaningfulUnit) ON (m.speaker_distribution)",
                 "CREATE INDEX IF NOT EXISTS FOR (en:Entity) ON (en.name)",
                 "CREATE INDEX IF NOT EXISTS FOR (en:Entity) ON (en.type)",
                 "CREATE INDEX IF NOT EXISTS FOR ()-[r:MENTIONED_IN]-() ON (r.confidence)"
