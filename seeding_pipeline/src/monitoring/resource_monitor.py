@@ -222,6 +222,39 @@ class ResourceMonitor:
         """
         return (self._monitoring_thread is not None and 
                 self._monitoring_thread.is_alive())
+    
+    def get_memory_info(self) -> Dict[str, Any]:
+        """Get memory information (compatibility method).
+        
+        Returns:
+            Dictionary with memory metrics
+        """
+        # Use the existing get_memory_info from dependencies
+        mem_info = get_memory_info()
+        
+        # Add compatibility fields
+        return {
+            'available_memory_mb': mem_info.get('system_memory_mb', 0),
+            'process_memory_mb': mem_info.get('process_memory_mb', 0),
+            'memory_percent': mem_info.get('memory_percent', 0),
+            **mem_info  # Include all original fields
+        }
+    
+    def get_cpu_info(self) -> Dict[str, Any]:
+        """Get CPU information (compatibility method).
+        
+        Returns:
+            Dictionary with CPU metrics
+        """
+        # Use the existing get_cpu_info from dependencies
+        cpu_info_data = get_cpu_info()
+        
+        # Ensure required fields are present
+        return {
+            'cpu_count': cpu_info_data.get('cpu_count', 1),
+            'cpu_percent': cpu_info_data.get('cpu_percent', 0),
+            **cpu_info_data  # Include all original fields
+        }
 
 
 # Global instance getter

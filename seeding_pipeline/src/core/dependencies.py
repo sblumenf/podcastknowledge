@@ -469,17 +469,20 @@ def get_cpu_info() -> Dict[str, Any]:
     
     try:
         process = ps.Process()
+        cpu_percent = process.cpu_percent(interval=0.1)
         
         return {
             'cpu_count': ps.cpu_count(logical=True),
-            'process_cpu_percent': process.cpu_percent(interval=0.1),
-            'system_cpu_percent': process.cpu_percent(interval=0.1),  # Simplified
+            'cpu_percent': cpu_percent,  # Legacy compatibility
+            'process_cpu_percent': cpu_percent,
+            'system_cpu_percent': ps.cpu_percent(interval=0.1),
             'available': is_available('psutil')
         }
     except Exception as e:
         logger.debug(f"Error getting CPU info: {e}")
         return {
             'cpu_count': os.cpu_count() or 1,
+            'cpu_percent': 0,  # Legacy compatibility
             'process_cpu_percent': 0,
             'system_cpu_percent': 0,
             'available': False,

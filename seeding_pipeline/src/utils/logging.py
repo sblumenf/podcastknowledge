@@ -396,6 +396,34 @@ def get_logger(name: str) -> logging.Logger:
     return logger
 
 
+def set_log_level(level: Union[str, int], logger_name: Optional[str] = None) -> None:
+    """
+    Set the log level for a specific logger or all loggers.
+    
+    Args:
+        level: Log level as string (e.g., 'DEBUG', 'INFO') or int
+        logger_name: Optional specific logger name. If None, sets root logger level.
+    """
+    # Convert string level to int if needed
+    if isinstance(level, str):
+        numeric_level = getattr(logging, level.upper(), None)
+        if not isinstance(numeric_level, int):
+            raise ValueError(f'Invalid log level: {level}')
+    else:
+        numeric_level = level
+    
+    if logger_name is None:
+        # Set root logger level
+        logging.getLogger().setLevel(numeric_level)
+        # Also update all handlers
+        for handler in logging.getLogger().handlers:
+            handler.setLevel(numeric_level)
+    else:
+        # Set specific logger level
+        logger = logging.getLogger(logger_name)
+        logger.setLevel(numeric_level)
+
+
 def log_metric(name: str, value: float, unit: str = "count", 
                tags: Optional[Dict[str, str]] = None, logger: Optional[logging.Logger] = None):
     """Log a metric value."""
