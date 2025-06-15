@@ -767,6 +767,97 @@ class GraphStorageService:
                 logger.error(f"Bulk node merge failed for {node_type}: {e}")
                 raise ProviderError("neo4j", f"Bulk merge failed: {e}")
     
+    def create_meaningful_unit(self, unit_data: Dict[str, Any], episode_id: str) -> str:
+        """Create a MeaningfulUnit node and link it to an episode.
+        
+        Args:
+            unit_data: Dictionary containing:
+                - id: Unique identifier
+                - text: Full consolidated text
+                - start_time: Start timestamp (adjusted for YouTube)
+                - end_time: End timestamp
+                - summary: Brief summary of content
+                - speaker_distribution: Dict of speaker percentages
+                - unit_type: Type of unit (e.g., "topic_discussion", "q&a")
+                - themes: List of related themes
+                - segment_indices: List of original segment IDs
+            episode_id: ID of the episode this unit belongs to
+            
+        Returns:
+            ID of the created MeaningfulUnit
+            
+        Raises:
+            ProviderError: If creation fails
+        """
+        # Validate required fields
+        required_fields = ['id', 'text', 'start_time', 'end_time']
+        for field in required_fields:
+            if field not in unit_data:
+                raise ValueError(f"MeaningfulUnit missing required field: {field}")
+        
+        with self._lock:
+            try:
+                with self.session() as session:
+                    # Convert speaker_distribution dict to JSON string for storage
+                    if 'speaker_distribution' in unit_data and isinstance(unit_data['speaker_distribution'], dict):
+                        unit_data['speaker_distribution'] = json.dumps(unit_data['speaker_distribution'])
+                    
+                    # Convert themes list to JSON string for storage
+                    if 'themes' in unit_data and isinstance(unit_data['themes'], list):
+                        unit_data['themes'] = json.dumps(unit_data['themes'])
+                    
+                    # Convert segment_indices list to JSON string for storage
+                    if 'segment_indices' in unit_data and isinstance(unit_data['segment_indices'], list):
+                        unit_data['segment_indices'] = json.dumps(unit_data['segment_indices'])
+                    
+                    # Create MeaningfulUnit node and relationship to episode
+                    cypher = """
+                    CREATE (m:MeaningfulUnit {
+                        id: $id,
+                        text: $text,
+                        start_time: $start_time,
+                        end_time: $end_time,
+                        summary: $summary,
+                        speaker_distribution: $speaker_distribution,
+                        unit_type: $unit_type,
+                        themes: $themes,
+                        segment_indices: $segment_indices
+                    })
+                    WITH m
+                    MATCH (e:Episode {id: $episode_id})
+                    CREATE (m)-[:PART_OF]->(e)
+                    RETURN m.id AS id
+                    """
+                    
+                    # Set defaults for optional fields
+                    params = {
+                        'id': unit_data['id'],
+                        'text': unit_data['text'],
+                        'start_time': unit_data['start_time'],
+                        'end_time': unit_data['end_time'],
+                        'summary': unit_data.get('summary', ''),
+                        'speaker_distribution': unit_data.get('speaker_distribution', '{}'),
+                        'unit_type': unit_data.get('unit_type', 'unknown'),
+                        'themes': unit_data.get('themes', '[]'),
+                        'segment_indices': unit_data.get('segment_indices', '[]'),
+                        'episode_id': episode_id
+                    }
+                    
+                    result = session.run(cypher, **params)
+                    record = result.single()
+                    
+                    if not record:
+                        raise ProviderError("neo4j", "Failed to create MeaningfulUnit - no result returned")
+                    
+                    unit_id = record['id']
+                    logger.info(f"Created MeaningfulUnit {unit_id} for episode {episode_id}")
+                    
+                    return unit_id
+                    
+            except Exception as e:
+                logger.error(f"Failed to create MeaningfulUnit: {e}")
+                raise ProviderError("neo4j", f"MeaningfulUnit creation failed: {e}")
+    
     def get_performance_metrics(self) -> Dict[str, Any]:
         """Get performance metrics.
         
