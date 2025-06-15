@@ -192,6 +192,30 @@ class ExtractionError(VTTProcessingError):
         super().__init__(message, severity, details)
 
 
+class SpeakerIdentificationError(VTTProcessingError):
+    """
+    Raised when speaker identification fails.
+    
+    This is a CRITICAL error as accurate speaker identification is required
+    for meaningful knowledge extraction. Should trigger episode rejection.
+    """
+    
+    def __init__(self, message: str, details: Optional[dict[str, Any]] = None):
+        super().__init__(message, ErrorSeverity.CRITICAL, details)
+
+
+class ConversationAnalysisError(VTTProcessingError):
+    """
+    Raised when conversation structure analysis fails.
+    
+    This is a CRITICAL error as conversation analysis is required to create
+    MeaningfulUnits. Should trigger episode rejection.
+    """
+    
+    def __init__(self, message: str, details: Optional[dict[str, Any]] = None):
+        super().__init__(message, ErrorSeverity.CRITICAL, details)
+
+
 class RateLimitError(ProviderError):
     """
     Raised when API rate limits are exceeded.

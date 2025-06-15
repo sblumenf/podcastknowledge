@@ -45,7 +45,10 @@ from src.utils.retry import retry
 from src.core.exceptions import (
     PipelineError,
     ExtractionError,
-    VTTProcessingError
+    VTTProcessingError,
+    SpeakerIdentificationError,
+    ConversationAnalysisError,
+    CriticalError
 )
 
 logger = get_logger(__name__)
@@ -167,9 +170,70 @@ class UnifiedKnowledgePipeline:
         pass
     
     async def _cleanup_on_error(self, episode_id: str) -> None:
-        """Clean up any partial data on error."""
-        # TODO: Implement rollback mechanism
-        pass
+        """
+        Clean up any partial data on error - CRITICAL for data integrity.
+        
+        This ensures NO PARTIAL DATA is left in the system. Any failure
+        triggers complete rollback of the episode.
+        
+        Args:
+            episode_id: Episode to clean up
+        """
+        self.logger.error(f"CRITICAL: Rolling back all data for episode {episode_id}")
+        
+        try:
+            # Start rollback transaction
+            with self.graph_storage.session() as session:
+                # Delete all nodes related to this episode
+                rollback_query = """
+                // Find and delete all nodes connected to this episode
+                MATCH (e:Episode {id: $episode_id})
+                OPTIONAL MATCH (e)-[r1]-(m:MeaningfulUnit)
+                OPTIONAL MATCH (m)-[r2]-(n)
+                DETACH DELETE m, n
+                
+                // Delete the episode itself
+                DETACH DELETE e
+                
+                // Return count of deleted nodes for logging
+                RETURN COUNT(DISTINCT m) + COUNT(DISTINCT n) + 1 as deleted_count
+                """
+                
+                result = session.run(rollback_query, episode_id=episode_id)
+                record = result.single()
+                deleted_count = record['deleted_count'] if record else 0
+                
+                self.logger.info(f"Rollback complete: Deleted {deleted_count} nodes for episode {episode_id}")
+                
+        except Exception as rollback_error:
+            # Log rollback failure but don't raise - we're already in error handling
+            self.logger.critical(
+                f"ROLLBACK FAILED for episode {episode_id}: {rollback_error}. "
+                "Manual cleanup may be required!"
+            )
+    
+    def _store_error_details(self, episode_id: str, error: Exception) -> None:
+        """
+        Store error details for troubleshooting.
+        
+        Args:
+            episode_id: Episode that failed
+            error: The exception that occurred
+        """
+        error_details = {
+            'episode_id': episode_id,
+            'error_type': type(error).__name__,
+            'error_message': str(error),
+            'timestamp': datetime.now().isoformat(),
+            'phase': self.current_phase,
+            'phase_timings': self.phase_timings
+        }
+        
+        # Log error details
+        self.logger.error(f"Episode processing failed: {error_details}")
+        
+        # Could also store in a failure log file or database
+        # For now, just comprehensive logging
     
     async def process_vtt_file(self, vtt_path: Path, episode_metadata: Dict) -> Dict[str, Any]:
         """
