@@ -661,11 +661,13 @@ class GraphStorageService:
     def create_relationships_bulk(self, relationships: List[Dict[str, Any]]) -> int:
         """Create multiple relationships in a single transaction using UNWIND.
         
+        Supports all node types including MeaningfulUnit as source or target.
+        
         Args:
             relationships: List of relationship dictionaries with:
-                - source_id: Source node ID
-                - target_id: Target node ID
-                - rel_type: Relationship type
+                - source_id: Source node ID (any node type)
+                - target_id: Target node ID (any node type including MeaningfulUnit)
+                - rel_type: Relationship type (e.g., MENTIONED_IN, EXTRACTED_FROM)
                 - properties: Optional relationship properties
                 
         Returns:
@@ -857,6 +859,33 @@ class GraphStorageService:
             except Exception as e:
                 logger.error(f"Failed to create MeaningfulUnit: {e}")
                 raise ProviderError("neo4j", f"MeaningfulUnit creation failed: {e}")
+    
+    def create_meaningful_unit_relationship(self, source_id: str, unit_id: str, 
+                                          rel_type: str = "MENTIONED_IN", 
+                                          properties: Optional[Dict[str, Any]] = None) -> None:
+        """Create a relationship from an entity/insight/quote to a MeaningfulUnit.
+        
+        This is a convenience method that wraps create_relationship to make it clear
+        that MeaningfulUnits are supported as relationship targets.
+        
+        Args:
+            source_id: ID of the source node (Entity, Insight, Quote, etc.)
+            unit_id: ID of the target MeaningfulUnit
+            rel_type: Relationship type (default: MENTIONED_IN)
+            properties: Optional relationship properties
+            
+        Common relationship types:
+            - MENTIONED_IN: Entity mentioned in MeaningfulUnit
+            - EXTRACTED_FROM: Insight/Quote extracted from MeaningfulUnit
+            - FROM_SEGMENT: Alias for EXTRACTED_FROM (for backwards compatibility)
+        """
+        # Map FROM_SEGMENT to EXTRACTED_FROM for consistency
+        if rel_type == "FROM_SEGMENT":
+            rel_type = "EXTRACTED_FROM"
+            
+        # Use the generic create_relationship method which works with any node type
+        self.create_relationship(source_id, unit_id, rel_type, properties)
+        logger.debug(f"Created {rel_type} relationship from {source_id} to MeaningfulUnit {unit_id}")
     
     def get_performance_metrics(self) -> Dict[str, Any]:
         """Get performance metrics.
