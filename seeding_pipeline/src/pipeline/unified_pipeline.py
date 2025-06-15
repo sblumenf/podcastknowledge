@@ -14,7 +14,7 @@ from datetime import datetime
 
 # VTT Processing
 from src.vtt.vtt_parser import VTTParser
-from src.vtt.vtt_segmenter import VTTSegmenter
+from src.vtt.vtt_segmentation import VTTSegmenter
 
 # Conversation Analysis
 from src.services.conversation_analyzer import ConversationAnalyzer
@@ -258,5 +258,156 @@ class UnifiedKnowledgePipeline:
         Raises:
             PipelineError: On any processing failure (triggers full rollback)
         """
-        # TODO: Implement in Task 2.3
-        pass
+        # Initialize tracking
+        pipeline_start_time = time.time()
+        episode_id = episode_metadata.get('episode_id')
+        
+        if not episode_id:
+            raise PipelineError("episode_id is required in metadata")
+        
+        self.logger.info(f"Starting pipeline processing for episode {episode_id}")
+        self.logger.info(f"VTT file: {vtt_path}")
+        
+        # Initialize result object
+        result = {
+            'episode_id': episode_id,
+            'status': 'processing',
+            'phases_completed': [],
+            'phase_timings': {},
+            'stats': {
+                'segments_parsed': 0,
+                'speakers_identified': 0,
+                'meaningful_units_created': 0,
+                'entities_extracted': 0,
+                'insights_extracted': 0,
+                'quotes_extracted': 0,
+                'relationships_created': 0,
+                'analysis_results': {}
+            },
+            'errors': [],
+            'start_time': datetime.now().isoformat(),
+            'end_time': None,
+            'total_time': 0
+        }
+        
+        try:
+            # PHASE 1: VTT Parsing
+            self._start_phase("VTT_PARSING")
+            segments = await self._parse_vtt(vtt_path)
+            result['stats']['segments_parsed'] = len(segments) if segments else 0
+            result['phases_completed'].append("VTT_PARSING")
+            self._end_phase()
+            
+            # PHASE 2: Speaker Identification
+            self._start_phase("SPEAKER_IDENTIFICATION")
+            identified_segments = await self._identify_speakers(segments, episode_metadata)
+            result['stats']['speakers_identified'] = len(set(
+                seg.speaker for seg in identified_segments if hasattr(seg, 'speaker') and seg.speaker
+            )) if identified_segments else 0
+            result['phases_completed'].append("SPEAKER_IDENTIFICATION")
+            self._end_phase()
+            
+            # PHASE 3: Conversation Analysis
+            self._start_phase("CONVERSATION_ANALYSIS")
+            conversation_structure = await self._analyze_conversation(identified_segments)
+            result['phases_completed'].append("CONVERSATION_ANALYSIS")
+            self._end_phase()
+            
+            # PHASE 4: Create MeaningfulUnits
+            self._start_phase("MEANINGFUL_UNIT_CREATION")
+            meaningful_units = await self._create_meaningful_units(
+                identified_segments, conversation_structure
+            )
+            result['stats']['meaningful_units_created'] = len(meaningful_units) if meaningful_units else 0
+            result['phases_completed'].append("MEANINGFUL_UNIT_CREATION")
+            self._end_phase()
+            
+            # PHASE 5: Store Episode Structure
+            self._start_phase("EPISODE_STORAGE")
+            await self._store_episode_structure(episode_metadata, meaningful_units)
+            result['phases_completed'].append("EPISODE_STORAGE")
+            self._end_phase()
+            
+            # PHASE 6: Knowledge Extraction
+            self._start_phase("KNOWLEDGE_EXTRACTION")
+            extraction_results = await self._extract_knowledge(meaningful_units)
+            if extraction_results:
+                result['stats']['entities_extracted'] = len(extraction_results.get('entities', []))
+                result['stats']['insights_extracted'] = len(extraction_results.get('insights', []))
+                result['stats']['quotes_extracted'] = len(extraction_results.get('quotes', []))
+            result['phases_completed'].append("KNOWLEDGE_EXTRACTION")
+            self._end_phase()
+            
+            # PHASE 7: Store Knowledge
+            self._start_phase("KNOWLEDGE_STORAGE")
+            await self._store_knowledge(extraction_results, meaningful_units)
+            result['phases_completed'].append("KNOWLEDGE_STORAGE")
+            self._end_phase()
+            
+            # PHASE 8: Run Analysis
+            self._start_phase("ANALYSIS")
+            analysis_results = await self._run_analysis(episode_id)
+            result['stats']['analysis_results'] = analysis_results or {}
+            result['phases_completed'].append("ANALYSIS")
+            self._end_phase()
+            
+            # Success - update result
+            result['status'] = 'completed'
+            result['phase_timings'] = self.phase_timings.copy()
+            
+        except (SpeakerIdentificationError, ConversationAnalysisError) as critical_error:
+            # CRITICAL errors - must reject entire episode
+            self.logger.error(f"CRITICAL ERROR: {critical_error}")
+            result['status'] = 'failed'
+            result['errors'].append({
+                'phase': self.current_phase,
+                'error_type': type(critical_error).__name__,
+                'message': str(critical_error)
+            })
+            
+            # Store error details
+            self._store_error_details(episode_id, critical_error)
+            
+            # Rollback any partial data
+            await self._cleanup_on_error(episode_id)
+            
+            # Re-raise as PipelineError
+            raise PipelineError(
+                f"Episode {episode_id} rejected due to critical error: {critical_error}"
+            ) from critical_error
+            
+        except Exception as error:
+            # Any other error - still reject entire episode (NO PARTIAL DATA)
+            self.logger.error(f"Pipeline error: {error}")
+            result['status'] = 'failed'
+            result['errors'].append({
+                'phase': self.current_phase,
+                'error_type': type(error).__name__,
+                'message': str(error)
+            })
+            
+            # Store error details
+            self._store_error_details(episode_id, error)
+            
+            # Rollback any partial data
+            await self._cleanup_on_error(episode_id)
+            
+            # Re-raise as PipelineError
+            raise PipelineError(
+                f"Episode {episode_id} processing failed: {error}"
+            ) from error
+            
+        finally:
+            # Clean up resources and finalize result
+            result['end_time'] = datetime.now().isoformat()
+            result['total_time'] = time.time() - pipeline_start_time
+            
+            # Log final status
+            self.logger.info(
+                f"Pipeline completed for episode {episode_id}: "
+                f"Status={result['status']}, "
+                f"Time={result['total_time']:.2f}s, "
+                f"Phases={len(result['phases_completed'])}"
+            )
+            
+        return result
