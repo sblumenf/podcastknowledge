@@ -20,7 +20,6 @@ class FeatureFlag(Enum):
     
     # Core extraction flags
     LOG_SCHEMA_DISCOVERY = "LOG_SCHEMA_DISCOVERY"
-    ENABLE_ENTITY_RESOLUTION_V2 = "ENABLE_ENTITY_RESOLUTION_V2"
     
     # Component enhancement flags (for Phase 9.5)
     ENABLE_TIMESTAMP_INJECTION = "ENABLE_TIMESTAMP_INJECTION"
@@ -56,11 +55,6 @@ class FeatureFlagManager:
                 name="LOG_SCHEMA_DISCOVERY",
                 default_value=True,
                 description="Log discovered schema types during schemaless extraction"
-            ),
-            FeatureFlag.ENABLE_ENTITY_RESOLUTION_V2: FlagConfig(
-                name="ENABLE_ENTITY_RESOLUTION_V2",
-                default_value=False,
-                description="Use improved entity resolution algorithm"
             ),
             FeatureFlag.ENABLE_TIMESTAMP_INJECTION: FlagConfig(
                 name="ENABLE_TIMESTAMP_INJECTION",

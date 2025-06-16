@@ -1,6 +1,6 @@
-"""Enhanced knowledge pipeline for SimpleKGPipeline integration."""
+"""Unified knowledge pipeline - single approach for VTT processing."""
 
-from .enhanced_knowledge_pipeline import EnhancedKnowledgePipeline
+from .unified_pipeline import UnifiedKnowledgePipeline
 from .feature_integration_framework import FeatureIntegrationFramework
 
-__all__ = ['EnhancedKnowledgePipeline', 'FeatureIntegrationFramework']
+__all__ = ['UnifiedKnowledgePipeline', 'FeatureIntegrationFramework']

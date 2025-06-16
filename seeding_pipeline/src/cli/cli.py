@@ -153,13 +153,22 @@ def health_check(args: argparse.Namespace) -> int:
         else:
             config = PipelineConfig()
         
-        # Initialize pipeline
-        pipeline = EnhancedKnowledgePipeline(config)
+        # Initialize pipeline using UnifiedKnowledgePipeline (replacing EnhancedKnowledgePipeline)
+        from src.pipeline.unified_pipeline import UnifiedKnowledgePipeline
+        from src.storage.graph_storage import GraphStorageService  
+        from src.services.llm import LLMService
         
         print("Performing health check...")
         
-        # Check components
-        result = pipeline.initialize_components()
+        try:
+            # Test that all services can be initialized
+            graph_storage = GraphStorageService(config.neo4j_uri, config.neo4j_username, config.neo4j_password) 
+            llm_service = LLMService()
+            pipeline = UnifiedKnowledgePipeline(graph_storage, llm_service)
+            result = True
+        except Exception as e:
+            logger.error(f"Failed to initialize pipeline components: {e}")
+            result = False
         
         if result:
             print("✓ All components healthy")

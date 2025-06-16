@@ -61,15 +61,9 @@ class PipelineConfig:
     output_dir: Path = field(default_factory=lambda: Path("./processed_podcasts"))
     checkpoint_dir: Path = field(default_factory=lambda: Path("./checkpoints"))
     
-    # Processing Settings
-    use_large_context: bool = True
-    enable_graph_enhancements: bool = True
-    
-    # GPU and Memory Settings
-    use_gpu: bool = True
-    enable_ad_detection: bool = True
-    use_semantic_boundaries: bool = True
-    gpu_memory_fraction: float = 0.8
+    # Processing Settings - Unified approach only
+    # All processing uses semantic boundaries and full feature set
+    # No alternative approaches - these settings removed per Task 7.2
     
     # Progress and Monitoring
     checkpoint_interval: int = 1  # Save after N episodes
@@ -79,14 +73,10 @@ class PipelineConfig:
     log_level: str = field(default_factory=lambda: os.environ.get("LOG_LEVEL", "INFO"))
     
     
-    # YouTube Search Settings
-    youtube_search_enabled: bool = field(default_factory=lambda: os.environ.get("YOUTUBE_SEARCH_ENABLED", "true").lower() == "true")
-    youtube_search_max_results: int = field(default_factory=lambda: int(os.environ.get("YOUTUBE_SEARCH_MAX_RESULTS", "5")))
-    youtube_search_confidence_threshold: float = field(default_factory=lambda: float(os.environ.get("YOUTUBE_SEARCH_CONFIDENCE_THRESHOLD", "0.7")))
-    youtube_search_rate_limit_delay: float = field(default_factory=lambda: float(os.environ.get("YOUTUBE_SEARCH_RATE_LIMIT_DELAY", "1.0")))
+    # YouTube Integration - Fixed settings (no alternatives)
+    # YouTube URL generation is always enabled per unified pipeline
     
-    # Knowledge Discovery Settings
-    enable_knowledge_discovery: bool = field(default_factory=lambda: os.environ.get("ENABLE_KNOWLEDGE_DISCOVERY", "true").lower() == "true")
+    # Knowledge Discovery - Always enabled (no alternatives)
     
     def __post_init__(self):
         """Convert string paths to Path objects and validate configuration."""
@@ -119,8 +109,7 @@ class PipelineConfig:
             errors.append("min_segment_tokens must be less than max_segment_tokens")
         if self.min_speakers > self.max_speakers:
             errors.append("min_speakers must be less than or equal to max_speakers")
-        if not 0 < self.gpu_memory_fraction <= 1:
-            errors.append("gpu_memory_fraction must be between 0 and 1")
+        # GPU memory fraction validation removed - simplified config
             
             
         # Validate paths exist or can be created
