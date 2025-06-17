@@ -152,12 +152,12 @@ class SegmentRegrouper:
         related_themes = []
         for theme in structure.themes:
             if unit_index in theme.related_units:
-                related_themes.append(theme.name)
+                related_themes.append(theme.theme)
         
         # Determine if unit is complete
-        is_complete = conv_unit.is_complete
+        is_complete = conv_unit.completeness == "complete"
         if not is_complete:
-            self.logger.warning(f"Unit {unit_index} marked as incomplete: {conv_unit.completeness_note}")
+            self.logger.warning(f"Unit {unit_index} marked as incomplete: {conv_unit.completeness}")
         
         # Create unit ID
         unit_id = f"unit_{unit_index:03d}_{conv_unit.unit_type}"
@@ -166,7 +166,7 @@ class SegmentRegrouper:
             id=unit_id,
             segments=unit_segments,
             unit_type=conv_unit.unit_type,
-            summary=conv_unit.summary,
+            summary=conv_unit.description,
             themes=related_themes,
             start_time=unit_segments[0].start_time,
             end_time=unit_segments[-1].end_time,
@@ -177,7 +177,7 @@ class SegmentRegrouper:
                     "start": conv_unit.start_index,
                     "end": conv_unit.end_index
                 },
-                "completeness_note": conv_unit.completeness_note,
+                "completeness": conv_unit.completeness,
                 "segment_count": len(unit_segments)
             }
         )

@@ -94,7 +94,7 @@ class VTTSegmenter:
             logger.info("Performing speaker identification...")
             try:
                 segments, speaker_identification_result = self._identify_speakers(
-                    segments, episode_metadata or {}, cached_content_name
+                    segments, episode_metadata or {}
                 )
             except Exception as e:
                 logger.error(f"Speaker identification failed: {e}")
@@ -135,10 +135,12 @@ class VTTSegmenter:
                 
             # Create segment dictionary
             segment_dict = {
+                "id": segment.id,
                 "text": segment.text,
                 "start_time": segment.start_time,
                 "end_time": segment.end_time,
                 "speaker": segment.speaker,
+                "confidence": getattr(segment, 'confidence', 1.0),
                 "segment_index": i,
                 "word_count": len(segment.text.split()),
                 "duration_seconds": segment.end_time - segment.start_time
@@ -301,15 +303,13 @@ class VTTSegmenter:
         
     def _identify_speakers(self, 
                           segments: List[TranscriptSegment], 
-                          episode_metadata: Dict[str, Any],
-                          cached_content_name: Optional[str] = None) -> tuple:
+                          episode_metadata: Dict[str, Any]) -> tuple:
         """
         Identify speakers from generic labels using LLM analysis.
         
         Args:
             segments: List of transcript segments with generic speaker labels
             episode_metadata: Episode metadata for context
-            cached_content_name: Optional cached content name
             
         Returns:
             Tuple of (updated_segments, identification_result)
@@ -334,8 +334,7 @@ class VTTSegmenter:
         # Get speaker identification
         result = self._speaker_identifier.identify_speakers(
             segments, 
-            episode_metadata,
-            cached_content_name
+            episode_metadata
         )
         
         # Apply identified speakers to segments

@@ -80,12 +80,8 @@ def update_diversity_metrics(episode_topics: List[str], session) -> Dict[str, An
                 m.trend = $trend,
                 m.last_updated = datetime()
             
-            // Store historical data
-            WITH m
-            OPTIONAL MATCH (m)-[r:HAS_HISTORY]->(h:MetricsHistory)
-            WHERE h.timestamp < datetime() - duration('P30D')
-            DELETE r, h
-            
+            // Store historical data WITHOUT auto-deletion
+            // Historical data is valuable for long-term trend analysis
             WITH m
             CREATE (h:MetricsHistory {
                 timestamp: datetime(),
@@ -405,3 +401,144 @@ def run_diversity_analysis(episode_id: str, session) -> Dict[str, Any]:
     except Exception as e:
         logger.error(f"Error running diversity analysis for episode {episode_id}: {e}")
         return {"error": str(e)}
+
+
+def get_historical_metrics(session, days_back: Optional[int] = None, 
+                          start_date: Optional[datetime] = None,
+                          end_date: Optional[datetime] = None) -> List[Dict[str, Any]]:
+    """Retrieve historical diversity metrics with optional time filtering.
+    
+    This function provides controlled access to historical data without 
+    auto-deletion. Use this for long-term trend analysis, reporting,
+    and strategic planning.
+    
+    Args:
+        session: Neo4j session
+        days_back: Number of days of history to retrieve (if specified)
+        start_date: Start date for historical range (if specified)
+        end_date: End date for historical range (if specified)
+        
+    Returns:
+        List of historical metrics ordered by timestamp
+        
+    Note:
+        Historical data is preserved indefinitely for valuable long-term
+        analysis. Use time filters to query specific periods as needed.
+    """
+    # Build query based on parameters
+    base_query = """
+    MATCH (m:EcologicalMetrics {id: 'global'})-[:HAS_HISTORY]->(h:MetricsHistory)
+    """
+    
+    where_clauses = []
+    params = {}
+    
+    if days_back is not None:
+        where_clauses.append("h.timestamp >= datetime() - duration('P' + $days + 'D')")
+        params['days'] = str(days_back)
+    
+    if start_date is not None:
+        where_clauses.append("h.timestamp >= $start_date")
+        params['start_date'] = start_date
+        
+    if end_date is not None:
+        where_clauses.append("h.timestamp <= $end_date")
+        params['end_date'] = end_date
+    
+    # Construct full query
+    if where_clauses:
+        query = base_query + " WHERE " + " AND ".join(where_clauses)
+    else:
+        query = base_query
+        
+    query += """
+    RETURN h.timestamp as timestamp,
+           h.diversity_score as diversity_score,
+           h.balance_score as balance_score,
+           h.total_topics as total_topics
+    ORDER BY h.timestamp DESC
+    """
+    
+    try:
+        result = session.run(query, **params)
+        return [
+            {
+                "timestamp": record["timestamp"],
+                "diversity_score": record["diversity_score"],
+                "balance_score": record["balance_score"],
+                "total_topics": record["total_topics"]
+            }
+            for record in result
+        ]
+    except Exception as e:
+        logger.error(f"Error retrieving historical metrics: {e}")
+        return []
+
+
+def archive_old_metrics(session, years_to_keep: int = 2) -> Dict[str, Any]:
+    """Archive historical metrics older than specified years.
+    
+    This function should be called manually as part of maintenance,
+    NOT automatically. It exports old data before removal.
+    
+    Args:
+        session: Neo4j session
+        years_to_keep: Number of years of history to keep (default: 2)
+        
+    Returns:
+        Dictionary with archive results and exported data
+        
+    Note:
+        This is a manual maintenance function. Automatic deletion
+        has been removed to preserve valuable historical data.
+    """
+    cutoff_date = datetime.now() - timedelta(days=years_to_keep * 365)
+    
+    # First, export the old data
+    export_query = """
+    MATCH (m:EcologicalMetrics {id: 'global'})-[:HAS_HISTORY]->(h:MetricsHistory)
+    WHERE h.timestamp < $cutoff_date
+    RETURN h.timestamp as timestamp,
+           h.diversity_score as diversity_score,
+           h.balance_score as balance_score,
+           h.total_topics as total_topics
+    ORDER BY h.timestamp
+    """
+    
+    try:
+        result = session.run(export_query, cutoff_date=cutoff_date)
+        archived_data = [dict(record) for record in result]
+        
+        # Only delete if we have successfully exported the data
+        if archived_data:
+            # Manual deletion - requires explicit action
+            delete_query = """
+            MATCH (m:EcologicalMetrics {id: 'global'})-[r:HAS_HISTORY]->(h:MetricsHistory)
+            WHERE h.timestamp < $cutoff_date
+            DELETE r, h
+            RETURN count(h) as deleted_count
+            """
+            
+            delete_result = session.run(delete_query, cutoff_date=cutoff_date)
+            deleted = delete_result.single()['deleted_count']
+            
+            return {
+                "success": True,
+                "archived_count": len(archived_data),
+                "deleted_count": deleted,
+                "cutoff_date": cutoff_date.isoformat(),
+                "archived_data": archived_data  # Can be saved to file
+            }
+        else:
+            return {
+                "success": True,
+                "message": "No data to archive",
+                "cutoff_date": cutoff_date.isoformat()
+            }
+            
+    except Exception as e:
+        logger.error(f"Error archiving historical metrics: {e}")
+        return {
+            "success": False,
+            "error": str(e)
+        }

@@ -45,6 +45,7 @@ from src.services.embeddings import EmbeddingsService
 from src.utils.logging import get_logger
 from src.utils.retry import retry
 from src.core.interfaces import TranscriptSegment
+from src.pipeline.checkpoint import CheckpointManager
 from src.core.exceptions import (
     PipelineError,
     ExtractionError,
@@ -74,40 +75,51 @@ class UnifiedKnowledgePipeline:
         self,
         graph_storage: GraphStorageService,
         llm_service: LLMService,
-        embeddings_service: Optional[EmbeddingsService] = None
+        embeddings_service: Optional[EmbeddingsService] = None,
+        llm_flash: Optional[LLMService] = None,
+        llm_pro: Optional[LLMService] = None
     ):
         """
         Initialize the unified pipeline with required services.
         
         Args:
             graph_storage: Neo4j storage service
-            llm_service: LLM service for analysis and extraction
+            llm_service: Default LLM service (for backward compatibility)
             embeddings_service: Optional embeddings service
+            llm_flash: Optional Flash model service for fast tasks
+            llm_pro: Optional Pro model service for complex tasks
         """
         # Core services - dependency injection
         self.graph_storage = graph_storage
         self.llm_service = llm_service
         self.embeddings_service = embeddings_service
         
-        # Initialize components
+        # Use separate models if provided, otherwise fall back to default
+        self.llm_flash = llm_flash or llm_service
+        self.llm_pro = llm_pro or llm_service
+        
+        # Initialize components with appropriate models
         self.vtt_parser = VTTParser()
-        self.vtt_segmenter = VTTSegmenter(llm_service)
-        self.conversation_analyzer = ConversationAnalyzer(llm_service)
+        # VTT segmenter and conversation analyzer use Flash for speed
+        self.vtt_segmenter = VTTSegmenter(config=None, llm_service=self.llm_flash)
+        self.conversation_analyzer = ConversationAnalyzer(self.llm_flash)
         self.segment_regrouper = SegmentRegrouper()
         
-        # Extractors
+        # Knowledge extraction uses Pro model for accuracy
         self.knowledge_extractor = KnowledgeExtractor(
-            llm_service=llm_service,
+            llm_service=self.llm_pro,
             embedding_service=embeddings_service
         )
         self.entity_resolver = EntityResolver()
         self.complexity_analyzer = ComplexityAnalyzer()
         self.importance_scorer = ImportanceScorer()
-        self.sentiment_analyzer = SentimentAnalyzer(llm_service)
+        self.sentiment_analyzer = SentimentAnalyzer(self.llm_flash)
         
         # Logging setup with clear phase tracking
         self.logger = logger
         self.logger.info("Initialized UnifiedKnowledgePipeline - THE ONLY PIPELINE")
+        self.logger.info(f"  - Flash model: {getattr(self.llm_flash, 'model_name', 'default')}")
+        self.logger.info(f"  - Pro model: {getattr(self.llm_pro, 'model_name', 'default')}")
         
         # Phase tracking
         self.current_phase = None
@@ -117,11 +129,22 @@ class UnifiedKnowledgePipeline:
         # Episode tracking
         self.current_episode_id = None
         
+        # Checkpoint manager
+        self.checkpoint_manager = CheckpointManager()
+        self.phase_results = {}
+        
     def _start_phase(self, phase_name: str) -> None:
         """Start tracking a processing phase."""
         self.current_phase = phase_name
         self.phase_start_time = time.time()
-        self.logger.info(f"=== PHASE START: {phase_name} ===")
+        # Log which model is used for this phase
+        if phase_name in ["SPEAKER_IDENTIFICATION", "CONVERSATION_ANALYSIS"]:
+            model_info = f" (using Flash: {getattr(self.llm_flash, 'model_name', 'default')})"
+        elif phase_name == "KNOWLEDGE_EXTRACTION":
+            model_info = f" (using Pro: {getattr(self.llm_pro, 'model_name', 'default')})"
+        else:
+            model_info = ""
+        self.logger.info(f"=== PHASE START: {phase_name}{model_info} ===")
         
     def _end_phase(self) -> None:
         """End tracking current phase and record timing."""
@@ -134,6 +157,63 @@ class UnifiedKnowledgePipeline:
             )
             self.current_phase = None
             self.phase_start_time = None
+    
+    def _save_checkpoint(self, phase: str, phase_data: Any, metadata: Dict[str, Any]) -> None:
+        """Save checkpoint after phase completion.
+        
+        Args:
+            phase: Phase name that was completed
+            phase_data: Data from the completed phase
+            metadata: Episode metadata
+        """
+        if self.current_episode_id:
+            # Add phase data to results
+            self.phase_results[phase] = phase_data
+            
+            # Save checkpoint
+            success = self.checkpoint_manager.save_checkpoint(
+                episode_id=self.current_episode_id,
+                phase=phase,
+                phase_results=self.phase_results,
+                metadata=metadata
+            )
+            
+            if success:
+                self.logger.debug(f"Checkpoint saved after phase {phase}")
+            else:
+                self.logger.warning(f"Failed to save checkpoint after phase {phase}")
+    
+    def _should_skip_phase(self, phase: str, checkpoint: Optional[Any]) -> bool:
+        """Check if a phase should be skipped based on checkpoint.
+        
+        Args:
+            phase: Phase name to check
+            checkpoint: Loaded checkpoint data
+            
+        Returns:
+            True if phase should be skipped
+        """
+        if not checkpoint:
+            return False
+            
+        # Define phase order
+        phase_order = [
+            "VTT_PARSING",
+            "SPEAKER_IDENTIFICATION", 
+            "CONVERSATION_ANALYSIS",
+            "MEANINGFUL_UNIT_CREATION",
+            "EPISODE_STORAGE",
+            "KNOWLEDGE_EXTRACTION",
+            "KNOWLEDGE_STORAGE",
+            "ANALYSIS"
+        ]
+        
+        try:
+            last_phase_idx = phase_order.index(checkpoint.last_completed_phase)
+            current_phase_idx = phase_order.index(phase)
+            return current_phase_idx <= last_phase_idx
+        except ValueError:
+            return False
     
     # Placeholder methods for each processing phase
     async def _parse_vtt(self, vtt_path: Path) -> List[TranscriptSegment]:
@@ -197,11 +277,15 @@ class UnifiedKnowledgePipeline:
                 identified_segments = []
                 for seg_data in processed_data:
                     # Create new segment with identified speaker
+                    # Generate ID if not present
+                    segment_id = seg_data.get('id', f"seg_{seg_data['start_time']}")
                     segment = TranscriptSegment(
+                        id=segment_id,
                         text=seg_data['text'],
                         start_time=seg_data['start_time'],
                         end_time=seg_data['end_time'],
-                        speaker=seg_data['speaker']
+                        speaker=seg_data['speaker'],
+                        confidence=seg_data.get('confidence', 1.0)
                     )
                     identified_segments.append(segment)
                 
@@ -313,15 +397,15 @@ class UnifiedKnowledgePipeline:
                 
                 # Log themes
                 if structure.themes:
-                    theme_list = [theme.name for theme in structure.themes]
+                    theme_list = [theme.theme for theme in structure.themes]
                     self.logger.debug(f"  Themes identified: {theme_list}")
                 
                 # Log insights if available
                 if structure.insights:
                     self.logger.debug(
                         f"  Structural insights: "
-                        f"flow_type={structure.insights.flow_type}, "
-                        f"coherence_score={structure.insights.coherence_score}"
+                        f"overall_coherence={structure.insights.overall_coherence}, "
+                        f"fragmentation_issues={len(structure.insights.fragmentation_issues)}"
                     )
                 
                 return structure
@@ -434,13 +518,13 @@ class UnifiedKnowledgePipeline:
                 self.logger.info(f"Creating {len(conversation_structure.themes)} topic nodes")
                 for theme in conversation_structure.themes:
                     success = self.graph_storage.create_topic_for_episode(
-                        topic_name=theme.name,
+                        topic_name=theme.theme,
                         episode_id=episode_id
                     )
                     if success:
-                        self.logger.debug(f"Created/linked topic: {theme.name}")
+                        self.logger.debug(f"Created/linked topic: {theme.theme}")
                     else:
-                        self.logger.warning(f"Failed to create/link topic: {theme.name}")
+                        self.logger.warning(f"Failed to create/link topic: {theme.theme}")
             
             # Store each MeaningfulUnit with PART_OF relationship
             # Simple loop - no complex batch processing
@@ -1134,7 +1218,17 @@ class UnifiedKnowledgePipeline:
         # Set current episode for extraction context
         self.current_episode_id = episode_id
         
-        self.logger.info(f"Starting pipeline processing for episode {episode_id}")
+        # Check for existing checkpoint
+        checkpoint = self.checkpoint_manager.load_checkpoint(episode_id)
+        if checkpoint:
+            self.logger.info(f"Found checkpoint for episode {episode_id} at phase {checkpoint.last_completed_phase}")
+            self.phase_results = checkpoint.phase_results
+            checkpoint_age = self.checkpoint_manager.get_checkpoint_age(episode_id)
+            self.logger.info(f"Checkpoint age: {checkpoint_age:.2f} hours")
+        else:
+            self.logger.info(f"Starting fresh pipeline processing for episode {episode_id}")
+            self.phase_results = {}
+        
         self.logger.info(f"VTT file: {vtt_path}")
         
         # Initialize result object
@@ -1161,68 +1255,127 @@ class UnifiedKnowledgePipeline:
         
         try:
             # PHASE 1: VTT Parsing
-            self._start_phase("VTT_PARSING")
-            segments = await self._parse_vtt(vtt_path)
-            result['stats']['segments_parsed'] = len(segments) if segments else 0
-            result['phases_completed'].append("VTT_PARSING")
-            self._end_phase()
+            if self._should_skip_phase("VTT_PARSING", checkpoint):
+                self.logger.info("Skipping VTT_PARSING - already completed")
+                segments = self.phase_results.get("VTT_PARSING", {}).get("segments", [])
+                result['stats']['segments_parsed'] = len(segments)
+                result['phases_completed'].append("VTT_PARSING")
+            else:
+                self._start_phase("VTT_PARSING")
+                segments = await self._parse_vtt(vtt_path)
+                result['stats']['segments_parsed'] = len(segments) if segments else 0
+                result['phases_completed'].append("VTT_PARSING")
+                self._end_phase()
+                self._save_checkpoint("VTT_PARSING", {'segments': segments}, episode_metadata)
             
             # PHASE 2: Speaker Identification
-            self._start_phase("SPEAKER_IDENTIFICATION")
-            identified_segments = await self._identify_speakers(segments, episode_metadata)
-            result['stats']['speakers_identified'] = len(set(
-                seg.speaker for seg in identified_segments if hasattr(seg, 'speaker') and seg.speaker
-            )) if identified_segments else 0
-            result['phases_completed'].append("SPEAKER_IDENTIFICATION")
-            self._end_phase()
+            if self._should_skip_phase("SPEAKER_IDENTIFICATION", checkpoint):
+                self.logger.info("Skipping SPEAKER_IDENTIFICATION - already completed")
+                identified_segments = self.phase_results.get("SPEAKER_IDENTIFICATION", {}).get("segments", segments)
+                result['stats']['speakers_identified'] = len(set(
+                    seg.speaker for seg in identified_segments if hasattr(seg, 'speaker') and seg.speaker
+                )) if identified_segments else 0
+                result['phases_completed'].append("SPEAKER_IDENTIFICATION")
+            else:
+                self._start_phase("SPEAKER_IDENTIFICATION")
+                identified_segments = await self._identify_speakers(segments, episode_metadata)
+                result['stats']['speakers_identified'] = len(set(
+                    seg.speaker for seg in identified_segments if hasattr(seg, 'speaker') and seg.speaker
+                )) if identified_segments else 0
+                result['phases_completed'].append("SPEAKER_IDENTIFICATION")
+                self._end_phase()
+                self._save_checkpoint("SPEAKER_IDENTIFICATION", {'segments': identified_segments}, episode_metadata)
             
             # PHASE 3: Conversation Analysis
-            self._start_phase("CONVERSATION_ANALYSIS")
-            conversation_structure = await self._analyze_conversation(identified_segments)
-            result['phases_completed'].append("CONVERSATION_ANALYSIS")
-            self._end_phase()
+            if self._should_skip_phase("CONVERSATION_ANALYSIS", checkpoint):
+                self.logger.info("Skipping CONVERSATION_ANALYSIS - already completed")
+                conversation_structure = self.phase_results.get("CONVERSATION_ANALYSIS", {}).get("structure")
+                result['phases_completed'].append("CONVERSATION_ANALYSIS")
+            else:
+                self._start_phase("CONVERSATION_ANALYSIS")
+                conversation_structure = await self._analyze_conversation(identified_segments)
+                result['phases_completed'].append("CONVERSATION_ANALYSIS")
+                self._end_phase()
+                self._save_checkpoint("CONVERSATION_ANALYSIS", {'structure': conversation_structure}, episode_metadata)
             
             # PHASE 4: Create MeaningfulUnits
-            self._start_phase("MEANINGFUL_UNIT_CREATION")
-            meaningful_units = await self._create_meaningful_units(
-                identified_segments, conversation_structure
-            )
-            result['stats']['meaningful_units_created'] = len(meaningful_units) if meaningful_units else 0
-            result['phases_completed'].append("MEANINGFUL_UNIT_CREATION")
-            self._end_phase()
+            if self._should_skip_phase("MEANINGFUL_UNIT_CREATION", checkpoint):
+                self.logger.info("Skipping MEANINGFUL_UNIT_CREATION - already completed")
+                meaningful_units = self.phase_results.get("MEANINGFUL_UNIT_CREATION", {}).get("units", [])
+                result['stats']['meaningful_units_created'] = len(meaningful_units)
+                result['phases_completed'].append("MEANINGFUL_UNIT_CREATION")
+            else:
+                self._start_phase("MEANINGFUL_UNIT_CREATION")
+                meaningful_units = await self._create_meaningful_units(
+                    identified_segments, conversation_structure
+                )
+                result['stats']['meaningful_units_created'] = len(meaningful_units) if meaningful_units else 0
+                result['phases_completed'].append("MEANINGFUL_UNIT_CREATION")
+                self._end_phase()
+                self._save_checkpoint("MEANINGFUL_UNIT_CREATION", {'units': meaningful_units}, episode_metadata)
             
             # PHASE 5: Store Episode Structure
-            self._start_phase("EPISODE_STORAGE")
-            await self._store_episode_structure(episode_metadata, meaningful_units, conversation_structure)
-            result['phases_completed'].append("EPISODE_STORAGE")
-            self._end_phase()
+            if self._should_skip_phase("EPISODE_STORAGE", checkpoint):
+                self.logger.info("Skipping EPISODE_STORAGE - already completed")
+                result['phases_completed'].append("EPISODE_STORAGE")
+            else:
+                self._start_phase("EPISODE_STORAGE")
+                await self._store_episode_structure(episode_metadata, meaningful_units, conversation_structure)
+                result['phases_completed'].append("EPISODE_STORAGE")
+                self._end_phase()
+                self._save_checkpoint("EPISODE_STORAGE", {'stored': True}, episode_metadata)
             
             # PHASE 6: Knowledge Extraction
-            self._start_phase("KNOWLEDGE_EXTRACTION")
-            extraction_results = await self._extract_knowledge(meaningful_units)
-            if extraction_results:
-                result['stats']['entities_extracted'] = len(extraction_results.get('entities', []))
-                result['stats']['insights_extracted'] = len(extraction_results.get('insights', []))
-                result['stats']['quotes_extracted'] = len(extraction_results.get('quotes', []))
-            result['phases_completed'].append("KNOWLEDGE_EXTRACTION")
-            self._end_phase()
+            if self._should_skip_phase("KNOWLEDGE_EXTRACTION", checkpoint):
+                self.logger.info("Skipping KNOWLEDGE_EXTRACTION - already completed")
+                extraction_results = self.phase_results.get("KNOWLEDGE_EXTRACTION", {})
+                if extraction_results:
+                    result['stats']['entities_extracted'] = len(extraction_results.get('entities', []))
+                    result['stats']['insights_extracted'] = len(extraction_results.get('insights', []))
+                    result['stats']['quotes_extracted'] = len(extraction_results.get('quotes', []))
+                result['phases_completed'].append("KNOWLEDGE_EXTRACTION")
+            else:
+                self._start_phase("KNOWLEDGE_EXTRACTION")
+                extraction_results = await self._extract_knowledge(meaningful_units)
+                if extraction_results:
+                    result['stats']['entities_extracted'] = len(extraction_results.get('entities', []))
+                    result['stats']['insights_extracted'] = len(extraction_results.get('insights', []))
+                    result['stats']['quotes_extracted'] = len(extraction_results.get('quotes', []))
+                result['phases_completed'].append("KNOWLEDGE_EXTRACTION")
+                self._end_phase()
+                self._save_checkpoint("KNOWLEDGE_EXTRACTION", extraction_results, episode_metadata)
             
             # PHASE 7: Store Knowledge
-            self._start_phase("KNOWLEDGE_STORAGE")
-            await self._store_knowledge(extraction_results, meaningful_units)
-            result['phases_completed'].append("KNOWLEDGE_STORAGE")
-            self._end_phase()
+            if self._should_skip_phase("KNOWLEDGE_STORAGE", checkpoint):
+                self.logger.info("Skipping KNOWLEDGE_STORAGE - already completed")
+                result['phases_completed'].append("KNOWLEDGE_STORAGE")
+            else:
+                self._start_phase("KNOWLEDGE_STORAGE")
+                await self._store_knowledge(extraction_results, meaningful_units)
+                result['phases_completed'].append("KNOWLEDGE_STORAGE")
+                self._end_phase()
+                self._save_checkpoint("KNOWLEDGE_STORAGE", {'stored': True}, episode_metadata)
             
             # PHASE 8: Run Analysis
-            self._start_phase("ANALYSIS")
-            analysis_results = await self._run_analysis(episode_id)
-            result['stats']['analysis_results'] = analysis_results or {}
-            result['phases_completed'].append("ANALYSIS")
-            self._end_phase()
+            if self._should_skip_phase("ANALYSIS", checkpoint):
+                self.logger.info("Skipping ANALYSIS - already completed")
+                analysis_results = self.phase_results.get("ANALYSIS", {}).get("results", {})
+                result['stats']['analysis_results'] = analysis_results
+                result['phases_completed'].append("ANALYSIS")
+            else:
+                self._start_phase("ANALYSIS")
+                analysis_results = await self._run_analysis(episode_id)
+                result['stats']['analysis_results'] = analysis_results or {}
+                result['phases_completed'].append("ANALYSIS")
+                self._end_phase()
+                self._save_checkpoint("ANALYSIS", {'results': analysis_results}, episode_metadata)
             
             # Success - update result
             result['status'] = 'completed'
             result['phase_timings'] = self.phase_timings.copy()
+            
+            # Delete checkpoint on successful completion
+            self.checkpoint_manager.delete_checkpoint(self.current_episode_id)
             
         except (SpeakerIdentificationError, ConversationAnalysisError) as critical_error:
             # CRITICAL errors - must reject entire episode

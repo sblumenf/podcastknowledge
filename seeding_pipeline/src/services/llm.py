@@ -117,7 +117,7 @@ class LLMService:
         cached_response = self._get_cached_response(cache_key)
         if cached_response:
             # Record cache hit as successful API call with 0 latency
-            metrics.record_api_call(self.provider, success=True, latency=0)
+            metrics.record_api_call(self.provider, method='complete', success=True, latency=0)
             return cached_response
         
         # Ensure client is initialized
@@ -143,7 +143,7 @@ class LLMService:
                 
                 # Record successful API call
                 api_latency = time.time() - api_start_time
-                metrics.record_api_call(self.provider, success=True, latency=api_latency)
+                metrics.record_api_call(self.provider, method='complete', success=True, latency=api_latency)
                 
                 return result
                 
@@ -166,7 +166,7 @@ class LLMService:
         
         # Record failed API call
         api_latency = time.time() - api_start_time
-        metrics.record_api_call(self.provider, success=False, latency=api_latency)
+        metrics.record_api_call(self.provider, method='complete', success=False, latency=api_latency)
         
         raise ProviderError(self.provider, f"Gemini completion failed after all retries: {last_exception}")
             

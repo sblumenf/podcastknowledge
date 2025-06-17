@@ -9,7 +9,7 @@ from datetime import timedelta
 from concurrent.futures import ThreadPoolExecutor, TimeoutError
 from pathlib import Path
 
-from src.core.models import TranscriptSegment
+from src.core.interfaces import TranscriptSegment
 from src.extraction.prompts import PromptBuilder, PromptTemplate
 from src.extraction.speaker_database import SpeakerDatabase
 from src.extraction.speaker_metrics import SpeakerIdentificationMetrics
@@ -27,7 +27,7 @@ class SpeakerIdentifier:
                  llm_service: GeminiDirectService,
                  confidence_threshold: float = 0.7,
                  use_large_context: bool = True,
-                 timeout_seconds: int = 30,
+                 timeout_seconds: int = 120,
                  max_segments_for_context: int = 50,
                  speaker_db_path: Optional[str] = None):
         """
@@ -37,7 +37,7 @@ class SpeakerIdentifier:
             llm_service: Gemini Direct service for LLM calls
             confidence_threshold: Minimum confidence for speaker identification
             use_large_context: Whether to use large context prompts
-            timeout_seconds: Maximum time for LLM call (default: 30s)
+            timeout_seconds: Maximum time for LLM call (default: 120s)
             max_segments_for_context: Maximum segments to include in context (default: 50)
             speaker_db_path: Optional path for persistent speaker database
         """
@@ -67,8 +67,7 @@ class SpeakerIdentifier:
         
     def identify_speakers(self, 
                          segments: List[TranscriptSegment], 
-                         metadata: Dict[str, Any],
-                         cached_content_name: Optional[str] = None) -> Dict[str, Any]:
+                         metadata: Dict[str, Any]) -> Dict[str, Any]:
         """
         Identify speakers from transcript segments using LLM analysis.
         
@@ -163,8 +162,7 @@ class SpeakerIdentifier:
                     self._call_llm_for_identification,
                     context['metadata'],
                     context['speaker_stats'],
-                    context['opening_segments'],
-                    cached_content_name
+                    context['opening_segments']
                 )
                 
                 try:
@@ -175,7 +173,7 @@ class SpeakerIdentifier:
                     errors.append(f"LLM call timed out after {self.timeout_seconds}s")
                     
                     # Record timeout metric
-                    self.metrics.record_error('speaker_identification_timeout')
+                    # self.metrics.record_error('speaker_identification_timeout')
                     self.speaker_metrics.record_error('timeout', podcast_name)
                     
                     fallback_result = self._create_fallback_response(stats, errors)
@@ -230,7 +228,7 @@ class SpeakerIdentifier:
                     logger.info(f"Stored {len(high_confidence_mappings)} speakers in database for '{podcast_name}'")
                 
             # Record success metric
-            self.metrics.record_success('speaker_identification')
+            # self.metrics.record_success('speaker_identification')
             
             # Record in speaker metrics
             self.speaker_metrics.record_identification(
@@ -245,7 +243,7 @@ class SpeakerIdentifier:
             errors.append(f"LLM processing failed: {str(e)}")
             
             # Record error metric
-            self.metrics.record_error('speaker_identification_error')
+            # self.metrics.record_error('speaker_identification_error')
             self.speaker_metrics.record_error(type(e).__name__, podcast_name)
             
             # Return generic fallback
@@ -369,8 +367,7 @@ class SpeakerIdentifier:
     def _call_llm_for_identification(self,
                                    metadata: str,
                                    speaker_stats: str,
-                                   opening_segments: str,
-                                   cached_content_name: Optional[str] = None) -> str:
+                                   opening_segments: str) -> str:
         """
         Call LLM for speaker identification.
         
@@ -400,8 +397,7 @@ class SpeakerIdentifier:
         for attempt in range(3):
             try:
                 response = self.llm_service.complete(
-                    prompt,
-                    cached_content_name=cached_content_name
+                    prompt
                 )
                 return response
                 
@@ -618,18 +614,19 @@ class SpeakerIdentifier:
         for segment in segments:
             # Create a copy of the segment
             updated_segment = TranscriptSegment(
+                id=segment.id,
                 text=segment.text,
                 start_time=segment.start_time,
                 end_time=segment.end_time,
                 speaker=speaker_mappings.get(segment.speaker, segment.speaker),
-                metadata=segment.metadata
+                confidence=segment.confidence
             )
             
             # Add original speaker ID to metadata for traceability
-            if segment.speaker in speaker_mappings:
-                if updated_segment.metadata is None:
-                    updated_segment.metadata = {}
-                updated_segment.metadata['original_speaker_id'] = segment.speaker
+            # if segment.speaker in speaker_mappings:
+            #     if updated_segment.metadata is None:
+            #         updated_segment.metadata = {}
+            #     updated_segment.metadata['original_speaker_id'] = segment.speaker
                 
             updated_segments.append(updated_segment)
             

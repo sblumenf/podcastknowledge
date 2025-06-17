@@ -138,6 +138,10 @@ class GraphStorageService:
             except Exception as e:
                 logger.warning(f"Error closing Neo4j connection: {e}")
                 
+    def close(self) -> None:
+        """Close Neo4j connection (alias for disconnect)."""
+        self.disconnect()
+                
     def _check_health(self) -> bool:
         """Check if connection is healthy."""
         if self._last_health_check:

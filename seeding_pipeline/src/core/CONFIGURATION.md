@@ -51,6 +51,23 @@ These configuration options were removed to enforce single approach:
 - `enable_knowledge_discovery` (always true)
 - Alternative feature flags
 
+## LLM Temperature Configuration
+
+The pipeline uses optimized temperature settings for different tasks:
+
+- **Extraction Tasks (0.1)**: Low temperature for factual extraction
+  - Speaker identification
+  - Entity extraction
+  - Quote extraction
+  - Relationship extraction
+  
+- **Creative Analysis (0.5-0.7)**: Higher temperature for insight generation
+  - Topic discovery
+  - Pattern recognition
+  - Insight generation
+
+These temperature values are automatically configured by the pipeline based on the task type.
+
 ## Usage
 
 ```python

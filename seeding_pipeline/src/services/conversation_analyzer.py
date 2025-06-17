@@ -70,11 +70,12 @@ class ConversationAnalyzer:
             prompt = self._build_analysis_prompt(transcript_data)
             
             # Get structured response from LLM
+            # Use a higher temperature to allow more flexibility
             response = self.llm_service.generate_completion(
                 prompt=prompt,
-                system_prompt="You are an expert conversation analyst specializing in podcast and interview structure.",
+                system_prompt="You are an expert conversation analyst specializing in podcast and interview structure. Generate valid JSON output.",
                 response_format=ConversationStructure,
-                temperature=0.1  # Low temperature for consistent analysis
+                temperature=0.2  # Slightly higher temperature
             )
             
             # Parse and validate response
@@ -85,8 +86,32 @@ class ConversationAnalyzer:
             else:
                 # Fallback parsing for string responses
                 import json
-                structure_dict = json.loads(response)
-                structure = ConversationStructure(**structure_dict)
+                try:
+                    # Clean up the response if needed
+                    if isinstance(response, str):
+                        # Try to extract JSON from the response
+                        response = response.strip()
+                        # If response starts with ```json, extract the JSON part
+                        if response.startswith('```json'):
+                            response = response[7:]  # Remove ```json
+                            if response.endswith('```'):
+                                response = response[:-3]  # Remove trailing ```
+                        response = response.strip()
+                    
+                    structure_dict = json.loads(response)
+                    structure = ConversationStructure(**structure_dict)
+                except json.JSONDecodeError as e:
+                    self.logger.error(f"JSON parsing failed: {e}")
+                    # Try to fix common JSON issues
+                    try:
+                        # Try to load with ast.literal_eval as fallback
+                        import ast
+                        structure_dict = ast.literal_eval(response)
+                        structure = ConversationStructure(**structure_dict)
+                    except:
+                        # Create a minimal valid structure as fallback
+                        self.logger.warning("Creating fallback conversation structure")
+                        structure = self._create_fallback_structure(segments)
             
             # Validate structure
             self._validate_structure(structure, len(segments))
@@ -204,3 +229,35 @@ Return a JSON object matching the ConversationStructure schema with:
             for unit_idx in theme.related_units:
                 if unit_idx >= len(structure.units):
                     raise ValueError(f"Theme references invalid unit index: {unit_idx}")
+    
+    def _create_fallback_structure(self, segments: List[TranscriptSegment]) -> ConversationStructure:
+        """Create a minimal fallback conversation structure."""
+        # Create a single conversation unit covering all segments
+        unit = ConversationUnit(
+            start_index=0,
+            end_index=len(segments) - 1,
+            type="discussion",
+            summary="Full conversation",
+            key_points=["Complete transcript"],
+            transitions=[]
+        )
+        
+        # Create minimal structure
+        structure = ConversationStructure(
+            units=[unit],
+            themes=[],
+            boundaries=[],
+            flow=ConversationFlow(
+                overall_pattern="linear",
+                key_transitions=[],
+                narrative_arc="single-segment"
+            ),
+            insights=StructuralInsights(
+                fragmentation_issues=[],
+                missing_context=[],
+                natural_boundaries=[],
+                overall_coherence=0.5
+            )
+        )
+        
+        return structure
