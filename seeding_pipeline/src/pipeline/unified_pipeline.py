@@ -101,7 +101,13 @@ class UnifiedKnowledgePipeline:
         # Initialize components with appropriate models
         self.vtt_parser = VTTParser()
         # VTT segmenter and conversation analyzer use Flash for speed
-        self.vtt_segmenter = VTTSegmenter(config=None, llm_service=self.llm_flash)
+        # Configure speaker identification timeout to 120 seconds as per optimization plan
+        vtt_config = {
+            'speaker_timeout_seconds': 120,
+            'speaker_confidence_threshold': 0.7,
+            'max_segments_for_context': 50
+        }
+        self.vtt_segmenter = VTTSegmenter(config=vtt_config, llm_service=self.llm_flash)
         self.conversation_analyzer = ConversationAnalyzer(self.llm_flash)
         self.segment_regrouper = SegmentRegrouper()
         
