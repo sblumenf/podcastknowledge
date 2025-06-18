@@ -191,8 +191,13 @@ class SegmentRegrouper:
         total_time = 0.0
         
         for segment in segments:
-            speaker = segment.speaker or "Unknown"
-            duration = segment.end_time - segment.start_time
+            # Handle both TranscriptSegment objects and dictionaries
+            if isinstance(segment, dict):
+                speaker = segment.get('speaker') or "Unknown"
+                duration = segment['end_time'] - segment['start_time']
+            else:
+                speaker = segment.speaker or "Unknown"
+                duration = segment.end_time - segment.start_time
             
             if speaker not in speaker_times:
                 speaker_times[speaker] = 0.0
@@ -218,13 +223,13 @@ class SegmentRegrouper:
         covered_segments = set()
         for unit in meaningful_units:
             for segment in unit.segments:
-                segment_id = segment.id
+                segment_id = segment['id'] if isinstance(segment, dict) else segment.id
                 if segment_id in covered_segments:
                     self.logger.warning(f"Segment {segment_id} appears in multiple units")
                 covered_segments.add(segment_id)
         
         # Check for missing segments
-        all_segment_ids = {segment.id for segment in original_segments}
+        all_segment_ids = {segment['id'] if isinstance(segment, dict) else segment.id for segment in original_segments}
         missing_segments = all_segment_ids - covered_segments
         
         if missing_segments:
@@ -235,7 +240,7 @@ class SegmentRegrouper:
         
         # Log statistics
         total_original_duration = sum(
-            segment.end_time - segment.start_time 
+            (segment['end_time'] - segment['start_time']) if isinstance(segment, dict) else (segment.end_time - segment.start_time)
             for segment in original_segments
         )
         total_unit_duration = sum(unit.duration for unit in meaningful_units)

@@ -193,7 +193,7 @@ class GeminiDirectService:
         cache_key = self._get_cache_key(prompt)
         cached_response = self._get_cached_response(cache_key)
         if cached_response:
-            metrics.record_api_call(self.provider, success=True, latency=0)
+            metrics.record_api_call(self.provider, "complete", success=True, latency=0)
             return cached_response
         
         # Ensure client is initialized
@@ -232,7 +232,7 @@ class GeminiDirectService:
                 
                 # Record metrics
                 api_latency = time.time() - api_start_time
-                metrics.record_api_call(self.provider, success=True, latency=api_latency)
+                metrics.record_api_call(self.provider, "complete", success=True, latency=api_latency)
                 
                 return result
                 
@@ -255,7 +255,7 @@ class GeminiDirectService:
         
         # Record failed API call
         api_latency = time.time() - api_start_time
-        metrics.record_api_call(self.provider, success=False, latency=api_latency)
+        metrics.record_api_call(self.provider, "complete", success=False, latency=api_latency)
         
         raise ProviderError(self.provider, f"Gemini completion failed after all retries: {last_exception}")
         

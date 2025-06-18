@@ -18,12 +18,8 @@ try:
 except ImportError:
     YAML_AVAILABLE = False
 
-try:
-    from dotenv import load_dotenv
-    load_dotenv()
-except ImportError:
-    # If dotenv not available, just use environment variables directly
-    pass
+# Import env_config to ensure environment is loaded
+from .env_config import env_config
 
 from .exceptions import ConfigurationError
 

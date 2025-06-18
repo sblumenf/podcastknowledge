@@ -253,12 +253,10 @@ class KnowledgeExtractor:
         # Log performance metrics
         extraction_time = time.time() - start_time
         log_performance_metric(
-            logger,
-            "extraction.meaningful_unit_time",
+            "extract_knowledge",
             extraction_time,
-            unit="seconds",
-            operation="extract_knowledge",
-            tags={
+            success=True,
+            metadata={
                 'meaningful_unit_id': str(meaningful_unit.id),
                 'entity_count': str(len(entities)),
                 'quote_count': str(len(quotes)),
@@ -273,6 +271,288 @@ class KnowledgeExtractor:
             entities=entities, quotes=quotes, relationships=relationships, 
             insights=insights, metadata=metadata
         )
+    
+    def extract_knowledge_combined(
+        self, 
+        meaningful_unit: "MeaningfulUnit", 
+        episode_metadata: Dict[str, Any]
+    ) -> ExtractionResult:
+        """
+        Extract all knowledge from a MeaningfulUnit in a single LLM call.
+        
+        This optimized method combines entity, quote, insight, and relationship
+        extraction into one request, reducing redundant context loads from 5 to 1.
+        
+        Args:
+            meaningful_unit: MeaningfulUnit to extract knowledge from
+            episode_metadata: Metadata about the episode
+            
+        Returns:
+            ExtractionResult containing all extracted knowledge
+        """
+        start_time = time.time()
+        
+        # Prepare the combined extraction prompt
+        from src.extraction.prompts import PromptBuilder
+        prompt_builder = PromptBuilder(use_large_context=True)
+        
+        # Build combined prompt with all extraction types
+        prompt = prompt_builder.build_combined_extraction_prompt(
+            podcast_name=episode_metadata.get('podcast_name', 'Unknown Podcast'),
+            episode_title=episode_metadata.get('episode_title', 'Unknown Episode'),
+            transcript=meaningful_unit.text
+        )
+        
+        try:
+            # Single LLM call for all extractions
+            response = self.llm_service.complete(prompt)
+            
+            # Parse the combined response
+            extracted_data = self._parse_combined_response(response)
+            
+            # Process and validate extractions
+            entities = self._process_entities(extracted_data.get('entities', []))
+            quotes = self._process_quotes(extracted_data.get('quotes', []))
+            insights = self._process_insights(extracted_data.get('insights', []))
+            
+            # Extract relationships from the data
+            relationships = self._extract_relationships_from_combined(
+                entities, 
+                extracted_data.get('conversation_structure', {})
+            )
+            
+            # Build metadata
+            metadata = {
+                "extraction_timestamp": datetime.now().isoformat(),
+                "meaningful_unit_id": meaningful_unit.id,
+                "extraction_mode": "combined_single_pass",
+                "text_length": len(meaningful_unit.text),
+                "entity_count": len(entities),
+                "quote_count": len(quotes),
+                "relationship_count": len(relationships),
+                "insight_count": len(insights),
+                "speaker_distribution": meaningful_unit.speaker_distribution,
+                "unit_type": meaningful_unit.unit_type,
+                "themes": meaningful_unit.themes,
+                "episode_metadata": episode_metadata,
+                "conversation_structure": extracted_data.get('conversation_structure', {})
+            }
+            
+            # Track contribution
+            if entities or quotes or relationships or insights:
+                try:
+                    tracker = get_tracker()
+                    with tracker.track_impact("knowledge_extractor_combined") as impact:
+                        impact.add_items(len(entities) + len(quotes) + len(relationships) + len(insights))
+                        impact.add_metadata("extraction_mode", "combined")
+                        impact.add_metadata("unit_type", meaningful_unit.unit_type)
+                except Exception:
+                    pass
+            
+            # Log performance metrics
+            extraction_time = time.time() - start_time
+            log_performance_metric(
+                "extract_knowledge_combined",
+                extraction_time,
+                success=True,
+                metadata={
+                    'meaningful_unit_id': str(meaningful_unit.id),
+                    'total_extractions': str(len(entities) + len(quotes) + len(relationships) + len(insights)),
+                    'unit_type': meaningful_unit.unit_type
+                }
+            )
+            
+            logger.info(f"Combined extraction completed in {extraction_time:.2f}s for unit {meaningful_unit.id}")
+            
+            return ExtractionResult(
+                entities=entities, 
+                quotes=quotes, 
+                relationships=relationships, 
+                insights=insights, 
+                metadata=metadata
+            )
+            
+        except Exception as e:
+            logger.error(f"Combined extraction failed: {e}")
+            # Fall back to empty result on error
+            return ExtractionResult(
+                entities=[], 
+                quotes=[], 
+                relationships=[], 
+                insights=[], 
+                metadata={
+                    "error": str(e),
+                    "extraction_mode": "combined_single_pass_failed"
+                }
+            )
+    
+    def _parse_combined_response(self, response: str) -> Dict[str, Any]:
+        """
+        Parse the combined extraction response from LLM.
+        
+        Args:
+            response: Raw LLM response containing JSON
+            
+        Returns:
+            Parsed extraction data dictionary
+        """
+        try:
+            # Clean up response - remove markdown code blocks if present
+            cleaned = response.strip()
+            if cleaned.startswith('```json'):
+                cleaned = cleaned[7:]
+            if cleaned.startswith('```'):
+                cleaned = cleaned[3:]
+            if cleaned.endswith('```'):
+                cleaned = cleaned[:-3]
+            
+            # Parse JSON
+            data = json.loads(cleaned.strip())
+            
+            # Validate expected structure
+            expected_keys = ['entities', 'quotes', 'insights', 'conversation_structure']
+            for key in expected_keys:
+                if key not in data:
+                    logger.warning(f"Missing key '{key}' in combined response, using empty default")
+                    data[key] = [] if key != 'conversation_structure' else {}
+            
+            return data
+            
+        except json.JSONDecodeError as e:
+            logger.error(f"Failed to parse combined response as JSON: {e}")
+            logger.debug(f"Raw response: {response[:500]}...")
+            # Return empty structure on parse failure
+            return {
+                'entities': [],
+                'quotes': [],
+                'insights': [],
+                'conversation_structure': {}
+            }
+    
+    def _process_entities(self, raw_entities: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """Process and validate entities from combined extraction."""
+        processed = []
+        
+        for entity in raw_entities:
+            try:
+                # Ensure required fields
+                if not entity.get('name'):
+                    continue
+                    
+                processed_entity = {
+                    'name': entity['name'],
+                    'type': entity.get('type', 'Unknown'),
+                    'description': entity.get('description', ''),
+                    'importance': float(entity.get('importance', 5)) / 10,  # Normalize to 0-1
+                    'frequency': entity.get('frequency', 1),
+                    'has_citation': entity.get('has_citation', False),
+                    'confidence': self.config.entity_confidence_threshold + 0.2  # Higher confidence for combined
+                }
+                
+                processed.append(processed_entity)
+                
+            except Exception as e:
+                logger.warning(f"Failed to process entity: {e}")
+                continue
+        
+        return processed[:self.config.max_entities_per_segment]  # Apply limit
+    
+    def _process_quotes(self, raw_quotes: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """Process and validate quotes from combined extraction."""
+        processed = []
+        
+        for quote in raw_quotes:
+            try:
+                text = quote.get('text', '').strip()
+                if not text or len(text.split()) < self.config.min_quote_length:
+                    continue
+                
+                processed_quote = {
+                    'text': text[:500],  # Limit length
+                    'speaker': quote.get('speaker', 'Unknown'),
+                    'context': quote.get('context', ''),
+                    'quote_type': 'general',  # Simplified type
+                    'importance': 0.8,  # High importance for combined extraction
+                    'timestamp': None  # Would need segment timing info
+                }
+                
+                processed.append(processed_quote)
+                
+            except Exception as e:
+                logger.warning(f"Failed to process quote: {e}")
+                continue
+        
+        return processed
+    
+    def _process_insights(self, raw_insights: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """Process and validate insights from combined extraction."""
+        processed = []
+        
+        for insight in raw_insights:
+            try:
+                if not insight.get('title') or not insight.get('description'):
+                    continue
+                
+                processed_insight = {
+                    'title': insight['title'],
+                    'description': insight['description'],
+                    'type': insight.get('insight_type', insight.get('type', 'conceptual')),
+                    'confidence': float(insight.get('confidence', 7)) / 10,  # Normalize to 0-1
+                    'supporting_entities': insight.get('supporting_entities', [])
+                }
+                
+                processed.append(processed_insight)
+                
+            except Exception as e:
+                logger.warning(f"Failed to process insight: {e}")
+                continue
+        
+        return processed
+    
+    def _extract_relationships_from_combined(
+        self, 
+        entities: List[Dict[str, Any]], 
+        conversation_structure: Dict[str, Any]
+    ) -> List[Dict[str, Any]]:
+        """Extract relationships from entities and conversation structure."""
+        relationships = []
+        entity_names = {e['name'] for e in entities}
+        
+        # Look for explicit relationships in conversation structure
+        topic_groups = conversation_structure.get('topic_groups', [])
+        for group in topic_groups:
+            key_entities = group.get('key_entities', [])
+            
+            # Create relationships between co-mentioned entities
+            for i, entity1 in enumerate(key_entities):
+                for entity2 in key_entities[i+1:]:
+                    if entity1 in entity_names and entity2 in entity_names:
+                        relationships.append({
+                            'source': entity1,
+                            'target': entity2,
+                            'type': 'discussed_together',
+                            'confidence': 0.7,
+                            'context': group.get('description', 'Co-mentioned in discussion')
+                        })
+        
+        # Infer relationships from entity types
+        people = [e for e in entities if e['type'] in ['Person', 'Host', 'Guest']]
+        organizations = [e for e in entities if e['type'] in ['Company', 'Organization', 'Institution']]
+        
+        # Link people to organizations they might work for
+        for person in people:
+            for org in organizations:
+                # Simple heuristic: if mentioned close together
+                if abs(entities.index(person) - entities.index(org)) <= 2:
+                    relationships.append({
+                        'source': person['name'],
+                        'target': org['name'],
+                        'type': 'affiliated_with',
+                        'confidence': 0.6,
+                        'context': 'Mentioned in close proximity'
+                    })
+        
+        return relationships
 
     def _extract_quotes(self, segment: Segment) -> List[Dict[str, Any]]:
         """Extract meaningful quotes from segment using LLM-based extraction."""

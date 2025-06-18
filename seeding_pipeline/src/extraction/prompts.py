@@ -194,6 +194,9 @@ JSON RESPONSE:""",
             version=PromptVersion.V2_0,
             template="""Identify the actual names or descriptive roles of speakers in this podcast transcript.
 
+CRITICAL REQUIREMENT: NEVER return generic names like 'Speaker 0', 'Speaker 1', 'Speaker 2', etc. 
+You MUST identify actual names or provide descriptive roles. Generic speaker labels are NOT acceptable.
+
 METADATA:
 {metadata}
 
@@ -219,6 +222,7 @@ Based on the metadata, conversation patterns, and content:
 Format your response as a valid JSON object with these fields:
 - speaker_mappings: Object mapping generic IDs to identified names/roles
   - Example: {{"Speaker 0": "Mel Robbins (Host)", "Speaker 1": "Dr. Jane Smith (Guest Expert)"}}
+  - NEVER use generic names like "Speaker 0" as the mapped value
 - confidence_scores: Object with confidence levels (0.0-1.0) for each identification
 - identification_methods: Object explaining how each speaker was identified
 - unresolved_speakers: Array of speaker IDs that couldn't be confidently identified
@@ -228,6 +232,8 @@ Prioritize accuracy over completeness. If uncertain, use descriptive roles like:
 - "Guest Expert - Psychology"
 - "Co-host/Interviewer"
 - "Brief Contributor"
+
+Remember: Generic speaker names are a failure condition. Always provide actual names or meaningful roles.
 
 JSON RESPONSE:""",
             variables=['metadata', 'speaker_stats', 'opening_segments'],

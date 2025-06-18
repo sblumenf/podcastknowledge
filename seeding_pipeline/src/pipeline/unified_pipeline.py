@@ -608,15 +608,29 @@ class UnifiedKnowledgePipeline:
             try:
                 start_time = time.time()
                 
-                # Extract knowledge using the schema-less approach
-                extraction_result = self.knowledge_extractor.extract_knowledge(
-                    meaningful_unit=unit,
-                    episode_metadata={
-                        'episode_id': self.current_episode_id,
-                        'unit_index': idx,
-                        'total_units': len(meaningful_units)
-                    }
-                )
+                # Use combined extraction for efficiency (1 LLM call instead of 5)
+                if hasattr(self.knowledge_extractor, 'extract_knowledge_combined'):
+                    # Use optimized combined extraction
+                    extraction_result = self.knowledge_extractor.extract_knowledge_combined(
+                        meaningful_unit=unit,
+                        episode_metadata={
+                            'episode_id': self.current_episode_id,
+                            'unit_index': idx,
+                            'total_units': len(meaningful_units),
+                            'podcast_name': episode_metadata.get('podcast_name', 'Unknown'),
+                            'episode_title': episode_metadata.get('episode_title', 'Unknown')
+                        }
+                    )
+                else:
+                    # Fall back to original method if combined not available
+                    extraction_result = self.knowledge_extractor.extract_knowledge(
+                        meaningful_unit=unit,
+                        episode_metadata={
+                            'episode_id': self.current_episode_id,
+                            'unit_index': idx,
+                            'total_units': len(meaningful_units)
+                        }
+                    )
                 
                 # Aggregate results
                 if extraction_result.entities:

@@ -134,27 +134,37 @@ class ConversationAnalyzer:
         speaker_stats = {}
         
         for i, segment in enumerate(segments):
-            speaker = segment.speaker or "Unknown"
+            # Handle both TranscriptSegment objects and dictionaries
+            if isinstance(segment, dict):
+                speaker = segment.get('speaker') or "Unknown"
+                text = segment['text']
+                start_time = segment['start_time']
+                end_time = segment['end_time']
+            else:
+                speaker = segment.speaker or "Unknown"
+                text = segment.text
+                start_time = segment.start_time
+                end_time = segment.end_time
             
             # Track speaker statistics
             if speaker not in speaker_stats:
                 speaker_stats[speaker] = {"count": 0, "total_duration": 0.0}
             speaker_stats[speaker]["count"] += 1
-            speaker_stats[speaker]["total_duration"] += (segment.end_time - segment.start_time)
+            speaker_stats[speaker]["total_duration"] += (end_time - start_time)
             
             # Format segment with index and timing
-            minutes = int(segment.start_time // 60)
-            seconds = int(segment.start_time % 60)
+            minutes = int(start_time // 60)
+            seconds = int(start_time % 60)
             time_str = f"{minutes:02d}:{seconds:02d}"
             
-            line = f"[{i}] [{speaker} {time_str}] {segment.text}"
+            line = f"[{i}] [{speaker} {time_str}] {text}"
             transcript_lines.append(line)
         
         return {
             "transcript": "\n".join(transcript_lines),
             "speaker_stats": speaker_stats,
             "total_segments": len(segments),
-            "total_duration": segments[-1].end_time if segments else 0
+            "total_duration": (segments[-1]['end_time'] if isinstance(segments[-1], dict) else segments[-1].end_time) if segments else 0
         }
     
     def _build_analysis_prompt(self, transcript_data: Dict[str, Any]) -> str:
@@ -190,12 +200,14 @@ IMPORTANT GUIDELINES:
 - Consider speaker patterns (e.g., host questions followed by guest answers)
 
 Return a JSON object matching the ConversationStructure schema with:
-- units: List of semantic conversation units
-- themes: Major themes throughout the conversation
-- flow: Overall narrative arc
+- units: List of semantic conversation units (keep descriptions under 400 characters)
+- themes: Major themes throughout the conversation (keep descriptions under 400 characters)
+- flow: Overall narrative arc (keep opening/development/conclusion under 800 characters each)
 - insights: Structural observations including fragmentation issues
 - boundaries: Key boundary points between units
 - total_segments: {transcript_data['total_segments']}
+
+IMPORTANT: Keep all text descriptions concise and focused. Avoid lengthy explanations.
 """
         return prompt
     

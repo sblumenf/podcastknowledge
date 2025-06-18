@@ -10,10 +10,19 @@ import os
 from pathlib import Path
 from dotenv import load_dotenv
 
-# Load .env file if it exists
-env_path = Path('.env')
+# Load .env file from the seeding_pipeline directory
+# This ensures it works regardless of where the script is run from
+current_file = Path(__file__).resolve()
+seeding_pipeline_dir = current_file.parent.parent.parent  # Go up to seeding_pipeline/
+env_path = seeding_pipeline_dir / '.env'
+
 if env_path.exists():
     load_dotenv(env_path)
+else:
+    # Try current working directory as fallback
+    fallback_env = Path('.env')
+    if fallback_env.exists():
+        load_dotenv(fallback_env)
 class EnvironmentConfig:
     """Centralized environment variable access with validation."""
     

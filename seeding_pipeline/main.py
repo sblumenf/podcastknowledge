@@ -22,7 +22,15 @@ from datetime import datetime
 
 # Load environment variables from .env file
 from dotenv import load_dotenv
-load_dotenv()
+from pathlib import Path
+
+# Load .env from the seeding_pipeline directory
+env_path = Path(__file__).parent / '.env'
+if env_path.exists():
+    load_dotenv(env_path)
+else:
+    # Fallback to current directory
+    load_dotenv()
 
 # Add project to path
 sys.path.insert(0, str(Path(__file__).parent))
@@ -40,6 +48,8 @@ from src.storage.graph_storage import GraphStorageService
 from src.services.llm import LLMService
 from src.services.embeddings import EmbeddingsService
 from src.core.config import SeedingConfig
+from src.core.pipeline_config import PipelineConfig
+from src.core.exceptions import PipelineError
 
 
 async def process_vtt_file(
@@ -72,10 +82,10 @@ async def process_vtt_file(
     neo4j_uri = neo4j_uri or os.getenv('NEO4J_URI', 'neo4j://localhost:7687')
     neo4j_user = neo4j_user or os.getenv('NEO4J_USER', 'neo4j')
     neo4j_password = neo4j_password or os.getenv('NEO4J_PASSWORD', 'password')
-    gemini_api_key = gemini_api_key or os.getenv('GEMINI_API_KEY')
+    gemini_api_key = gemini_api_key or os.getenv('GEMINI_API_KEY') or os.getenv('GOOGLE_API_KEY')
     
     if not gemini_api_key:
-        raise ValueError("Gemini API key required. Set GEMINI_API_KEY environment variable or pass --gemini-api-key")
+        raise ValueError("Gemini API key required. Set GEMINI_API_KEY or GOOGLE_API_KEY environment variable or pass --gemini-api-key")
     
     # Model configuration for tiered approach
     MODEL_CONFIG = {
@@ -149,11 +159,17 @@ async def process_vtt_file(
         }
     
     try:
-        # Process the VTT file
+        # Process the VTT file with timeout
         logger.info(f"Processing VTT file: {vtt_path}")
-        result = await pipeline.process_vtt_file(
-            vtt_path=vtt_path,
-            episode_metadata=episode_metadata
+        logger.info(f"Pipeline timeout: {PipelineConfig.PIPELINE_TIMEOUT}s ({PipelineConfig.PIPELINE_TIMEOUT / 60:.1f} minutes)")
+        
+        # Apply timeout to the pipeline processing
+        result = await asyncio.wait_for(
+            pipeline.process_vtt_file(
+                vtt_path=vtt_path,
+                episode_metadata=episode_metadata
+            ),
+            timeout=PipelineConfig.PIPELINE_TIMEOUT
         )
         
         # Close connections
@@ -161,6 +177,10 @@ async def process_vtt_file(
         
         return result
         
+    except asyncio.TimeoutError:
+        logger.error(f"Pipeline processing timed out after {PipelineConfig.PIPELINE_TIMEOUT}s")
+        graph_storage.close()
+        raise PipelineError(f"Processing timed out after {PipelineConfig.PIPELINE_TIMEOUT / 60:.1f} minutes. Consider increasing PIPELINE_TIMEOUT environment variable.")
     except Exception as e:
         logger.error(f"Pipeline processing failed: {e}")
         graph_storage.close()

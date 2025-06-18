@@ -326,7 +326,7 @@ class VTTSegmenter:
                 llm_service=self.llm_service,
                 confidence_threshold=self.config.get('speaker_confidence_threshold', 0.7),
                 use_large_context=True,
-                timeout_seconds=self.config.get('speaker_timeout_seconds', 30),
+                timeout_seconds=self.config.get('speaker_timeout_seconds', 120),
                 max_segments_for_context=self.config.get('max_segments_for_context', 50),
                 speaker_db_path=speaker_db_path
             )
