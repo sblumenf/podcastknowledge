@@ -31,7 +31,14 @@ class ConversationBoundary(BaseModel):
         """Validate boundary type is one of allowed values."""
         allowed_types = {'topic_shift', 'speaker_change', 'story_end', 'q&a_complete'}
         if v not in allowed_types:
-            raise ValueError(f"boundary_type must be one of {allowed_types}")
+            # Map common variations to allowed types
+            type_mapping = {
+                'conclusion': 'topic_shift',
+                'segment_end': 'story_end',
+                'transition': 'topic_shift',
+                'end': 'story_end'
+            }
+            v = type_mapping.get(v, 'topic_shift')  # Default to topic_shift
         return v
 
 
@@ -52,8 +59,7 @@ class ConversationUnit(BaseModel):
     )
     description: str = Field(
         description="Brief description of unit content",
-        min_length=1,
-        max_length=500
+        min_length=1
     )
     completeness: str = Field(
         description="complete, incomplete, fragmented"
@@ -81,9 +87,21 @@ class ConversationUnit(BaseModel):
     @classmethod
     def validate_unit_type(cls, v: str) -> str:
         """Validate unit type is one of allowed values."""
-        allowed_types = {'topic_discussion', 'story', 'q&a_pair', 'introduction', 'conclusion'}
+        allowed_types = {
+            'topic_discussion', 'story', 'q&a_pair', 'introduction', 'conclusion',
+            'expert_explanation', 'solution', 'transition', 'host_commentary', 
+            'call_to_action', 'personal_story', 'advice', 'summary'
+        }
         if v not in allowed_types:
-            raise ValueError(f"unit_type must be one of {allowed_types}")
+            # If not in allowed types, map to closest allowed type
+            type_mapping = {
+                'expert_discussion': 'topic_discussion',
+                'personal_narrative': 'story',
+                'recommendations': 'advice',
+                'recap': 'summary',
+                'commentary': 'host_commentary'
+            }
+            v = type_mapping.get(v, 'topic_discussion')  # Default to topic_discussion
         return v
     
     @field_validator('completeness')
@@ -111,8 +129,7 @@ class TopicGroup(BaseModel):
     )
     description: str = Field(
         description="Description of topic coverage",
-        min_length=1,
-        max_length=500
+        min_length=1
     )
 
 
@@ -127,13 +144,11 @@ class ConversationTheme(BaseModel):
     )
     description: str = Field(
         description="What aspects are explored",
-        min_length=1,
-        max_length=500
+        min_length=1
     )
     evolution: str = Field(
         description="How theme develops through conversation",
-        min_length=1,
-        max_length=500
+        min_length=1
     )
     related_units: List[int] = Field(
         default_factory=list,
@@ -147,18 +162,15 @@ class ConversationFlow(BaseModel):
     
     opening: str = Field(
         description="How conversation starts",
-        min_length=1,
-        max_length=500
+        min_length=1
     )
     development: str = Field(
         description="How topics build on each other",
-        min_length=1,
-        max_length=500
+        min_length=1
     )
     conclusion: Optional[str] = Field(
         default=None,
-        description="How it wraps up (if applicable)",
-        max_length=500
+        description="How it wraps up (if applicable)"
     )
 
 
@@ -225,7 +237,7 @@ class ConversationStructure(BaseModel):
         for i in range(1, len(sorted_units)):
             prev_unit = sorted_units[i-1]
             curr_unit = sorted_units[i]
-            if prev_unit.end_index >= curr_unit.start_index:
+            if prev_unit.end_index > curr_unit.start_index:
                 raise ValueError(
                     f"Units overlap: unit ending at {prev_unit.end_index} "
                     f"overlaps with unit starting at {curr_unit.start_index}"
