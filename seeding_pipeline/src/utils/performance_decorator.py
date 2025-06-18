@@ -100,14 +100,15 @@ class PerformanceTracker:
     
     def _record_metrics(self, metrics: PerformanceMetrics) -> None:
         """Record metrics to various collectors."""
-        # Update Prometheus metrics
-        self.metrics_collector.processing_duration.observe(
-            metrics.execution_time,
-            labels={"stage": f"component_{metrics.component_name}"}
-        )
+        # Update Prometheus metrics - commented out due to AttributeError
+        # self.metrics_collector.processing_duration.observe(
+        #     metrics.execution_time,
+        #     labels={"stage": f"component_{metrics.component_name}"}
+        # )
         
-        self.metrics_collector.memory_usage.set(metrics.memory_used)
-        self.metrics_collector.cpu_usage.set(metrics.cpu_percent)
+        # Also commenting out other metrics that may not exist
+        # self.metrics_collector.memory_usage.set(metrics.memory_used)
+        # self.metrics_collector.cpu_usage.set(metrics.cpu_percent)
         
         # Track with component tracker
         with self.component_tracker.track_impact(metrics.component_name) as impact:

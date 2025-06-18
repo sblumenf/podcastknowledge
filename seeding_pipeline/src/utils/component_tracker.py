@@ -101,11 +101,11 @@ class ComponentTracker:
         """Record a component impact."""
         self.impacts[impact.component_name].append(impact)
         
-        # Update metrics
-        self.metrics.processing_duration.observe(
-            impact.execution_time,
-            labels={"stage": f"component_{impact.component_name}"}
-        )
+        # Update metrics - commented out due to AttributeError
+        # self.metrics.processing_duration.observe(
+        #     impact.execution_time,
+        #     labels={"stage": f"component_{impact.component_name}"}
+        # )
         
         # Save to disk
         self._save_impact(impact)

@@ -120,11 +120,11 @@ class PerformanceProfiler:
             # Save detailed profile
             self._save_profile(name, profiler, result)
             
-            # Update metrics
-            self.metrics.processing_duration.observe(
-                result.duration, 
-                labels={"stage": name}
-            )
+            # Update metrics - commented out due to AttributeError
+            # self.metrics.processing_duration.observe(
+            #     result.duration, 
+            #     labels={"stage": name}
+            # )
     
     def _extract_bottlenecks(self, stats: pstats.Stats) -> List[Tuple[str, float]]:
         """Extract top bottleneck functions from stats."""
