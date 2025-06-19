@@ -41,6 +41,9 @@ from src.storage.graph_storage import GraphStorageService
 from src.services.llm import LLMService
 from src.services.embeddings import EmbeddingsService
 
+# Configuration
+from src.core.config import PipelineConfig
+
 # Utils
 from src.utils.logging import get_logger
 from src.utils.retry import retry
@@ -896,6 +899,50 @@ class UnifiedKnowledgePipeline:
         except Exception as e:
             self.logger.error(f"Knowledge storage failed: {e}")
             raise PipelineError(f"Failed to store knowledge: {e}") from e
+    
+    async def _post_process_speakers(self, episode_id: str) -> Dict[str, str]:
+        """Post-process speaker identification to resolve generic speaker names.
+        
+        This method runs after the main pipeline to identify and update generic
+        speaker names using pattern matching, YouTube API, and LLM fallback.
+        
+        Args:
+            episode_id: Episode ID to process
+            
+        Returns:
+            Dict mapping generic names to identified real names
+        """
+        self.logger.info(f"Starting speaker post-processing for episode {episode_id}")
+        
+        try:
+            # Import SpeakerMapper
+            from src.post_processing.speaker_mapper import SpeakerMapper
+            
+            # Initialize speaker mapper with current services
+            speaker_mapper = SpeakerMapper(
+                storage=self.graph_storage,
+                llm_service=self.llm_service,
+                config=getattr(self, 'config', None) or PipelineConfig()
+            )
+            
+            # Process the episode
+            mappings = speaker_mapper.process_episode(episode_id)
+            
+            if mappings:
+                self.logger.info(
+                    f"Speaker post-processing completed: mapped {len(mappings)} speakers"
+                )
+                for generic, real in mappings.items():
+                    self.logger.info(f"  '{generic}' -> '{real}'")
+            else:
+                self.logger.info("No generic speakers found to map")
+            
+            return mappings
+            
+        except Exception as e:
+            self.logger.warning(f"Speaker post-processing failed: {e}")
+            # Don't fail the entire pipeline for speaker mapping issues
+            return {}
     
     def _deduplicate_entities_globally(self, entities: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         """
