@@ -150,23 +150,33 @@ class SpeakerMapper:
         if not name:
             return False
         
+        # Generic patterns to identify
+        generic_patterns = [
+            r'^Guest Expert',
+            r'^Guest/Contributor',
+            r'Co-host/Producer',  # Remove strict anchors to allow variations
+            r'^Brief Family Member',
+            r'^Guest \(Speaker \d+\)',
+            r'^\w+ Expert \(',  # Any expert with role description
+            r'Producer',  # Simple producer label
+            r'Co-host',  # Simple co-host label
+        ]
+        
+        # Check if matches any generic pattern first
+        if any(re.search(pattern, name) for pattern in generic_patterns):
+            return True
+        
+        # If not generic pattern, check if it looks like a real name
         # Already has a real name (not just role-based)
-        if any(char.isupper() and i > 0 for i, char in enumerate(name.split()[0])):
+        first_word = name.split()[0] if name else ''
+        # Ignore hyphens when checking for capitals in middle
+        first_word_no_hyphen = first_word.replace('-', '')
+        if any(char.isupper() and i > 0 for i, char in enumerate(first_word_no_hyphen)):
             # Has capital letters in middle of first word (likely a name)
             if not any(pattern in name for pattern in ['Speaker', 'Guest', 'Host', 'Expert']):
                 return False
         
-        # Generic patterns to identify
-        generic_patterns = [
-            r'^Guest Expert',
-            r'^Guest\/Contributor',
-            r'^Co-host\/Producer$',
-            r'^Brief Family Member$',
-            r'^Guest \(Speaker \d+\)$',
-            r'^\w+ Expert \(',  # Any expert with role description
-        ]
-        
-        return any(re.match(pattern, name) for pattern in generic_patterns)
+        return False
     
     def _match_from_episode_description(self, episode_data: Dict[str, Any], 
                                       generic_speakers: List[str]) -> Dict[str, str]:
@@ -276,10 +286,10 @@ class SpeakerMapper:
         # Common introduction patterns
         intro_patterns = [
             # Self-introductions
-            r"I'm\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+){0,2})",  # "I'm Name Name"
-            r"My\s+name\s+is\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+){0,2})",  # "My name is Name"
-            r"This\s+is\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+){0,2})",  # "This is Name" (self-referential)
-            r"I\s+am\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+){0,2})",  # "I am Name"
+            r"I'm\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+){1,2})(?:\.|,|\s|$)",  # "I'm Name Name" - require at least 2 parts
+            r"My\s+name\s+is\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+){0,2})(?:\.|,|\s|$)",  # "My name is Name"
+            r"This\s+is\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+){1,2})(?:\s+speaking|,|\.|$)",  # "This is Name" (self-referential)
+            r"I\s+am\s+(?:Dr\.|Doctor\s+)?([A-Z][a-z]+(?:\s+[A-Z][a-z]+){1,2})(?:\.|,|\s|$)",  # "I am [Dr.] Name"
             
             # Host welcoming guest
             r"Welcome\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+){0,2})",  # "Welcome Name"
@@ -329,8 +339,17 @@ class SpeakerMapper:
                     # Clean up the match
                     name = match.strip()
                     
-                    # Skip common false positives
+                    # Skip common false positives and non-name phrases
                     if name.lower() in ['i', 'me', 'you', 'we', 'they', 'here', 'there', 'today', 'now']:
+                        continue
+                    
+                    # Skip if it starts with a lowercase word or contains only one word
+                    if not name[0].isupper() or (len(name.split()) == 1 and pattern_type == 'self_intro'):
+                        continue
+                    
+                    # Skip common verbs that might be captured
+                    first_word = name.split()[0].lower()
+                    if first_word in ['excited', 'happy', 'pleased', 'glad', 'ready', 'going', 'trying']:
                         continue
                     
                     # Determine pattern type for context
@@ -407,13 +426,26 @@ class SpeakerMapper:
         
         # Common closing credit patterns
         credit_patterns = [
-            # Thanks and credits
-            r"Special\s+thanks\s+to\s+(?:our\s+guest\s+)?([A-Z][a-z]+(?:\s+[A-Z][a-z]+){0,2})",  # "Special thanks to [our guest] Name"
-            r"Thanks\s+to\s+(?:our\s+guest\s+)?([A-Z][a-z]+(?:\s+[A-Z][a-z]+){0,2})",  # "Thanks to Name"
-            r"Our\s+guest\s+(?:today\s+)?(?:was|has\s+been)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+){0,2})",  # "Our guest was Name"
-            r"(?:Today's|This)\s+guest\s+(?:was|is)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+){0,2})",  # "Today's guest was Name"
+            # Thanks and credits - capture full names after titles, stop at common words
+            r"Special\s+thanks\s+to\s+(?:our\s+guest\s+)?Dr\.\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+){1,2})(?:\s+(?:for|who|,|\.))",  # "Special thanks to Dr. Name for/who/,/."
+            r"Special\s+thanks\s+to\s+(?:our\s+guest\s+)?([A-Z][a-z]+(?:\s+[A-Z][a-z]+){1,2})(?:\s+(?:for|who|,|\.))",  # "Special thanks to Name for/who/,/."
+            r"Thanks\s+to\s+(?:our\s+guest\s+)?Dr\.\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+){1,2})(?:\s+(?:for|who|,|\.))",  # "Thanks to Dr. Name for/who/,/."
+            r"Thanks\s+to\s+(?:our\s+guest\s+)?([A-Z][a-z]+(?:\s+[A-Z][a-z]+){1,2})(?:\s+(?:for|who|,|\.))",  # "Thanks to Name for/who/,/."
+            r"Our\s+guest\s+(?:today\s+)?(?:was|has\s+been)\s+Dr\.\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+){1,2})(?:\s+|,|\.|$)",  # "Our guest was Dr. Name"
+            r"Our\s+guest\s+(?:today\s+)?(?:was|has\s+been)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+){1,2})(?:\s+|,|\.|$)",  # "Our guest was Name"
+            r"(?:Today's|This)\s+guest\s+(?:was|is)\s+Dr\.\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+){1,2})(?:\s+|,|\.|$)",  # "Today's guest was Dr. Name"
+            r"(?:Today's|This)\s+guest\s+(?:was|is)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+){1,2})(?:\s+|,|\.|$)",  # "Today's guest was Name"
+            # Fallback patterns for names with titles (less specific)
+            r"Special\s+thanks\s+to\s+(?:our\s+guest\s+)?Dr\.\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+){1,3})",  # "Special thanks to Dr. Name"
+            r"Special\s+thanks\s+to\s+(?:our\s+guest\s+)?([A-Z][a-z]+(?:\s+[A-Z][a-z]+){1,3})",  # "Special thanks to Name"
+            r"Thanks\s+to\s+(?:our\s+guest\s+)?Dr\.\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+){1,3})",  # "Thanks to Dr. Name"
+            r"Thanks\s+to\s+(?:our\s+guest\s+)?([A-Z][a-z]+(?:\s+[A-Z][a-z]+){1,3})",  # "Thanks to Name"
             
-            # Production credits
+            # Production credits - stop at common words
+            r"Produced\s+by\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+){0,2})(?:\s+(?:who|and|with|,|\.|$))",  # "Produced by Name who/and/,/."
+            r"Executive\s+producer\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+){0,2})(?:\s+(?:who|and|with|,|\.|$))",  # "Executive producer Name"
+            r"(?:This\s+)?(?:episode|podcast)\s+(?:is|was)\s+produced\s+by\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+){0,2})(?:\s+(?:who|and|with|,|\.|$))",
+            # Fallback patterns for production credits
             r"Produced\s+by\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+){0,2})",  # "Produced by Name"
             r"Executive\s+producer\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+){0,2})",  # "Executive producer Name"
             r"(?:This\s+)?(?:episode|podcast)\s+(?:is|was)\s+produced\s+by\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+){0,2})",
@@ -423,9 +455,9 @@ class SpeakerMapper:
             r"This\s+(?:is|was)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+){0,2})",  # "This is/was Name" (sign-off)
             r"Until\s+next\s+time,\s+(?:I'm\s+)?([A-Z][a-z]+(?:\s+[A-Z][a-z]+){0,2})",  # "Until next time, I'm Name"
             
-            # Expert/guest credits with titles
-            r"(?:Dr\.|Doctor|Professor|Prof\.)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+){0,2})",  # Academic titles
-            r"([A-Z][a-z]+(?:\s+[A-Z][a-z]+){0,2}),\s+(?:author|expert|specialist|researcher)",  # "Name, author/expert"
+            # Expert/guest credits with titles - capture names after titles
+            r"(?:Dr\.|Doctor|Professor|Prof\.)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+){1,2})",  # Academic titles - require full name
+            r"([A-Z][a-z]+(?:\s+[A-Z][a-z]+){1,2}),\s+(?:author|expert|specialist|researcher)",  # "Name, author/expert" - require full name
         ]
         
         # Collect all potential names from closing credits
@@ -441,6 +473,10 @@ class SpeakerMapper:
                     
                     # Skip common false positives
                     if name.lower() in ['the', 'this', 'that', 'here', 'there', 'everyone', 'folks']:
+                        continue
+                    
+                    # Skip single word names unless they're preceded by a title
+                    if len(name.split()) == 1 and not any(title in content for title in ['Dr.', 'Doctor', 'Professor']):
                         continue
                     
                     # Categorize by pattern type
@@ -804,7 +840,8 @@ Name:"""
         logger.info(f"Updating {len(mappings)} speaker mappings in database for episode {episode_id}")
         
         # Start a transaction
-        tx = self.storage.driver.session().begin_transaction()
+        session = self.storage.driver.session()
+        tx = session.begin_transaction()
         
         try:
             # For each mapping, update all affected MeaningfulUnits
@@ -823,10 +860,13 @@ Name:"""
                     'real_name': real_name
                 })
                 
-                record = result.single()
-                if record:
-                    count = record['updated_count']
-                    logger.debug(f"Updated {count} units for speaker '{generic_name}' -> '{real_name}'")
+                try:
+                    record = result.single()
+                    if record:
+                        count = record['updated_count']
+                        logger.debug(f"Updated {count} units for speaker '{generic_name}' -> '{real_name}'")
+                except Exception as e:
+                    logger.debug(f"Could not retrieve update count: {e}")
                 
                 # Also update speaker_distribution JSON if it exists
                 json_update_query = """
@@ -844,11 +884,15 @@ Name:"""
                     'real_name': f'"{real_name}"'
                 })
                 
-                json_record = json_result.single()
-                if json_record:
-                    json_count = json_record['json_updated_count']
-                    if json_count > 0:
-                        logger.debug(f"Updated {json_count} speakerDistribution JSONs")
+                try:
+                    json_record = json_result.single()
+                    if json_record and 'json_updated_count' in json_record:
+                        json_count = json_record['json_updated_count']
+                        if json_count > 0:
+                            logger.debug(f"Updated {json_count} speakerDistribution JSONs")
+                except Exception as e:
+                    # Log but don't fail - speaker distribution update is optional
+                    logger.debug(f"Could not update speakerDistribution JSON: {e}")
             
             # Update the episode node with a timestamp of when speakers were mapped
             episode_update_query = """
@@ -875,6 +919,7 @@ Name:"""
             raise
         finally:
             tx.close()
+            session.close()
     
     def _log_speaker_changes(self, episode_id: str, mappings: Dict[str, str]) -> None:
         """Log all speaker changes for audit trail.
