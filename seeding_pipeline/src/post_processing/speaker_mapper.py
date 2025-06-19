@@ -8,6 +8,7 @@ import re
 from typing import Dict, List, Optional, Tuple, Any
 import json
 from datetime import datetime
+from pathlib import Path
 
 from src.utils.logging import get_logger
 from src.storage.graph_storage import GraphStorageService
@@ -796,7 +797,7 @@ Name:"""
                 
                 # Call LLM
                 logger.info(f"Using LLM to identify speaker: {generic_speaker}")
-                response = self.llm_service.generate_text(prompt)
+                response = self.llm_service.query(prompt)
                 
                 # Parse response
                 name = response.strip()
