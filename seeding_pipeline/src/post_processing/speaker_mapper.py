@@ -763,24 +763,54 @@ class SpeakerMapper:
                                    generic_speakers: List[str]) -> Dict[str, str]:
         """Extract speaker names from closing credits at the end of episodes.
         
-        Searches the final segments of the transcript for credits patterns
+        Searches the final segments of the original VTT transcript for credits patterns
         where speakers are thanked or credited.
         
         Args:
-            episode_data: Episode data including units  
+            episode_data: Episode data including episode node with vtt_path
             generic_speakers: List of generic speaker names to identify
             
         Returns:
             Dict mapping generic names to identified real names
         """
         mappings = {}
-        units = episode_data.get('units', [])
         
-        if not units or len(units) < 5:
+        # Get VTT path from episode data
+        vtt_path = episode_data.get('episode', {}).get('vtt_path')
+        if not vtt_path:
+            logger.debug("No VTT path stored in episode, skipping closing credits check")
             return mappings
         
-        # Get last 5 units (typically covers closing/credits)
-        closing_units = units[-5:]
+        # Check if file exists
+        from pathlib import Path
+        if not Path(vtt_path).exists():
+            logger.warning(f"VTT file not found at stored path: {vtt_path}")
+            return mappings
+        
+        try:
+            # Parse VTT file to get segments
+            from src.vtt import VTTParser
+            parser = VTTParser()
+            segments = parser.parse_vtt_file(Path(vtt_path))
+            
+            if not segments or len(segments) < 10:
+                logger.debug("Not enough segments in VTT file for closing credits")
+                return mappings
+            
+            # Get last 10% of segments (typically closing credits)
+            closing_count = max(5, len(segments) // 10)  # At least 5 segments, or 10% of total
+            closing_segments = segments[-closing_count:]
+            
+            logger.info(f"Reading closing credits from VTT file: last {closing_count} segments of {len(segments)} total")
+            
+            # Combine text from closing segments
+            closing_units = []
+            for seg in closing_segments:
+                closing_units.append({'text': seg.text})
+                
+        except Exception as e:
+            logger.error(f"Error reading VTT file for closing credits: {e}")
+            return mappings
         
         # Common closing credit patterns
         credit_patterns = [

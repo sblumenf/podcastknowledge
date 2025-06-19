@@ -246,6 +246,12 @@ Environment Variables:
         action="store_true",
         help="Enable verbose logging"
     )
+    parser.add_argument(
+        "--timeout",
+        type=int,
+        default=7200,
+        help="Pipeline timeout in seconds (default: 7200 = 2 hours)"
+    )
     
     # Checkpoint management commands
     parser.add_argument(
@@ -269,6 +275,11 @@ Environment Variables:
     # Set logging level
     if args.verbose:
         logging.getLogger().setLevel(logging.DEBUG)
+    
+    # Set pipeline timeout from argument
+    if args.timeout:
+        os.environ['PIPELINE_TIMEOUT'] = str(args.timeout)
+        logger.info(f"Set pipeline timeout to {args.timeout} seconds")
     
     # Handle checkpoint management commands
     if args.list_checkpoints or args.clear_checkpoint:

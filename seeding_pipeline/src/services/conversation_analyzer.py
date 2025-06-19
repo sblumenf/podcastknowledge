@@ -52,6 +52,7 @@ class ConversationAnalyzer:
             raise PipelineError("No segments provided for analysis")
             
         self.logger.info(f"Analyzing conversation structure for {len(segments)} segments")
+        self.logger.info("This may take several minutes for long transcripts...")
         
         # Check cache if optimizer is available
         transcript_hash = None
@@ -80,6 +81,8 @@ class ConversationAnalyzer:
             
             # Parse and validate response
             if isinstance(response, dict):
+                # Fix any invalid unit indices before creating ConversationStructure
+                response = self._fix_invalid_indices(response, len(segments))
                 structure = ConversationStructure(**response)
             elif isinstance(response, ConversationStructure):
                 structure = response
@@ -99,6 +102,8 @@ class ConversationAnalyzer:
                         response = response.strip()
                     
                     structure_dict = json.loads(response)
+                    # Fix any invalid unit indices before creating ConversationStructure
+                    structure_dict = self._fix_invalid_indices(structure_dict, len(segments))
                     structure = ConversationStructure(**structure_dict)
                 except json.JSONDecodeError as e:
                     self.logger.error(f"JSON parsing failed: {e}")
@@ -107,6 +112,8 @@ class ConversationAnalyzer:
                         # Try to load with ast.literal_eval as fallback
                         import ast
                         structure_dict = ast.literal_eval(response)
+                        # Fix any invalid unit indices before creating ConversationStructure
+                        structure_dict = self._fix_invalid_indices(structure_dict, len(segments))
                         structure = ConversationStructure(**structure_dict)
                     except:
                         # Create a minimal valid structure as fallback
@@ -241,6 +248,55 @@ IMPORTANT: Keep all text descriptions concise and focused. Avoid lengthy explana
             for unit_idx in theme.related_units:
                 if unit_idx >= len(structure.units):
                     raise ValueError(f"Theme references invalid unit index: {unit_idx}")
+    
+    def _fix_invalid_indices(self, structure_dict: Dict[str, Any], total_segments: int) -> Dict[str, Any]:
+        """Fix any invalid indices in the structure before validation."""
+        # Fix themes that reference invalid unit indices
+        if 'themes' in structure_dict and 'units' in structure_dict:
+            max_unit_index = len(structure_dict['units']) - 1
+            for theme in structure_dict['themes']:
+                if 'related_units' in theme:
+                    # Filter out invalid unit indices
+                    valid_units = []
+                    for unit_idx in theme['related_units']:
+                        if 0 <= unit_idx <= max_unit_index:
+                            valid_units.append(unit_idx)
+                        else:
+                            self.logger.warning(
+                                f"Removing invalid unit index {unit_idx} from theme '{theme.get('theme', 'Unknown')}' "
+                                f"(max valid index: {max_unit_index})"
+                            )
+                    theme['related_units'] = valid_units
+        
+        # Fix boundary indices that are out of range
+        if 'boundaries' in structure_dict:
+            valid_boundaries = []
+            for boundary in structure_dict['boundaries']:
+                if isinstance(boundary, dict) and 'segment_index' in boundary:
+                    if 0 <= boundary['segment_index'] < total_segments:
+                        valid_boundaries.append(boundary)
+                    else:
+                        self.logger.warning(
+                            f"Removing invalid boundary at segment index {boundary['segment_index']} "
+                            f"(max valid index: {total_segments - 1})"
+                        )
+            structure_dict['boundaries'] = valid_boundaries
+        
+        # Fix unit indices that are out of range
+        if 'units' in structure_dict:
+            for unit in structure_dict['units']:
+                if isinstance(unit, dict):
+                    # Clamp start and end indices to valid range
+                    if 'start_index' in unit:
+                        unit['start_index'] = max(0, min(unit['start_index'], total_segments - 1))
+                    if 'end_index' in unit:
+                        unit['end_index'] = max(0, min(unit['end_index'], total_segments - 1))
+                    # Ensure start <= end
+                    if 'start_index' in unit and 'end_index' in unit:
+                        if unit['start_index'] > unit['end_index']:
+                            unit['start_index'], unit['end_index'] = unit['end_index'], unit['start_index']
+        
+        return structure_dict
     
     def _create_fallback_structure(self, segments: List[TranscriptSegment]) -> ConversationStructure:
         """Create a minimal fallback conversation structure."""

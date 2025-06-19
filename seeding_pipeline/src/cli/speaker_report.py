@@ -46,15 +46,14 @@ def list(ctx, format: str, output: Optional[str]):
         # Query for all episodes and their speakers
         query = """
         MATCH (e:Episode)
-        OPTIONAL MATCH (e)-[:HAS_MEANINGFUL_UNIT]->(mu:MeaningfulUnit)
-        WHERE mu.speakers IS NOT NULL
-        WITH e, collect(DISTINCT mu.speakers) as speaker_patterns
-        RETURN e.podcast as podcast,
-               e.episodeNumber as episode_number,
+        OPTIONAL MATCH (mu:MeaningfulUnit)-[:PART_OF]->(e)
+        WHERE mu.speaker_distribution IS NOT NULL
+        WITH e, collect(DISTINCT mu.speaker_distribution) as speaker_patterns
+        RETURN e.id as episode_id,
                e.title as title,
-               e.episodeUrl as youtube_url,
+               e.youtube_url as youtube_url,
                speaker_patterns
-        ORDER BY e.podcast, e.episodeNumber
+        ORDER BY e.title
         """
         
         results = storage.query(query)
@@ -127,7 +126,7 @@ def list(ctx, format: str, output: Optional[str]):
         
         elif format == 'csv':
             import csv
-            headers = ['Podcast', 'Episode #', 'Title', 'YouTube URL', 'Speakers']
+            headers = ['Episode ID', 'Title', 'YouTube URL', 'Speakers']
             
             if output:
                 with open(output, 'w', newline='') as f:
