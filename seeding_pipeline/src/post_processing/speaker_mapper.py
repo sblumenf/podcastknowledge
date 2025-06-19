@@ -322,20 +322,31 @@ class SpeakerMapper:
         
         # If base names are similar (simple character overlap check)
         if base1_lower and base2_lower and base1_lower != base2_lower:
-            # Calculate simple similarity
-            shorter = min(len(base1_lower), len(base2_lower))
-            longer = max(len(base1_lower), len(base2_lower))
+            # Check if this is a possessive relationship first
+            # e.g., "Mel Robbins" should not match "Mel Robbins' Son"
+            # Check for both straight (') and curly (') apostrophes
+            possessive_markers = ["'s ", "'s ", "' ", "' "]
+            has_possessive = any(marker in name1 or marker in name2 for marker in possessive_markers)
             
-            # Check if one name contains the other
-            if base1_lower in base2_lower or base2_lower in base1_lower:
-                logger.debug(f"Likely same person (contains): '{name1}' and '{name2}'")
-                return True
-            
-            # Character overlap check
-            overlap = len(set(base1_lower) & set(base2_lower))
-            if shorter >= 4 and overlap > shorter * 0.7:
-                logger.debug(f"Likely same person (overlap): '{name1}' and '{name2}'")
-                return True
+            if has_possessive:
+                # This is likely a possessive relationship (Person's Relation)
+                # Skip ALL similarity checks for this case
+                logger.debug(f"Skipping similarity checks due to possessive: '{name1}' and '{name2}'")
+            else:
+                # Calculate simple similarity
+                shorter = min(len(base1_lower), len(base2_lower))
+                longer = max(len(base1_lower), len(base2_lower))
+                
+                # Check if one name contains the other
+                if base1_lower in base2_lower or base2_lower in base1_lower:
+                    logger.debug(f"Likely same person (contains): '{name1}' and '{name2}'")
+                    return True
+                
+                # Character overlap check
+                overlap = len(set(base1_lower) & set(base2_lower))
+                if shorter >= 4 and overlap > shorter * 0.7:
+                    logger.debug(f"Likely same person (overlap): '{name1}' and '{name2}'")
+                    return True
         
         # Check for obvious role variations
         if base1_lower == base2_lower and role1 != role2:
