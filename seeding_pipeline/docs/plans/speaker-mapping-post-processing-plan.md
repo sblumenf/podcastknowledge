@@ -39,7 +39,7 @@ This plan implements an automated post-processing system that identifies and upd
 ## Phase 2: Pattern Matching Implementation
 
 ### Task 2.1: Episode Description Analysis
-- [ ] Implement `_match_from_episode_description()` method
+- [x] Implement `_match_from_episode_description()` method
   - Purpose: Extract guest names from episode descriptions
   - Steps:
     1. Query episode node for description field
@@ -52,7 +52,7 @@ This plan implements an automated post-processing system that identifies and upd
   - Validation: Test with known episodes containing guest names
 
 ### Task 2.2: Transcript Introduction Pattern Matching
-- [ ] Implement `_match_from_introductions()` method
+- [x] Implement `_match_from_introductions()` method
   - Purpose: Find speaker introductions in first segments
   - Steps:
     1. Query first 10 MeaningfulUnits ordered by segment index
@@ -66,7 +66,7 @@ This plan implements an automated post-processing system that identifies and upd
   - Validation: Correctly identifies speakers in test transcripts
 
 ### Task 2.3: Closing Credits Pattern Matching
-- [ ] Implement `_match_from_closing_credits()` method
+- [x] Implement `_match_from_closing_credits()` method
   - Purpose: Extract names from episode endings
   - Steps:
     1. Query last 5 MeaningfulUnits
@@ -80,7 +80,7 @@ This plan implements an automated post-processing system that identifies and upd
 ## Phase 3: YouTube API Integration
 
 ### Task 3.1: YouTube API Client Integration
-- [ ] Create `src/services/youtube_description_fetcher.py`
+- [x] Create `src/services/youtube_description_fetcher.py`
   - Purpose: Adapter to reuse existing YouTube API client from transcriber
   - Steps:
     1. Import YouTubeAPIClient from transcriber module
@@ -91,7 +91,7 @@ This plan implements an automated post-processing system that identifies and upd
   - Validation: Successfully retrieves video descriptions using existing infrastructure
 
 ### Task 3.2: YouTube Description Parser
-- [ ] Implement `_match_from_youtube()` method
+- [x] Implement `_match_from_youtube()` method
   - Purpose: Extract speaker names from YouTube descriptions
   - Steps:
     1. Extract video ID from YouTube URL in episode
@@ -104,7 +104,7 @@ This plan implements an automated post-processing system that identifies and upd
 ## Phase 4: LLM-Based Identification
 
 ### Task 4.1: LLM Prompt Engineering
-- [ ] Create `_generate_speaker_prompt()` method
+- [x] Create `_generate_speaker_prompt()` method
   - Purpose: Build effective prompts for speaker identification
   - Steps:
     1. Include episode title and description
@@ -115,7 +115,7 @@ This plan implements an automated post-processing system that identifies and upd
   - Validation: Prompts are clear and focused
 
 ### Task 4.2: LLM Integration
-- [ ] Implement `_match_from_llm()` method
+- [x] Implement `_match_from_llm()` method
   - Purpose: Last resort identification using AI
   - Steps:
     1. Only call if previous methods failed
@@ -128,7 +128,7 @@ This plan implements an automated post-processing system that identifies and upd
 ## Phase 5: Database Update Logic
 
 ### Task 5.1: Speaker Update Implementation
-- [ ] Create `_update_speakers_in_database()` method
+- [x] Create `_update_speakers_in_database()` method
   - Purpose: Apply identified mappings to Neo4j
   - Steps:
     1. Begin transaction
@@ -139,7 +139,7 @@ This plan implements an automated post-processing system that identifies and upd
   - Validation: Database reflects updated speaker names
 
 ### Task 5.2: Audit Trail
-- [ ] Implement `_log_speaker_changes()` method
+- [x] Implement `_log_speaker_changes()` method
   - Purpose: Track all automated and manual updates
   - Steps:
     1. Create log entry with timestamp
@@ -151,7 +151,7 @@ This plan implements an automated post-processing system that identifies and upd
 ## Phase 6: CLI Report and Manual Update
 
 ### Task 6.1: Speaker List Command
-- [ ] Implement `speaker_report list` command
+- [x] Implement `speaker_report list` command
   - Purpose: View all speakers across episodes
   - Steps:
     1. Query Neo4j for all episodes and speakers
@@ -162,7 +162,7 @@ This plan implements an automated post-processing system that identifies and upd
   - Validation: Displays comprehensive speaker information
 
 ### Task 6.2: Manual Update Command
-- [ ] Implement `speaker_report update` command
+- [x] Implement `speaker_report update` command
   - Purpose: Allow manual speaker name corrections
   - Steps:
     1. Accept parameters: episode_id, old_name, new_name
