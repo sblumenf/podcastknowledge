@@ -9,6 +9,7 @@ to improve maintainability and configurability.
 VERSION = "0.1.0"
 
 # Timeout Constants (in seconds)
+DEFAULT_TIMEOUT = 7200  # 2 hours - overall pipeline processing timeout
 DEFAULT_REQUEST_TIMEOUT = 300  # 5 minutes - used for HTTP requests
 NEO4J_CONNECTION_TIMEOUT = 30.0  # Neo4j connection acquisition timeout
 THREAD_JOIN_TIMEOUT = 5.0  # Thread join timeout for graceful shutdown

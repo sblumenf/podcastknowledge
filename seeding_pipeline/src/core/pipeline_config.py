@@ -7,15 +7,16 @@ to prevent premature termination of long-running processes.
 
 import os
 from src.core.env_config import env_config
+from src.core.constants import DEFAULT_TIMEOUT
 
 class PipelineConfig:
     """Configuration for pipeline processing timeouts and limits."""
     
     # Overall pipeline timeout (in seconds)
-    # Default: 5400 seconds (90 minutes) to handle long episodes
+    # Default: 7200 seconds (2 hours) as specified in optimization plan
     PIPELINE_TIMEOUT = env_config.get_int(
         "PIPELINE_TIMEOUT",
-        5400,  # 90 minutes
+        DEFAULT_TIMEOUT,  # 2 hours from constants.py
         "Overall pipeline processing timeout in seconds"
     )
     

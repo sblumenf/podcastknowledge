@@ -34,6 +34,10 @@ class PipelineConfig:
     min_speakers: int = 1
     max_speakers: int = 10
     
+    # LLM Configuration (from optimization plan)
+    MAX_TOKENS: int = 65000  # Maximum tokens for LLM response
+    TEMPERATURE: float = 0.1  # Low temperature for extraction tasks
+    
     # Neo4j Database Settings (from environment)
     neo4j_uri: str = field(default_factory=lambda: os.environ.get("NEO4J_URI", "bolt://localhost:7687"))
     neo4j_username: str = field(default_factory=lambda: os.environ.get("NEO4J_USERNAME", "neo4j"))
