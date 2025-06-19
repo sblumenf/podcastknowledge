@@ -143,7 +143,8 @@ class SpeakerIdentifier:
                 
                 # If all speakers identified, return cache result
                 if len(result['unresolved_speakers']) == 0:
-                    self.metrics.record_success('speaker_identification_cache_hit')
+                    # TODO: Fix metrics recording
+                    # self.metrics.record_success('speaker_identification_cache_hit')
                     
                     # Record in speaker metrics
                     self.speaker_metrics.record_identification(
@@ -173,6 +174,7 @@ class SpeakerIdentifier:
                     errors.append(f"LLM call timed out after {self.timeout_seconds}s")
                     
                     # Record timeout metric
+                    # TODO: Fix metrics recording
                     # self.metrics.record_error('speaker_identification_timeout')
                     self.speaker_metrics.record_error('timeout', podcast_name)
                     
@@ -228,6 +230,7 @@ class SpeakerIdentifier:
                     logger.info(f"Stored {len(high_confidence_mappings)} speakers in database for '{podcast_name}'")
                 
             # Record success metric
+            # TODO: Fix metrics recording
             # self.metrics.record_success('speaker_identification')
             
             # Record in speaker metrics
@@ -243,6 +246,7 @@ class SpeakerIdentifier:
             errors.append(f"LLM processing failed: {str(e)}")
             
             # Record error metric
+            # TODO: Fix metrics recording
             # self.metrics.record_error('speaker_identification_error')
             self.speaker_metrics.record_error(type(e).__name__, podcast_name)
             

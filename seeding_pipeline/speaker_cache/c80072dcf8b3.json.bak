@@ -1,0 +1,19 @@
+{
+  "podcast_name": "The Mel Robbins Podcast",
+  "speakers": {
+    "Speaker 0": "Mel Robbins (Host)",
+    "Speaker 1": "Mel Robbins' Son (Introducer)",
+    "Speaker 2": "Brief Family Member",
+    "Speaker 3": "Guest Expert (Psychiatrist)"
+  },
+  "confidence_scores": {
+    "Speaker 0": 1.0,
+    "Speaker 1": 1.0,
+    "Speaker 2": 0.8,
+    "Speaker 3": 0.9
+  },
+  "episode_count": 3,
+  "avg_confidence": 0.9249999999999999,
+  "created_at": "2025-06-18T22:52:32.597243",
+  "last_updated": "2025-06-18T23:08:00.668210"
+}

@@ -77,7 +77,8 @@ class UnifiedKnowledgePipeline:
         llm_service: LLMService,
         embeddings_service: Optional[EmbeddingsService] = None,
         llm_flash: Optional[LLMService] = None,
-        llm_pro: Optional[LLMService] = None
+        llm_pro: Optional[LLMService] = None,
+        enable_speaker_mapping: bool = False
     ):
         """
         Initialize the unified pipeline with required services.
@@ -88,11 +89,13 @@ class UnifiedKnowledgePipeline:
             embeddings_service: Optional embeddings service
             llm_flash: Optional Flash model service for fast tasks
             llm_pro: Optional Pro model service for complex tasks
+            enable_speaker_mapping: Enable post-processing speaker identification (default: False)
         """
         # Core services - dependency injection
         self.graph_storage = graph_storage
         self.llm_service = llm_service
         self.embeddings_service = embeddings_service
+        self.enable_speaker_mapping = enable_speaker_mapping
         
         # Use separate models if provided, otherwise fall back to default
         self.llm_flash = llm_flash or llm_service
@@ -302,7 +305,8 @@ class UnifiedKnowledgePipeline:
                     if segment.speaker:
                         speakers.add(segment.speaker)
                         # Check for generic speaker names (Speaker 0, Speaker 1, etc.)
-                        if segment.speaker.startswith('Speaker ') and segment.speaker.split()[-1].isdigit():
+                        # Allow role-based names like "Primary Host (Speaker 1)" but reject plain "Speaker 1"
+                        if segment.speaker.startswith('Speaker ') and segment.speaker.split()[-1].isdigit() and '(' not in segment.speaker:
                             generic_speakers_found = True
                 
                 if generic_speakers_found:
@@ -1139,6 +1143,46 @@ class UnifiedKnowledgePipeline:
         
         return analysis_results
     
+    async def _post_process_speakers(self, episode_id: str) -> Dict[str, str]:
+        """
+        Post-process speaker identification to map generic names to real names.
+        
+        Args:
+            episode_id: Episode ID to process
+            
+        Returns:
+            Dictionary mapping generic names to identified names
+        """
+        self.logger.info(f"Starting speaker post-processing for episode {episode_id}")
+        
+        try:
+            # Import here to avoid circular dependencies
+            from src.post_processing.speaker_mapper import SpeakerMapper
+            
+            # Initialize speaker mapper
+            mapper = SpeakerMapper(
+                storage=self.graph_storage,
+                llm_service=self.llm_flash,  # Use flash model for speed
+                config=getattr(self, 'config', None)
+            )
+            
+            # Process the episode
+            mappings = mapper.process_episode(episode_id)
+            
+            if mappings:
+                self.logger.info(f"Successfully mapped {len(mappings)} speakers")
+                for old_name, new_name in mappings.items():
+                    self.logger.info(f"  - '{old_name}' → '{new_name}'")
+            else:
+                self.logger.info("No generic speakers found to map")
+            
+            return mappings
+            
+        except Exception as e:
+            self.logger.error(f"Speaker post-processing failed: {e}")
+            # Non-critical error - don't fail the pipeline
+            return {}
+    
     async def _cleanup_on_error(self, episode_id: str) -> None:
         """
         Clean up any partial data on error - CRITICAL for data integrity.
@@ -1389,6 +1433,21 @@ class UnifiedKnowledgePipeline:
                 result['phases_completed'].append("ANALYSIS")
                 self._end_phase()
                 self._save_checkpoint("ANALYSIS", {'results': analysis_results}, episode_metadata)
+            
+            # PHASE 9: Post-Process Speaker Mapping (Optional)
+            if getattr(self, 'enable_speaker_mapping', False):
+                if self._should_skip_phase("POST_PROCESS_SPEAKERS", checkpoint):
+                    self.logger.info("Skipping POST_PROCESS_SPEAKERS - already completed")
+                    speaker_mappings = self.phase_results.get("POST_PROCESS_SPEAKERS", {}).get("mappings", {})
+                    result['stats']['speakers_mapped'] = len(speaker_mappings)
+                    result['phases_completed'].append("POST_PROCESS_SPEAKERS")
+                else:
+                    self._start_phase("POST_PROCESS_SPEAKERS")
+                    speaker_mappings = await self._post_process_speakers(episode_id)
+                    result['stats']['speakers_mapped'] = len(speaker_mappings) if speaker_mappings else 0
+                    result['phases_completed'].append("POST_PROCESS_SPEAKERS")
+                    self._end_phase()
+                    self._save_checkpoint("POST_PROCESS_SPEAKERS", {'mappings': speaker_mappings}, episode_metadata)
             
             # Success - update result
             result['status'] = 'completed'

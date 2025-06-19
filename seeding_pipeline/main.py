@@ -134,7 +134,8 @@ async def process_vtt_file(
         llm_service=llm_service,  # Keep for backward compatibility
         embeddings_service=embeddings_service,
         llm_flash=llm_flash,
-        llm_pro=llm_pro
+        llm_pro=llm_pro,
+        enable_speaker_mapping=True  # Enable speaker post-processing
     )
     
     # Prepare episode metadata
