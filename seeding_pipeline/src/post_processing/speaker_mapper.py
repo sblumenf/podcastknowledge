@@ -98,10 +98,11 @@ class SpeakerMapper:
     def _get_episode_data(self, episode_id: str) -> Optional[Dict[str, Any]]:
         """Retrieve episode data including metadata and units."""
         query = """
-        MATCH (e:Episode {episodeId: $episode_id})
-        OPTIONAL MATCH (e)-[:HAS_MEANINGFUL_UNIT]->(mu:MeaningfulUnit)
+        MATCH (e:Episode {id: $episode_id})
+        OPTIONAL MATCH (mu:MeaningfulUnit)-[:PART_OF]->(e)
+        WITH e, mu
+        ORDER BY mu.start_time
         RETURN e, collect(mu) as units
-        ORDER BY mu.segmentNumbers[0]
         """
         result = self.storage.query(query, {"episode_id": episode_id})
         
@@ -116,7 +117,7 @@ class SpeakerMapper:
             'units': units,
             'description': episode.get('description', ''),
             'title': episode.get('title', ''),
-            'youtube_url': episode.get('episodeUrl', ''),
+            'youtube_url': episode.get('youtube_url', ''),
             'podcast': episode.get('podcast', '')
         }
     
@@ -125,23 +126,21 @@ class SpeakerMapper:
         generic_speakers = set()
         
         for unit in episode_data['units']:
-            speakers = unit.get('speakers', '')
-            if speakers:
-                # Parse speaker JSON
+            speaker_dist = unit.get('speaker_distribution', '')
+            if speaker_dist:
+                # Parse speaker distribution JSON
                 try:
-                    if isinstance(speakers, str):
-                        speaker_dict = json.loads(speakers.replace("'", '"'))
+                    if isinstance(speaker_dist, str):
+                        speaker_dict = json.loads(speaker_dist)
                     else:
-                        speaker_dict = speakers
+                        speaker_dict = speaker_dist
                     
                     for speaker_name in speaker_dict.keys():
                         # Check if this is a generic name
                         if self._is_generic_speaker(speaker_name):
                             generic_speakers.add(speaker_name)
-                except:
-                    # Handle single speaker format
-                    if self._is_generic_speaker(speakers):
-                        generic_speakers.add(speakers)
+                except Exception as e:
+                    logger.debug(f"Could not parse speaker_distribution: {e}")
         
         return list(generic_speakers)
     
@@ -312,20 +311,19 @@ class SpeakerMapper:
         
         # Analyze each intro unit
         for unit_idx, unit in enumerate(intro_units):
-            content = unit.get('content', '')
-            speakers_json = unit.get('speakers', '')
+            content = unit.get('text', '')  # Use 'text' field
+            speaker_dist = unit.get('speaker_distribution', '')
             
             # Parse speakers for this unit
             current_speakers = []
             try:
-                if isinstance(speakers_json, str):
-                    speaker_dict = json.loads(speakers_json.replace("'", '"'))
+                if isinstance(speaker_dist, str):
+                    speaker_dict = json.loads(speaker_dist)
                 else:
-                    speaker_dict = speakers_json
+                    speaker_dict = speaker_dist
                 current_speakers = list(speaker_dict.keys())
             except:
-                if speakers_json:
-                    current_speakers = [speakers_json]
+                logger.debug(f"Could not parse speaker_distribution in intro unit {unit_idx}")
             
             # Track first appearance of each speaker
             for speaker in current_speakers:
@@ -464,7 +462,7 @@ class SpeakerMapper:
         discovered_names = {}
         
         for unit in closing_units:
-            content = unit.get('content', '')
+            content = unit.get('text', '')  # Use 'text' field
             
             for pattern in credit_patterns:
                 matches = re.findall(pattern, content, re.IGNORECASE)
@@ -760,26 +758,23 @@ Name:"""
         # Group segments by speaker
         speaker_segments = {}
         for unit in units:
-            content = unit.get('content', '')
-            speakers_json = unit.get('speakers', '')
+            content = unit.get('text', '')  # Use 'text' field from MeaningfulUnit
+            speaker_dist = unit.get('speaker_distribution', '')
             
-            # Parse speakers
+            # Parse speaker distribution
             try:
-                if isinstance(speakers_json, str):
-                    speaker_dict = json.loads(speakers_json.replace("'", '"'))
+                if isinstance(speaker_dist, str):
+                    speaker_dict = json.loads(speaker_dist)
                 else:
-                    speaker_dict = speakers_json
+                    speaker_dict = speaker_dist
                     
                 for speaker_name in speaker_dict.keys():
                     if speaker_name in generic_speakers:
                         if speaker_name not in speaker_segments:
                             speaker_segments[speaker_name] = []
                         speaker_segments[speaker_name].append(content)
-            except:
-                if speakers_json in generic_speakers:
-                    if speakers_json not in speaker_segments:
-                        speaker_segments[speakers_json] = []
-                    speaker_segments[speakers_json].append(content)
+            except Exception as e:
+                logger.debug(f"Could not parse speaker_distribution in LLM method: {e}")
         
         # Process each generic speaker
         for generic_speaker in generic_speakers:
@@ -846,11 +841,11 @@ Name:"""
         try:
             # For each mapping, update all affected MeaningfulUnits
             for generic_name, real_name in mappings.items():
-                # Update units where this speaker appears in the speakers field
+                # Update units where this speaker appears in the speaker_distribution field
                 update_query = """
-                MATCH (e:Episode {episodeId: $episode_id})-[:HAS_MEANINGFUL_UNIT]->(mu:MeaningfulUnit)
-                WHERE mu.speakers CONTAINS $generic_name
-                SET mu.speakers = REPLACE(mu.speakers, $generic_name, $real_name)
+                MATCH (e:Episode {id: $episode_id})<-[:PART_OF]-(mu:MeaningfulUnit)
+                WHERE mu.speaker_distribution CONTAINS $generic_name
+                SET mu.speaker_distribution = REPLACE(mu.speaker_distribution, $generic_name, $real_name)
                 RETURN count(mu) as updated_count
                 """
                 
@@ -868,35 +863,13 @@ Name:"""
                 except Exception as e:
                     logger.debug(f"Could not retrieve update count: {e}")
                 
-                # Also update speaker_distribution JSON if it exists
-                json_update_query = """
-                MATCH (e:Episode {episodeId: $episode_id})-[:HAS_MEANINGFUL_UNIT]->(mu:MeaningfulUnit)
-                WHERE mu.speakerDistribution IS NOT NULL
-                WITH mu, mu.speakerDistribution as dist
-                WHERE dist CONTAINS $generic_name
-                SET mu.speakerDistribution = REPLACE(dist, $generic_name, $real_name)
-                RETURN count(mu) as json_updated_count
-                """
+                # Skip secondary update - speaker_distribution is the only field
                 
-                json_result = tx.run(json_update_query, {
-                    'episode_id': episode_id,
-                    'generic_name': f'"{generic_name}"',  # JSON format
-                    'real_name': f'"{real_name}"'
-                })
-                
-                try:
-                    json_record = json_result.single()
-                    if json_record and 'json_updated_count' in json_record:
-                        json_count = json_record['json_updated_count']
-                        if json_count > 0:
-                            logger.debug(f"Updated {json_count} speakerDistribution JSONs")
-                except Exception as e:
-                    # Log but don't fail - speaker distribution update is optional
-                    logger.debug(f"Could not update speakerDistribution JSON: {e}")
+                # No secondary update needed - speaker_distribution is the primary field
             
             # Update the episode node with a timestamp of when speakers were mapped
             episode_update_query = """
-            MATCH (e:Episode {episodeId: $episode_id})
+            MATCH (e:Episode {id: $episode_id})
             SET e.speakersMapped = true,
                 e.speakerMappingTimestamp = $timestamp,
                 e.speakerMappingMethod = 'post_processing'
@@ -974,7 +947,7 @@ Name:"""
         # Also store in Neo4j for persistence
         try:
             audit_query = """
-            MATCH (e:Episode {episodeId: $episode_id})
+            MATCH (e:Episode {id: $episode_id})
             CREATE (e)-[:HAS_SPEAKER_MAPPING_AUDIT]->(audit:SpeakerMappingAudit {
                 timestamp: $timestamp,
                 mappings: $mappings_json,

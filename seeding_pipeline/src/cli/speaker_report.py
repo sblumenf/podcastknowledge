@@ -85,9 +85,13 @@ def list(ctx, format: str, output: Optional[str]):
             speakers_list = sorted(list(speakers_set))
             speakers_str = "; ".join(speakers_list) if speakers_list else "No speakers identified"
             
+            episode_id = r['episode_id']
+            # Shorten long episode IDs
+            if len(episode_id) > 30:
+                episode_id = episode_id[:30] + '...'
+            
             table_data.append([
-                r['podcast'] or 'Unknown',
-                r['episode_number'] or 'N/A',
+                episode_id,
                 r['title'] or 'Untitled',
                 r['youtube_url'] or 'N/A',
                 speakers_str
@@ -95,10 +99,10 @@ def list(ctx, format: str, output: Optional[str]):
         
         # Format output
         if format == 'table':
-            headers = ['Podcast', 'Episode #', 'Title', 'YouTube URL', 'Speakers']
+            headers = ['Episode ID', 'Title', 'YouTube URL', 'Speakers']
             
             # Simple table formatting
-            col_widths = [20, 10, 40, 30, 50]
+            col_widths = [35, 50, 30, 50]
             
             # Format header
             header_line = '|'.join(h.ljust(w)[:w] for h, w in zip(headers, col_widths))
@@ -167,7 +171,7 @@ def update(ctx, episode_id: str, old_name: str, new_name: str, dry_run: bool):
     try:
         # First, check if episode exists
         check_query = """
-        MATCH (e:Episode {episodeId: $episode_id})
+        MATCH (e:Episode {id: $episode_id})
         RETURN e.title as title
         """
         result = storage.query(check_query, {"episode_id": episode_id})
@@ -180,9 +184,9 @@ def update(ctx, episode_id: str, old_name: str, new_name: str, dry_run: bool):
         
         # Find all MeaningfulUnits with the old speaker name
         preview_query = """
-        MATCH (e:Episode {episodeId: $episode_id})-[:HAS_MEANINGFUL_UNIT]->(mu:MeaningfulUnit)
-        WHERE mu.speakers CONTAINS $old_name
-        RETURN count(mu) as count, collect(mu.unitId)[..5] as sample_units
+        MATCH (e:Episode {id: $episode_id})<-[:PART_OF]-(mu:MeaningfulUnit)
+        WHERE mu.speaker_distribution CONTAINS $old_name
+        RETURN count(mu) as count, collect(mu.id)[..5] as sample_units
         """
         preview_result = storage.query(preview_query, {
             "episode_id": episode_id,
