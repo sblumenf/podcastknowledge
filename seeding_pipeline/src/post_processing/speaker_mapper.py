@@ -150,33 +150,27 @@ class SpeakerMapper:
         if not name:
             return False
         
-        # Generic patterns to identify
+        # First check if it already contains a real name
+        # Pattern: "FirstName LastName (Role)" - this is already identified
+        if re.match(r'^[A-Z][a-z]+ [A-Z][a-z]+.*\(', name):
+            # Has a real name followed by role in parentheses
+            return False
+        
+        # Truly generic patterns that need identification
         generic_patterns = [
-            r'^Guest Expert',
-            r'^Guest/Contributor',
-            r'Co-host/Producer',  # Remove strict anchors to allow variations
-            r'^Brief Family Member',
-            r'^Guest \(Speaker \d+\)',
-            r'^\w+ Expert \(',  # Any expert with role description
-            r'Producer',  # Simple producer label
-            r'Co-host',  # Simple co-host label
+            r'^Guest Expert$',  # Just "Guest Expert" without a name
+            r'^Guest/Contributor',  # Generic contributor
+            r'^Co-host/Producer$',  # Just the role
+            r'^Producer$',  # Just "Producer"
+            r'^Co-host$',  # Just "Co-host"
+            r'^Brief Family Member$',
+            r'^Guest \(Speaker \d+\)$',  # "Guest (Speaker 2)"
+            r'^Host$',  # Just "Host" without name
+            r'^Guest$',  # Just "Guest" without name
         ]
         
-        # Check if matches any generic pattern first
-        if any(re.search(pattern, name) for pattern in generic_patterns):
-            return True
-        
-        # If not generic pattern, check if it looks like a real name
-        # Already has a real name (not just role-based)
-        first_word = name.split()[0] if name else ''
-        # Ignore hyphens when checking for capitals in middle
-        first_word_no_hyphen = first_word.replace('-', '')
-        if any(char.isupper() and i > 0 for i, char in enumerate(first_word_no_hyphen)):
-            # Has capital letters in middle of first word (likely a name)
-            if not any(pattern in name for pattern in ['Speaker', 'Guest', 'Host', 'Expert']):
-                return False
-        
-        return False
+        # Check if matches any truly generic pattern
+        return any(re.match(pattern, name) for pattern in generic_patterns)
     
     def _match_from_episode_description(self, episode_data: Dict[str, Any], 
                                       generic_speakers: List[str]) -> Dict[str, str]:
@@ -797,7 +791,7 @@ Name:"""
                 
                 # Call LLM
                 logger.info(f"Using LLM to identify speaker: {generic_speaker}")
-                response = self.llm_service.query(prompt)
+                response = self.llm_service.complete(prompt)
                 
                 # Parse response
                 name = response.strip()
