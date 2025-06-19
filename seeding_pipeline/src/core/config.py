@@ -50,6 +50,11 @@ class PipelineConfig:
     hf_token: Optional[str] = field(default_factory=lambda: os.environ.get("HF_TOKEN"))
     youtube_api_key: Optional[str] = field(default_factory=lambda: os.environ.get("YOUTUBE_API_KEY"))
     
+    # Speaker Sanity Check Settings
+    speaker_min_name_length: int = 2  # Minimum characters for valid speaker name
+    speaker_min_units: int = 2  # Minimum meaningful units for valuable contribution
+    speaker_min_avg_text_length: int = 50  # Minimum average text length for contribution
+    
     # Embedding Settings
     embedding_dimensions: int = 768  # Gemini text-embedding-004 dimensions
     embedding_similarity: str = "cosine"

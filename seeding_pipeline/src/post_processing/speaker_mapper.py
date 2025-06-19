@@ -88,11 +88,61 @@ class SpeakerMapper:
             # Step 5: LLM as last resort
             mappings.update(self._match_from_llm(episode_data, remaining))
         
-        # Apply mappings to database
+        # NEW: Apply sanity checks before database updates
         if mappings:
-            logger.info(f"Identified {len(mappings)} speakers, applying updates")
+            logger.info(f"Applying sanity checks to {len(mappings)} identified speakers")
+            
+            # 1. Filter out non-names
+            valid_mappings = {
+                k: v for k, v in mappings.items() 
+                if self._is_valid_speaker_name(v)
+            }
+            
+            filtered_count = len(mappings) - len(valid_mappings)
+            if filtered_count > 0:
+                logger.info(f"Filtered out {filtered_count} non-name speakers")
+                for k, v in mappings.items():
+                    if k not in valid_mappings:
+                        logger.info(f"  Filtered: '{k}' -> '{v}'")
+            
+            mappings = valid_mappings
+        
+        # Check for duplicates across ALL speakers (including already identified ones)
+        all_speakers = self._get_all_episode_speakers(episode_id)
+        
+        if all_speakers:
+            logger.info(f"Checking for duplicates among {len(all_speakers)} total speakers")
+            
+            # 2. Check for duplicates and create merge mappings
+            duplicates = self._find_duplicate_speakers(all_speakers)
+            
+            if duplicates:
+                logger.info(f"Found {len(duplicates)} duplicate speakers to merge")
+                
+                # Apply duplicate resolution to new mappings
+                for old_name, new_name in mappings.items():
+                    if new_name in duplicates:
+                        # This newly identified name is a duplicate of another
+                        mappings[old_name] = duplicates[new_name]
+                        logger.info(f"Redirected mapping: '{old_name}' -> '{new_name}' -> '{duplicates[new_name]}'")
+                
+                # Also need to merge existing duplicates in database
+                self._merge_duplicate_speakers(episode_id, duplicates)
+            
+            # 3. Check value contributions for all speakers (log warnings only)
+            for speaker in all_speakers:
+                if not self._has_meaningful_contribution(episode_id, speaker):
+                    logger.warning(
+                        f"Speaker '{speaker}' has minimal contributions in episode {episode_id[:50]}..."
+                    )
+        
+        # Apply final mappings to database
+        if mappings:
+            logger.info(f"Applying {len(mappings)} validated speaker updates")
             self._update_speakers_in_database(episode_id, mappings)
             self._log_speaker_changes(episode_id, mappings)
+        else:
+            logger.info("No valid speaker mappings to apply after sanity checks")
         
         return mappings
     
@@ -171,6 +221,310 @@ class SpeakerMapper:
         
         # Check if matches any truly generic pattern
         return any(re.match(pattern, name) for pattern in generic_patterns)
+    
+    def _is_valid_speaker_name(self, name: str) -> bool:
+        """Check if a string is a valid speaker name.
+        
+        Uses simple blacklist approach following KISS principle.
+        
+        Args:
+            name: The speaker name to validate
+            
+        Returns:
+            True if valid speaker name, False otherwise
+        """
+        # Simple blacklist approach - KISS principle
+        invalid_patterns = [
+            'you know what',
+            'um', 'uh', 'ah',
+            'yeah', 'okay', 'alright',
+            'oh', 'hmm', 'huh',
+            'yes', 'no', 'maybe',
+            'well', 'so', 'and',
+            'like', 'just', 'really',
+            'actually', 'basically',
+            'literally', 'right',
+            'i mean', 'you know',
+        ]
+        
+        name_lower = name.lower().strip()
+        
+        # Check blacklist
+        if name_lower in invalid_patterns:
+            logger.debug(f"Filtering out non-name: '{name}' (blacklisted)")
+            return False
+        
+        # Basic sanity: must have at least configured minimum characters
+        if len(name) < self.config.speaker_min_name_length:
+            logger.debug(f"Filtering out non-name: '{name}' (too short, < {self.config.speaker_min_name_length} chars)")
+            return False
+        
+        # Must contain at least one letter
+        if not any(c.isalpha() for c in name):
+            logger.debug(f"Filtering out non-name: '{name}' (no letters)")
+            return False
+        
+        # Check for common transcription errors (all lowercase phrases)
+        if name.islower() and len(name.split()) > 1:
+            logger.debug(f"Filtering out non-name: '{name}' (multi-word lowercase)")
+            return False
+        
+        return True
+    
+    def _extract_name_and_role(self, speaker_name: str) -> Tuple[str, str]:
+        """Extract base name and role from a speaker string.
+        
+        Args:
+            speaker_name: Full speaker name possibly with role
+            
+        Returns:
+            Tuple of (base_name, role) or (speaker_name, '') if no role
+        """
+        # Pattern to extract name and role
+        match = re.match(r'^(.+?)\s*\((.+?)\)$', speaker_name)
+        if match:
+            return match.group(1).strip(), match.group(2).strip()
+        return speaker_name.strip(), ''
+    
+    def _are_likely_same_person(self, name1: str, name2: str) -> bool:
+        """Simple heuristic to detect if two names refer to the same person.
+        
+        Args:
+            name1: First speaker name
+            name2: Second speaker name
+            
+        Returns:
+            True if likely the same person
+        """
+        # Extract base names and roles
+        base1, role1 = self._extract_name_and_role(name1)
+        base2, role2 = self._extract_name_and_role(name2)
+        
+        # Normalize for comparison
+        name1_lower = name1.lower()
+        name2_lower = name2.lower()
+        base1_lower = base1.lower()
+        base2_lower = base2.lower()
+        
+        # If one contains "Family" and other contains "Son/Daughter/Child"
+        family_keywords = ['family', 'son', 'daughter', 'child', 'relative', 'brother', 'sister', 'parent', 'mother', 'father']
+        name1_has_family = any(kw in name1_lower for kw in family_keywords)
+        name2_has_family = any(kw in name2_lower for kw in family_keywords)
+        
+        if name1_has_family and name2_has_family:
+            # Both refer to family members - likely same if in same episode
+            # Check for more specific match (e.g., "son" in both)
+            specific_family = ['son', 'daughter', 'brother', 'sister', 'mother', 'father']
+            for kw in specific_family:
+                if kw in name1_lower and kw in name2_lower:
+                    logger.debug(f"Likely same person (family): '{name1}' and '{name2}'")
+                    return True
+        
+        # If base names are similar (simple character overlap check)
+        if base1_lower and base2_lower and base1_lower != base2_lower:
+            # Calculate simple similarity
+            shorter = min(len(base1_lower), len(base2_lower))
+            longer = max(len(base1_lower), len(base2_lower))
+            
+            # Check if one name contains the other
+            if base1_lower in base2_lower or base2_lower in base1_lower:
+                logger.debug(f"Likely same person (contains): '{name1}' and '{name2}'")
+                return True
+            
+            # Character overlap check
+            overlap = len(set(base1_lower) & set(base2_lower))
+            if shorter >= 4 and overlap > shorter * 0.7:
+                logger.debug(f"Likely same person (overlap): '{name1}' and '{name2}'")
+                return True
+        
+        # Check for obvious role variations
+        if base1_lower == base2_lower and role1 != role2:
+            # Same base name, different roles
+            logger.debug(f"Likely same person (role variation): '{name1}' and '{name2}'")
+            return True
+        
+        return False
+    
+    def _find_duplicate_speakers(self, speakers: List[str]) -> Dict[str, str]:
+        """Find likely duplicate speakers in the same episode.
+        
+        Args:
+            speakers: List of all speaker names in episode
+            
+        Returns:
+            Dict mapping duplicate names to canonical names
+        """
+        duplicates = {}
+        
+        # Simple rule-based approach
+        for i, speaker1 in enumerate(speakers):
+            if speaker1 in duplicates:
+                continue
+                
+            for speaker2 in speakers[i+1:]:
+                if speaker2 in duplicates:
+                    continue
+                    
+                # Case 1: Role variations of same person
+                if self._are_likely_same_person(speaker1, speaker2):
+                    # Keep the more specific/longer name as canonical
+                    if len(speaker2) > len(speaker1):
+                        duplicates[speaker1] = speaker2
+                        logger.info(f"Duplicate detected: '{speaker1}' -> '{speaker2}'")
+                    else:
+                        duplicates[speaker2] = speaker1
+                        logger.info(f"Duplicate detected: '{speaker2}' -> '{speaker1}'")
+        
+        return duplicates
+    
+    def _get_all_episode_speakers(self, episode_id: str) -> List[str]:
+        """Get all unique speakers in an episode.
+        
+        Args:
+            episode_id: Episode ID
+            
+        Returns:
+            List of all unique speaker names
+        """
+        query = """
+        MATCH (mu:MeaningfulUnit)-[:PART_OF]->(e:Episode {id: $episode_id})
+        WHERE mu.speaker_distribution IS NOT NULL
+        WITH mu.speaker_distribution as dist
+        RETURN collect(DISTINCT dist) as distributions
+        """
+        
+        result = self.storage.query(query, {"episode_id": episode_id})
+        
+        all_speakers = set()
+        if result and result[0]['distributions']:
+            for dist in result[0]['distributions']:
+                try:
+                    if isinstance(dist, str):
+                        speaker_dict = json.loads(dist)
+                    else:
+                        speaker_dict = dist
+                    all_speakers.update(speaker_dict.keys())
+                except Exception as e:
+                    logger.debug(f"Could not parse speaker_distribution: {e}")
+        
+        return sorted(list(all_speakers))
+    
+    def _has_meaningful_contribution(self, episode_id: str, speaker: str) -> bool:
+        """Check if speaker has meaningful knowledge contributions.
+        
+        Args:
+            episode_id: Episode ID
+            speaker: Speaker name to check
+            
+        Returns:
+            True if speaker has meaningful contributions
+        """
+        # Query for units attributed to this speaker
+        query = """
+        MATCH (mu:MeaningfulUnit)-[:PART_OF]->(e:Episode {id: $episode_id})
+        WHERE mu.speaker_distribution IS NOT NULL
+        AND mu.speaker_distribution CONTAINS $speaker
+        RETURN COUNT(mu) as unit_count, 
+               AVG(SIZE(mu.text)) as avg_text_length,
+               COLLECT(mu.text)[..3] as sample_texts
+        """
+        
+        try:
+            result = self.storage.query(
+                query, 
+                {"episode_id": episode_id, "speaker": f'"{speaker}"'}
+            )
+            
+            if result:
+                record = result[0]
+                unit_count = record['unit_count']
+                avg_length = record['avg_text_length'] or 0
+                sample_texts = record.get('sample_texts', [])
+                
+                logger.debug(f"Speaker '{speaker}' has {unit_count} units, avg length: {avg_length}")
+                
+                # Use configuration thresholds
+                if unit_count < self.config.speaker_min_units:
+                    logger.warning(
+                        f"Speaker '{speaker}' has only {unit_count} units (threshold: {self.config.speaker_min_units})"
+                    )
+                    return False
+                    
+                if avg_length < self.config.speaker_min_avg_text_length:
+                    logger.warning(
+                        f"Speaker '{speaker}' has short average text length: {avg_length} "
+                        f"(threshold: {self.config.speaker_min_avg_text_length})"
+                    )
+                    # Check if any samples are meaningful despite short average
+                    meaningful_samples = 0
+                    for text in sample_texts:
+                        if text and len(text) > self.config.speaker_min_avg_text_length:
+                            meaningful_samples += 1
+                    
+                    if meaningful_samples == 0:
+                        return False
+                
+                return True
+                
+        except Exception as e:
+            logger.error(f"Error checking contribution for speaker '{speaker}': {e}")
+            # Default to keeping speaker on error
+            return True
+        
+        return True
+    
+    def _merge_duplicate_speakers(self, episode_id: str, duplicates: Dict[str, str]) -> None:
+        """Merge duplicate speakers in database.
+        
+        Updates all MeaningfulUnits to replace duplicate speaker names with canonical names.
+        
+        Args:
+            episode_id: Episode ID
+            duplicates: Dict mapping duplicate names to canonical names
+        """
+        if not duplicates:
+            return
+        
+        logger.info(f"Merging {len(duplicates)} duplicate speakers in episode {episode_id}")
+        
+        # Use the existing storage service for database operations
+        for old_name, new_name in duplicates.items():
+            try:
+                # Need to properly escape the names for JSON replacement
+                # The speaker_distribution field contains JSON like {"Speaker Name": 0.5}
+                # We need to replace the key in the JSON
+                
+                query = """
+                MATCH (mu:MeaningfulUnit)-[:PART_OF]->(e:Episode {id: $episode_id})
+                WHERE mu.speaker_distribution CONTAINS $old_name_pattern
+                SET mu.speaker_distribution = REPLACE(
+                    mu.speaker_distribution, 
+                    $old_name_pattern, 
+                    $new_name_pattern
+                )
+                RETURN COUNT(mu) as updated_count
+                """
+                
+                # Create the patterns for JSON key replacement
+                old_name_pattern = f'"{old_name}"'
+                new_name_pattern = f'"{new_name}"'
+                
+                result = self.storage.query(
+                    query,
+                    {
+                        "episode_id": episode_id,
+                        "old_name_pattern": old_name_pattern,
+                        "new_name_pattern": new_name_pattern
+                    }
+                )
+                
+                if result:
+                    count = result[0].get('updated_count', 0)
+                    logger.info(f"Merged '{old_name}' -> '{new_name}' in {count} units")
+                    
+            except Exception as e:
+                logger.error(f"Failed to merge duplicate speaker '{old_name}' -> '{new_name}': {e}")
+                # Continue with other merges even if one fails
     
     def _match_from_episode_description(self, episode_data: Dict[str, Any], 
                                       generic_speakers: List[str]) -> Dict[str, str]:

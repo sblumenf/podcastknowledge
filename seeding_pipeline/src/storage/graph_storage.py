@@ -364,11 +364,10 @@ class GraphStorageService:
             cached_result = self._get_cached_result(cache_key)
             if cached_result is not None:
                 log_performance_metric(
-                    logger,
-                    "neo4j.query.cache_hit",
-                    1,
-                    unit="count",
-                    operation="neo4j_query"
+                    "neo4j_query_cache_hit",
+                    0.001,  # Cache hit is very fast
+                    success=True,
+                    metadata={'cached': 'true'}
                 )
                 return cached_result
         
@@ -391,12 +390,10 @@ class GraphStorageService:
                 # Log query performance
                 query_time = time.time() - start_time
                 log_performance_metric(
-                    logger,
-                    "neo4j.query.execution_time",
+                    "neo4j_query",
                     query_time,
-                    unit="seconds",
-                    operation="neo4j_query",
-                    tags={
+                    success=True,
+                    metadata={
                         'cached': 'false',
                         'result_count': str(len(records))
                     }
@@ -616,15 +613,12 @@ class GraphStorageService:
                     # Log performance metrics
                     operation_time = time.time() - start_time
                     log_performance_metric(
-                        logger,
-                        "neo4j.bulk_create_nodes.time",
+                        "neo4j_create_nodes_bulk",
                         operation_time,
-                        unit="seconds",
-                        operation="neo4j_create_nodes_bulk",
-                        tags={
+                        success=True,
+                        metadata={
                             'node_type': node_type,
-                            'node_count': str(node_count),
-                            'success': 'true'
+                            'node_count': str(node_count)
                         }
                     )
                     
@@ -639,12 +633,10 @@ class GraphStorageService:
                 
                 # Log bulk failure metric
                 log_performance_metric(
-                    logger,
-                    "neo4j.bulk_create_nodes.failure",
-                    1,
-                    unit="count",
-                    operation="neo4j_create_nodes_bulk",
-                    tags={
+                    "neo4j_create_nodes_bulk",
+                    time.time() - start_time,
+                    success=False,
+                    metadata={
                         'node_type': node_type,
                         'node_count': str(node_count),
                         'error': str(type(e).__name__)
