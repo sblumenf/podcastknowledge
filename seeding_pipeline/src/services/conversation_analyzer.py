@@ -75,7 +75,8 @@ class ConversationAnalyzer:
             response = self.llm_service.generate_completion(
                 prompt=prompt,
                 system_prompt="You are an expert conversation analyst specializing in podcast and interview structure. Generate valid JSON output.",
-                response_format=ConversationStructure,
+                # Don't use response_format to avoid pydantic validation before we can fix indices
+                # response_format=ConversationStructure,
                 temperature=0.2  # Slightly higher temperature
             )
             
@@ -251,9 +252,58 @@ IMPORTANT: Keep all text descriptions concise and focused. Avoid lengthy explana
     
     def _fix_invalid_indices(self, structure_dict: Dict[str, Any], total_segments: int) -> Dict[str, Any]:
         """Fix any invalid indices in the structure before validation."""
-        # Fix themes that reference invalid unit indices
-        if 'themes' in structure_dict and 'units' in structure_dict:
-            max_unit_index = len(structure_dict['units']) - 1
+        # Fix field name mismatches in units
+        if 'units' in structure_dict:
+            for unit in structure_dict['units']:
+                if isinstance(unit, dict):
+                    # Handle segments array format
+                    if 'segments' in unit and isinstance(unit['segments'], list):
+                        if unit['segments']:
+                            unit['start_index'] = unit['segments'][0]
+                            unit['end_index'] = unit['segments'][-1]
+                        else:
+                            unit['start_index'] = 0
+                            unit['end_index'] = 0
+                    # Map field names
+                    elif 'start_segment_index' in unit and 'start_index' not in unit:
+                        unit['start_index'] = unit.pop('start_segment_index')
+                    elif 'end_segment_index' in unit and 'end_index' not in unit:
+                        unit['end_index'] = unit.pop('end_segment_index')
+                    
+                    # Ensure required fields have defaults
+                    if 'unit_type' not in unit:
+                        unit['unit_type'] = 'topic_discussion'
+                    if 'completeness' not in unit:
+                        unit['completeness'] = 'complete'
+                    if 'confidence' not in unit:
+                        unit['confidence'] = 0.8
+                    
+                    # Extract summary if present
+                    if 'summary' not in unit and 'content' in unit:
+                        unit['summary'] = unit['content'][:400] if len(unit['content']) > 400 else unit['content']
+                    elif 'summary' not in unit:
+                        unit['summary'] = f"Unit {unit.get('unit_id', 'unknown')}"
+        
+        # Fix themes format
+        if 'themes' in structure_dict:
+            fixed_themes = []
+            for theme in structure_dict['themes']:
+                if isinstance(theme, str):
+                    # Convert string to theme dict
+                    fixed_themes.append({
+                        'theme': theme.split(':')[0].strip() if ':' in theme else theme,
+                        'description': theme.split(':', 1)[1].strip() if ':' in theme else theme,
+                        'related_units': []
+                    })
+                elif isinstance(theme, dict):
+                    # Ensure evolution field exists
+                    if 'evolution' not in theme:
+                        theme['evolution'] = 'consistent'
+                    fixed_themes.append(theme)
+            structure_dict['themes'] = fixed_themes
+            
+            # Now fix invalid unit indices
+            max_unit_index = len(structure_dict.get('units', [])) - 1
             for theme in structure_dict['themes']:
                 if 'related_units' in theme:
                     # Filter out invalid unit indices
@@ -295,6 +345,37 @@ IMPORTANT: Keep all text descriptions concise and focused. Avoid lengthy explana
                     if 'start_index' in unit and 'end_index' in unit:
                         if unit['start_index'] > unit['end_index']:
                             unit['start_index'], unit['end_index'] = unit['end_index'], unit['start_index']
+        
+        # Fix insights structure
+        if 'insights' in structure_dict:
+            if isinstance(structure_dict['insights'], str):
+                # Convert string to insights dict
+                structure_dict['insights'] = {
+                    'structural_observations': [structure_dict['insights']],
+                    'fragmentation_points': [],
+                    'overall_coherence': 'good'
+                }
+            elif isinstance(structure_dict['insights'], dict):
+                if 'overall_coherence' not in structure_dict['insights']:
+                    structure_dict['insights']['overall_coherence'] = 'good'
+                if 'structural_observations' not in structure_dict['insights']:
+                    structure_dict['insights']['structural_observations'] = []
+                if 'fragmentation_points' not in structure_dict['insights']:
+                    structure_dict['insights']['fragmentation_points'] = []
+        
+        # Ensure required top-level fields exist
+        if 'flow' not in structure_dict:
+            structure_dict['flow'] = {
+                'opening': 'The conversation begins',
+                'development': 'The main discussion unfolds',
+                'conclusion': 'The conversation concludes'
+            }
+        
+        if 'boundaries' not in structure_dict:
+            structure_dict['boundaries'] = []
+        
+        if 'total_segments' not in structure_dict:
+            structure_dict['total_segments'] = total_segments
         
         return structure_dict
     
