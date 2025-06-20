@@ -321,11 +321,29 @@ class ResponseParser:
     
     def _extract_json_string(self, response: str) -> Optional[str]:
         """Extract JSON string from LLM response."""
-        # Remove markdown code blocks
+        # First, try direct parsing (works with native JSON mode)
+        response = response.strip()
+        if response.startswith(('{', '[')):
+            try:
+                json.loads(response)
+                return response
+            except json.JSONDecodeError:
+                pass
+        
+        # Fallback: Remove markdown code blocks (for compatibility with non-JSON mode)
         response = re.sub(r'```json\s*', '', response)
         response = re.sub(r'```\s*', '', response)
+        response = response.strip()
         
-        # Try to find the first complete JSON structure
+        # Try direct parsing after cleaning
+        if response.startswith(('{', '[')):
+            try:
+                json.loads(response)
+                return response
+            except json.JSONDecodeError:
+                pass
+        
+        # Fallback: Try to find the first complete JSON structure
         # Look for the first { or [ and try to find its matching } or ]
         for start_match in re.finditer(r'[\[\{]', response):
             start_pos = start_match.start()
@@ -365,24 +383,6 @@ class ResponseParser:
                 except json.JSONDecodeError:
                     # Keep looking
                     continue
-        
-        # If no valid JSON found, try the old cleaning approach
-        lines = response.strip().split('\n')
-        json_lines = []
-        
-        for line in lines:
-            # Skip obvious non-JSON lines
-            if line.strip() and not line.strip().startswith(('The', 'Here', 'This', '#', '//')):
-                json_lines.append(line)
-                
-        if json_lines:
-            cleaned = '\n'.join(json_lines)
-            # Try to parse to validate
-            try:
-                json.loads(cleaned)
-                return cleaned
-            except json.JSONDecodeError:
-                pass
             
         return None
         

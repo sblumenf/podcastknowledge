@@ -353,8 +353,8 @@ Return as JSON:
 }}"""
         
         try:
-            response = self.llm_service.complete(prompt)
-            result = self._parse_sentiment_response(response)
+            response_data = self.llm_service.complete_with_options(prompt, json_mode=True)
+            result = self._parse_sentiment_response(response_data['content'])
             
             if result:
                 return SentimentScore(
@@ -480,8 +480,8 @@ Return as JSON list:
 Focus on moments with intensity > {self.config.moment_intensity_threshold}."""
         
         try:
-            response = self.llm_service.complete(prompt)
-            moments_data = self._parse_json_response(response)
+            response_data = self.llm_service.complete_with_options(prompt, json_mode=True)
+            moments_data = self._parse_json_response(response_data['content'])
             
             if not moments_data:
                 return []
@@ -668,8 +668,8 @@ Return as JSON list (max {self.config.max_discovered_types} items):
 ]"""
         
         try:
-            response = self.llm_service.complete(prompt)
-            discovered_data = self._parse_json_response(response)
+            response_data = self.llm_service.complete_with_options(prompt, json_mode=True)
+            discovered_data = self._parse_json_response(response_data['content'])
             
             if not discovered_data:
                 return []
@@ -706,14 +706,7 @@ Return as JSON list (max {self.config.max_discovered_types} items):
     def _parse_json_response(self, response: str) -> Optional[Any]:
         """Parse JSON from LLM response."""
         try:
-            # Clean response
-            response = response.strip()
-            if response.startswith("```json"):
-                response = response[7:]
-            if response.endswith("```"):
-                response = response[:-3]
-            response = response.strip()
-            
+            # Parse JSON (no cleaning needed with native JSON mode)
             return json.loads(response)
         except json.JSONDecodeError as e:
             self.logger.warning(f"Failed to parse JSON response: {e}")

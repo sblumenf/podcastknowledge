@@ -305,10 +305,10 @@ class KnowledgeExtractor:
         
         try:
             # Single LLM call for all extractions
-            response = self.llm_service.complete(prompt)
+            response_data = self.llm_service.complete_with_options(prompt, json_mode=True)
             
             # Parse the combined response
-            extracted_data = self._parse_combined_response(response)
+            extracted_data = self._parse_combined_response(response_data['content'])
             
             # Process and validate extractions
             entities = self._process_entities(extracted_data.get('entities', []))
@@ -397,17 +397,8 @@ class KnowledgeExtractor:
             Parsed extraction data dictionary
         """
         try:
-            # Clean up response - remove markdown code blocks if present
-            cleaned = response.strip()
-            if cleaned.startswith('```json'):
-                cleaned = cleaned[7:]
-            if cleaned.startswith('```'):
-                cleaned = cleaned[3:]
-            if cleaned.endswith('```'):
-                cleaned = cleaned[:-3]
-            
-            # Parse JSON
-            data = json.loads(cleaned.strip())
+            # Parse JSON (no cleaning needed with native JSON mode)
+            data = json.loads(response)
             
             # Validate expected structure
             expected_keys = ['entities', 'quotes', 'insights', 'conversation_structure']
@@ -448,6 +439,9 @@ class KnowledgeExtractor:
                     'has_citation': entity.get('has_citation', False),
                     'confidence': self.config.entity_confidence_threshold + 0.2  # Higher confidence for combined
                 }
+                
+                # Entity embeddings removed for API optimization
+                # Entities are still created in knowledge graph without embeddings
                 
                 processed.append(processed_entity)
                 
@@ -579,20 +573,12 @@ class KnowledgeExtractor:
             
             Return only the JSON list, no other text."""
             
-            response = self.llm_service.complete(prompt)
+            response_data = self.llm_service.complete_with_options(prompt, json_mode=True)
             
             # Parse JSON response
             import json
             try:
-                # Clean response to ensure it's valid JSON
-                response_text = response.strip()
-                if response_text.startswith("```json"):
-                    response_text = response_text[7:]
-                if response_text.endswith("```"):
-                    response_text = response_text[:-3]
-                response_text = response_text.strip()
-                
-                extracted_quotes = json.loads(response_text)
+                extracted_quotes = json.loads(response_data['content'])
                 
                 # Convert to expected format
                 for i, quote_data in enumerate(extracted_quotes):
@@ -849,20 +835,12 @@ class KnowledgeExtractor:
             
             Return only the JSON list, no other text."""
             
-            response = self.llm_service.complete(prompt)
+            response_data = self.llm_service.complete_with_options(prompt, json_mode=True)
             
             # Parse JSON response
             import json
             try:
-                # Clean response to ensure it's valid JSON
-                response_text = response.strip()
-                if response_text.startswith("```json"):
-                    response_text = response_text[7:]
-                if response_text.endswith("```"):
-                    response_text = response_text[:-3]
-                response_text = response_text.strip()
-                
-                extracted_entities = json.loads(response_text)
+                extracted_entities = json.loads(response_data['content'])
                 
                 # Convert to expected format
                 found_entities = []
@@ -1114,20 +1092,12 @@ class KnowledgeExtractor:
             
             Return only the JSON list, no other text."""
             
-            response = self.llm_service.complete(prompt)
+            response_data = self.llm_service.complete_with_options(prompt, json_mode=True)
             
             # Parse JSON response
             import json
             try:
-                # Clean response to ensure it's valid JSON
-                response_text = response.strip()
-                if response_text.startswith("```json"):
-                    response_text = response_text[7:]
-                if response_text.endswith("```"):
-                    response_text = response_text[:-3]
-                response_text = response_text.strip()
-                
-                extracted_quotes = json.loads(response_text)
+                extracted_quotes = json.loads(response_data['content'])
                 
                 # Convert to expected format
                 for i, quote_data in enumerate(extracted_quotes):
@@ -1234,20 +1204,12 @@ class KnowledgeExtractor:
             
             Return only the JSON list, no other text."""
             
-            response = self.llm_service.complete(prompt)
+            response_data = self.llm_service.complete_with_options(prompt, json_mode=True)
             
             # Parse JSON response
             import json
             try:
-                # Clean response to ensure it's valid JSON
-                response_text = response.strip()
-                if response_text.startswith("```json"):
-                    response_text = response_text[7:]
-                if response_text.endswith("```"):
-                    response_text = response_text[:-3]
-                response_text = response_text.strip()
-                
-                extracted_entities = json.loads(response_text)
+                extracted_entities = json.loads(response_data['content'])
                 
                 # Convert to expected format
                 found_entities = []
@@ -1365,18 +1327,11 @@ class KnowledgeExtractor:
                 
                 Return only the JSON list, no other text."""
                 
-                response = self.llm_service.complete(prompt)
+                response_data = self.llm_service.complete_with_options(prompt, json_mode=True)
                 
                 # Parse JSON response
                 try:
-                    response_text = response.strip()
-                    if response_text.startswith("```json"):
-                        response_text = response_text[7:]
-                    if response_text.endswith("```"):
-                        response_text = response_text[:-3]
-                    response_text = response_text.strip()
-                    
-                    extracted_relationships = json.loads(response_text)
+                    extracted_relationships = json.loads(response_data['content'])
                     
                     for rel in extracted_relationships:
                         if isinstance(rel, dict) and all(k in rel for k in ['source', 'target', 'type']):
@@ -1448,19 +1403,12 @@ class KnowledgeExtractor:
             
             Return only the JSON list, no other text."""
             
-            response = self.llm_service.complete(prompt)
+            response_data = self.llm_service.complete_with_options(prompt, json_mode=True)
             
             # Parse JSON response
             import json
             try:
-                response_text = response.strip()
-                if response_text.startswith("```json"):
-                    response_text = response_text[7:]
-                if response_text.endswith("```"):
-                    response_text = response_text[:-3]
-                response_text = response_text.strip()
-                
-                extracted_insights = json.loads(response_text)
+                extracted_insights = json.loads(response_data['content'])
                 
                 for i, insight_data in enumerate(extracted_insights):
                     if isinstance(insight_data, dict) and 'text' in insight_data:

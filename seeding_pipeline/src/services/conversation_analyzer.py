@@ -72,13 +72,25 @@ class ConversationAnalyzer:
             
             # Get structured response from LLM
             # Use a higher temperature to allow more flexibility
-            response = self.llm_service.generate_completion(
-                prompt=prompt,
-                system_prompt="You are an expert conversation analyst specializing in podcast and interview structure. Generate valid JSON output.",
-                # Don't use response_format to avoid pydantic validation before we can fix indices
-                # response_format=ConversationStructure,
-                temperature=0.2  # Slightly higher temperature
-            )
+            # Check if we have a direct gemini service that supports JSON mode
+            if hasattr(self.llm_service, 'gemini_service') and hasattr(self.llm_service.gemini_service, 'generate_completion'):
+                # Use the direct service with JSON mode enabled
+                response = self.llm_service.gemini_service.generate_completion(
+                    prompt=prompt,
+                    system_prompt="You are an expert conversation analyst specializing in podcast and interview structure. Generate valid JSON output.",
+                    # Don't use response_format to avoid pydantic validation before we can fix indices
+                    # response_format=ConversationStructure,
+                    temperature=0.2  # Slightly higher temperature
+                )
+            else:
+                # Fallback to standard service
+                response = self.llm_service.generate_completion(
+                    prompt=prompt,
+                    system_prompt="You are an expert conversation analyst specializing in podcast and interview structure. Generate valid JSON output.",
+                    # Don't use response_format to avoid pydantic validation before we can fix indices
+                    # response_format=ConversationStructure,
+                    temperature=0.2  # Slightly higher temperature
+                )
             
             # Parse and validate response
             if isinstance(response, dict):
@@ -91,17 +103,7 @@ class ConversationAnalyzer:
                 # Fallback parsing for string responses
                 import json
                 try:
-                    # Clean up the response if needed
-                    if isinstance(response, str):
-                        # Try to extract JSON from the response
-                        response = response.strip()
-                        # If response starts with ```json, extract the JSON part
-                        if response.startswith('```json'):
-                            response = response[7:]  # Remove ```json
-                            if response.endswith('```'):
-                                response = response[:-3]  # Remove trailing ```
-                        response = response.strip()
-                    
+                    # Parse JSON (no cleaning needed with native JSON mode)
                     structure_dict = json.loads(response)
                     # Fix any invalid unit indices before creating ConversationStructure
                     structure_dict = self._fix_invalid_indices(structure_dict, len(segments))
@@ -293,13 +295,19 @@ IMPORTANT: Keep all text descriptions concise and focused. Avoid lengthy explana
                     fixed_themes.append({
                         'theme': theme.split(':')[0].strip() if ':' in theme else theme,
                         'description': theme.split(':', 1)[1].strip() if ':' in theme else theme,
+                        'evolution': 'Theme remains consistent throughout the conversation',
                         'related_units': []
                     })
                 elif isinstance(theme, dict):
+                    # Create a copy to avoid modifying the original in place
+                    theme_copy = dict(theme)
                     # Ensure evolution field exists
-                    if 'evolution' not in theme:
-                        theme['evolution'] = 'consistent'
-                    fixed_themes.append(theme)
+                    if 'evolution' not in theme_copy:
+                        theme_copy['evolution'] = theme_copy.get('description', 'Theme remains consistent throughout the conversation')[:400]
+                    # Ensure related_units exists
+                    if 'related_units' not in theme_copy:
+                        theme_copy['related_units'] = []
+                    fixed_themes.append(theme_copy)
             structure_dict['themes'] = fixed_themes
             
             # Now fix invalid unit indices
@@ -351,17 +359,52 @@ IMPORTANT: Keep all text descriptions concise and focused. Avoid lengthy explana
             if isinstance(structure_dict['insights'], str):
                 # Convert string to insights dict
                 structure_dict['insights'] = {
-                    'structural_observations': [structure_dict['insights']],
-                    'fragmentation_points': [],
-                    'overall_coherence': 'good'
+                    'fragmentation_issues': [structure_dict['insights']],
+                    'missing_context': [],
+                    'natural_boundaries': [],
+                    'overall_coherence': 0.7
                 }
             elif isinstance(structure_dict['insights'], dict):
-                if 'overall_coherence' not in structure_dict['insights']:
-                    structure_dict['insights']['overall_coherence'] = 'good'
-                if 'structural_observations' not in structure_dict['insights']:
-                    structure_dict['insights']['structural_observations'] = []
-                if 'fragmentation_points' not in structure_dict['insights']:
-                    structure_dict['insights']['fragmentation_points'] = []
+                # Fix field name mappings
+                if 'structural_observations' in structure_dict['insights'] and 'fragmentation_issues' not in structure_dict['insights']:
+                    structure_dict['insights']['fragmentation_issues'] = structure_dict['insights'].pop('structural_observations', [])
+                if 'fragmentation_points' in structure_dict['insights'] and 'fragmentation_issues' not in structure_dict['insights']:
+                    structure_dict['insights']['fragmentation_issues'] = structure_dict['insights'].pop('fragmentation_points', [])
+                
+                # Fix overall_coherence if it's a string
+                if 'overall_coherence' in structure_dict['insights']:
+                    coherence = structure_dict['insights']['overall_coherence']
+                    if isinstance(coherence, str):
+                        # Map common string values to floats
+                        coherence_map = {
+                            'excellent': 0.95, 'very good': 0.9, 'good': 0.8,
+                            'moderate': 0.7, 'fair': 0.6, 'poor': 0.4,
+                            'very poor': 0.2, 'terrible': 0.1,
+                            'high': 0.85, 'medium': 0.65, 'low': 0.35
+                        }
+                        # Try to extract number from string like "0.8" or "8/10"
+                        import re
+                        number_match = re.search(r'(\d+\.?\d*)', coherence)
+                        if number_match:
+                            value = float(number_match.group(1))
+                            # If it's greater than 1, assume it's out of 10
+                            if value > 1:
+                                value = value / 10
+                            structure_dict['insights']['overall_coherence'] = min(1.0, max(0.0, value))
+                        else:
+                            structure_dict['insights']['overall_coherence'] = coherence_map.get(
+                                coherence.lower().strip(), 0.7  # Default to 0.7 if not recognized
+                            )
+                else:
+                    structure_dict['insights']['overall_coherence'] = 0.7
+                
+                # Ensure all required fields exist
+                if 'fragmentation_issues' not in structure_dict['insights']:
+                    structure_dict['insights']['fragmentation_issues'] = []
+                if 'missing_context' not in structure_dict['insights']:
+                    structure_dict['insights']['missing_context'] = []
+                if 'natural_boundaries' not in structure_dict['insights']:
+                    structure_dict['insights']['natural_boundaries'] = []
         
         # Ensure required top-level fields exist
         if 'flow' not in structure_dict:

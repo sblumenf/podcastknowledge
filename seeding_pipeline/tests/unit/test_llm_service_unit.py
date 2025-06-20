@@ -336,3 +336,113 @@ class TestLLMService:
             
             assert result == "Response"
             # Empty prompt should still work, estimated tokens would be 0
+
+    @patch('google.genai.configure')
+    @patch('google.genai.Client')
+    def test_complete_with_options_json_mode(self, mock_client_class, mock_configure, llm_service):
+        """Test completion with JSON mode enabled."""
+        # Setup mock client and response
+        mock_client = Mock()
+        mock_response = Mock()
+        mock_response.text = '{"test": "response", "valid": true}'
+        mock_client.models.generate_content.return_value = mock_response
+        mock_client_class.return_value = mock_client
+        
+        llm_service.rate_limiter.can_make_request = Mock(return_value=True)
+        llm_service.rate_limiter.record_request = Mock()
+        
+        result = llm_service.complete_with_options(
+            "Test prompt",
+            temperature=0.5,
+            max_tokens=1000,
+            json_mode=True
+        )
+        
+        # Verify result structure
+        assert result['content'] == '{"test": "response", "valid": true}'
+        assert result['json_mode'] is True
+        assert result['temperature'] == 0.5
+        assert result['max_tokens'] == 1000
+        
+        # Verify Google GenAI client was configured and used
+        mock_configure.assert_called_once_with(api_key="test_api_key")
+        mock_client_class.assert_called_once()
+        
+        # Verify generate_content was called with correct parameters
+        mock_client.models.generate_content.assert_called_once()
+        call_args = mock_client.models.generate_content.call_args
+        
+        assert call_args[1]['model'] == "gemini-2.5-flash"
+        assert call_args[1]['contents'] == "Test prompt"
+        # Verify config object was passed (would have response_mime_type in real implementation)
+        assert 'config' in call_args[1]
+
+    def test_complete_with_options_non_json_mode(self, llm_service):
+        """Test completion without JSON mode uses LangChain client."""
+        with patch.object(llm_service, '_ensure_client'):
+            with patch('src.services.llm.ChatGoogleGenerativeAI') as mock_chat_class:
+                mock_response = Mock()
+                mock_response.content = "Regular response"
+                
+                mock_temp_client = Mock()
+                mock_temp_client.invoke.return_value = mock_response
+                mock_chat_class.return_value = mock_temp_client
+                
+                llm_service.rate_limiter.can_make_request = Mock(return_value=True)
+                llm_service.rate_limiter.record_request = Mock()
+                
+                result = llm_service.complete_with_options(
+                    "Test prompt",
+                    temperature=0.7,
+                    json_mode=False
+                )
+                
+                # Verify result
+                assert result['content'] == "Regular response"
+                assert result['json_mode'] is False
+                
+                # Verify LangChain client was used, not Google GenAI
+                mock_chat_class.assert_called_once()
+
+    def test_generate_completion_with_json_mode(self, llm_service):
+        """Test generate_completion method uses JSON mode when response_format is provided."""
+        with patch.object(llm_service, 'complete_with_options') as mock_complete:
+            mock_complete.return_value = {
+                'content': '{"test": "structured response"}',
+                'json_mode': True
+            }
+            
+            # Mock Pydantic model
+            mock_response_format = Mock()
+            mock_response_format.model_json_schema.return_value = {"type": "object"}
+            mock_response_format.model_validate.return_value = {"test": "structured response"}
+            
+            result = llm_service.generate_completion(
+                "Test prompt",
+                response_format=mock_response_format
+            )
+            
+            # Verify complete_with_options was called with JSON mode
+            mock_complete.assert_called_once()
+            call_args = mock_complete.call_args
+            assert call_args[1]['json_mode'] is True
+            
+            # Verify response was validated with Pydantic model
+            assert result == {"test": "structured response"}
+
+    def test_generate_completion_without_response_format(self, llm_service):
+        """Test generate_completion without response_format doesn't use JSON mode."""
+        with patch.object(llm_service, 'complete_with_options') as mock_complete:
+            mock_complete.return_value = {
+                'content': 'Regular text response',
+                'json_mode': False
+            }
+            
+            result = llm_service.generate_completion("Test prompt")
+            
+            # Verify complete_with_options was called without JSON mode
+            mock_complete.assert_called_once()
+            call_args = mock_complete.call_args
+            assert call_args[1]['json_mode'] is False
+            
+            assert result == 'Regular text response'

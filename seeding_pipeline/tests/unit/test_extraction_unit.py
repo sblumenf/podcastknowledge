@@ -482,3 +482,98 @@ class TestEdgeCases:
         assert result.metadata["segment_id"] == "meta_seg"
         assert result.metadata["episode_metadata"] == {"title": "Test Episode", "number": 42}
         assert result.metadata["text_length"] == len("Test segment with metadata")
+
+    def test_extract_knowledge_combined_uses_json_mode(self, extractor):
+        """Test that extract_knowledge_combined uses JSON mode."""
+        # Create mock MeaningfulUnit
+        meaningful_unit = mock.Mock()
+        meaningful_unit.text = "Test conversation about AI and machine learning."
+        meaningful_unit.id = "test-unit"
+        meaningful_unit.themes = ["AI", "technology"]
+        meaningful_unit.speaker_distribution = {"Speaker1": 0.6, "Speaker2": 0.4}
+        
+        # Mock LLM service to capture JSON mode usage
+        mock_llm_response = {
+            'content': json.dumps({
+                "entities": [{"name": "AI", "type": "concept", "importance": 8}],
+                "quotes": [{"text": "This is interesting", "speaker": "Speaker1"}],
+                "insights": [{"content": "AI is evolving", "type": "factual"}],
+                "conversation_structure": {"segments": 2}
+            })
+        }
+        
+        extractor.llm_service.complete_with_options.return_value = mock_llm_response
+        
+        # Call the method
+        result = extractor.extract_knowledge_combined(meaningful_unit, {"episode_id": "test"})
+        
+        # Verify JSON mode was used
+        calls = extractor.llm_service.complete_with_options.call_args_list
+        json_mode_calls = [call for call in calls if call[1].get('json_mode') is True]
+        assert len(json_mode_calls) > 0, "Should use JSON mode for combined extraction"
+        
+        # Verify extraction results
+        assert result.entities is not None
+        assert len(result.entities) > 0
+        assert result.entities[0]['name'] == "AI"
+        
+        # Verify no embeddings in entities (due to embedding removal)
+        for entity in result.entities:
+            assert 'embedding' not in entity, "Entities should not have embeddings"
+
+    def test_embedding_service_not_called_for_entities(self, extractor):
+        """Test that embedding service is not called for entities."""
+        # Add a mock embedding service
+        mock_embedding_service = mock.Mock()
+        extractor.embedding_service = mock_embedding_service
+        
+        # Create mock MeaningfulUnit
+        meaningful_unit = mock.Mock()
+        meaningful_unit.text = "Test conversation with entities."
+        meaningful_unit.id = "embedding-test"
+        meaningful_unit.themes = ["test"]
+        meaningful_unit.speaker_distribution = {"Speaker": 1.0}
+        
+        # Mock LLM response with entities
+        mock_llm_response = {
+            'content': json.dumps({
+                "entities": [
+                    {"name": "Test Entity", "type": "concept", "importance": 7, "description": "A test entity"}
+                ],
+                "quotes": [],
+                "insights": [],
+                "conversation_structure": {}
+            })
+        }
+        
+        extractor.llm_service.complete_with_options.return_value = mock_llm_response
+        
+        # Call extraction
+        result = extractor.extract_knowledge_combined(meaningful_unit, {})
+        
+        # Verify embedding service was NOT called for entities
+        mock_embedding_service.generate_embedding.assert_not_called()
+        
+        # Verify entities were still created
+        assert len(result.entities) > 0
+        assert result.entities[0]['name'] == "Test Entity"
+        assert 'embedding' not in result.entities[0]
+
+    def test_json_mode_error_handling(self, extractor):
+        """Test error handling when JSON mode fails."""
+        meaningful_unit = mock.Mock()
+        meaningful_unit.text = "Test conversation"
+        meaningful_unit.id = "error-test"
+        meaningful_unit.themes = []
+        meaningful_unit.speaker_distribution = {"Speaker": 1.0}
+        
+        # Mock LLM service to raise an exception
+        extractor.llm_service.complete_with_options.side_effect = Exception("JSON mode failed")
+        
+        # Should handle the error gracefully
+        result = extractor.extract_knowledge_combined(meaningful_unit, {})
+        
+        # Should return empty result on error
+        assert result.entities == []
+        assert result.quotes == []
+        assert result.insights == []

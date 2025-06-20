@@ -171,13 +171,14 @@ class LLMService:
         raise ProviderError(self.provider, f"Gemini completion failed after all retries: {last_exception}")
             
     def complete_with_options(self, prompt: str, temperature: Optional[float] = None,
-                            max_tokens: Optional[int] = None) -> Dict[str, Any]:
+                            max_tokens: Optional[int] = None, json_mode: bool = False) -> Dict[str, Any]:
         """Generate completion with custom options.
         
         Args:
             prompt: Input prompt text
             temperature: Override default temperature
             max_tokens: Override default max tokens
+            json_mode: Enable native JSON mode for structured output
             
         Returns:
             Dict with content and metadata
@@ -187,24 +188,47 @@ class LLMService:
         tokens = max_tokens if max_tokens is not None else self.max_tokens
         
         try:
-            # Create client with custom settings
-            from langchain_google_genai import ChatGoogleGenerativeAI
-            temp_client = ChatGoogleGenerativeAI(
-                model=self.model_name,
-                google_api_key=self.api_key,
-                temperature=temp,
-                max_output_tokens=tokens,
-            )
-            
-            response = temp_client.invoke(prompt)
-            
-            content = response.content if hasattr(response, 'content') else str(response)
+            if json_mode:
+                # Use native JSON mode with Google GenAI SDK
+                import google.genai as genai
+                from google.genai import types
+                
+                # Initialize client if needed
+                if not hasattr(self, '_genai_client'):
+                    genai.configure(api_key=self.api_key)
+                    self._genai_client = genai.Client()
+                
+                # Generate content with JSON mode
+                response = self._genai_client.models.generate_content(
+                    model=self.model_name,
+                    contents=prompt,
+                    config=types.GenerateContentConfig(
+                        response_mime_type='application/json',
+                        temperature=temp,
+                        max_output_tokens=tokens
+                    )
+                )
+                
+                content = response.text
+            else:
+                # Use LangChain for non-JSON mode
+                from langchain_google_genai import ChatGoogleGenerativeAI
+                temp_client = ChatGoogleGenerativeAI(
+                    model=self.model_name,
+                    google_api_key=self.api_key,
+                    temperature=temp,
+                    max_output_tokens=tokens,
+                )
+                
+                response = temp_client.invoke(prompt)
+                content = response.content if hasattr(response, 'content') else str(response)
             
             return {
                 'content': content,
                 'model': self.model_name,
                 'temperature': temp,
-                'max_tokens': tokens
+                'max_tokens': tokens,
+                'json_mode': json_mode
             }
             
         except Exception as e:
@@ -277,24 +301,16 @@ class LLMService:
             else:
                 full_prompt += "\n\nReturn your response as valid JSON."
         
-        # Get completion
+        # Get completion with JSON mode if response format specified
         temp = temperature if temperature is not None else self.temperature
-        result = self.complete_with_options(full_prompt, temperature=temp)
+        use_json_mode = response_format is not None
+        result = self.complete_with_options(full_prompt, temperature=temp, json_mode=use_json_mode)
         content = result['content']
         
         # Parse response if format specified
         if response_format:
             try:
-                # Clean up response - Gemini sometimes adds markdown code blocks
-                if content.startswith("```json"):
-                    content = content[7:]  # Remove ```json
-                if content.startswith("```"):
-                    content = content[3:]  # Remove ```
-                if content.endswith("```"):
-                    content = content[:-3]  # Remove ```
-                content = content.strip()
-                
-                # Parse JSON
+                # Parse JSON (no cleaning needed with native JSON mode)
                 json_data = json.loads(content)
                 
                 # Validate with Pydantic model if provided
