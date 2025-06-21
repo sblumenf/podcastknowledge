@@ -61,6 +61,9 @@ from src.core.exceptions import (
     CriticalError
 )
 
+# Performance Benchmarking
+from src.monitoring.pipeline_benchmarking import time_phase, get_benchmark
+
 logger = get_logger(__name__)
 
 
@@ -169,6 +172,11 @@ class UnifiedKnowledgePipeline:
         """Start tracking a processing phase."""
         self.current_phase = phase_name
         self.phase_start_time = time.time()
+        
+        # Start benchmarking phase
+        benchmark = get_benchmark()
+        benchmark.start_phase(phase_name)
+        
         # Log which model is used for this phase
         if phase_name in ["SPEAKER_IDENTIFICATION", "CONVERSATION_ANALYSIS"]:
             model_info = f" (using Flash: {getattr(self.llm_flash, 'model_name', 'default')})"
@@ -184,6 +192,11 @@ class UnifiedKnowledgePipeline:
         if self.current_phase and self.phase_start_time:
             elapsed = time.time() - self.phase_start_time
             self.phase_timings[self.current_phase] = elapsed
+            
+            # End benchmarking phase
+            benchmark = get_benchmark()
+            benchmark.end_phase(self.current_phase)
+            
             self.logger.info(
                 f"=== PHASE END: {self.current_phase} "
                 f"(took {elapsed:.2f}s) ==="
@@ -499,25 +512,11 @@ class UnifiedKnowledgePipeline:
             # Adjust start_time by -2 seconds (minimum 0) for YouTube navigation
             unit.start_time = max(0, unit.start_time - 2.0)
             
-            # The SegmentRegrouper already calculates speaker distribution,
+            # The SegmentRegrouper already extracts primary speaker,
             # but let's verify it exists
-            if not unit.speaker_distribution:
-                # Calculate speaker distribution if missing
-                speaker_counts = {}
-                total_duration = 0
-                
-                for segment in unit.segments:
-                    duration = segment.end_time - segment.start_time
-                    total_duration += duration
-                    
-                    if segment.speaker:
-                        speaker_counts[segment.speaker] = speaker_counts.get(segment.speaker, 0) + duration
-                
-                # Convert to percentages
-                unit.speaker_distribution = {
-                    speaker: round(duration / total_duration, 3)
-                    for speaker, duration in speaker_counts.items()
-                } if total_duration > 0 else {}
+            if not unit.primary_speaker:
+                # Set to Unknown if missing
+                unit.primary_speaker = "Unknown"
             
             # Generate unique ID (already done by SegmentRegrouper, but verify)
             if not unit.id:
@@ -600,7 +599,7 @@ class UnifiedKnowledgePipeline:
                     'start_time': unit.start_time,
                     'end_time': unit.end_time,
                     'summary': unit.summary,
-                    'speaker_distribution': unit.speaker_distribution,
+                    'primary_speaker': unit.primary_speaker,
                     'unit_type': unit.unit_type,
                     'themes': unit.themes,
                     'segment_indices': [seg.start_time for seg in unit.segments],  # Store segment references
@@ -667,8 +666,12 @@ class UnifiedKnowledgePipeline:
             # Log progress (thread-safe logging)
             self.logger.info(f"Processing unit {unit_index + 1} for knowledge extraction...")
             
+            # Track extraction type for benchmarking
+            extraction_type = None
+            
             # Use combined extraction for efficiency (1 LLM call instead of 5)
             if hasattr(self.knowledge_extractor, 'extract_knowledge_combined'):
+                extraction_type = 'combined'
                 extraction_result = self.knowledge_extractor.extract_knowledge_combined(
                     meaningful_unit=unit,
                     episode_metadata={
@@ -681,6 +684,7 @@ class UnifiedKnowledgePipeline:
                 )
             else:
                 # Fallback to original method
+                extraction_type = 'separate'
                 extraction_result = self.knowledge_extractor.extract_knowledge(
                     meaningful_unit=unit,
                     episode_metadata={
@@ -723,6 +727,17 @@ class UnifiedKnowledgePipeline:
         
         finally:
             result['processing_time'] = time.time() - start_time
+            
+            # Track unit processing in benchmark
+            benchmark = get_benchmark()
+            benchmark.track_unit_processing(
+                unit_id=unit.id,
+                start_time=start_time,
+                end_time=time.time(),
+                success=result['success'],
+                error=result['error']['error_message'] if result['error'] else None,
+                extraction_type=extraction_type
+            )
             
         return result
     
@@ -1603,6 +1618,10 @@ class UnifiedKnowledgePipeline:
         self.current_episode_id = episode_id
         self.episode_metadata = episode_metadata  # Store for access throughout pipeline
         
+        # Start benchmarking for this episode
+        benchmark = get_benchmark()
+        benchmark.start_episode(episode_id)
+        
         # Check for existing checkpoint (unless disabled)
         checkpoint = None
         import os
@@ -1851,4 +1870,7 @@ class UnifiedKnowledgePipeline:
                 f"Phases={len(result['phases_completed'])}"
             )
             
+        # End benchmarking and generate performance summary
+        benchmark.end_episode()
+        
         return result

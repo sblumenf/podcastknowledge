@@ -209,7 +209,7 @@ class SentimentAnalyzer:
             # Extract unit properties
             unit_text = meaningful_unit.text
             unit_id = meaningful_unit.id
-            speaker_distribution = meaningful_unit.speaker_distribution or {}
+            primary_speaker = meaningful_unit.primary_speaker or "Unknown"
             themes = meaningful_unit.themes or []
             unit_type = meaningful_unit.unit_type
             
@@ -223,16 +223,16 @@ class SentimentAnalyzer:
             
             # 2. Analyze speaker sentiments
             speaker_sentiments = {}
-            if self.config.analyze_speaker_sentiment and speaker_distribution:
+            if self.config.analyze_speaker_sentiment and primary_speaker != "Unknown":
                 speaker_sentiments = self._analyze_speaker_sentiments(
-                    meaningful_unit, speaker_distribution
+                    meaningful_unit, primary_speaker
                 )
             
             # 3. Detect emotional moments
             emotional_moments = []
             if self.config.detect_emotional_moments:
                 emotional_moments = self._detect_emotional_moments(
-                    unit_text, speaker_distribution
+                    unit_text, primary_speaker
                 )
             
             # 4. Analyze sentiment flow
@@ -248,7 +248,8 @@ class SentimentAnalyzer:
                 emotional_contagion=0.0,
                 dominant_interaction_type="neutral"
             )
-            if self.config.analyze_interactions and len(speaker_distribution) > 1:
+            # Skip interaction analysis - we only have primary speaker now
+            if False:
                 interaction_dynamics = self._analyze_interaction_dynamics(
                     meaningful_unit, speaker_sentiments
                 )
@@ -271,7 +272,7 @@ class SentimentAnalyzer:
             metadata = {
                 'analysis_time_ms': (datetime.now() - start_time).total_seconds() * 1000,
                 'text_length': len(unit_text),
-                'speaker_count': len(speaker_distribution),
+                'speaker_count': 1 if primary_speaker != "Unknown" else 0,
                 'theme_count': len(themes),
                 'unit_type': unit_type,
                 'episode_context': episode_context
@@ -387,14 +388,14 @@ Return as JSON:
     def _analyze_speaker_sentiments(
         self,
         meaningful_unit: Any,
-        speaker_distribution: Dict[str, float]
+        primary_speaker: str
     ) -> Dict[str, SpeakerSentiment]:
         """
-        Analyze sentiment for each speaker in the unit.
+        Analyze sentiment for the primary speaker in the unit.
         
         Args:
             meaningful_unit: The MeaningfulUnit being analyzed
-            speaker_distribution: Distribution of speakers
+            primary_speaker: Primary speaker name
             
         Returns:
             Dictionary mapping speaker names to their sentiment analysis
@@ -404,12 +405,11 @@ Return as JSON:
         # Extract speaker segments
         speaker_texts = self._extract_speaker_texts(meaningful_unit)
         
-        for speaker, proportion in speaker_distribution.items():
-            if speaker not in speaker_texts or not speaker_texts[speaker]:
-                continue
-            
+        # Only analyze primary speaker
+        if primary_speaker in speaker_texts and speaker_texts[primary_speaker]:
             # Combine speaker's text
-            speaker_text = " ".join(speaker_texts[speaker])
+            speaker_text = " ".join(speaker_texts[primary_speaker])
+            speaker = primary_speaker
             
             # Analyze speaker's sentiment
             sentiment_scores = []
@@ -453,14 +453,14 @@ Return as JSON:
     def _detect_emotional_moments(
         self,
         text: str,
-        speaker_distribution: Dict[str, float]
+        primary_speaker: str
     ) -> List[EmotionalMoment]:
         """
         Detect significant emotional moments in the text.
         
         Args:
             text: Text to analyze
-            speaker_distribution: Speaker distribution for attribution
+            primary_speaker: Primary speaker for attribution
             
         Returns:
             List of emotional moments
@@ -505,7 +505,7 @@ Focus on moments with intensity > {self.config.moment_intensity_threshold}."""
                 # Try to determine speaker (simplified - could be enhanced)
                 speaker = self._identify_speaker_for_text(
                     moment_data.get('text', ''),
-                    speaker_distribution
+                    primary_speaker
                 )
                 
                 moment = EmotionalMoment(
@@ -836,7 +836,9 @@ Return as JSON list (max {self.config.max_discovered_types} items):
         
         # This is simplified - in reality, would need to parse segments
         # For now, return full text for each speaker
-        for speaker in meaningful_unit.speaker_distribution.keys():
+        # Only extract for primary speaker
+        if meaningful_unit.primary_speaker and meaningful_unit.primary_speaker != "Unknown":
+            speaker = meaningful_unit.primary_speaker
             speaker_texts[speaker] = [meaningful_unit.text]  # Simplified
         
         return speaker_texts
@@ -858,15 +860,11 @@ Return as JSON list (max {self.config.max_discovered_types} items):
     def _identify_speaker_for_text(
         self,
         text: str,
-        speaker_distribution: Dict[str, float]
+        primary_speaker: str
     ) -> str:
         """Identify likely speaker for a text snippet."""
-        # Simplified implementation
-        # In reality, would need segment-level speaker information
-        if speaker_distribution:
-            # Return speaker with highest proportion as default
-            return max(speaker_distribution.items(), key=lambda x: x[1])[0]
-        return "Unknown"
+        # Simplified implementation - just return primary speaker
+        return primary_speaker if primary_speaker else "Unknown"
     
     def _calculate_confidence(
         self,

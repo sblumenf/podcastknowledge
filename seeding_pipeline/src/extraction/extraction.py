@@ -223,7 +223,7 @@ class KnowledgeExtractor:
             "quote_count": len(quotes),
             "relationship_count": len(relationships),
             "insight_count": len(insights),
-            "speaker_distribution": meaningful_unit.speaker_distribution,
+            "primary_speaker": meaningful_unit.primary_speaker,
             "unit_type": meaningful_unit.unit_type,
             "themes": meaningful_unit.themes,
             "episode_metadata": episode_metadata,
@@ -331,7 +331,7 @@ class KnowledgeExtractor:
                 "quote_count": len(quotes),
                 "relationship_count": len(relationships),
                 "insight_count": len(insights),
-                "speaker_distribution": meaningful_unit.speaker_distribution,
+                "primary_speaker": meaningful_unit.primary_speaker,
                 "unit_type": meaningful_unit.unit_type,
                 "themes": meaningful_unit.themes,
                 "episode_metadata": episode_metadata,
@@ -1062,11 +1062,10 @@ class KnowledgeExtractor:
         quotes = []
         
         try:
-            # Build context about speakers in this unit
+            # Build context about speaker in this unit
             speaker_context = ""
-            if meaningful_unit.speaker_distribution:
-                speakers = list(meaningful_unit.speaker_distribution.keys())
-                speaker_context = f"Speakers in this conversation: {', '.join(speakers)}"
+            if meaningful_unit.primary_speaker and meaningful_unit.primary_speaker != "Unknown":
+                speaker_context = f"Primary speaker in this conversation: {meaningful_unit.primary_speaker}"
             
             # Use LLM to extract high-impact quotes from the larger context
             prompt = f"""Extract meaningful, impactful, or insightful quotes from this conversation segment. 

@@ -555,7 +555,7 @@ class GraphStorageService:
                 # "CREATE INDEX IF NOT EXISTS FOR (s:Segment) ON (s.speaker)",  # REMOVED - only MeaningfulUnit
                 # "CREATE INDEX IF NOT EXISTS FOR (s:Segment) ON (s.start_time)",  # REMOVED - only MeaningfulUnit
                 "CREATE INDEX IF NOT EXISTS FOR (m:MeaningfulUnit) ON (m.start_time)",
-                "CREATE INDEX IF NOT EXISTS FOR (m:MeaningfulUnit) ON (m.speaker_distribution)",
+                "CREATE INDEX IF NOT EXISTS FOR (m:MeaningfulUnit) ON (m.primary_speaker)",
                 "CREATE INDEX IF NOT EXISTS FOR (en:Entity) ON (en.name)",
                 "CREATE INDEX IF NOT EXISTS FOR (en:Entity) ON (en.type)",
                 "CREATE INDEX IF NOT EXISTS FOR ()-[r:MENTIONED_IN]-() ON (r.confidence)"
@@ -800,9 +800,7 @@ class GraphStorageService:
         with self._lock:
             try:
                 with self.session() as session:
-                    # Convert speaker_distribution dict to JSON string for storage
-                    if 'speaker_distribution' in unit_data and isinstance(unit_data['speaker_distribution'], dict):
-                        unit_data['speaker_distribution'] = json.dumps(unit_data['speaker_distribution'])
+                    # No need to convert primary_speaker - it's already a string
                     
                     # Convert themes list to JSON string for storage
                     if 'themes' in unit_data and isinstance(unit_data['themes'], list):
@@ -825,7 +823,7 @@ class GraphStorageService:
                             m.start_time = $start_time,
                             m.end_time = $end_time,
                             m.summary = $summary,
-                            m.speaker_distribution = $speaker_distribution,
+                            m.primary_speaker = $primary_speaker,
                             m.unit_type = $unit_type,
                             m.themes = $themes,
                             m.segment_indices = $segment_indices,
@@ -835,7 +833,7 @@ class GraphStorageService:
                             m.start_time = $start_time,
                             m.end_time = $end_time,
                             m.summary = $summary,
-                            m.speaker_distribution = $speaker_distribution,
+                            m.primary_speaker = $primary_speaker,
                             m.unit_type = $unit_type,
                             m.themes = $themes,
                             m.segment_indices = $segment_indices,
@@ -853,7 +851,7 @@ class GraphStorageService:
                             m.start_time = $start_time,
                             m.end_time = $end_time,
                             m.summary = $summary,
-                            m.speaker_distribution = $speaker_distribution,
+                            m.primary_speaker = $primary_speaker,
                             m.unit_type = $unit_type,
                             m.themes = $themes,
                             m.segment_indices = $segment_indices
@@ -862,7 +860,7 @@ class GraphStorageService:
                             m.start_time = $start_time,
                             m.end_time = $end_time,
                             m.summary = $summary,
-                            m.speaker_distribution = $speaker_distribution,
+                            m.primary_speaker = $primary_speaker,
                             m.unit_type = $unit_type,
                             m.themes = $themes,
                             m.segment_indices = $segment_indices
@@ -879,7 +877,7 @@ class GraphStorageService:
                         'start_time': unit_data['start_time'],
                         'end_time': unit_data['end_time'],
                         'summary': unit_data.get('summary', ''),
-                        'speaker_distribution': unit_data.get('speaker_distribution', '{}'),
+                        'primary_speaker': unit_data.get('primary_speaker', 'Unknown'),
                         'unit_type': unit_data.get('unit_type', 'unknown'),
                         'themes': unit_data.get('themes', '[]'),
                         'segment_indices': unit_data.get('segment_indices', '[]'),

@@ -1,7 +1,7 @@
 """Segment regrouping service for semantic segmentation."""
 
 import logging
-from typing import List, Dict, Any, Optional, Tuple
+from typing import List, Dict, Any, Optional
 from dataclasses import dataclass
 from src.core.interfaces import TranscriptSegment
 from src.core.conversation_models.conversation import ConversationStructure, ConversationUnit
@@ -22,7 +22,7 @@ class MeaningfulUnit:
     themes: List[str]
     start_time: float
     end_time: float
-    speaker_distribution: Dict[str, float]
+    primary_speaker: str
     is_complete: bool
     metadata: Optional[Dict[str, Any]] = None
     
@@ -145,8 +145,8 @@ class SegmentRegrouper:
         structure: ConversationStructure
     ) -> MeaningfulUnit:
         """Create a meaningful unit from segments and conversation unit."""
-        # Calculate speaker distribution
-        speaker_distribution = self._calculate_speaker_distribution(unit_segments)
+        # Get primary speaker
+        primary_speaker = self._get_primary_speaker(unit_segments)
         
         # Find related themes
         related_themes = []
@@ -170,7 +170,7 @@ class SegmentRegrouper:
             themes=related_themes,
             start_time=unit_segments[0].start_time,
             end_time=unit_segments[-1].end_time,
-            speaker_distribution=speaker_distribution,
+            primary_speaker=primary_speaker,
             is_complete=is_complete,
             metadata={
                 "original_indices": {
@@ -182,13 +182,14 @@ class SegmentRegrouper:
             }
         )
     
-    def _calculate_speaker_distribution(
-        self, 
+    # Removed _calculate_speaker_distribution - no longer needed with primary_speaker approach
+    
+    def _get_primary_speaker(
+        self,
         segments: List[TranscriptSegment]
-    ) -> Dict[str, float]:
-        """Calculate speaker time distribution for segments."""
+    ) -> str:
+        """Get the primary speaker (with most speaking time) from segments."""
         speaker_times = {}
-        total_time = 0.0
         
         for segment in segments:
             # Handle both TranscriptSegment objects and dictionaries
@@ -202,16 +203,12 @@ class SegmentRegrouper:
             if speaker not in speaker_times:
                 speaker_times[speaker] = 0.0
             speaker_times[speaker] += duration
-            total_time += duration
         
-        # Convert to percentages
-        if total_time > 0:
-            return {
-                speaker: (time / total_time) * 100 
-                for speaker, time in speaker_times.items()
-            }
+        # Return speaker with most time, or "Unknown" if no segments
+        if speaker_times:
+            return max(speaker_times.items(), key=lambda x: x[1])[0]
         else:
-            return {}
+            return "Unknown"
     
     def _validate_coverage(
         self, 
