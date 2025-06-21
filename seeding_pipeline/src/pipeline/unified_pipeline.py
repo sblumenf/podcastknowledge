@@ -11,6 +11,8 @@ import time
 from pathlib import Path
 from typing import Dict, Any, List, Optional, Tuple
 from datetime import datetime
+from concurrent.futures import ThreadPoolExecutor, as_completed
+import threading
 
 # VTT Processing
 from src.vtt.vtt_parser import VTTParser
@@ -43,6 +45,7 @@ from src.services.embeddings import EmbeddingsService
 
 # Configuration
 from src.core.config import PipelineConfig
+from src.core.pipeline_config import PipelineConfig as PipelineTimeoutConfig
 
 # Utils
 from src.utils.logging import get_logger
@@ -154,6 +157,13 @@ class UnifiedKnowledgePipeline:
         # Checkpoint manager
         self.checkpoint_manager = CheckpointManager()
         self.phase_results = {}
+        
+        # Parallel processing tracking
+        self._completed_counter = 0
+        self._counter_lock = threading.Lock()
+        self._extraction_errors = []
+        self._error_lock = threading.Lock()
+        self._total_units = 0  # Will be set during extraction
         
     def _start_phase(self, phase_name: str) -> None:
         """Start tracking a processing phase."""
@@ -623,6 +633,99 @@ class UnifiedKnowledgePipeline:
             self.logger.error(f"Failed to store episode structure: {e}")
             raise PipelineError(f"Episode structure storage failed: {e}") from e
     
+    def _process_single_unit(self, unit: MeaningfulUnit, unit_index: int) -> Dict[str, Any]:
+        """
+        Process a single meaningful unit for knowledge extraction (thread-safe).
+        
+        This method is designed to be thread-safe and can be called concurrently
+        for different units. All operations are isolated with no shared state.
+        
+        Args:
+            unit: MeaningfulUnit to process
+            unit_index: Index of the unit in the episode
+            
+        Returns:
+            Dict containing:
+                - success: bool indicating if processing succeeded
+                - unit_index: int index of the processed unit
+                - extraction_result: ExtractionResult if successful
+                - sentiment_result: SentimentResult if successful
+                - error: Exception details if failed
+                - processing_time: float seconds taken
+        """
+        start_time = time.time()
+        result = {
+            'success': False,
+            'unit_index': unit_index,
+            'extraction_result': None,
+            'sentiment_result': None,
+            'error': None,
+            'processing_time': 0
+        }
+        
+        try:
+            # Log progress (thread-safe logging)
+            self.logger.info(f"Processing unit {unit_index + 1} for knowledge extraction...")
+            
+            # Use combined extraction for efficiency (1 LLM call instead of 5)
+            if hasattr(self.knowledge_extractor, 'extract_knowledge_combined'):
+                extraction_result = self.knowledge_extractor.extract_knowledge_combined(
+                    meaningful_unit=unit,
+                    episode_metadata={
+                        'episode_id': self.current_episode_id,
+                        'unit_index': unit_index,
+                        'total_units': len(self._total_units),  # Will be set by caller
+                        'podcast_name': self.episode_metadata.get('podcast_name', 'Unknown'),
+                        'episode_title': self.episode_metadata.get('episode_title', 'Unknown')
+                    }
+                )
+            else:
+                # Fallback to original method
+                extraction_result = self.knowledge_extractor.extract_knowledge(
+                    meaningful_unit=unit,
+                    episode_metadata={
+                        'episode_id': self.current_episode_id,
+                        'unit_index': unit_index,
+                        'total_units': len(self._total_units)
+                    }
+                )
+            
+            # Score importance of quotes
+            if extraction_result.quotes:
+                for quote in extraction_result.quotes:
+                    quote['importance_score'] = self.importance_scorer.score_quote(quote)
+            
+            # Analyze complexity of insights
+            if extraction_result.insights:
+                for insight in extraction_result.insights:
+                    insight['complexity'] = self.complexity_analyzer.analyze_insight(insight)
+            
+            # Analyze sentiment for this unit
+            sentiment_result = self.sentiment_analyzer.analyze_meaningful_unit(
+                meaningful_unit=unit,
+                episode_context={'episode_id': self.current_episode_id}
+            )
+            
+            # Success!
+            result['success'] = True
+            result['extraction_result'] = extraction_result
+            result['sentiment_result'] = sentiment_result
+            
+        except Exception as e:
+            error_msg = f"Failed to process unit {unit_index}: {e}"
+            self.logger.error(error_msg)
+            result['error'] = {
+                'unit_index': unit_index,
+                'unit_id': unit.id,
+                'error_type': type(e).__name__,
+                'error_message': str(e)
+            }
+        
+        finally:
+            result['processing_time'] = time.time() - start_time
+            
+        return result
+    
     async def _extract_knowledge(self, meaningful_units: List[MeaningfulUnit]) -> Dict[str, Any]:
         """
         Extract all knowledge from MeaningfulUnits.
@@ -655,104 +758,123 @@ class UnifiedKnowledgePipeline:
             'total_extraction_time': 0
         }
         
-        # Extract knowledge from each MeaningfulUnit
-        for idx, unit in enumerate(meaningful_units):
-            # Log progress
-            self.logger.info(f"Processing unit {idx + 1}/{len(meaningful_units)} for knowledge extraction...")
-            try:
-                start_time = time.time()
+        # Initialize parallel processing tracking
+        self._total_units = len(meaningful_units)
+        self._completed_counter = 0
+        self._extraction_errors = []
+        
+        # Get concurrency limit from config
+        max_concurrent_units = PipelineTimeoutConfig.MAX_CONCURRENT_UNITS
+        self.logger.info(f"Starting parallel knowledge extraction with {max_concurrent_units} concurrent units")
+        
+        # Process units in parallel using ThreadPoolExecutor
+        with ThreadPoolExecutor(max_workers=max_concurrent_units) as executor:
+            # Submit all units for processing
+            future_to_unit = {}
+            for idx, unit in enumerate(meaningful_units):
+                future = executor.submit(self._process_single_unit, unit, idx)
+                future_to_unit[future] = (unit, idx)
+            
+            # Process results as they complete
+            for future in as_completed(future_to_unit):
+                unit, idx = future_to_unit[future]
                 
-                # Use combined extraction for efficiency (1 LLM call instead of 5)
-                if hasattr(self.knowledge_extractor, 'extract_knowledge_combined'):
-                    # Use optimized combined extraction
-                    extraction_result = self.knowledge_extractor.extract_knowledge_combined(
-                        meaningful_unit=unit,
-                        episode_metadata={
-                            'episode_id': self.current_episode_id,
-                            'unit_index': idx,
-                            'total_units': len(meaningful_units),
-                            'podcast_name': self.episode_metadata.get('podcast_name', 'Unknown'),
-                            'episode_title': self.episode_metadata.get('episode_title', 'Unknown')
-                        }
-                    )
-                else:
-                    # Fall back to original method if combined not available
-                    extraction_result = self.knowledge_extractor.extract_knowledge(
-                        meaningful_unit=unit,
-                        episode_metadata={
-                            'episode_id': self.current_episode_id,
-                            'unit_index': idx,
-                            'total_units': len(meaningful_units)
-                        }
-                    )
-                
-                # Aggregate results
-                if extraction_result.entities:
-                    # Don't resolve per-unit, just collect all entities
-                    all_entities.extend(extraction_result.entities)
+                try:
+                    # Get result from completed future
+                    result = future.result()
                     
-                    # Track discovered entity types
-                    for entity in extraction_result.entities:
-                        extraction_metadata['entity_types_discovered'].add(entity['type'])
-                
-                if extraction_result.quotes:
-                    # Score importance of quotes
-                    for quote in extraction_result.quotes:
-                        quote['importance_score'] = self.importance_scorer.score_quote(quote)
-                    all_quotes.extend(extraction_result.quotes)
-                
-                if extraction_result.relationships:
-                    all_relationships.extend(extraction_result.relationships)
+                    # Update progress counter (thread-safe)
+                    with self._counter_lock:
+                        self._completed_counter += 1
+                        self.logger.info(
+                            f"Completed {self._completed_counter}/{self._total_units} units "
+                            f"(processing time: {result['processing_time']:.2f}s)"
+                        )
                     
-                    # Track discovered relationship types
-                    for rel in extraction_result.relationships:
-                        extraction_metadata['relationship_types_discovered'].add(rel['type'])
-                
-                if extraction_result.insights:
-                    # Analyze complexity of insights
-                    for insight in extraction_result.insights:
-                        insight['complexity'] = self.complexity_analyzer.analyze_insight(insight)
-                    all_insights.extend(extraction_result.insights)
-                
-                # Analyze sentiment for this unit
-                sentiment_result = self.sentiment_analyzer.analyze_meaningful_unit(
-                    meaningful_unit=unit,
-                    episode_context={'episode_id': self.current_episode_id}
-                )
-                
-                # Store sentiment result with unit reference
-                sentiment_data = {
-                    'unit_id': unit.id,
-                    'sentiment': sentiment_result,
-                    'unit_index': idx
-                }
-                all_sentiments.append(sentiment_data)
-                
-                # Track discovered sentiment types
-                for discovered in sentiment_result.discovered_sentiments:
-                    extraction_metadata['sentiment_types_discovered'].add(discovered.sentiment_type)
-                
-                extraction_metadata['units_processed'] += 1
-                extraction_metadata['total_extraction_time'] += time.time() - start_time
-                
-                self.logger.debug(
-                    f"Extracted from unit {idx}: "
-                    f"{len(extraction_result.entities)} entities, "
-                    f"{len(extraction_result.quotes)} quotes, "
-                    f"{len(extraction_result.relationships)} relationships, "
-                    f"{len(extraction_result.insights)} insights, "
-                    f"sentiment: {sentiment_result.overall_sentiment.polarity}"
-                )
-                
-            except Exception as e:
-                error_msg = f"Failed to extract from unit {idx}: {e}"
-                self.logger.error(error_msg)
-                extraction_metadata['extraction_errors'].append({
-                    'unit_index': idx,
-                    'unit_id': unit.id,
-                    'error': str(e)
-                })
-                # Continue with other units - don't fail entire extraction
+                    if result['success']:
+                        extraction_result = result['extraction_result']
+                        sentiment_result = result['sentiment_result']
+                        
+                        # Aggregate results (thread-safe operations)
+                        if extraction_result.entities:
+                            all_entities.extend(extraction_result.entities)
+                            for entity in extraction_result.entities:
+                                extraction_metadata['entity_types_discovered'].add(entity['type'])
+                        
+                        if extraction_result.quotes:
+                            all_quotes.extend(extraction_result.quotes)
+                        
+                        if extraction_result.relationships:
+                            all_relationships.extend(extraction_result.relationships)
+                            for rel in extraction_result.relationships:
+                                extraction_metadata['relationship_types_discovered'].add(rel['type'])
+                        
+                        if extraction_result.insights:
+                            all_insights.extend(extraction_result.insights)
+                        
+                        # Store sentiment result
+                        sentiment_data = {
+                            'unit_id': unit.id,
+                            'sentiment': sentiment_result,
+                            'unit_index': idx
+                        }
+                        all_sentiments.append(sentiment_data)
+                        
+                        # Track discovered sentiment types
+                        for discovered in sentiment_result.discovered_sentiments:
+                            extraction_metadata['sentiment_types_discovered'].add(discovered.sentiment_type)
+                        
+                        extraction_metadata['units_processed'] += 1
+                        extraction_metadata['total_extraction_time'] += result['processing_time']
+                        
+                        self.logger.debug(
+                            f"Unit {idx} extraction complete: "
+                            f"{len(extraction_result.entities)} entities, "
+                            f"{len(extraction_result.quotes)} quotes, "
+                            f"{len(extraction_result.relationships)} relationships, "
+                            f"{len(extraction_result.insights)} insights"
+                        )
+                    else:
+                        # Handle error case
+                        with self._error_lock:
+                            self._extraction_errors.append(result['error'])
+                            extraction_metadata['extraction_errors'].append(result['error'])
+                    
+                except Exception as e:
+                    # Handle future execution error
+                    error_msg = f"Future execution failed for unit {idx}: {e}"
+                    self.logger.error(error_msg)
+                    with self._error_lock:
+                        error_data = {
+                            'unit_index': idx,
+                            'unit_id': unit.id,
+                            'error_type': 'FutureExecutionError',
+                            'error_message': str(e)
+                        }
+                        self._extraction_errors.append(error_data)
+                        extraction_metadata['extraction_errors'].append(error_data)
+        
+        # Check error rate and decide whether to continue
+        error_rate = len(self._extraction_errors) / len(meaningful_units) if meaningful_units else 0
+        if error_rate > 0.5:  # More than 50% failed
+            raise ExtractionError(
+                f"Knowledge extraction failed for {len(self._extraction_errors)}/{len(meaningful_units)} units "
+                f"({error_rate:.1%} failure rate)"
+            )
+        elif self._extraction_errors:
+            self.logger.warning(
+                f"Knowledge extraction completed with {len(self._extraction_errors)} errors "
+                f"({error_rate:.1%} failure rate)"
+            )
+        
+        # Log parallel processing performance summary
+        avg_time_per_unit = extraction_metadata['total_extraction_time'] / max(extraction_metadata['units_processed'], 1)
+        self.logger.info(
+            f"Parallel processing performance: "
+            f"{extraction_metadata['units_processed']} units processed in "
+            f"{extraction_metadata['total_extraction_time']:.1f}s total compute time "
+            f"(avg {avg_time_per_unit:.1f}s per unit)"
+        )
         
         # Deduplicate entities across all units using entity resolver
         unique_entities = self.entity_resolver.resolve_entities_for_meaningful_units(
