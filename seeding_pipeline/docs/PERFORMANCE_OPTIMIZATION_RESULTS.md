@@ -105,7 +105,7 @@ result = extractor.extract_knowledge_combined(unit)
 **Configuration**:
 ```python
 MAX_CONCURRENT_UNITS = 5  # Optimal for API rate limits
-KNOWLEDGE_EXTRACTION_TIMEOUT = 600  # 10 minutes per unit
+KNOWLEDGE_EXTRACTION_TIMEOUT = 1800  # 30 minutes per unit
 ```
 
 ### 3. Error Handling Improvements (Phase 2)
@@ -180,7 +180,7 @@ KNOWLEDGE_EXTRACTION_TIMEOUT = 600  # 10 minutes per unit
    ```bash
    echo $KNOWLEDGE_EXTRACTION_TIMEOUT
    ```
-   - Default: 600 seconds (10 minutes)
+   - Default: 1800 seconds (30 minutes)
    - Increase for complex episodes
 
 2. **Review Error Types**:

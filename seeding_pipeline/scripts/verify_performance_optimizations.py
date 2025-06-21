@@ -67,6 +67,15 @@ def verify_parallel_processing():
     timeout = PipelineConfig.KNOWLEDGE_EXTRACTION_TIMEOUT
     print(f"   ℹ️  KNOWLEDGE_EXTRACTION_TIMEOUT = {timeout}s ({timeout/60:.1f} minutes)")
     
+    # Check other timeouts
+    speaker_timeout = PipelineConfig.SPEAKER_IDENTIFICATION_TIMEOUT
+    conversation_timeout = PipelineConfig.CONVERSATION_ANALYSIS_TIMEOUT
+    storage_timeout = PipelineConfig.GRAPH_STORAGE_TIMEOUT
+    
+    print(f"   ℹ️  SPEAKER_IDENTIFICATION_TIMEOUT = {speaker_timeout}s ({speaker_timeout/60:.1f} minutes)")
+    print(f"   ℹ️  CONVERSATION_ANALYSIS_TIMEOUT = {conversation_timeout}s ({conversation_timeout/60:.1f} minutes)")
+    print(f"   ℹ️  GRAPH_STORAGE_TIMEOUT = {storage_timeout}s ({storage_timeout/60:.1f} minutes)")
+    
     return max_concurrent > 1
 
 

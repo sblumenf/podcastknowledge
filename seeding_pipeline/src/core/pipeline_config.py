@@ -23,25 +23,25 @@ class PipelineConfig:
     # Individual stage timeouts (in seconds)
     SPEAKER_IDENTIFICATION_TIMEOUT = env_config.get_int(
         "SPEAKER_IDENTIFICATION_TIMEOUT",
-        120,  # 2 minutes
+        360,  # 6 minutes
         "Timeout for speaker identification LLM calls"
     )
     
     CONVERSATION_ANALYSIS_TIMEOUT = env_config.get_int(
         "CONVERSATION_ANALYSIS_TIMEOUT",
-        300,  # 5 minutes
+        900,  # 15 minutes
         "Timeout for conversation structure analysis"
     )
     
     KNOWLEDGE_EXTRACTION_TIMEOUT = env_config.get_int(
         "KNOWLEDGE_EXTRACTION_TIMEOUT",
-        600,  # 10 minutes per unit
+        1800,  # 30 minutes per unit
         "Timeout for knowledge extraction per meaningful unit"
     )
     
     GRAPH_STORAGE_TIMEOUT = env_config.get_int(
         "GRAPH_STORAGE_TIMEOUT",
-        300,  # 5 minutes
+        900,  # 15 minutes
         "Timeout for Neo4j storage operations"
     )
     

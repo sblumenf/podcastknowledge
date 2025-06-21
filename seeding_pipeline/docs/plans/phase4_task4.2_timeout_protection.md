@@ -12,7 +12,7 @@ Using existing configuration from `src/core/pipeline_config.py`:
 ```python
 KNOWLEDGE_EXTRACTION_TIMEOUT = env_config.get_int(
     "KNOWLEDGE_EXTRACTION_TIMEOUT",
-    600,  # 10 minutes per unit
+    1800,  # 30 minutes per unit
     "Timeout for knowledge extraction per meaningful unit"
 )
 ```
@@ -73,14 +73,14 @@ except TimeoutError:
 ## Configuration Options
 
 ```bash
-# Default: 600 seconds (10 minutes) per unit
-export KNOWLEDGE_EXTRACTION_TIMEOUT=600
+# Default: 1800 seconds (30 minutes) per unit
+export KNOWLEDGE_EXTRACTION_TIMEOUT=1800
 
 # For faster testing
-export KNOWLEDGE_EXTRACTION_TIMEOUT=300
+export KNOWLEDGE_EXTRACTION_TIMEOUT=900
 
 # For complex episodes
-export KNOWLEDGE_EXTRACTION_TIMEOUT=900
+export KNOWLEDGE_EXTRACTION_TIMEOUT=2700
 ```
 
 ## Monitoring
