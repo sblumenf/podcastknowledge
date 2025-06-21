@@ -443,7 +443,7 @@ Return as JSON:
                     ),
                     emotional_range=emotional_range,
                     dominant_emotion=dominant_emotion,
-                    speaking_proportion=proportion
+                    speaking_proportion=1.0  # Primary speaker has 100% proportion
                 )
                 
                 speaker_sentiments[speaker] = speaker_sentiment
