@@ -752,6 +752,7 @@ class UnifiedKnowledgePipeline:
         extraction_metadata = {
             'units_processed': 0,
             'extraction_errors': [],
+            'timeout_errors': 0,
             'entity_types_discovered': set(),
             'relationship_types_discovered': set(),
             'sentiment_types_discovered': set(),
@@ -763,9 +764,13 @@ class UnifiedKnowledgePipeline:
         self._completed_counter = 0
         self._extraction_errors = []
         
-        # Get concurrency limit from config
+        # Get concurrency limit and timeout from config
         max_concurrent_units = PipelineTimeoutConfig.MAX_CONCURRENT_UNITS
-        self.logger.info(f"Starting parallel knowledge extraction with {max_concurrent_units} concurrent units")
+        unit_timeout = PipelineTimeoutConfig.KNOWLEDGE_EXTRACTION_TIMEOUT
+        self.logger.info(
+            f"Starting parallel knowledge extraction with {max_concurrent_units} concurrent units "
+            f"(timeout: {unit_timeout}s per unit)"
+        )
         
         # Process units in parallel using ThreadPoolExecutor
         with ThreadPoolExecutor(max_workers=max_concurrent_units) as executor:
@@ -775,84 +780,116 @@ class UnifiedKnowledgePipeline:
                 future = executor.submit(self._process_single_unit, unit, idx)
                 future_to_unit[future] = (unit, idx)
             
-            # Process results as they complete
-            for future in as_completed(future_to_unit):
-                unit, idx = future_to_unit[future]
+            # Process results as they complete with timeout
+            try:
+                # Use timeout for the entire batch processing
+                remaining_timeout = unit_timeout * len(meaningful_units)
+                start_batch_time = time.time()
                 
-                try:
-                    # Get result from completed future
-                    result = future.result()
+                for future in as_completed(future_to_unit, timeout=remaining_timeout):
+                    unit, idx = future_to_unit[future]
                     
-                    # Update progress counter (thread-safe)
-                    with self._counter_lock:
-                        self._completed_counter += 1
-                        self.logger.info(
-                            f"Completed {self._completed_counter}/{self._total_units} units "
-                            f"(processing time: {result['processing_time']:.2f}s)"
-                        )
+                    # Update remaining timeout for next iteration
+                    elapsed = time.time() - start_batch_time
+                    remaining_timeout = max(0, (unit_timeout * len(meaningful_units)) - elapsed)
                     
-                    if result['success']:
-                        extraction_result = result['extraction_result']
-                        sentiment_result = result['sentiment_result']
+                    try:
+                        # Get result from completed future
+                        result = future.result()
                         
-                        # Aggregate results (thread-safe operations)
-                        if extraction_result.entities:
-                            all_entities.extend(extraction_result.entities)
-                            for entity in extraction_result.entities:
-                                extraction_metadata['entity_types_discovered'].add(entity['type'])
+                        # Update progress counter (thread-safe)
+                        with self._counter_lock:
+                            self._completed_counter += 1
+                            self.logger.info(
+                                f"Completed {self._completed_counter}/{self._total_units} units "
+                                f"(processing time: {result['processing_time']:.2f}s)"
+                            )
                         
-                        if extraction_result.quotes:
-                            all_quotes.extend(extraction_result.quotes)
+                        if result['success']:
+                            extraction_result = result['extraction_result']
+                            sentiment_result = result['sentiment_result']
+                            
+                            # Aggregate results (thread-safe operations)
+                            if extraction_result.entities:
+                                all_entities.extend(extraction_result.entities)
+                                for entity in extraction_result.entities:
+                                    extraction_metadata['entity_types_discovered'].add(entity['type'])
+                            
+                            if extraction_result.quotes:
+                                all_quotes.extend(extraction_result.quotes)
+                            
+                            if extraction_result.relationships:
+                                all_relationships.extend(extraction_result.relationships)
+                                for rel in extraction_result.relationships:
+                                    extraction_metadata['relationship_types_discovered'].add(rel['type'])
+                            
+                            if extraction_result.insights:
+                                all_insights.extend(extraction_result.insights)
+                            
+                            # Store sentiment result
+                            sentiment_data = {
+                                'unit_id': unit.id,
+                                'sentiment': sentiment_result,
+                                'unit_index': idx
+                            }
+                            all_sentiments.append(sentiment_data)
+                            
+                            # Track discovered sentiment types
+                            for discovered in sentiment_result.discovered_sentiments:
+                                extraction_metadata['sentiment_types_discovered'].add(discovered.sentiment_type)
+                            
+                            extraction_metadata['units_processed'] += 1
+                            extraction_metadata['total_extraction_time'] += result['processing_time']
+                            
+                            self.logger.debug(
+                                f"Unit {idx} extraction complete: "
+                                f"{len(extraction_result.entities)} entities, "
+                                f"{len(extraction_result.quotes)} quotes, "
+                                f"{len(extraction_result.relationships)} relationships, "
+                                f"{len(extraction_result.insights)} insights"
+                            )
+                        else:
+                            # Handle error case
+                            with self._error_lock:
+                                self._extraction_errors.append(result['error'])
+                                extraction_metadata['extraction_errors'].append(result['error'])
                         
-                        if extraction_result.relationships:
-                            all_relationships.extend(extraction_result.relationships)
-                            for rel in extraction_result.relationships:
-                                extraction_metadata['relationship_types_discovered'].add(rel['type'])
-                        
-                        if extraction_result.insights:
-                            all_insights.extend(extraction_result.insights)
-                        
-                        # Store sentiment result
-                        sentiment_data = {
-                            'unit_id': unit.id,
-                            'sentiment': sentiment_result,
-                            'unit_index': idx
-                        }
-                        all_sentiments.append(sentiment_data)
-                        
-                        # Track discovered sentiment types
-                        for discovered in sentiment_result.discovered_sentiments:
-                            extraction_metadata['sentiment_types_discovered'].add(discovered.sentiment_type)
-                        
-                        extraction_metadata['units_processed'] += 1
-                        extraction_metadata['total_extraction_time'] += result['processing_time']
-                        
-                        self.logger.debug(
-                            f"Unit {idx} extraction complete: "
-                            f"{len(extraction_result.entities)} entities, "
-                            f"{len(extraction_result.quotes)} quotes, "
-                            f"{len(extraction_result.relationships)} relationships, "
-                            f"{len(extraction_result.insights)} insights"
-                        )
-                    else:
-                        # Handle error case
+                    except Exception as e:
+                        # Handle future execution error
+                        error_msg = f"Future execution failed for unit {idx}: {e}"
+                        self.logger.error(error_msg)
                         with self._error_lock:
-                            self._extraction_errors.append(result['error'])
-                            extraction_metadata['extraction_errors'].append(result['error'])
-                    
-                except Exception as e:
-                    # Handle future execution error
-                    error_msg = f"Future execution failed for unit {idx}: {e}"
-                    self.logger.error(error_msg)
-                    with self._error_lock:
-                        error_data = {
-                            'unit_index': idx,
-                            'unit_id': unit.id,
-                            'error_type': 'FutureExecutionError',
-                            'error_message': str(e)
-                        }
-                        self._extraction_errors.append(error_data)
-                        extraction_metadata['extraction_errors'].append(error_data)
+                            error_data = {
+                                'unit_index': idx,
+                                'unit_id': unit.id,
+                                'error_type': 'FutureExecutionError',
+                                'error_message': str(e)
+                            }
+                            self._extraction_errors.append(error_data)
+                            extraction_metadata['extraction_errors'].append(error_data)
+                
+            except TimeoutError:
+                # Handle timeout for the entire batch
+                self.logger.error(
+                    f"Knowledge extraction timed out after processing "
+                    f"{self._completed_counter}/{len(meaningful_units)} units"
+                )
+                
+                # Cancel remaining futures
+                for future in future_to_unit:
+                    if not future.done():
+                        future.cancel()
+                        unit, idx = future_to_unit[future]
+                        with self._error_lock:
+                            timeout_error = {
+                                'unit_index': idx,
+                                'unit_id': unit.id,
+                                'error_type': 'TimeoutError',
+                                'error_message': f'Unit processing timed out after {unit_timeout}s'
+                            }
+                            self._extraction_errors.append(timeout_error)
+                            extraction_metadata['extraction_errors'].append(timeout_error)
+                            extraction_metadata['timeout_errors'] += 1
         
         # Check error rate and decide whether to continue
         error_rate = len(self._extraction_errors) / len(meaningful_units) if meaningful_units else 0
@@ -862,9 +899,12 @@ class UnifiedKnowledgePipeline:
                 f"({error_rate:.1%} failure rate)"
             )
         elif self._extraction_errors:
+            timeout_count = extraction_metadata.get('timeout_errors', 0)
+            other_errors = len(self._extraction_errors) - timeout_count
             self.logger.warning(
                 f"Knowledge extraction completed with {len(self._extraction_errors)} errors "
-                f"({error_rate:.1%} failure rate)"
+                f"({error_rate:.1%} failure rate) - "
+                f"{timeout_count} timeouts, {other_errors} other errors"
             )
         
         # Log parallel processing performance summary
