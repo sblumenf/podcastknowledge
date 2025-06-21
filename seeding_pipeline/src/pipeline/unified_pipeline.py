@@ -52,6 +52,13 @@ from src.utils.logging import get_logger
 from src.utils.retry import retry
 from src.core.interfaces import TranscriptSegment
 from src.pipeline.checkpoint import CheckpointManager
+from src.core.validation import (
+    validate_entity,
+    validate_quote,
+    validate_insight,
+    validate_relationship,
+    normalize_insight_for_storage
+)
 from src.core.exceptions import (
     PipelineError,
     ExtractionError,
@@ -1003,17 +1010,36 @@ class UnifiedKnowledgePipeline:
             # Store entities
             entity_id_map = {}  # Map original entity to stored ID
             for entity in entities:
-                entity_id = self.graph_storage.create_entity(
-                    entity_data=entity,
-                    episode_id=episode_id
-                )
-                entity_id_map[entity['value']] = entity_id
+                # Validate before storage
+                is_valid, error_msg = validate_entity(entity)
+                if not is_valid:
+                    self.logger.warning(f"Skipping invalid entity: {error_msg}")
+                    continue
+                    
+                try:
+                    entity_id = self.graph_storage.create_entity(
+                        entity_data=entity,
+                        episode_id=episode_id
+                    )
+                    entity_id_map[entity['value']] = entity_id
+                except KeyError as e:
+                    self.logger.error(f"KeyError accessing entity fields: {e}. Entity data: {entity}")
+                    raise KeyError(f"Entity missing required field '{e.args[0]}'. Available fields: {list(entity.keys())}")
+                except Exception as e:
+                    self.logger.error(f"Failed to store entity: {e}. Entity data: {entity}")
+                    raise
                 
             self.logger.info(f"Stored {len(entities)} entities")
             
             # Store quotes linked to MeaningfulUnits
             quote_id_map = {}  # Map quote text to stored ID for relationships
             for quote in quotes:
+                # Validate before storage
+                is_valid, error_msg = validate_quote(quote)
+                if not is_valid:
+                    self.logger.warning(f"Skipping invalid quote: {error_msg}")
+                    continue
+                    
                 # Find the source MeaningfulUnit
                 unit_id = quote.get('properties', {}).get('meaningful_unit_id')
                 
@@ -1031,10 +1057,14 @@ class UnifiedKnowledgePipeline:
             
             # Store relationships with resolved entity IDs
             for relationship in relationships:
-                # Resolve source and target to stored entity IDs
-                # Check both entity and quote maps
-                source_id = entity_id_map.get(relationship['source']) or quote_id_map.get(relationship['source'])
-                target_id = entity_id_map.get(relationship['target']) or quote_id_map.get(relationship['target'])
+                try:
+                    # Resolve source and target to stored entity IDs
+                    # Check both entity and quote maps
+                    source_id = entity_id_map.get(relationship['source']) or quote_id_map.get(relationship['source'])
+                    target_id = entity_id_map.get(relationship['target']) or quote_id_map.get(relationship['target'])
+                except KeyError as e:
+                    self.logger.error(f"KeyError accessing relationship fields: {e}. Relationship data: {relationship}")
+                    raise KeyError(f"Relationship missing required field '{e.args[0]}'. Available fields: {list(relationship.keys())}")
                 
                 if source_id and target_id:
                     # Extract relationship properties
@@ -1054,10 +1084,19 @@ class UnifiedKnowledgePipeline:
             
             # Store insights linked to MeaningfulUnits
             for insight in insights:
+                # Validate before storage
+                is_valid, error_msg = validate_insight(insight)
+                if not is_valid:
+                    self.logger.warning(f"Skipping invalid insight: {error_msg}")
+                    continue
+                    
                 unit_id = insight.get('properties', {}).get('meaningful_unit_id')
                 
+                # Normalize insight for storage (map title/description to text)
+                storage_insight = normalize_insight_for_storage(insight)
+                
                 insight_id = self.graph_storage.create_insight(
-                    insight_data=insight,
+                    insight_data=storage_insight,
                     episode_id=episode_id,
                     meaningful_unit_id=unit_id
                 )

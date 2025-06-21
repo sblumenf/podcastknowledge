@@ -148,13 +148,14 @@ class DataValidator:
                 self.validation_stats['missing_fields'] += 1
                 continue
                 
-            # Validate required fields
-            if not entity.get('name') or not entity.get('type'):
+            # Validate required fields (support both 'value' and 'name' for compatibility)
+            entity_value = entity.get('value', entity.get('name'))
+            if not entity_value or not entity.get('type'):
                 self.validation_stats['missing_fields'] += 1
                 continue
             
             # Normalize name
-            name = validate_text_input(entity['name'])
+            name = validate_text_input(entity_value)
             normalized_name = normalize_entity_name(name)
             entity_type = entity.get('type', 'UNKNOWN').upper()
             
@@ -184,7 +185,7 @@ class DataValidator:
             
             # Build validated entity
             validated_entity = {
-                'name': name,
+                'value': name,  # Use 'value' as the standard field name
                 'normalized_name': normalized_name,
                 'type': entity_type,
                 'confidence': confidence,

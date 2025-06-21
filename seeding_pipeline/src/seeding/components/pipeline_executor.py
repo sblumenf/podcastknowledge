@@ -359,9 +359,10 @@ class PipelineExecutor(BasePipelineExecutor):
                 
                 # Store quotes
                 for quote in quotes:
+                    quote_text = quote.get('text', quote.get('value', ''))  # Support both field names
                     quote_data = {
-                        'id': f"quote_{hash(quote['value'])}",
-                        'text': quote['value'],
+                        'id': f"quote_{hash(quote_text)}",
+                        'text': quote_text,
                         'speaker': quote.get('speaker', 'Unknown'),
                         'quote_type': quote.get('quote_type', 'general'),
                         'importance_score': quote.get('importance_score', 0.5),

@@ -19,6 +19,12 @@ from src.utils.logging import (
     log_performance_metric,
     ProcessingTraceLogger
 )
+from src.core.validation import (
+    validate_and_filter_entities,
+    validate_and_filter_quotes,
+    validate_and_filter_insights,
+    validate_and_filter_relationships
+)
 
 from src.core.extraction_interface import (
     Entity,
@@ -364,11 +370,27 @@ class KnowledgeExtractor:
             
             logger.info(f"Combined extraction completed in {extraction_time:.2f}s for unit {meaningful_unit.id}")
             
+            # Validate and filter results before returning
+            validated_entities = validate_and_filter_entities(entities)
+            validated_quotes = validate_and_filter_quotes(quotes)
+            validated_insights = validate_and_filter_insights(insights)
+            validated_relationships = validate_and_filter_relationships(relationships)
+            
+            # Log validation results
+            if len(validated_entities) < len(entities):
+                logger.warning(f"Filtered out {len(entities) - len(validated_entities)} invalid entities")
+            if len(validated_quotes) < len(quotes):
+                logger.warning(f"Filtered out {len(quotes) - len(validated_quotes)} invalid quotes")
+            if len(validated_insights) < len(insights):
+                logger.warning(f"Filtered out {len(insights) - len(validated_insights)} invalid insights")
+            if len(validated_relationships) < len(relationships):
+                logger.warning(f"Filtered out {len(relationships) - len(validated_relationships)} invalid relationships")
+            
             return ExtractionResult(
-                entities=entities, 
-                quotes=quotes, 
-                relationships=relationships, 
-                insights=insights, 
+                entities=validated_entities, 
+                quotes=validated_quotes, 
+                relationships=validated_relationships, 
+                insights=validated_insights, 
                 metadata=metadata
             )
             
@@ -431,7 +453,7 @@ class KnowledgeExtractor:
                     continue
                     
                 processed_entity = {
-                    'name': entity['name'],
+                    'value': entity['name'],  # Map 'name' from LLM to 'value' for pipeline
                     'type': entity.get('type', 'Unknown'),
                     'description': entity.get('description', ''),
                     'importance': float(entity.get('importance', 5)) / 10,  # Normalize to 0-1
@@ -445,8 +467,11 @@ class KnowledgeExtractor:
                 
                 processed.append(processed_entity)
                 
+            except KeyError as e:
+                logger.warning(f"Entity missing required field '{e.args[0]}': {entity}")
+                continue
             except Exception as e:
-                logger.warning(f"Failed to process entity: {e}")
+                logger.warning(f"Failed to process entity: {e}. Entity data: {entity}")
                 continue
         
         return processed[:self.config.max_entities_per_segment]  # Apply limit
