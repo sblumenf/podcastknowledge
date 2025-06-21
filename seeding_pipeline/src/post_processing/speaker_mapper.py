@@ -208,6 +208,7 @@ class SpeakerMapper:
         
         # Truly generic patterns that need identification
         generic_patterns = [
+            # Original patterns
             r'^Guest Expert$',  # Just "Guest Expert" without a name
             r'^Guest/Contributor',  # Generic contributor
             r'^Co-host/Producer$',  # Just the role
@@ -217,6 +218,23 @@ class SpeakerMapper:
             r'^Guest \(Speaker \d+\)$',  # "Guest (Speaker 2)"
             r'^Host$',  # Just "Host" without name
             r'^Guest$',  # Just "Guest" without name
+            
+            # New patterns to catch LLM-generated generic roles
+            r'^Guest Expert - .+$',  # "Guest Expert - Psychiatrist 1"
+            r'^Primary Speaker.*',  # "Primary Speaker" with any suffix
+            r'^Co-host/Major Guest.*',  # "Co-host/Major Guest" with any suffix
+            r'^Guest Speaker.*',  # "Guest Speaker" variations
+            r'^Brief Contributor.*',  # "Brief Contributor" with any suffix
+            r'.*\(Speaker \d+\)$',  # Anything ending with "(Speaker N)"
+            r'^Speaker \d+$',  # Just "Speaker 0", "Speaker 1", etc.
+            r'^Unknown Speaker.*',  # "Unknown Speaker" variations
+            r'^Unidentified.*',  # "Unidentified" speaker variations
+            r'^Guest \d+$',  # "Guest 1", "Guest 2", etc.
+            r'^Expert - .+$',  # "Expert - Field"
+            r'^Professional - .+$',  # "Professional - Title"
+            r'^Guest Professional.*',  # "Guest Professional" variations
+            r'^Interview[er|ee].*',  # "Interviewer" or "Interviewee" variations
+            r'^Participant.*',  # "Participant" variations
         ]
         
         # Check if matches any truly generic pattern

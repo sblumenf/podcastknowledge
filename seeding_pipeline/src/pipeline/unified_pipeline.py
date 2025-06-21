@@ -9,7 +9,7 @@ import asyncio
 import logging
 import time
 from pathlib import Path
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, List, Optional, Tuple
 from datetime import datetime
 
 # VTT Processing
@@ -81,7 +81,8 @@ class UnifiedKnowledgePipeline:
         embeddings_service: Optional[EmbeddingsService] = None,
         llm_flash: Optional[LLMService] = None,
         llm_pro: Optional[LLMService] = None,
-        enable_speaker_mapping: bool = False
+        enable_speaker_mapping: bool = False,
+        config: Optional[Any] = None
     ):
         """
         Initialize the unified pipeline with required services.
@@ -93,6 +94,7 @@ class UnifiedKnowledgePipeline:
             llm_flash: Optional Flash model service for fast tasks
             llm_pro: Optional Pro model service for complex tasks
             enable_speaker_mapping: Enable post-processing speaker identification (default: False)
+            config: Optional pipeline configuration object
         """
         # Core services - dependency injection
         self.graph_storage = graph_storage
@@ -108,9 +110,14 @@ class UnifiedKnowledgePipeline:
         self.vtt_parser = VTTParser()
         # VTT segmenter and conversation analyzer use Flash for speed
         # Configure speaker identification timeout to 120 seconds as per optimization plan
+        # Use confidence threshold from config or default to 0.5
+        speaker_confidence_threshold = 0.5
+        if config and hasattr(config, 'speaker_confidence_threshold'):
+            speaker_confidence_threshold = config.speaker_confidence_threshold
+        
         vtt_config = {
             'speaker_timeout_seconds': 120,
-            'speaker_confidence_threshold': 0.7,
+            'speaker_confidence_threshold': speaker_confidence_threshold,
             'max_segments_for_context': 50
         }
         self.vtt_segmenter = VTTSegmenter(config=vtt_config, llm_service=self.llm_flash)
@@ -132,6 +139,8 @@ class UnifiedKnowledgePipeline:
         self.logger.info("Initialized UnifiedKnowledgePipeline - THE ONLY PIPELINE")
         self.logger.info(f"  - Flash model: {getattr(self.llm_flash, 'model_name', 'default')}")
         self.logger.info(f"  - Pro model: {getattr(self.llm_pro, 'model_name', 'default')}")
+        self.logger.info(f"  - Speaker confidence threshold: {speaker_confidence_threshold}")
+        self.logger.info(f"  - Speaker mapping enabled: {enable_speaker_mapping}")
         
         # Phase tracking
         self.current_phase = None
@@ -241,19 +250,24 @@ class UnifiedKnowledgePipeline:
             return False
     
     # Placeholder methods for each processing phase
-    async def _parse_vtt(self, vtt_path: Path) -> List[TranscriptSegment]:
-        """Parse VTT file into segments."""
+    async def _parse_vtt(self, vtt_path: Path) -> Tuple[List[TranscriptSegment], Dict[str, Any]]:
+        """Parse VTT file into segments and extract metadata."""
         self.logger.info(f"Parsing VTT file: {vtt_path}")
         
         try:
-            # Parse VTT file using VTTParser
-            segments = self.vtt_parser.parse_file(vtt_path)
+            # Parse VTT file with metadata using VTTParser
+            result = self.vtt_parser.parse_file_with_metadata(vtt_path)
+            segments = result.get('segments', [])
+            metadata = result.get('metadata', {})
             
             if not segments:
                 raise VTTProcessingError(f"No segments found in VTT file: {vtt_path}")
             
             self.logger.info(f"Successfully parsed {len(segments)} segments from VTT file")
-            return segments
+            if metadata:
+                self.logger.info(f"Extracted metadata: {list(metadata.keys())}")
+            
+            return segments, metadata
             
         except Exception as e:
             self.logger.error(f"VTT parsing failed: {e}")
@@ -499,6 +513,18 @@ class UnifiedKnowledgePipeline:
             if not unit.id:
                 # Generate a unique ID based on episode and unit index
                 unit.id = f"unit_{unit.start_time}_{unit.end_time}"
+            
+            # Generate embedding for the unit if embedding service is available
+            if self.embeddings_service:
+                try:
+                    # Use unit text for embedding generation
+                    unit.embedding = self.embeddings_service.generate_embedding(unit.text)
+                    self.logger.debug(f"Generated embedding for unit {unit.id} (dimension: {len(unit.embedding)})")
+                except Exception as e:
+                    self.logger.warning(f"Failed to generate embedding for unit {unit.id}: {e}")
+                    unit.embedding = None
+            else:
+                unit.embedding = None
         
         self.logger.info(f"Created {len(meaningful_units)} MeaningfulUnits")
         
@@ -571,6 +597,10 @@ class UnifiedKnowledgePipeline:
                     'is_complete': unit.is_complete,
                     'metadata': unit.metadata or {}
                 }
+                
+                # Add embedding if available
+                if hasattr(unit, 'embedding') and unit.embedding:
+                    unit_data['embedding'] = unit.embedding
                 
                 # Create MeaningfulUnit node
                 unit_node_id = self.graph_storage.create_meaningful_unit(
@@ -1313,6 +1343,70 @@ class UnifiedKnowledgePipeline:
         # Could also store in a failure log file or database
         # For now, just comprehensive logging
     
+    def _merge_vtt_metadata(self, episode_metadata: Dict[str, Any], vtt_metadata: Dict[str, Any]) -> None:
+        """
+        Merge metadata extracted from VTT file into episode metadata.
+        
+        This method updates the episode_metadata dict in-place, prioritizing VTT metadata
+        over passed-in metadata since VTT files contain authoritative information.
+        
+        Args:
+            episode_metadata: Episode metadata dict to update
+            vtt_metadata: Metadata extracted from VTT NOTE sections
+        """
+        if not vtt_metadata:
+            return
+        
+        # YouTube URL from VTT takes priority
+        if 'youtube_url' in vtt_metadata and vtt_metadata['youtube_url']:
+            episode_metadata['youtube_url'] = vtt_metadata['youtube_url']
+            self.logger.info(f"Set YouTube URL from VTT: {vtt_metadata['youtube_url']}")
+        elif 'episode_url' in episode_metadata and episode_metadata['episode_url']:
+            # Fall back to episode_url if no YouTube URL in VTT
+            episode_metadata['youtube_url'] = episode_metadata['episode_url']
+        
+        # Description from VTT takes priority
+        if 'description' in vtt_metadata and vtt_metadata['description']:
+            episode_metadata['description'] = vtt_metadata['description']
+        
+        # Published date from VTT takes priority
+        if 'published_date' in vtt_metadata and vtt_metadata['published_date']:
+            episode_metadata['published_date'] = vtt_metadata['published_date']
+        elif 'published' in vtt_metadata and vtt_metadata['published']:
+            episode_metadata['published_date'] = vtt_metadata['published']
+        
+        # Handle title - VTT metadata takes priority
+        if 'episode' in vtt_metadata and vtt_metadata['episode']:
+            episode_metadata['title'] = vtt_metadata['episode']
+            episode_metadata['episode_title'] = vtt_metadata['episode']
+            self.logger.info(f"Set title from VTT: {vtt_metadata['episode']}")
+        elif 'title' in vtt_metadata and vtt_metadata['title']:
+            episode_metadata['title'] = vtt_metadata['title']
+            episode_metadata['episode_title'] = vtt_metadata['title']
+        elif 'episode_title' in episode_metadata and episode_metadata['episode_title']:
+            # Ensure title field is set from episode_title
+            episode_metadata['title'] = episode_metadata['episode_title']
+        
+        # Extract podcast info from VTT if available
+        if 'podcast' in vtt_metadata:
+            if 'podcast_info' not in episode_metadata:
+                episode_metadata['podcast_info'] = {}
+            episode_metadata['podcast_info']['name'] = vtt_metadata['podcast']
+            if 'podcast_name' not in episode_metadata:
+                episode_metadata['podcast_name'] = vtt_metadata['podcast']
+        
+        if 'author' in vtt_metadata:
+            if 'podcast_info' not in episode_metadata:
+                episode_metadata['podcast_info'] = {}
+            episode_metadata['podcast_info']['host'] = vtt_metadata['author']
+        
+        # Store any additional VTT metadata that might be useful
+        for key, value in vtt_metadata.items():
+            # Skip fields we've already processed or that might conflict
+            if key not in ['youtube_url', 'description', 'published_date', 'title', 'episode', 'podcast', 'author']:
+                # Store additional metadata with vtt_ prefix to avoid conflicts
+                episode_metadata[f'vtt_{key}'] = value
+    
     async def process_vtt_file(self, vtt_path: Path, episode_metadata: Dict) -> Dict[str, Any]:
         """
         Main processing method - orchestrates entire pipeline flow.
@@ -1397,15 +1491,20 @@ class UnifiedKnowledgePipeline:
             if self._should_skip_phase("VTT_PARSING", checkpoint):
                 self.logger.info("Skipping VTT_PARSING - already completed")
                 segments = self.phase_results.get("VTT_PARSING", {}).get("segments", [])
+                vtt_metadata = self.phase_results.get("VTT_PARSING", {}).get("metadata", {})
+                # Merge VTT metadata with episode metadata
+                self._merge_vtt_metadata(episode_metadata, vtt_metadata)
                 result['stats']['segments_parsed'] = len(segments)
                 result['phases_completed'].append("VTT_PARSING")
             else:
                 self._start_phase("VTT_PARSING")
-                segments = await self._parse_vtt(vtt_path)
+                segments, vtt_metadata = await self._parse_vtt(vtt_path)
+                # Merge VTT metadata with episode metadata
+                self._merge_vtt_metadata(episode_metadata, vtt_metadata)
                 result['stats']['segments_parsed'] = len(segments) if segments else 0
                 result['phases_completed'].append("VTT_PARSING")
                 self._end_phase()
-                self._save_checkpoint("VTT_PARSING", {'segments': segments}, episode_metadata)
+                self._save_checkpoint("VTT_PARSING", {'segments': segments, 'metadata': vtt_metadata}, episode_metadata)
             
             # PHASE 2: Speaker Identification
             if self._should_skip_phase("SPEAKER_IDENTIFICATION", checkpoint):

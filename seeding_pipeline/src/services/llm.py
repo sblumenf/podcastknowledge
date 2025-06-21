@@ -190,13 +190,12 @@ class LLMService:
         try:
             if json_mode:
                 # Use native JSON mode with Google GenAI SDK
-                import google.genai as genai
+                from google import genai
                 from google.genai import types
                 
                 # Initialize client if needed
                 if not hasattr(self, '_genai_client'):
-                    genai.configure(api_key=self.api_key)
-                    self._genai_client = genai.Client()
+                    self._genai_client = genai.Client(api_key=self.api_key)
                 
                 # Generate content with JSON mode
                 response = self._genai_client.models.generate_content(

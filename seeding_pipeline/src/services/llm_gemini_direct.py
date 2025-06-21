@@ -263,7 +263,8 @@ class GeminiDirectService:
                             prompt: str, 
                             temperature: Optional[float] = None,
                             max_tokens: Optional[int] = None,
-                            cached_content_name: Optional[str] = None) -> Dict[str, Any]:
+                            cached_content_name: Optional[str] = None,
+                            json_mode: bool = False) -> Dict[str, Any]:
         """Generate completion with custom options.
         
         Args:
@@ -271,6 +272,7 @@ class GeminiDirectService:
             temperature: Override default temperature
             max_tokens: Override default max tokens
             cached_content_name: Optional name of cached content to use
+            json_mode: If True, force JSON output using response_mime_type
             
         Returns:
             Dict with content and metadata
@@ -288,6 +290,10 @@ class GeminiDirectService:
                 'temperature': temp,
                 'max_output_tokens': tokens,
             }
+            
+            # Enable JSON mode if requested
+            if json_mode:
+                config_params['response_mime_type'] = 'application/json'
             
             if cached_content_name:
                 config_params['cached_content'] = cached_content_name
@@ -389,10 +395,18 @@ class GeminiDirectService:
         
         # Get completion
         temp = temperature if temperature is not None else self.temperature
+        
+        # If response_format is provided, we need JSON output
+        # Need to modify complete_with_options to support JSON mode
+        # For now, use lower temperature for more consistent output
+        if response_format:
+            temp = min(temp, 0.1)  # Force low temperature for JSON
+            
         result = self.complete_with_options(
             full_prompt, 
             temperature=temp, 
-            cached_content_name=cached_content_name
+            cached_content_name=cached_content_name,
+            json_mode=bool(response_format)  # Enable JSON mode when format is requested
         )
         content = result['content']
         

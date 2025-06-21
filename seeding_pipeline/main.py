@@ -97,6 +97,9 @@ async def process_vtt_file(
     # Initialize services
     logger.info("Initializing services...")
     
+    # Load configuration
+    config = SeedingConfig()
+    
     # Graph storage
     graph_storage = GraphStorageService(
         uri=neo4j_uri,
@@ -135,7 +138,8 @@ async def process_vtt_file(
         embeddings_service=embeddings_service,
         llm_flash=llm_flash,
         llm_pro=llm_pro,
-        enable_speaker_mapping=True  # Enable speaker post-processing
+        enable_speaker_mapping=True,  # Enable speaker post-processing
+        config=config
     )
     
     # Prepare episode metadata
@@ -145,7 +149,9 @@ async def process_vtt_file(
             'episode_id': resume_episode_id,
             'podcast_name': podcast_name,
             'episode_title': episode_title,
+            'title': episode_title,  # Add title field for create_episode
             'episode_url': episode_url,
+            'youtube_url': episode_url,  # Map to youtube_url for create_episode
             'vtt_file_path': str(vtt_path),
             'processing_timestamp': datetime.now().isoformat()
         }
@@ -154,7 +160,9 @@ async def process_vtt_file(
             'episode_id': f"{podcast_name}_{episode_title}_{datetime.now().isoformat()}".replace(" ", "_"),
             'podcast_name': podcast_name,
             'episode_title': episode_title,
+            'title': episode_title,  # Add title field for create_episode
             'episode_url': episode_url,
+            'youtube_url': episode_url,  # Map to youtube_url for create_episode
             'vtt_file_path': str(vtt_path),
             'processing_timestamp': datetime.now().isoformat()
         }

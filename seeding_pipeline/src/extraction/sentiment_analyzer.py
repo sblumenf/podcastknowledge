@@ -354,7 +354,17 @@ Return as JSON:
         
         try:
             response_data = self.llm_service.complete_with_options(prompt, json_mode=True)
-            result = self._parse_sentiment_response(response_data['content'])
+            
+            # Defensive check for response_data and content key
+            if response_data and isinstance(response_data, dict) and 'content' in response_data:
+                if response_data['content'] is not None:
+                    result = self._parse_sentiment_response(response_data['content'])
+                else:
+                    self.logger.debug("LLM returned None content for sentiment analysis")
+                    result = None
+            else:
+                self.logger.warning(f"Invalid response structure from LLM: {type(response_data)}")
+                result = None
             
             if result:
                 return SentimentScore(
@@ -700,8 +710,70 @@ Return as JSON list (max {self.config.max_discovered_types} items):
     # Helper methods
     
     def _parse_sentiment_response(self, response: str) -> Optional[Dict[str, Any]]:
-        """Parse LLM sentiment response."""
-        return self._parse_json_response(response)
+        """Parse LLM sentiment response with text-to-number conversion."""
+        result = self._parse_json_response(response)
+        
+        if not result:
+            return None
+            
+        # Text-to-number conversion mapping
+        TEXT_TO_SCORE = {
+            # Common text values
+            "very high": 0.9, "high": 0.8, "medium high": 0.7,
+            "medium": 0.5, "moderate": 0.5,
+            "medium low": 0.3, "low": 0.2, "very low": 0.1,
+            # Intensity descriptors
+            "extremely": 0.95, "very": 0.85, "quite": 0.75,
+            "somewhat": 0.6, "slightly": 0.4, "barely": 0.2,
+            # Energy/engagement specific
+            "energetic": 0.8, "engaged": 0.8, "neutral": 0.5,
+            "passive": 0.3, "disengaged": 0.2,
+            # Polarity mappings
+            "positive": 0.7, "negative": -0.7, "mixed": 0.0
+        }
+        
+        # Convert text values to numbers for numeric fields
+        numeric_fields = ['score', 'energy_level', 'engagement_level']
+        for field in numeric_fields:
+            if field in result and isinstance(result[field], str):
+                # Try direct mapping first
+                text_value = result[field].lower().strip()
+                if text_value in TEXT_TO_SCORE:
+                    result[field] = TEXT_TO_SCORE[text_value]
+                else:
+                    # Try to extract number from string (e.g., "0.8", "80%", "8/10")
+                    import re
+                    # Pattern to match various numeric formats
+                    number_match = re.search(r'(\d+\.?\d*)\s*[/%]?\s*(\d*)', text_value)
+                    if number_match:
+                        num = float(number_match.group(1))
+                        denom = number_match.group(2)
+                        
+                        # Handle percentage
+                        if '%' in text_value:
+                            result[field] = num / 100.0
+                        # Handle fraction (e.g., "8/10")
+                        elif denom:
+                            result[field] = num / float(denom)
+                        # Handle decimal directly
+                        else:
+                            result[field] = num if num <= 1.0 else num / 10.0
+                    else:
+                        # Default to neutral if can't parse
+                        self.logger.warning(f"Could not parse text value '{text_value}' for {field}, defaulting to 0.5")
+                        result[field] = 0.5
+        
+        # Also convert emotion intensities if present
+        if 'emotions' in result and isinstance(result['emotions'], dict):
+            for emotion, intensity in result['emotions'].items():
+                if isinstance(intensity, str):
+                    text_intensity = intensity.lower().strip()
+                    if text_intensity in TEXT_TO_SCORE:
+                        result['emotions'][emotion] = TEXT_TO_SCORE[text_intensity]
+                    else:
+                        result['emotions'][emotion] = 0.5  # Default
+        
+        return result
     
     def _parse_json_response(self, response: str) -> Optional[Any]:
         """Parse JSON from LLM response."""

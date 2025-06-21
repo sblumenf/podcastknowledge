@@ -54,6 +54,7 @@ class PipelineConfig:
     speaker_min_name_length: int = 2  # Minimum characters for valid speaker name
     speaker_min_units: int = 2  # Minimum meaningful units for valuable contribution
     speaker_min_avg_text_length: int = 50  # Minimum average text length for contribution
+    speaker_confidence_threshold: float = field(default_factory=lambda: float(os.environ.get("SPEAKER_CONFIDENCE_THRESHOLD", "0.5")))
     
     # Embedding Settings
     embedding_dimensions: int = 768  # Gemini text-embedding-004 dimensions

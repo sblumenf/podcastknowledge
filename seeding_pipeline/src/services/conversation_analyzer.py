@@ -71,26 +71,16 @@ class ConversationAnalyzer:
             prompt = self._build_analysis_prompt(transcript_data)
             
             # Get structured response from LLM
-            # Use a higher temperature to allow more flexibility
-            # Check if we have a direct gemini service that supports JSON mode
-            if hasattr(self.llm_service, 'gemini_service') and hasattr(self.llm_service.gemini_service, 'generate_completion'):
-                # Use the direct service with JSON mode enabled
-                response = self.llm_service.gemini_service.generate_completion(
-                    prompt=prompt,
-                    system_prompt="You are an expert conversation analyst specializing in podcast and interview structure. Generate valid JSON output.",
-                    # Don't use response_format to avoid pydantic validation before we can fix indices
-                    # response_format=ConversationStructure,
-                    temperature=0.2  # Slightly higher temperature
-                )
-            else:
-                # Fallback to standard service
-                response = self.llm_service.generate_completion(
-                    prompt=prompt,
-                    system_prompt="You are an expert conversation analyst specializing in podcast and interview structure. Generate valid JSON output.",
-                    # Don't use response_format to avoid pydantic validation before we can fix indices
-                    # response_format=ConversationStructure,
-                    temperature=0.2  # Slightly higher temperature
-                )
+            # Use JSON mode for reliable parsing
+            system_prompt = "You are an expert conversation analyst specializing in podcast and interview structure. Generate valid JSON output."
+            full_prompt = f"{system_prompt}\n\n{prompt}"
+            
+            response_data = self.llm_service.complete_with_options(
+                prompt=full_prompt,
+                temperature=0.2,
+                json_mode=True
+            )
+            response = response_data['content']
             
             # Parse and validate response
             if isinstance(response, dict):
@@ -267,9 +257,9 @@ IMPORTANT: Keep all text descriptions concise and focused. Avoid lengthy explana
                             unit['start_index'] = 0
                             unit['end_index'] = 0
                     # Map field names
-                    elif 'start_segment_index' in unit and 'start_index' not in unit:
+                    if 'start_segment_index' in unit and 'start_index' not in unit:
                         unit['start_index'] = unit.pop('start_segment_index')
-                    elif 'end_segment_index' in unit and 'end_index' not in unit:
+                    if 'end_segment_index' in unit and 'end_index' not in unit:
                         unit['end_index'] = unit.pop('end_segment_index')
                     
                     # Ensure required fields have defaults
@@ -280,11 +270,14 @@ IMPORTANT: Keep all text descriptions concise and focused. Avoid lengthy explana
                     if 'confidence' not in unit:
                         unit['confidence'] = 0.8
                     
-                    # Extract summary if present
-                    if 'summary' not in unit and 'content' in unit:
-                        unit['summary'] = unit['content'][:400] if len(unit['content']) > 400 else unit['content']
-                    elif 'summary' not in unit:
-                        unit['summary'] = f"Unit {unit.get('unit_id', 'unknown')}"
+                    # Ensure description field exists (required field)
+                    if 'description' not in unit:
+                        if 'summary' in unit:
+                            unit['description'] = unit['summary'][:400] if len(unit['summary']) > 400 else unit['summary']
+                        elif 'content' in unit:
+                            unit['description'] = unit['content'][:400] if len(unit['content']) > 400 else unit['content']
+                        else:
+                            unit['description'] = f"Unit {unit.get('unit_id', 'unknown')}"
         
         # Fix themes format
         if 'themes' in structure_dict:
@@ -301,6 +294,14 @@ IMPORTANT: Keep all text descriptions concise and focused. Avoid lengthy explana
                 elif isinstance(theme, dict):
                     # Create a copy to avoid modifying the original in place
                     theme_copy = dict(theme)
+                    # Map 'id' or 'name' to 'theme' if needed
+                    if 'theme' not in theme_copy:
+                        if 'id' in theme_copy:
+                            theme_copy['theme'] = f"Theme {theme_copy.pop('id')}"
+                        elif 'name' in theme_copy:
+                            theme_copy['theme'] = theme_copy.pop('name')
+                        else:
+                            theme_copy['theme'] = 'Unknown Theme'
                     # Ensure evolution field exists
                     if 'evolution' not in theme_copy:
                         theme_copy['evolution'] = theme_copy.get('description', 'Theme remains consistent throughout the conversation')[:400]
@@ -360,6 +361,14 @@ IMPORTANT: Keep all text descriptions concise and focused. Avoid lengthy explana
                 # Convert string to insights dict
                 structure_dict['insights'] = {
                     'fragmentation_issues': [structure_dict['insights']],
+                    'missing_context': [],
+                    'natural_boundaries': [],
+                    'overall_coherence': 0.7
+                }
+            elif isinstance(structure_dict['insights'], list):
+                # Convert list to insights dict - assume they're fragmentation issues
+                structure_dict['insights'] = {
+                    'fragmentation_issues': structure_dict['insights'],
                     'missing_context': [],
                     'natural_boundaries': [],
                     'overall_coherence': 0.7
@@ -428,10 +437,11 @@ IMPORTANT: Keep all text descriptions concise and focused. Avoid lengthy explana
         unit = ConversationUnit(
             start_index=0,
             end_index=len(segments) - 1,
-            type="discussion",
-            summary="Full conversation",
-            key_points=["Complete transcript"],
-            transitions=[]
+            unit_type="topic_discussion",
+            description="Full conversation - fallback structure",
+            completeness="complete",
+            key_entities=[],
+            confidence=0.5
         )
         
         # Create minimal structure
@@ -440,16 +450,17 @@ IMPORTANT: Keep all text descriptions concise and focused. Avoid lengthy explana
             themes=[],
             boundaries=[],
             flow=ConversationFlow(
-                overall_pattern="linear",
-                key_transitions=[],
-                narrative_arc="single-segment"
+                opening="Conversation begins",
+                development="Content proceeds linearly",
+                conclusion="Conversation ends"
             ),
             insights=StructuralInsights(
                 fragmentation_issues=[],
                 missing_context=[],
                 natural_boundaries=[],
                 overall_coherence=0.5
-            )
+            ),
+            total_segments=len(segments)
         )
         
         return structure

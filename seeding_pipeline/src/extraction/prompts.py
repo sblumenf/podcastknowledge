@@ -227,13 +227,18 @@ Format your response as a valid JSON object with these fields:
 - identification_methods: Object explaining how each speaker was identified
 - unresolved_speakers: Array of speaker IDs that couldn't be confidently identified
 
-Prioritize accuracy over completeness. If uncertain, use descriptive roles like:
-- "Primary Host (75% airtime)"
-- "Guest Expert - Psychology"
-- "Co-host/Interviewer"
-- "Brief Contributor"
+IMPORTANT: Make your BEST EFFORT to find actual names by:
+1. Looking for ANY mention of names in the transcript
+2. Checking if speakers reference each other by name
+3. Looking for professional titles with names (Dr., Professor, etc.)
+4. Identifying names from conversational context
 
-Remember: Generic speaker names are a failure condition. Always provide actual names or meaningful roles.
+Only as an ABSOLUTE LAST RESORT when no name clues exist, use descriptive roles like:
+- "Host" (for clear podcast hosts)
+- "Guest" (for clear guests)
+- Keep these simple - avoid complex descriptions like percentages or specialties
+
+Remember: Finding actual names is the primary goal. Be creative in identifying them from context.
 
 JSON RESPONSE:""",
             variables=['metadata', 'speaker_stats', 'opening_segments'],

@@ -400,10 +400,12 @@ class SpeakerIdentifier:
         
         for attempt in range(3):
             try:
-                response = self.llm_service.complete(
-                    prompt
+                # Use JSON mode for reliable speaker identification responses
+                response_data = self.llm_service.complete_with_options(
+                    prompt,
+                    json_mode=True
                 )
-                return response
+                return response_data['content']
                 
             except Exception as e:
                 last_exception = e

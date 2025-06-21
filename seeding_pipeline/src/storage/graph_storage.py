@@ -110,6 +110,9 @@ class GraphStorageService:
                     logger.info(f"Neo4j connection verified: {status}")
                     self._connection_healthy = True
                     self._last_health_check = datetime.now()
+                    
+                    # Automatically set up schema constraints and indexes
+                    self.setup_schema()
                     return
                     
             except Exception as e:
@@ -809,24 +812,65 @@ class GraphStorageService:
                     if 'segment_indices' in unit_data and isinstance(unit_data['segment_indices'], list):
                         unit_data['segment_indices'] = json.dumps(unit_data['segment_indices'])
                     
-                    # Create MeaningfulUnit node and relationship to episode
-                    cypher = """
-                    CREATE (m:MeaningfulUnit {
-                        id: $id,
-                        text: $text,
-                        start_time: $start_time,
-                        end_time: $end_time,
-                        summary: $summary,
-                        speaker_distribution: $speaker_distribution,
-                        unit_type: $unit_type,
-                        themes: $themes,
-                        segment_indices: $segment_indices
-                    })
-                    WITH m
-                    MATCH (e:Episode {id: $episode_id})
-                    CREATE (m)-[:PART_OF]->(e)
-                    RETURN m.id AS id
-                    """
+                    # Prepare embedding (Neo4j can store lists of floats directly)
+                    embedding = unit_data.get('embedding', None)
+                    
+                    # Use MERGE to prevent duplicates, CREATE relationship only if needed
+                    # Build cypher query conditionally based on whether we have embeddings
+                    if embedding:
+                        cypher = """
+                        MERGE (m:MeaningfulUnit {id: $id})
+                        ON CREATE SET 
+                            m.text = $text,
+                            m.start_time = $start_time,
+                            m.end_time = $end_time,
+                            m.summary = $summary,
+                            m.speaker_distribution = $speaker_distribution,
+                            m.unit_type = $unit_type,
+                            m.themes = $themes,
+                            m.segment_indices = $segment_indices,
+                            m.embedding = $embedding
+                        ON MATCH SET
+                            m.text = $text,
+                            m.start_time = $start_time,
+                            m.end_time = $end_time,
+                            m.summary = $summary,
+                            m.speaker_distribution = $speaker_distribution,
+                            m.unit_type = $unit_type,
+                            m.themes = $themes,
+                            m.segment_indices = $segment_indices,
+                            m.embedding = $embedding
+                        WITH m
+                        MATCH (e:Episode {id: $episode_id})
+                        MERGE (m)-[:PART_OF]->(e)
+                        RETURN m.id AS id
+                        """
+                    else:
+                        cypher = """
+                        MERGE (m:MeaningfulUnit {id: $id})
+                        ON CREATE SET 
+                            m.text = $text,
+                            m.start_time = $start_time,
+                            m.end_time = $end_time,
+                            m.summary = $summary,
+                            m.speaker_distribution = $speaker_distribution,
+                            m.unit_type = $unit_type,
+                            m.themes = $themes,
+                            m.segment_indices = $segment_indices
+                        ON MATCH SET
+                            m.text = $text,
+                            m.start_time = $start_time,
+                            m.end_time = $end_time,
+                            m.summary = $summary,
+                            m.speaker_distribution = $speaker_distribution,
+                            m.unit_type = $unit_type,
+                            m.themes = $themes,
+                            m.segment_indices = $segment_indices
+                        WITH m
+                        MATCH (e:Episode {id: $episode_id})
+                        MERGE (m)-[:PART_OF]->(e)
+                        RETURN m.id AS id
+                        """
                     
                     # Set defaults for optional fields
                     params = {
@@ -841,6 +885,10 @@ class GraphStorageService:
                         'segment_indices': unit_data.get('segment_indices', '[]'),
                         'episode_id': episode_id
                     }
+                    
+                    # Add embedding to params if available
+                    if embedding:
+                        params['embedding'] = embedding
                     
                     result = session.run(cypher, **params)
                     record = result.single()
