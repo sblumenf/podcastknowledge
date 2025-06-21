@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+# End-to-end pipeline test - not meant to be run directly
 """
 End-to-End Pipeline Testing Script for Phase 6 Task 6.2
 
@@ -412,13 +412,5 @@ async def main():
     return success
 
 
-if __name__ == "__main__":
-    try:
-        success = asyncio.run(main())
-        sys.exit(0 if success else 1)
-    except KeyboardInterrupt:
-        print("\n❌ Test interrupted by user")
-        sys.exit(1)
-    except Exception as e:
-        print(f"\n❌ Test failed with error: {e}")
-        sys.exit(1)
+# This test should only be run as part of the test suite, not directly
+# Use main.py for processing episodes

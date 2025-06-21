@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+# Pipeline validation test - not meant to be run directly
 """
 Simple Pipeline Validation Script for Phase 6 Task 6.2
 
@@ -303,6 +303,5 @@ def main():
         return False
 
 
-if __name__ == "__main__":
-    success = main()
-    sys.exit(0 if success else 1)
+# This validation should only be run as part of the test suite, not directly
+# Use main.py for processing episodes

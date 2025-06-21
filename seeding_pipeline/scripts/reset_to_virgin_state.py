@@ -67,8 +67,23 @@ def reset_to_virgin_state():
     else:
         print("   ✓ No speaker cache directory found")
     
-    # 3. Clear Checkpoints
-    print("\n3. Clearing checkpoints...")
+    # 3. Clear Component Tracking Files
+    print("\n3. Clearing component tracking files...")
+    component_tracking_dir = project_root / "component_tracking"
+    if component_tracking_dir.exists():
+        tracking_files = list(component_tracking_dir.glob("*.jsonl"))
+        if tracking_files:
+            for file in tracking_files:
+                file.unlink()
+                print(f"   Deleted: {file.name}")
+            print(f"   ✓ Cleared {len(tracking_files)} component tracking files")
+        else:
+            print("   ✓ Component tracking directory already empty")
+    else:
+        print("   ✓ No component tracking directory found")
+    
+    # 4. Clear Checkpoints
+    print("\n4. Clearing checkpoints...")
     checkpoints_dir = project_root / "checkpoints"
     if checkpoints_dir.exists():
         checkpoint_dirs = [d for d in checkpoints_dir.iterdir() if d.is_dir()]
@@ -82,8 +97,8 @@ def reset_to_virgin_state():
     else:
         print("   ✓ No checkpoints directory found")
     
-    # 4. Clear Test Results and Metrics
-    print("\n4. Clearing test results and metrics...")
+    # 5. Clear Test Results and Metrics
+    print("\n5. Clearing test results and metrics...")
     test_results_dir = project_root / "test_results"
     if test_results_dir.exists():
         result_files = list(test_results_dir.glob("*.json"))
@@ -97,8 +112,8 @@ def reset_to_virgin_state():
     else:
         print("   ✓ No test results directory found")
     
-    # 5. Clear Benchmark Files
-    print("\n5. Clearing benchmark files...")
+    # 6. Clear Benchmark Files
+    print("\n6. Clearing benchmark files...")
     benchmarks_dir = project_root / "tests" / "benchmarks"
     if benchmarks_dir.exists():
         benchmark_files = list(benchmarks_dir.glob("neo4j_benchmark_*.json"))
@@ -112,8 +127,8 @@ def reset_to_virgin_state():
     else:
         print("   ✓ No benchmarks directory found")
     
-    # 6. Clear any cached prompt files
-    print("\n6. Clearing cached prompts...")
+    # 7. Clear any cached prompt files
+    print("\n7. Clearing cached prompts...")
     cache_files_found = False
     for cache_file in project_root.rglob("*.cache"):
         cache_file.unlink()
@@ -125,8 +140,8 @@ def reset_to_virgin_state():
     else:
         print("   ✓ No cached prompt files found")
     
-    # 7. Clear temporary analysis files
-    print("\n7. Clearing temporary analysis files...")
+    # 8. Clear temporary analysis files
+    print("\n8. Clearing temporary analysis files...")
     temp_files = [
         project_root.parent / "analyze_db.py",
         project_root.parent / "db_analysis.txt"
@@ -148,6 +163,7 @@ def reset_to_virgin_state():
     print("\nThe system is now in virgin state:")
     print("✓ Neo4j database is empty")
     print("✓ All caches have been cleared")
+    print("✓ All component tracking files have been removed")
     print("✓ All checkpoints have been removed")
     print("✓ All metrics and benchmarks have been deleted")
     print("✓ All temporary files have been cleaned up")
@@ -159,6 +175,7 @@ if __name__ == "__main__":
     print("This includes:")
     print("- All Neo4j database content")
     print("- All speaker caches")
+    print("- All component tracking files")
     print("- All processing checkpoints")
     print("- All test results and benchmarks")
     print("- All temporary files")

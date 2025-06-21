@@ -677,7 +677,7 @@ class UnifiedKnowledgePipeline:
                     episode_metadata={
                         'episode_id': self.current_episode_id,
                         'unit_index': unit_index,
-                        'total_units': len(self._total_units),  # Will be set by caller
+                        'total_units': self._total_units,  # Will be set by caller
                         'podcast_name': self.episode_metadata.get('podcast_name', 'Unknown'),
                         'episode_title': self.episode_metadata.get('episode_title', 'Unknown')
                     }
@@ -690,7 +690,7 @@ class UnifiedKnowledgePipeline:
                     episode_metadata={
                         'episode_id': self.current_episode_id,
                         'unit_index': unit_index,
-                        'total_units': len(self._total_units)
+                        'total_units': self._total_units
                     }
                 )
             

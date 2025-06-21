@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+# Performance tuning test - not meant to be run directly
 """
 Phase 4 Task 4.1: Test script for tuning concurrent processing limits.
 
@@ -318,5 +318,5 @@ def main():
     save_results(results, output_file)
 
 
-if __name__ == "__main__":
-    main()
+# This test should only be run as part of performance testing, not directly
+# Use main.py for processing episodes

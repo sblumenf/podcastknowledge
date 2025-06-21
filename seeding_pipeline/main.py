@@ -196,13 +196,53 @@ async def process_vtt_file(
         raise
 
 
+def extract_title_from_filename(filename: str) -> str:
+    """Extract a clean title from a VTT filename.
+    
+    Args:
+        filename: The filename without extension
+        
+    Returns:
+        Cleaned title
+    """
+    # Remove date prefix if present (e.g., "2022-10-06_")
+    parts = filename.split('_', 1)
+    if len(parts) > 1 and parts[0].count('-') == 2:
+        # Check if first part looks like a date
+        try:
+            # Simple date validation
+            date_parts = parts[0].split('-')
+            if len(date_parts) == 3 and all(p.isdigit() for p in date_parts):
+                title = parts[1]
+            else:
+                title = filename
+        except:
+            title = filename
+    else:
+        title = filename
+    
+    # Replace underscores with spaces
+    title = title.replace('_', ' ')
+    
+    # Clean up common patterns
+    title = title.replace('&', 'and')
+    
+    return title
+
+
 def main():
     """Main entry point with CLI argument parsing."""
     parser = argparse.ArgumentParser(
         description="Process VTT transcripts through the Unified Knowledge Pipeline",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""Examples:
+  # Single file
   %(prog)s transcript.vtt --podcast "My Podcast" --title "Episode 1"
+  
+  # Directory of files
+  %(prog)s /path/to/directory/ --directory --podcast "My Podcast"
+  
+  # With additional options
   %(prog)s /path/to/file.vtt -p "Tech Talk" -t "AI Discussion" --url "https://youtube.com/watch?v=..."
   
 Environment Variables:
@@ -215,9 +255,14 @@ Environment Variables:
     )
     
     parser.add_argument(
-        "vtt_file",
+        "path",
         type=Path,
-        help="Path to VTT transcript file"
+        help="Path to VTT transcript file or directory"
+    )
+    parser.add_argument(
+        "--directory",
+        action="store_true",
+        help="Process all VTT files in the directory"
     )
     parser.add_argument(
         "-p", "--podcast",
@@ -226,8 +271,8 @@ Environment Variables:
     )
     parser.add_argument(
         "-t", "--title",
-        required=True,
-        help="Episode title"
+        required=False,  # Made optional for directory mode
+        help="Episode title (required for single file, auto-generated for directory)"
     )
     parser.add_argument(
         "-u", "--url",
@@ -280,6 +325,19 @@ Environment Variables:
     
     args = parser.parse_args()
     
+    # Validate arguments
+    if args.directory:
+        if not args.path.is_dir():
+            print(f"Error: {args.path} is not a directory")
+            sys.exit(1)
+    else:
+        if args.path.is_dir():
+            print(f"Error: {args.path} is a directory. Use --directory flag to process all files in a directory.")
+            sys.exit(1)
+        if not args.title:
+            print("Error: --title is required when processing a single file")
+            sys.exit(1)
+    
     # Set logging level
     if args.verbose:
         logging.getLogger().setLevel(logging.DEBUG)
@@ -320,84 +378,154 @@ Environment Variables:
                 print(f"Failed to clear checkpoint for episode: {args.clear_checkpoint}")
             sys.exit(0)
     
-    # Validate VTT file exists
-    if not args.vtt_file.exists():
-        print(f"Error: VTT file not found: {args.vtt_file}")
-        sys.exit(1)
-    
-    # Run async processing
-    try:
-        # If --resume is specified, use that episode ID
-        if args.resume:
-            # Load checkpoint to get metadata
-            from src.pipeline.checkpoint import CheckpointManager
-            checkpoint_manager = CheckpointManager()
-            checkpoint = checkpoint_manager.load_checkpoint(args.resume)
-            if checkpoint:
-                # Use checkpoint metadata
-                episode_metadata = checkpoint.metadata
+    # Process based on mode
+    if args.directory:
+        # Directory mode - process all VTT files
+        vtt_files = sorted(args.path.glob("*.vtt"))
+        
+        if not vtt_files:
+            print(f"No VTT files found in directory: {args.path}")
+            sys.exit(0)
+        
+        print(f"\nProcessing directory: {args.path}")
+        print(f"Found {len(vtt_files)} VTT file(s)\n")
+        
+        success_count = 0
+        failed_files = []
+        
+        for idx, vtt_file in enumerate(vtt_files, 1):
+            # Extract title from filename
+            title = extract_title_from_filename(vtt_file.stem)
+            
+            print(f"[{idx}/{len(vtt_files)}] Processing: {vtt_file.name}")
+            print(f"  Title: {title}")
+            
+            try:
+                start_time = datetime.now()
+                
+                # Process the file
                 result = asyncio.run(process_vtt_file(
-                    vtt_path=args.vtt_file,
-                    podcast_name=episode_metadata.get('podcast_name', args.podcast),
-                    episode_title=episode_metadata.get('episode_title', args.title),
-                    episode_url=episode_metadata.get('episode_url', args.url),
+                    vtt_path=vtt_file,
+                    podcast_name=args.podcast,
+                    episode_title=title,
+                    episode_url=args.url,
                     neo4j_uri=args.neo4j_uri,
                     neo4j_user=args.neo4j_user,
                     neo4j_password=args.neo4j_password,
-                    gemini_api_key=args.gemini_api_key,
-                    resume_episode_id=args.resume
+                    gemini_api_key=args.gemini_api_key
                 ))
-            else:
-                print(f"Error: No checkpoint found for episode: {args.resume}")
-                sys.exit(1)
-        else:
-            result = asyncio.run(process_vtt_file(
-                vtt_path=args.vtt_file,
-                podcast_name=args.podcast,
-                episode_title=args.title,
-                episode_url=args.url,
-                neo4j_uri=args.neo4j_uri,
-                neo4j_user=args.neo4j_user,
-                neo4j_password=args.neo4j_password,
-                gemini_api_key=args.gemini_api_key
-            ))
-        
-        # Print results
-        print("\n" + "="*60)
-        print("PROCESSING COMPLETE")
-        print("="*60)
-        print(f"Status: {result.get('status', 'unknown')}")
-        print(f"Episode ID: {result.get('episode_id', 'N/A')}")
-        print(f"Processing Time: {result.get('processing_time', 0):.2f} seconds")
-        print(f"\nSegments Processed: {result.get('segments_processed', 0)}")
-        print(f"Meaningful Units Created: {result.get('meaningful_units_created', 0)}")
-        print(f"\nKnowledge Extracted:")
-        print(f"  - Entities: {result.get('entities_extracted', 0)}")
-        print(f"  - Quotes: {result.get('quotes_extracted', 0)}")
-        print(f"  - Insights: {result.get('insights_extracted', 0)}")
-        print(f"  - Relationships: {result.get('relationships_extracted', 0)}")
-        print(f"\nGraph Storage:")
-        print(f"  - Nodes Created: {result.get('nodes_created', 0)}")
-        print(f"  - Relationships Created: {result.get('relationships_created', 0)}")
-        print(f"\nAnalysis Results:")
-        print(f"  - Structural Gaps: {result.get('gaps_detected', 0)}")
-        print(f"  - Missing Links: {result.get('missing_links_found', 0)}")
-        print(f"  - Diversity Score: {result.get('diversity_score', 0):.3f}")
-        
-        if result.get('errors'):
-            print(f"\nErrors encountered: {len(result['errors'])}")
-            for error in result['errors'][:5]:  # Show first 5 errors
-                print(f"  - {error}")
                 
-    except KeyboardInterrupt:
-        print("\nProcessing interrupted by user")
-        sys.exit(1)
-    except Exception as e:
-        print(f"\nError: {e}")
-        if args.verbose:
-            import traceback
-            traceback.print_exc()
-        sys.exit(1)
+                processing_time = (datetime.now() - start_time).total_seconds()
+                print(f"  ✓ Success ({processing_time:.1f}s)\n")
+                success_count += 1
+                
+            except KeyboardInterrupt:
+                print("\n\nProcessing interrupted by user")
+                break
+            except Exception as e:
+                print(f"  ✗ Failed: {e}\n")
+                failed_files.append((vtt_file.name, str(e)))
+                if not args.verbose:
+                    # Continue to next file on error
+                    continue
+                else:
+                    import traceback
+                    traceback.print_exc()
+        
+        # Print summary
+        print("\n" + "="*60)
+        print("BATCH PROCESSING SUMMARY")
+        print("="*60)
+        print(f"Total files: {len(vtt_files)}")
+        print(f"Successful: {success_count}")
+        print(f"Failed: {len(failed_files)}")
+        
+        if failed_files:
+            print("\nFailed files:")
+            for filename, error in failed_files:
+                print(f"  - {filename}: {error}")
+        
+        sys.exit(1 if failed_files else 0)
+    
+    else:
+        # Single file mode - existing behavior
+        if not args.path.exists():
+            print(f"Error: VTT file not found: {args.path}")
+            sys.exit(1)
+        
+        # Run async processing
+        try:
+            # If --resume is specified, use that episode ID
+            if args.resume:
+                # Load checkpoint to get metadata
+                from src.pipeline.checkpoint import CheckpointManager
+                checkpoint_manager = CheckpointManager()
+                checkpoint = checkpoint_manager.load_checkpoint(args.resume)
+                if checkpoint:
+                    # Use checkpoint metadata
+                    episode_metadata = checkpoint.metadata
+                    result = asyncio.run(process_vtt_file(
+                        vtt_path=args.path,
+                        podcast_name=episode_metadata.get('podcast_name', args.podcast),
+                        episode_title=episode_metadata.get('episode_title', args.title),
+                        episode_url=episode_metadata.get('episode_url', args.url),
+                        neo4j_uri=args.neo4j_uri,
+                        neo4j_user=args.neo4j_user,
+                        neo4j_password=args.neo4j_password,
+                        gemini_api_key=args.gemini_api_key,
+                        resume_episode_id=args.resume
+                    ))
+                else:
+                    print(f"Error: No checkpoint found for episode: {args.resume}")
+                    sys.exit(1)
+            else:
+                result = asyncio.run(process_vtt_file(
+                    vtt_path=args.path,
+                    podcast_name=args.podcast,
+                    episode_title=args.title,
+                    episode_url=args.url,
+                    neo4j_uri=args.neo4j_uri,
+                    neo4j_user=args.neo4j_user,
+                    neo4j_password=args.neo4j_password,
+                    gemini_api_key=args.gemini_api_key
+                ))
+            
+            # Print results
+            print("\n" + "="*60)
+            print("PROCESSING COMPLETE")
+            print("="*60)
+            print(f"Status: {result.get('status', 'unknown')}")
+            print(f"Episode ID: {result.get('episode_id', 'N/A')}")
+            print(f"Processing Time: {result.get('processing_time', 0):.2f} seconds")
+            print(f"\nSegments Processed: {result.get('segments_processed', 0)}")
+            print(f"Meaningful Units Created: {result.get('meaningful_units_created', 0)}")
+            print(f"\nKnowledge Extracted:")
+            print(f"  - Entities: {result.get('entities_extracted', 0)}")
+            print(f"  - Quotes: {result.get('quotes_extracted', 0)}")
+            print(f"  - Insights: {result.get('insights_extracted', 0)}")
+            print(f"  - Relationships: {result.get('relationships_extracted', 0)}")
+            print(f"\nGraph Storage:")
+            print(f"  - Nodes Created: {result.get('nodes_created', 0)}")
+            print(f"  - Relationships Created: {result.get('relationships_created', 0)}")
+            print(f"\nAnalysis Results:")
+            print(f"  - Structural Gaps: {result.get('gaps_detected', 0)}")
+            print(f"  - Missing Links: {result.get('missing_links_found', 0)}")
+            print(f"  - Diversity Score: {result.get('diversity_score', 0):.3f}")
+            
+            if result.get('errors'):
+                print(f"\nErrors encountered: {len(result['errors'])}")
+                for error in result['errors'][:5]:  # Show first 5 errors
+                    print(f"  - {error}")
+                    
+        except KeyboardInterrupt:
+            print("\nProcessing interrupted by user")
+            sys.exit(1)
+        except Exception as e:
+            print(f"\nError: {e}")
+            if args.verbose:
+                import traceback
+                traceback.print_exc()
+            sys.exit(1)
 
 
 if __name__ == "__main__":
