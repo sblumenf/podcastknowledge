@@ -49,7 +49,7 @@ def run_knowledge_discovery(episode_id: str, session) -> Dict[str, Any]:
         verification_query = """
         MATCH (e:Episode {id: $episode_id})
         OPTIONAL MATCH (e)-[:HAS_TOPIC]->(t:Topic)
-        OPTIONAL MATCH (e)-[:MENTIONS]->(entity)
+        OPTIONAL MATCH (entity)-[:MENTIONED_IN]->(e)
         RETURN e.title as title,
                COUNT(DISTINCT t) as topic_count,
                COUNT(DISTINCT entity) as entity_count

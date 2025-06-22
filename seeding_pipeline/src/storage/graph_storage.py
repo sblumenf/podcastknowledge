@@ -986,6 +986,7 @@ class GraphStorageService:
                         'published_date': episode_metadata.get('published_date', ''),
                         'youtube_url': episode_metadata.get('youtube_url', ''),
                         'vtt_path': episode_metadata.get('vtt_path', ''),
+                        'vtt_filename': episode_metadata.get('vtt_filename', ''),
                         'created_at': datetime.now().isoformat(),
                         'updated_at': datetime.now().isoformat()
                     }
@@ -1004,6 +1005,7 @@ class GraphStorageService:
                             published_date: $published_date,
                             youtube_url: $youtube_url,
                             vtt_path: $vtt_path,
+                            vtt_filename: $vtt_filename,
                             created_at: $created_at,
                             updated_at: $updated_at
                         })
@@ -1026,6 +1028,7 @@ class GraphStorageService:
                             published_date: $published_date,
                             youtube_url: $youtube_url,
                             vtt_path: $vtt_path,
+                            vtt_filename: $vtt_filename,
                             created_at: $created_at,
                             updated_at: $updated_at
                         })

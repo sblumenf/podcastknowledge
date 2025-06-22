@@ -12,18 +12,22 @@ import re
 from urllib.parse import urlparse, parse_qs
 
 # Add transcriber module to path to import its YouTube client
-transcriber_path = Path(__file__).parent.parent.parent.parent / 'transcriber'
-if str(transcriber_path) not in sys.path:
+transcriber_path = Path(__file__).resolve().parent.parent.parent.parent / 'transcriber'
+if transcriber_path.exists() and str(transcriber_path) not in sys.path:
     sys.path.insert(0, str(transcriber_path))
 
 try:
     from src.youtube_api_client import YouTubeAPIClient, YouTubeAPIError, QuotaExceededError
-except ImportError:
+    YOUTUBE_API_AVAILABLE = True
+except ImportError as e:
     # Fallback - create placeholder classes if transcriber module not available
+    import logging
+    logging.getLogger(__name__).debug(f"YouTube API import failed: {e}")
     class YouTubeAPIClient:
         def __init__(self, api_key): pass
     class YouTubeAPIError(Exception): pass
     class QuotaExceededError(Exception): pass
+    YOUTUBE_API_AVAILABLE = False
 
 from src.utils.logging import get_logger
 
@@ -42,6 +46,9 @@ class YouTubeDescriptionFetcher:
         self.api_key = api_key or os.getenv('YOUTUBE_API_KEY')
         if not self.api_key:
             logger.warning("YouTube API key not found. YouTube description fetching will be disabled.")
+            self.client = None
+        elif not YOUTUBE_API_AVAILABLE:
+            logger.warning("YouTube API client not available from transcriber module. YouTube description fetching will be disabled.")
             self.client = None
         else:
             try:
@@ -117,6 +124,10 @@ class YouTubeDescriptionFetcher:
             logger.debug(f"Returning cached description for video {video_id}")
             return self._cache[video_id]
         
+        if not self.client:
+            logger.debug("YouTube API client not available")
+            return None
+            
         try:
             # Use the YouTube API client to get video details
             # We need to make a custom request since the existing method doesn't include description

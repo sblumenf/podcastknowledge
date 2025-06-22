@@ -191,13 +191,13 @@ def find_bridge_concepts(cluster1: Set[str], cluster2: Set[str], session) -> Lis
     // Find entities connected to cluster1 topics
     MATCH (e1:Episode)-[:HAS_TOPIC]->(t1:Topic)
     WHERE t1.name IN $cluster1_topics
-    MATCH (e1)-[:MENTIONS]->(entity1)
+    MATCH (entity1)-[:MENTIONED_IN]->(e1)
     WITH COLLECT(DISTINCT entity1.name) as cluster1_entities
     
     // Find entities connected to cluster2 topics
     MATCH (e2:Episode)-[:HAS_TOPIC]->(t2:Topic)
     WHERE t2.name IN $cluster2_topics
-    MATCH (e2)-[:MENTIONS]->(entity2)
+    MATCH (entity2)-[:MENTIONED_IN]->(e2)
     WITH cluster1_entities, COLLECT(DISTINCT entity2.name) as cluster2_entities
     
     // Find common entities (potential bridges)
@@ -207,13 +207,13 @@ def find_bridge_concepts(cluster1: Set[str], cluster2: Set[str], session) -> Lis
     // Count occurrences with each cluster
     MATCH (ep1:Episode)-[:HAS_TOPIC]->(t1:Topic)
     WHERE t1.name IN $cluster1_topics
-    MATCH (ep1)-[:MENTIONS]->(ent1)
+    MATCH (ent1)-[:MENTIONED_IN]->(ep1)
     WHERE ent1.name = bridge
     WITH bridge, COUNT(DISTINCT ep1) as cluster1_mentions
     
     MATCH (ep2:Episode)-[:HAS_TOPIC]->(t2:Topic)
     WHERE t2.name IN $cluster2_topics
-    MATCH (ep2)-[:MENTIONS]->(ent2)
+    MATCH (ent2)-[:MENTIONED_IN]->(ep2)
     WHERE ent2.name = bridge
     WITH bridge, cluster1_mentions, COUNT(DISTINCT ep2) as cluster2_mentions
     

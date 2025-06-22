@@ -34,7 +34,7 @@ def find_missing_links(new_entities: List[str], session) -> List[Dict[str, Any]]
     for new_entity in new_entities:
         # Get type and frequency of new entity
         entity_info_query = """
-        MATCH (e)-[:MENTIONS]->(entity)
+        MATCH (entity)-[:MENTIONED_IN]->(e)
         WHERE entity.name = $entity_name
         WITH entity, labels(entity) as entity_labels, COUNT(DISTINCT e) as frequency
         RETURN entity_labels, frequency
@@ -57,15 +57,15 @@ def find_missing_links(new_entities: List[str], session) -> List[Dict[str, Any]]
             # Find high-frequency entities of same type that never co-occur
             find_unconnected_query = """
             // Find entities of same type with high frequency
-            MATCH (e:Episode)-[:MENTIONS]->(other)
+            MATCH (other)-[:MENTIONED_IN]->(e:Episode)
             WHERE $label IN labels(other)
             AND other.name <> $entity_name
             WITH other.name as other_name, COUNT(DISTINCT e) as other_frequency
             WHERE other_frequency >= $min_frequency
             
             // Check if they ever co-occur
-            OPTIONAL MATCH (cooccur:Episode)-[:MENTIONS]->(entity1),
-                          (cooccur)-[:MENTIONS]->(entity2)
+            OPTIONAL MATCH (entity1)-[:MENTIONED_IN]->(cooccur:Episode),
+                          (entity2)-[:MENTIONED_IN]->(cooccur)
             WHERE entity1.name = $entity_name
             AND entity2.name = other_name
             WITH other_name, other_frequency, COUNT(cooccur) as cooccurrence_count
@@ -150,12 +150,12 @@ def calculate_connection_potential(
     # Check for shared context
     shared_context_query = """
     // Find shared topics
-    MATCH (e1:Episode)-[:MENTIONS]->(entity1)
+    MATCH (entity1)-[:MENTIONED_IN]->(e1:Episode)
     WHERE entity1.name = $entity1
     MATCH (e1)-[:HAS_TOPIC]->(t1:Topic)
     WITH COLLECT(DISTINCT t1.name) as topics1
     
-    MATCH (e2:Episode)-[:MENTIONS]->(entity2)
+    MATCH (entity2)-[:MENTIONED_IN]->(e2:Episode)
     WHERE entity2.name = $entity2
     MATCH (e2)-[:HAS_TOPIC]->(t2:Topic)
     WITH topics1, COLLECT(DISTINCT t2.name) as topics2
@@ -165,15 +165,15 @@ def calculate_connection_potential(
          [t IN topics1 WHERE t IN topics2] as shared_topics
     
     // Find shared entities (excluding the two we're checking)
-    MATCH (e3:Episode)-[:MENTIONS]->(entity1)
+    MATCH (entity1)-[:MENTIONED_IN]->(e3:Episode)
     WHERE entity1.name = $entity1
-    MATCH (e3)-[:MENTIONS]->(other1)
+    MATCH (other1)-[:MENTIONED_IN]->(e3)
     WHERE other1.name NOT IN [$entity1, $entity2]
     WITH shared_topics, COLLECT(DISTINCT other1.name) as entities1
     
-    MATCH (e4:Episode)-[:MENTIONS]->(entity2)
+    MATCH (entity2)-[:MENTIONED_IN]->(e4:Episode)
     WHERE entity2.name = $entity2
-    MATCH (e4)-[:MENTIONS]->(other2)
+    MATCH (other2)-[:MENTIONED_IN]->(e4)
     WHERE other2.name NOT IN [$entity1, $entity2]
     WITH shared_topics, entities1, COLLECT(DISTINCT other2.name) as entities2
     
@@ -357,8 +357,8 @@ def update_existing_links(session) -> int:
     query = """
     MATCH (link:MissingLink)
     // Check if entities now co-occur
-    OPTIONAL MATCH (e:Episode)-[:MENTIONS]->(entity1),
-                  (e)-[:MENTIONS]->(entity2)
+    OPTIONAL MATCH (entity1)-[:MENTIONED_IN]->(e:Episode),
+                  (entity2)-[:MENTIONED_IN]->(e)
     WHERE entity1.name = link.entity1
     AND entity2.name = link.entity2
     WITH link, COUNT(e) as cooccurrence_count
@@ -402,7 +402,7 @@ def run_missing_link_analysis(episode_id: str, session) -> Dict[str, Any]:
     
     # Get entities from the new episode
     query = """
-    MATCH (e:Episode {id: $episode_id})-[:MENTIONS]->(entity)
+    MATCH (entity)-[:MENTIONED_IN]->(e:Episode {id: $episode_id})
     RETURN COLLECT(DISTINCT entity.name) as entities
     """
     

@@ -114,6 +114,7 @@ class UnifiedKnowledgePipeline:
         self.llm_service = llm_service
         self.embeddings_service = embeddings_service
         self.enable_speaker_mapping = enable_speaker_mapping
+        self.config = config or PipelineConfig()
         
         # Use separate models if provided, otherwise fall back to default
         self.llm_flash = llm_flash or llm_service
@@ -1206,7 +1207,7 @@ class UnifiedKnowledgePipeline:
             speaker_mapper = SpeakerMapper(
                 storage=self.graph_storage,
                 llm_service=self.llm_service,
-                config=getattr(self, 'config', None) or PipelineConfig()
+                config=self.config
             )
             
             # Process the episode
@@ -1494,7 +1495,7 @@ class UnifiedKnowledgePipeline:
             mapper = SpeakerMapper(
                 storage=self.graph_storage,
                 llm_service=self.llm_flash,  # Use flash model for speed
-                config=getattr(self, 'config', None)
+                config=self.config
             )
             
             # Process the episode
@@ -1673,6 +1674,30 @@ class UnifiedKnowledgePipeline:
         
         if not episode_id:
             raise PipelineError("episode_id is required in metadata")
+            
+        # Check if episode with this VTT filename already exists
+        vtt_filename = episode_metadata.get('vtt_filename')
+        if vtt_filename:
+            try:
+                with self.graph_storage.session() as session:
+                    check_query = """
+                    MATCH (e:Episode {vtt_filename: $vtt_filename})
+                    RETURN e.id AS id, e.title AS title
+                    """
+                    result_check = session.run(check_query, vtt_filename=vtt_filename)
+                    existing = result_check.single()
+                    
+                    if existing:
+                        self.logger.info(f"Episode with VTT filename '{vtt_filename}' already exists: {existing['title']}")
+                        return {
+                            'episode_id': existing['id'],
+                            'status': 'skipped',
+                            'reason': 'VTT filename already processed',
+                            'existing_episode': existing['title']
+                        }
+            except Exception as e:
+                self.logger.warning(f"Failed to check for existing VTT filename: {e}")
+                # Continue processing if check fails
             
         # Set current episode for extraction context
         self.current_episode_id = episode_id

@@ -6,6 +6,7 @@ in the graph, helping to identify over-explored and under-explored areas.
 
 import logging
 import math
+import json
 from typing import List, Dict, Optional, Any
 from datetime import datetime
 from collections import Counter
@@ -96,7 +97,7 @@ def update_diversity_metrics(episode_topics: List[str], session) -> Dict[str, An
             
             result = session.run(
                 update_query,
-                distribution=current_distribution,
+                distribution=json.dumps(current_distribution),
                 diversity=diversity_score,
                 balance=balance_score,
                 total_topics=len(current_distribution),
@@ -139,7 +140,7 @@ def get_or_create_metrics_node(session) -> Dict[str, Any]:
     MERGE (m:EcologicalMetrics {id: 'global'})
     ON CREATE SET 
         m.created = datetime(),
-        m.topic_distribution = {},
+        m.topic_distribution = '{}',
         m.diversity_score = 0.0,
         m.balance_score = 0.0,
         m.total_topics = 0,
@@ -153,8 +154,10 @@ def get_or_create_metrics_node(session) -> Dict[str, Any]:
         
         if record:
             node = record["m"]
+            topic_dist_str = node.get("topic_distribution", "{}")
+            topic_distribution = json.loads(topic_dist_str) if topic_dist_str else {}
             return {
-                "topic_distribution": node.get("topic_distribution", {}),
+                "topic_distribution": topic_distribution,
                 "diversity_score": node.get("diversity_score", 0.0),
                 "balance_score": node.get("balance_score", 0.0),
                 "total_topics": node.get("total_topics", 0),
@@ -285,7 +288,8 @@ def get_diversity_insights(session) -> Dict[str, Any]:
         metrics = record["m"]
         diversity_score = metrics.get("diversity_score", 0)
         balance_score = metrics.get("balance_score", 0)
-        topic_dist = metrics.get("topic_distribution", {})
+        topic_dist_str = metrics.get("topic_distribution", "{}")
+        topic_dist = json.loads(topic_dist_str) if isinstance(topic_dist_str, str) else topic_dist_str
         
         insights["current_state"] = {
             "diversity_score": diversity_score,

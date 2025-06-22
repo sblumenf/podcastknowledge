@@ -18,7 +18,6 @@ if str(repo_root) not in sys.path:
 
 from src.utils.logging import get_logger
 from src.utils.title_utils import normalize_title
-from src.progress_tracker import ProgressTracker
 from src.deepgram_client import DeepgramClient
 from src.vtt_formatter import VTTFormatter
 from src.semantic_vtt_formatter import SemanticVTTFormatter
@@ -28,9 +27,6 @@ from src.file_organizer_simple import SimpleFileOrganizer
 from src.feed_parser import Episode
 from src.config import Config
 from src.youtube_searcher import YouTubeSearcher
-
-# Import shared tracking bridge
-from shared import get_tracker
 
 logger = get_logger('simple_orchestrator')
 
@@ -51,12 +47,8 @@ class SimpleOrchestrator:
         self.force_reprocess = force_reprocess
         
         # Initialize components
-        self.progress_tracker = ProgressTracker()
         self.deepgram_client = DeepgramClient(mock_enabled=mock_enabled)
         self.file_organizer = SimpleFileOrganizer(base_output_dir=self.output_dir)
-        
-        # Initialize tracking bridge for Neo4j checking
-        self.tracking_bridge = get_tracker()
         
         # Load configuration
         config = Config()
@@ -163,27 +155,17 @@ class SimpleOrchestrator:
             'processing_time': 0.0
         }
         
-        # Check if episode is already transcribed
+        # Check if VTT file already exists
         podcast_name = getattr(episode, 'podcast_name', 'Unknown Podcast')
-        date_str = episode.published_date.strftime('%Y-%m-%d') if episode.published_date else datetime.now().strftime('%Y-%m-%d')
+        output_path = self.file_organizer.get_output_path(episode)
         
-        if not self.force_reprocess and self.progress_tracker.is_episode_transcribed(podcast_name, episode.title, date_str):
-            logger.info(f"Episode already transcribed, skipping: {episode.title}")
+        if not self.force_reprocess and output_path.exists():
+            logger.info(f"VTT file already exists, skipping: {episode.title}")
+            logger.info(f"Existing file: {output_path}")
             result['status'] = 'skipped'
-            result['error'] = 'Already transcribed'
+            result['error'] = 'VTT file already exists'
+            result['output_path'] = str(output_path)
             return result
-        
-        # Check Neo4j if in combined mode (prevents duplicate transcription costs)
-        # Note: Neo4j check is also done in progress_tracker.is_episode_transcribed() above,
-        # but we keep this explicit check for clarity and to provide specific logging
-        if not self.force_reprocess:
-            # Pass the podcast name directly - tracking bridge will handle mapping to ID
-            if not self.tracking_bridge.should_transcribe(podcast_name, episode.title, date_str):
-                logger.info(f"Episode already in knowledge graph, skipping transcription: {episode.title}")
-                result['status'] = 'skipped'
-                result['error'] = 'Already in knowledge graph'
-                result['skipped_reason'] = 'neo4j_check'
-                return result
         
         start_time = datetime.now()
         
@@ -247,9 +229,7 @@ class SimpleOrchestrator:
             
             logger.info(f"Successfully saved VTT to: {output_path}")
             
-            # Mark episode as transcribed
-            date_str = episode.published_date.strftime('%Y-%m-%d') if episode.published_date else datetime.now().strftime('%Y-%m-%d')
-            self.progress_tracker.mark_episode_transcribed(podcast_name, episode.title, date_str)
+            # No need to track - VTT file existence is our tracking
             
             # Update result
             result['status'] = 'completed'

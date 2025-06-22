@@ -1,0 +1,24 @@
+version: '1.0'
+podcasts:
+- id: mel_robbins_podcast
+  name: The Mel Robbins Podcast
+  enabled: true
+  database:
+    uri: neo4j://localhost:7687
+    database_name: neo4j  # Use the default database where your data is
+  processing:
+    batch_size: 10
+    max_retries: 3
+    enable_flow_analysis: true
+    enable_graph_enhancement: true
+    use_large_context: true
+  metadata:
+    description: Motivational content and life advice from Mel Robbins
+    language: en
+    category: Self-Improvement
+    tags:
+    - motivation
+    - self-help
+    - personal-development
+    host: Mel Robbins
+    website: https://melrobbins.com

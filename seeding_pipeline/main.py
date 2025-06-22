@@ -90,13 +90,21 @@ async def process_vtt_file(
             with open('config/podcasts.yaml', 'r') as f:
                 podcasts_config = yaml.safe_load(f)
             
-            # Find podcast by name
+            # Find podcast by name - try RSS title first, then display name
             for podcast in podcasts_config.get('podcasts', []):
-                if podcast.get('name') == podcast_name:
+                # Try exact match on RSS title first (most reliable)
+                if podcast.get('rss_title') == podcast_name:
                     db_config = podcast.get('database', {})
                     port = db_config.get('neo4j_port', 7687)
                     neo4j_uri = f'neo4j://localhost:{port}'
-                    logger.info(f"Using Neo4j port {port} for podcast '{podcast_name}'")
+                    logger.info(f"Using Neo4j port {port} for podcast '{podcast_name}' (matched RSS title)")
+                    break
+                # Fall back to display name match
+                elif podcast.get('name') == podcast_name:
+                    db_config = podcast.get('database', {})
+                    port = db_config.get('neo4j_port', 7687)
+                    neo4j_uri = f'neo4j://localhost:{port}'
+                    logger.info(f"Using Neo4j port {port} for podcast '{podcast_name}' (matched display name)")
                     break
             else:
                 # Default if podcast not found

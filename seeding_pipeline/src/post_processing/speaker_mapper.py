@@ -809,7 +809,7 @@ class SpeakerMapper:
             # Parse VTT file to get segments
             from src.vtt import VTTParser
             parser = VTTParser()
-            segments = parser.parse_vtt_file(Path(vtt_path))
+            segments = parser.parse_file(Path(vtt_path))
             
             if not segments or len(segments) < 10:
                 logger.debug("Not enough segments in VTT file for closing credits")
@@ -1243,14 +1243,18 @@ Name:"""
         logger.info(f"Updating {len(mappings)} speaker mappings in database for episode {episode_id}")
         
         # Start a transaction
-        session = self.storage.driver.session()
-        tx = session.begin_transaction()
-        
-        try:
-            # For each mapping, update all affected MeaningfulUnits
-            for generic_name, real_name in mappings.items():
-                # Update units where this speaker appears in the speaker_distribution field
-                update_query = """
+        with self.storage.session() as session:
+            if session is None:
+                logger.error("Failed to get database session for speaker updates")
+                return
+                
+            tx = session.begin_transaction()
+            
+            try:
+                # For each mapping, update all affected MeaningfulUnits
+                for generic_name, real_name in mappings.items():
+                    # Update units where this speaker appears in the speaker_distribution field
+                    update_query = """
                 MATCH (e:Episode {id: $episode_id})<-[:PART_OF]-(mu:MeaningfulUnit)
                 WHERE mu.speaker_distribution CONTAINS $generic_name
                 SET mu.speaker_distribution = REPLACE(mu.speaker_distribution, $generic_name, $real_name)
@@ -1273,34 +1277,33 @@ Name:"""
                 
                 # Skip secondary update - speaker_distribution is the only field
                 
-                # No secondary update needed - speaker_distribution is the primary field
-            
-            # Update the episode node with a timestamp of when speakers were mapped
-            episode_update_query = """
-            MATCH (e:Episode {id: $episode_id})
-            SET e.speakersMapped = true,
-                e.speakerMappingTimestamp = $timestamp,
-                e.speakerMappingMethod = 'post_processing'
-            RETURN e
-            """
-            
-            tx.run(episode_update_query, {
-                'episode_id': episode_id,
-                'timestamp': datetime.now().isoformat()
-            })
-            
-            # Commit the transaction
-            tx.commit()
-            logger.info(f"Successfully applied speaker mappings for episode {episode_id}")
-            
-        except Exception as e:
-            # Rollback on error
-            tx.rollback()
-            logger.error(f"Failed to update speakers in database: {e}")
-            raise
-        finally:
-            tx.close()
-            session.close()
+                    # No secondary update needed - speaker_distribution is the primary field
+                
+                # Update the episode node with a timestamp of when speakers were mapped
+                episode_update_query = """
+                MATCH (e:Episode {id: $episode_id})
+                SET e.speakersMapped = true,
+                    e.speakerMappingTimestamp = $timestamp,
+                    e.speakerMappingMethod = 'post_processing'
+                RETURN e
+                """
+                
+                tx.run(episode_update_query, {
+                    'episode_id': episode_id,
+                    'timestamp': datetime.now().isoformat()
+                })
+                
+                # Commit the transaction
+                tx.commit()
+                logger.info(f"Successfully applied speaker mappings for episode {episode_id}")
+                
+            except Exception as e:
+                # Rollback on error
+                tx.rollback()
+                logger.error(f"Failed to update speakers in database: {e}")
+                raise
+            finally:
+                tx.close()
     
     def _log_speaker_changes(self, episode_id: str, mappings: Dict[str, str]) -> None:
         """Log all speaker changes for audit trail.

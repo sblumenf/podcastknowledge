@@ -6,8 +6,8 @@ podcasts:
   enabled: true
   database:
     uri: neo4j://localhost:7687
-    neo4j_port: 7687  # Default Neo4j port for the first podcast
-    database_name: neo4j  # Use the default database where your data is
+    neo4j_port: 7687
+    database_name: neo4j
   processing:
     batch_size: 10
     max_retries: 3
@@ -24,6 +24,22 @@ podcasts:
     - personal-development
     host: Mel Robbins
     website: https://melrobbins.com
+- id: my_first_million
+  name: My First Million
+  rss_feed_url: https://feeds.megaphone.fm/HS2300184645
+  enabled: true
+  database:
+    uri: neo4j://localhost:7688
+    neo4j_port: 7688
+    database_name: my_first_million
+  processing:
+    batch_size: 10
+    max_retries: 3
+    enable_flow_analysis: true
+    enable_graph_enhancement: true
+    use_large_context: true
+  metadata:
+    language: en
 defaults:
   batch_size: 10
   max_retries: 3

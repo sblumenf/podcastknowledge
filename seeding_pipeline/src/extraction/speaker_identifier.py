@@ -190,6 +190,7 @@ class SpeakerIdentifier:
             # self.metrics.record_success('speaker_identification')
             
             # Record in speaker metrics
+            podcast_name = metadata.get('podcast_name', 'Unknown')
             self.speaker_metrics.record_identification(
                 podcast_name, identification_result, time.time() - start_time
             )
@@ -204,6 +205,7 @@ class SpeakerIdentifier:
             # Record error metric
             # TODO: Fix metrics recording
             # self.metrics.record_error('speaker_identification_error')
+            podcast_name = metadata.get('podcast_name', 'Unknown')
             self.speaker_metrics.record_error(type(e).__name__, podcast_name)
             
             # Return generic fallback

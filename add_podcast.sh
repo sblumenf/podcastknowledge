@@ -213,12 +213,10 @@ create_neo4j_container() {
     
     # Create database for the podcast
     echo "Creating database: $podcast_id"
-    docker exec "$container_name" cypher-shell -u "$neo4j_user" -p "$neo4j_password" "CREATE DATABASE $podcast_id" 2>&1
-    
-    if [ $? -eq 0 ]; then
+    if docker exec "$container_name" cypher-shell -u "$neo4j_user" -p "$neo4j_password" "CREATE DATABASE $podcast_id" 2>&1; then
         echo -e "${GREEN}Database created successfully${NC}"
     else
-        echo -e "${YELLOW}Note: Database may already exist or creation not supported in this Neo4j version${NC}"
+        echo -e "${YELLOW}Note: Database creation not supported in Community Edition - using default database${NC}"
     fi
     
     return 0
@@ -257,10 +255,16 @@ try:
             print('ERROR: Podcast ID already exists in configuration', file=sys.stderr)
             sys.exit(1)
     
+    # Get RSS title for safety
+    import feedparser
+    feed = feedparser.parse('$feed_url')
+    rss_title = feed.feed.get('title', '$podcast_name')
+    
     # Create new podcast entry
     new_podcast = {
         'id': '$podcast_id',
         'name': '$podcast_name',
+        'rss_title': rss_title,  # Store exact RSS title
         'rss_feed_url': '$feed_url',
         'enabled': True,
         'database': {
