@@ -1,11 +1,13 @@
 version: '1.0'
 podcasts:
-- id: tech_talk
-  name: Tech Talk Podcast
+- id: mel_robbins_podcast
+  name: The Mel Robbins Podcast
+  rss_feed_url: https://feeds.simplecast.com/UCwaTX1J
   enabled: true
   database:
     uri: neo4j://localhost:7687
-    database_name: tech_talk
+    neo4j_port: 7687  # Default Neo4j port for the first podcast
+    database_name: neo4j  # Use the default database where your data is
   processing:
     batch_size: 10
     max_retries: 3
@@ -13,55 +15,15 @@ podcasts:
     enable_graph_enhancement: true
     use_large_context: true
   metadata:
-    description: A podcast about technology trends and innovations
+    description: Motivational content and life advice from Mel Robbins
     language: en
-    category: Technology
+    category: Self-Improvement
     tags:
-    - tech
-    - software
-    - innovation
-    host: John Doe
-    website: https://techtalk.example.com
-- id: data_science_hour
-  name: Data Science Hour
-  enabled: true
-  database:
-    uri: neo4j://localhost:7687
-    database_name: data_science
-  processing:
-    batch_size: 5
-    max_retries: 3
-    enable_flow_analysis: true
-    enable_graph_enhancement: true
-    use_large_context: true
-    custom_prompts:
-      entity_extraction: Focus on data science concepts, tools, and methodologies
-  metadata:
-    description: Weekly discussions on data science and machine learning
-    language: en
-    category: Science
-    tags:
-    - data-science
-    - machine-learning
-    - AI
-    host: Jane Smith
-- id: startup_stories
-  name: Startup Stories
-  enabled: false
-  processing:
-    batch_size: 10
-    max_retries: 3
-    enable_flow_analysis: true
-    enable_graph_enhancement: true
-    use_large_context: true
-  metadata:
-    description: Interviews with successful startup founders
-    language: en
-    category: Business
-    tags:
-    - startup
-    - entrepreneurship
-    - business
+    - motivation
+    - self-help
+    - personal-development
+    host: Mel Robbins
+    website: https://melrobbins.com
 defaults:
   batch_size: 10
   max_retries: 3
