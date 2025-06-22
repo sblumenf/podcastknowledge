@@ -17,6 +17,7 @@ VERBOSE=false
 DATA_DIR="/home/sergeblumenfeld/podcastknowledge/data"
 FEED_URL=""
 MAX_EPISODES="1"
+PODCAST_NAME=""
 
 # Print usage
 usage() {
@@ -26,17 +27,18 @@ usage() {
     echo "  -t, --transcriber    Run transcriber only"
     echo "  -s, --seeding        Run seeding pipeline only"
     echo "  -b, --both           Run both transcriber and seeding (default)"
-    echo "  -f, --feed-url URL   RSS feed URL (required for transcriber)"
+    echo "  -p, --podcast NAME   Podcast name (uses RSS URL from config)"
+    echo "  -f, --feed-url URL   RSS feed URL (overrides config)"
     echo "  -e, --max-episodes N Maximum episodes to process (default: 1)"
     echo "  -d, --data-dir DIR   Set data directory (default: $DATA_DIR)"
     echo "  -v, --verbose        Enable verbose output"
     echo "  -h, --help           Show this help message"
     echo ""
     echo "Examples:"
-    echo "  $0 --both --feed-url \"https://rss-feed.com\" --max-episodes 3"
+    echo "  $0 --both --podcast \"The Mel Robbins Podcast\" --max-episodes 3"
     echo "  $0 --transcriber --feed-url \"https://rss-feed.com\" --max-episodes 5"
     echo "  $0 --seeding         # Process existing VTT files only"
-    echo "  $0 -v -b -f \"https://rss-feed.com\" -e 2  # Verbose mode, 2 episodes"
+    echo "  $0 -v -b -p \"The Mel Robbins Podcast\" -e 2  # Verbose mode, 2 episodes"
     exit 0
 }
 
@@ -54,6 +56,10 @@ while [[ $# -gt 0 ]]; do
         -b|--both)
             MODE="both"
             shift
+            ;;
+        -p|--podcast)
+            PODCAST_NAME="$2"
+            shift 2
             ;;
         -f|--feed-url)
             FEED_URL="$2"
@@ -83,9 +89,9 @@ done
 
 # Validation function
 validate_parameters() {
-    # Check if feed URL is required
-    if [[ "$MODE" != "seeding" && -z "$FEED_URL" ]]; then
-        echo -e "${RED}Error: --feed-url is required when running transcriber${NC}"
+    # Check if feed URL or podcast name is required
+    if [[ "$MODE" != "seeding" && -z "$FEED_URL" && -z "$PODCAST_NAME" ]]; then
+        echo -e "${RED}Error: Either --feed-url or --podcast is required when running transcriber${NC}"
         echo "Use --help for usage information"
         exit 1
     fi
@@ -94,6 +100,46 @@ validate_parameters() {
     if ! [[ "$MAX_EPISODES" =~ ^[1-9][0-9]*$ ]]; then
         echo -e "${RED}Error: --max-episodes must be a positive number${NC}"
         exit 1
+    fi
+}
+
+# Function to get RSS URL from configuration
+get_rss_url() {
+    local podcast_name="$1"
+    local rss_url
+    
+    # Use Python to parse YAML and extract RSS URL
+    rss_url=$(python3 -c "
+import yaml
+import sys
+
+try:
+    with open('seeding_pipeline/config/podcasts.yaml', 'r') as f:
+        data = yaml.safe_load(f)
+    
+    for podcast in data.get('podcasts', []):
+        if podcast.get('name') == '$podcast_name':
+            rss_url = podcast.get('rss_feed_url')
+            if rss_url:
+                print(rss_url)
+                sys.exit(0)
+            else:
+                print('ERROR: No RSS URL found for podcast', file=sys.stderr)
+                sys.exit(1)
+    
+    print('ERROR: Podcast not found in configuration', file=sys.stderr)
+    sys.exit(1)
+except Exception as e:
+    print(f'ERROR: Failed to read configuration: {e}', file=sys.stderr)
+    sys.exit(1)
+" 2>&1)
+    
+    if [ $? -eq 0 ]; then
+        echo "$rss_url"
+        return 0
+    else
+        echo -e "${RED}$rss_url${NC}" >&2
+        return 1
     fi
 }
 
@@ -126,6 +172,7 @@ check_prerequisites() {
 run_transcriber() {
     echo -e "${BLUE}Running Transcriber Module...${NC}"
     
+    TRANSCRIBER_DIR="$PWD/transcriber"
     cd transcriber
     
     # Check if virtual environment exists
@@ -144,14 +191,36 @@ run_transcriber() {
         export PODCAST_PIPELINE_MODE="independent"
     fi
     
+    # Get RSS URL from config if podcast name is provided but no feed URL
+    if [ -n "$PODCAST_NAME" ] && [ -z "$FEED_URL" ]; then
+        if [ "$VERBOSE" = true ]; then
+            echo "Looking up RSS URL for podcast: $PODCAST_NAME"
+        fi
+        FEED_URL=$(get_rss_url "$PODCAST_NAME")
+        if [ $? -ne 0 ]; then
+            echo -e "${RED}Failed to get RSS URL for podcast: $PODCAST_NAME${NC}"
+            exit 1
+        fi
+        if [ "$VERBOSE" = true ]; then
+            echo "Found RSS URL: $FEED_URL"
+        fi
+    fi
+    
+    # Count existing VTT files and add to max episodes
+    # This ensures --max-episodes always means "X additional episodes"
+    EXISTING_VTT_COUNT=$(find "$TRANSCRIPT_OUTPUT_DIR" -name "*.vtt" -type f 2>/dev/null | wc -l)
+    ACTUAL_MAX_EPISODES=$((EXISTING_VTT_COUNT + MAX_EPISODES))
+    
     if [ "$VERBOSE" = true ]; then
         echo "Output directory: $TRANSCRIPT_OUTPUT_DIR"
         echo "Pipeline mode: $PODCAST_PIPELINE_MODE"
         echo "Feed URL: $FEED_URL"
-        echo "Max episodes: $MAX_EPISODES"
-        python3 -m src.cli transcribe --feed-url "$FEED_URL" --max-episodes "$MAX_EPISODES" --verbose
+        echo "Existing VTT files: $EXISTING_VTT_COUNT"
+        echo "Requested new episodes: $MAX_EPISODES"
+        echo "Total episodes to check: $ACTUAL_MAX_EPISODES"
+        python3 -m src.cli -v transcribe --feed-url "$FEED_URL" --max-episodes "$ACTUAL_MAX_EPISODES"
     else
-        python3 -m src.cli transcribe --feed-url "$FEED_URL" --max-episodes "$MAX_EPISODES"
+        python3 -m src.cli transcribe --feed-url "$FEED_URL" --max-episodes "$ACTUAL_MAX_EPISODES"
     fi
     
     if [ -d "venv" ]; then
@@ -185,37 +254,71 @@ run_seeding() {
         export PODCAST_PIPELINE_MODE="independent"
     fi
     
-    # Count VTT files
-    VTT_COUNT=$(find "$VTT_INPUT_DIR" -name "*.vtt" -type f 2>/dev/null | wc -l)
-    echo "Found $VTT_COUNT VTT files to process"
+    # Determine podcast directory
+    if [ -n "$PODCAST_NAME" ]; then
+        # Convert podcast name to directory format (spaces to underscores)
+        PODCAST_DIR_NAME=$(echo "$PODCAST_NAME" | tr ' ' '_')
+        PODCAST_DIR="$VTT_INPUT_DIR/$PODCAST_DIR_NAME"
+    else
+        # If no podcast specified, process all VTT files
+        PODCAST_DIR="$VTT_INPUT_DIR"
+    fi
+    
+    # Count VTT files in the podcast directory
+    VTT_COUNT=$(find "$PODCAST_DIR" -name "*.vtt" -type f 2>/dev/null | wc -l)
+    echo "Found $VTT_COUNT VTT files in $PODCAST_DIR"
     
     if [ $VTT_COUNT -eq 0 ]; then
-        echo -e "${YELLOW}No VTT files found in $VTT_INPUT_DIR${NC}"
+        echo -e "${YELLOW}No VTT files found in $PODCAST_DIR${NC}"
         if [ -d "venv" ]; then
             deactivate
         fi
         cd ..
-        return
+        return 0  # Return success code even if no files
     fi
     
-    if [ "$VERBOSE" = true ]; then
-        python3 -m src.cli.cli process-vtt --folder "$VTT_INPUT_DIR" --recursive --parallel -v
-    else
-        python3 -m src.cli.cli process-vtt --folder "$VTT_INPUT_DIR" --recursive --parallel
+    # Process the directory - let seeding pipeline handle duplicate detection
+    echo "Starting seeding pipeline..."
+    
+    # Use podcast name if provided, otherwise try to detect from directory
+    if [ -z "$PODCAST_NAME" ]; then
+        # Try to detect podcast name from directory being processed
+        if [ "$PODCAST_DIR" != "$VTT_INPUT_DIR" ]; then
+            PODCAST_NAME=$(basename "$PODCAST_DIR" | tr '_' ' ')
+        else
+            PODCAST_NAME="Unknown Podcast"
+        fi
     fi
+    echo "Using podcast: $PODCAST_NAME"
+    
+    if [ "$VERBOSE" = true ]; then
+        echo "Running seeding pipeline in verbose mode..."
+        echo "Input directory: $PODCAST_DIR"
+        echo "Podcast: $PODCAST_NAME"
+        python3 main.py "$PODCAST_DIR" --directory --podcast "$PODCAST_NAME" --verbose
+    else
+        python3 main.py "$PODCAST_DIR" --directory --podcast "$PODCAST_NAME"
+    fi
+    
+    SEEDING_EXIT_CODE=$?
     
     if [ -d "venv" ]; then
         deactivate
     fi
     
     cd ..
-    echo -e "${GREEN}Seeding pipeline completed${NC}"
+    
+    # Return the exit code from seeding
+    return $SEEDING_EXIT_CODE
 }
 
 # Main execution
 echo -e "${BLUE}=== Podcast Knowledge Pipeline ===${NC}"
 echo "Mode: $MODE"
 echo "Data directory: $DATA_DIR"
+if [ "$VERBOSE" = true ]; then
+    echo "Verbose: ENABLED"
+fi
 echo ""
 
 # Validate parameters
@@ -234,8 +337,17 @@ case $MODE in
         ;;
     both)
         run_transcriber
+        TRANSCRIBER_EXIT=$?
         echo ""
-        run_seeding
+        
+        if [ $TRANSCRIBER_EXIT -eq 0 ]; then
+            run_seeding
+            SEEDING_EXIT=$?
+            
+            # Both succeeded - no tracking file needed
+        else
+            echo -e "${RED}Transcriber failed, skipping seeding pipeline${NC}"
+        fi
         ;;
 esac
 
