@@ -79,10 +79,32 @@ async def process_vtt_file(
         Dictionary containing processing results
     """
     # Use environment variables if not provided
-    neo4j_uri = neo4j_uri or os.getenv('NEO4J_URI', 'neo4j://localhost:7687')
     neo4j_user = neo4j_user or os.getenv('NEO4J_USER', 'neo4j')
     neo4j_password = neo4j_password or os.getenv('NEO4J_PASSWORD', 'password')
     gemini_api_key = gemini_api_key or os.getenv('GEMINI_API_KEY') or os.getenv('GOOGLE_API_KEY')
+    
+    # Look up Neo4j URI from podcast configuration if not provided
+    if not neo4j_uri:
+        try:
+            import yaml
+            with open('config/podcasts.yaml', 'r') as f:
+                podcasts_config = yaml.safe_load(f)
+            
+            # Find podcast by name
+            for podcast in podcasts_config.get('podcasts', []):
+                if podcast.get('name') == podcast_name:
+                    db_config = podcast.get('database', {})
+                    port = db_config.get('neo4j_port', 7687)
+                    neo4j_uri = f'neo4j://localhost:{port}'
+                    logger.info(f"Using Neo4j port {port} for podcast '{podcast_name}'")
+                    break
+            else:
+                # Default if podcast not found
+                neo4j_uri = os.getenv('NEO4J_URI', 'neo4j://localhost:7687')
+                logger.warning(f"Podcast '{podcast_name}' not found in config, using default URI")
+        except Exception as e:
+            logger.warning(f"Failed to read podcast config: {e}, using default URI")
+            neo4j_uri = os.getenv('NEO4J_URI', 'neo4j://localhost:7687')
     
     if not gemini_api_key:
         raise ValueError("Gemini API key required. Set GEMINI_API_KEY or GOOGLE_API_KEY environment variable or pass --gemini-api-key")
@@ -153,6 +175,7 @@ async def process_vtt_file(
             'episode_url': episode_url,
             'youtube_url': episode_url,  # Map to youtube_url for create_episode
             'vtt_file_path': str(vtt_path),
+            'vtt_filename': vtt_path.name,  # Add filename for duplicate checking
             'processing_timestamp': datetime.now().isoformat()
         }
     else:
@@ -164,6 +187,7 @@ async def process_vtt_file(
             'episode_url': episode_url,
             'youtube_url': episode_url,  # Map to youtube_url for create_episode
             'vtt_file_path': str(vtt_path),
+            'vtt_filename': vtt_path.name,  # Add filename for duplicate checking
             'processing_timestamp': datetime.now().isoformat()
         }
     
@@ -391,6 +415,7 @@ Environment Variables:
         print(f"Found {len(vtt_files)} VTT file(s)\n")
         
         success_count = 0
+        skipped_count = 0
         failed_files = []
         
         for idx, vtt_file in enumerate(vtt_files, 1):
@@ -416,8 +441,14 @@ Environment Variables:
                 ))
                 
                 processing_time = (datetime.now() - start_time).total_seconds()
-                print(f"  ✓ Success ({processing_time:.1f}s)\n")
-                success_count += 1
+                
+                # Check if episode was skipped
+                if result.get('status') == 'skipped':
+                    print(f"  ⏭ Skipped: {result.get('reason', 'Already processed')} ({processing_time:.1f}s)\n")
+                    skipped_count += 1
+                else:
+                    print(f"  ✓ Success ({processing_time:.1f}s)\n")
+                    success_count += 1
                 
             except KeyboardInterrupt:
                 print("\n\nProcessing interrupted by user")
@@ -438,6 +469,7 @@ Environment Variables:
         print("="*60)
         print(f"Total files: {len(vtt_files)}")
         print(f"Successful: {success_count}")
+        print(f"Skipped: {skipped_count}")
         print(f"Failed: {len(failed_files)}")
         
         if failed_files:
@@ -495,22 +527,35 @@ Environment Variables:
             print("PROCESSING COMPLETE")
             print("="*60)
             print(f"Status: {result.get('status', 'unknown')}")
+            
+            # Handle skipped episodes
+            if result.get('status') == 'skipped':
+                print(f"Reason: {result.get('reason', 'Already processed')}")
+                if result.get('existing_episode'):
+                    print(f"Existing Episode: {result['existing_episode']}")
+                print(f"Episode ID: {result.get('episode_id', 'N/A')}")
+                sys.exit(0)
+            
             print(f"Episode ID: {result.get('episode_id', 'N/A')}")
             print(f"Processing Time: {result.get('processing_time', 0):.2f} seconds")
-            print(f"\nSegments Processed: {result.get('segments_processed', 0)}")
-            print(f"Meaningful Units Created: {result.get('meaningful_units_created', 0)}")
+            
+            # Get stats from nested dictionary or top level
+            stats = result.get('stats', {})
+            
+            print(f"\nSegments Processed: {stats.get('segments_processed', result.get('segments_processed', 0))}")
+            print(f"Meaningful Units Created: {stats.get('meaningful_units_created', result.get('meaningful_units_created', 0))}")
             print(f"\nKnowledge Extracted:")
-            print(f"  - Entities: {result.get('entities_extracted', 0)}")
-            print(f"  - Quotes: {result.get('quotes_extracted', 0)}")
-            print(f"  - Insights: {result.get('insights_extracted', 0)}")
-            print(f"  - Relationships: {result.get('relationships_extracted', 0)}")
+            print(f"  - Entities: {stats.get('entities_extracted', result.get('entities_extracted', 0))}")
+            print(f"  - Quotes: {stats.get('quotes_extracted', result.get('quotes_extracted', 0))}")
+            print(f"  - Insights: {stats.get('insights_extracted', result.get('insights_extracted', 0))}")
+            print(f"  - Relationships: {stats.get('relationships_extracted', result.get('relationships_extracted', 0))}")
             print(f"\nGraph Storage:")
-            print(f"  - Nodes Created: {result.get('nodes_created', 0)}")
-            print(f"  - Relationships Created: {result.get('relationships_created', 0)}")
+            print(f"  - Nodes Created: {stats.get('nodes_created', result.get('nodes_created', 0))}")
+            print(f"  - Relationships Created: {stats.get('relationships_created', result.get('relationships_created', 0))}")
             print(f"\nAnalysis Results:")
-            print(f"  - Structural Gaps: {result.get('gaps_detected', 0)}")
-            print(f"  - Missing Links: {result.get('missing_links_found', 0)}")
-            print(f"  - Diversity Score: {result.get('diversity_score', 0):.3f}")
+            print(f"  - Structural Gaps: {stats.get('gaps_detected', result.get('gaps_detected', 0))}")
+            print(f"  - Missing Links: {stats.get('missing_links_found', result.get('missing_links_found', 0))}")
+            print(f"  - Diversity Score: {stats.get('diversity_score', result.get('diversity_score', 0)):.3f}")
             
             if result.get('errors'):
                 print(f"\nErrors encountered: {len(result['errors'])}")
