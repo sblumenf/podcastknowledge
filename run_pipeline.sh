@@ -4,6 +4,9 @@
 
 set -e  # Exit on error
 
+# Save project root directory
+PROJECT_ROOT="$PWD"
+
 # Color codes for output
 GREEN='\033[0;32m'
 BLUE='\033[0;34m'
@@ -109,12 +112,14 @@ get_rss_url() {
     local rss_url
     
     # Use Python to parse YAML and extract RSS URL
+    local config_file="$PROJECT_ROOT/seeding_pipeline/config/podcasts.yaml"
+    
     rss_url=$(python3 -c "
 import yaml
 import sys
 
 try:
-    with open('seeding_pipeline/config/podcasts.yaml', 'r') as f:
+    with open('$config_file', 'r') as f:
         data = yaml.safe_load(f)
     
     for podcast in data.get('podcasts', []):
