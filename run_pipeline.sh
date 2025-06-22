@@ -15,6 +15,8 @@ NC='\033[0m' # No Color
 MODE="both"
 VERBOSE=false
 DATA_DIR="/home/sergeblumenfeld/podcastknowledge/data"
+FEED_URL=""
+MAX_EPISODES="1"
 
 # Print usage
 usage() {
@@ -24,15 +26,17 @@ usage() {
     echo "  -t, --transcriber    Run transcriber only"
     echo "  -s, --seeding        Run seeding pipeline only"
     echo "  -b, --both           Run both transcriber and seeding (default)"
+    echo "  -f, --feed-url URL   RSS feed URL (required for transcriber)"
+    echo "  -e, --max-episodes N Maximum episodes to process (default: 1)"
     echo "  -d, --data-dir DIR   Set data directory (default: $DATA_DIR)"
     echo "  -v, --verbose        Enable verbose output"
     echo "  -h, --help           Show this help message"
     echo ""
     echo "Examples:"
-    echo "  $0                   # Run both modules"
-    echo "  $0 --transcriber     # Run transcriber only"
-    echo "  $0 --seeding         # Run seeding pipeline only"
-    echo "  $0 -v -s             # Run seeding with verbose output"
+    echo "  $0 --both --feed-url \"https://rss-feed.com\" --max-episodes 3"
+    echo "  $0 --transcriber --feed-url \"https://rss-feed.com\" --max-episodes 5"
+    echo "  $0 --seeding         # Process existing VTT files only"
+    echo "  $0 -v -b -f \"https://rss-feed.com\" -e 2  # Verbose mode, 2 episodes"
     exit 0
 }
 
@@ -51,6 +55,14 @@ while [[ $# -gt 0 ]]; do
             MODE="both"
             shift
             ;;
+        -f|--feed-url)
+            FEED_URL="$2"
+            shift 2
+            ;;
+        -e|--max-episodes)
+            MAX_EPISODES="$2"
+            shift 2
+            ;;
         -d|--data-dir)
             DATA_DIR="$2"
             shift 2
@@ -68,6 +80,22 @@ while [[ $# -gt 0 ]]; do
             ;;
     esac
 done
+
+# Validation function
+validate_parameters() {
+    # Check if feed URL is required
+    if [[ "$MODE" != "seeding" && -z "$FEED_URL" ]]; then
+        echo -e "${RED}Error: --feed-url is required when running transcriber${NC}"
+        echo "Use --help for usage information"
+        exit 1
+    fi
+    
+    # Validate max episodes is a positive number
+    if ! [[ "$MAX_EPISODES" =~ ^[1-9][0-9]*$ ]]; then
+        echo -e "${RED}Error: --max-episodes must be a positive number${NC}"
+        exit 1
+    fi
+}
 
 # Function to check prerequisites
 check_prerequisites() {
@@ -119,9 +147,11 @@ run_transcriber() {
     if [ "$VERBOSE" = true ]; then
         echo "Output directory: $TRANSCRIPT_OUTPUT_DIR"
         echo "Pipeline mode: $PODCAST_PIPELINE_MODE"
-        python3 -m src.main --verbose
+        echo "Feed URL: $FEED_URL"
+        echo "Max episodes: $MAX_EPISODES"
+        python3 -m src.cli transcribe --feed-url "$FEED_URL" --max-episodes "$MAX_EPISODES" --verbose
     else
-        python3 -m src.main
+        python3 -m src.cli transcribe --feed-url "$FEED_URL" --max-episodes "$MAX_EPISODES"
     fi
     
     if [ -d "venv" ]; then
@@ -187,6 +217,9 @@ echo -e "${BLUE}=== Podcast Knowledge Pipeline ===${NC}"
 echo "Mode: $MODE"
 echo "Data directory: $DATA_DIR"
 echo ""
+
+# Validate parameters
+validate_parameters
 
 # Check prerequisites
 check_prerequisites
