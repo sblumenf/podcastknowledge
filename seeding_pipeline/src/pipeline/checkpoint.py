@@ -218,9 +218,24 @@ class CheckpointManager:
                             segments.append(seg)
                     data = {**data, 'segments': segments}
             
+            # Convert sets to lists for JSON serialization
+            if isinstance(data, dict):
+                data = self._convert_sets_to_lists(data)
+            
             serialized[phase] = data
         
         return serialized
+    
+    def _convert_sets_to_lists(self, obj: Any) -> Any:
+        """Recursively convert sets to lists for JSON serialization."""
+        if isinstance(obj, set):
+            return list(obj)
+        elif isinstance(obj, dict):
+            return {k: self._convert_sets_to_lists(v) for k, v in obj.items()}
+        elif isinstance(obj, list):
+            return [self._convert_sets_to_lists(item) for item in obj]
+        else:
+            return obj
     
     def _deserialize_phase_results(self, results: Dict[str, Any]) -> Dict[str, Any]:
         """Deserialize phase results from JSON storage.
@@ -234,6 +249,13 @@ class CheckpointManager:
         deserialized = {}
         
         for phase, data in results.items():
+            # Convert lists back to sets for specific fields
+            if phase == "KNOWLEDGE_EXTRACTION" and isinstance(data, dict):
+                # These fields should be sets
+                set_fields = ['entity_types_discovered', 'relationship_types_discovered', 'sentiment_types_discovered']
+                for field in set_fields:
+                    if field in data and isinstance(data[field], list):
+                        data[field] = set(data[field])
             if phase == "VTT_PARSING":
                 # Deserialize transcript segments
                 if 'segments' in data and isinstance(data['segments'], list):

@@ -690,12 +690,48 @@ Return as JSON list (max {self.config.max_discovered_types} items):
                 if not isinstance(item, dict):
                     continue
                 
+                # Handle frequency field that might be text
+                frequency_value = item.get('frequency', 1)
+                if isinstance(frequency_value, str):
+                    # Map text frequency to numeric values
+                    frequency_map = {
+                        'very high': 10, 'high': 8, 'medium': 5, 'moderate': 5,
+                        'low': 3, 'very low': 1, 'rare': 1, 'common': 7,
+                        'frequent': 8, 'occasional': 4, 'sporadic': 2
+                    }
+                    frequency_text = frequency_value.lower().strip()
+                    frequency = frequency_map.get(frequency_text, 5)  # Default to 5 if unknown
+                else:
+                    try:
+                        frequency = int(frequency_value)
+                    except (ValueError, TypeError):
+                        frequency = 5  # Default value
+                
+                # Handle confidence field that might be text
+                confidence_value = item.get('confidence', 0.5)
+                if isinstance(confidence_value, str):
+                    # Try to parse as float or use text mapping
+                    confidence_text = confidence_value.lower().strip()
+                    confidence_map = {
+                        'very high': 0.9, 'high': 0.8, 'medium': 0.5,
+                        'low': 0.3, 'very low': 0.1
+                    }
+                    try:
+                        confidence = float(confidence_value)
+                    except ValueError:
+                        confidence = confidence_map.get(confidence_text, 0.5)
+                else:
+                    try:
+                        confidence = float(confidence_value)
+                    except (ValueError, TypeError):
+                        confidence = 0.5
+                
                 sentiment = DiscoveredSentiment(
                     sentiment_type=item.get('sentiment_type', 'unknown'),
                     description=item.get('description', ''),
                     examples=item.get('examples', []),
-                    frequency=int(item.get('frequency', 1)),
-                    confidence=float(item.get('confidence', 0.5))
+                    frequency=frequency,
+                    confidence=confidence
                 )
                 
                 if sentiment.confidence >= self.config.min_confidence_threshold:

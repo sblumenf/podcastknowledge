@@ -607,6 +607,7 @@ class UnifiedKnowledgePipeline:
                     'end_time': unit.end_time,
                     'summary': unit.summary,
                     'primary_speaker': unit.primary_speaker,
+                    'speaker_distribution': unit.speaker_distribution,  # Add speaker distribution
                     'unit_type': unit.unit_type,
                     'themes': unit.themes,
                     'segment_indices': [seg.start_time for seg in unit.segments],  # Store segment references
@@ -838,6 +839,11 @@ class UnifiedKnowledgePipeline:
                                     extraction_metadata['entity_types_discovered'].add(entity['type'])
                             
                             if extraction_result.quotes:
+                                # Add meaningful_unit_id to each quote's properties
+                                for quote in extraction_result.quotes:
+                                    if 'properties' not in quote:
+                                        quote['properties'] = {}
+                                    quote['properties']['meaningful_unit_id'] = unit.id
                                 all_quotes.extend(extraction_result.quotes)
                             
                             if extraction_result.relationships:
@@ -846,6 +852,11 @@ class UnifiedKnowledgePipeline:
                                     extraction_metadata['relationship_types_discovered'].add(rel['type'])
                             
                             if extraction_result.insights:
+                                # Add meaningful_unit_id to each insight's properties
+                                for insight in extraction_result.insights:
+                                    if 'properties' not in insight:
+                                        insight['properties'] = {}
+                                    insight['properties']['meaningful_unit_id'] = unit.id
                                 all_insights.extend(extraction_result.insights)
                             
                             # Store sentiment result
@@ -1043,11 +1054,21 @@ class UnifiedKnowledgePipeline:
                 # Find the source MeaningfulUnit
                 unit_id = quote.get('properties', {}).get('meaningful_unit_id')
                 
-                quote_id = self.graph_storage.create_quote(
-                    quote_data=quote,
-                    episode_id=episode_id,
-                    meaningful_unit_id=unit_id
-                )
+                if not unit_id:
+                    self.logger.error(f"Quote missing meaningful_unit_id in properties: {quote}")
+                    self.logger.error(f"Quote properties: {quote.get('properties', {})}")
+                    continue
+                
+                try:
+                    quote_id = self.graph_storage.create_quote(
+                        quote_data=quote,
+                        episode_id=episode_id,
+                        meaningful_unit_id=unit_id
+                    )
+                except Exception as e:
+                    self.logger.error(f"Failed to create quote for unit {unit_id}: {e}")
+                    self.logger.error(f"Quote data: {quote}")
+                    raise
                 
                 # Map quote text (truncated as used in relationships) to ID
                 quote_text_key = quote['text'][:100] if 'text' in quote else quote.get('value', '')[:100]

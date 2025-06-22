@@ -313,6 +313,15 @@ class KnowledgeExtractor:
             # Single LLM call for all extractions
             response_data = self.llm_service.complete_with_options(prompt, json_mode=True)
             
+            # Check if response is valid
+            if not response_data or 'content' not in response_data:
+                logger.error(f"Invalid response from LLM service: {response_data}")
+                raise ValueError("LLM service returned invalid response structure")
+            
+            if response_data['content'] is None:
+                logger.error("LLM service returned None content")
+                raise ValueError("LLM service returned None content")
+            
             # Parse the combined response
             extracted_data = self._parse_combined_response(response_data['content'])
             
@@ -396,6 +405,9 @@ class KnowledgeExtractor:
             
         except Exception as e:
             logger.error(f"Combined extraction failed: {e}")
+            logger.error(f"Error type: {type(e).__name__}")
+            import traceback
+            logger.error(f"Traceback: {traceback.format_exc()}")
             # Fall back to empty result on error
             return ExtractionResult(
                 entities=[], 
@@ -419,6 +431,25 @@ class KnowledgeExtractor:
             Parsed extraction data dictionary
         """
         try:
+            # Check for None or empty response
+            if response is None:
+                logger.error("Received None response from LLM")
+                return {
+                    'entities': [],
+                    'quotes': [],
+                    'insights': [],
+                    'conversation_structure': {}
+                }
+            
+            if not response.strip():
+                logger.error("Received empty response from LLM")
+                return {
+                    'entities': [],
+                    'quotes': [],
+                    'insights': [],
+                    'conversation_structure': {}
+                }
+            
             # Parse JSON (no cleaning needed with native JSON mode)
             data = json.loads(response)
             
@@ -448,12 +479,13 @@ class KnowledgeExtractor:
         
         for entity in raw_entities:
             try:
-                # Ensure required fields
-                if not entity.get('name'):
+                # Ensure required fields - handle both 'name' and 'value' fields
+                entity_value = entity.get('value') or entity.get('name')
+                if not entity_value:
                     continue
                     
                 processed_entity = {
-                    'value': entity['name'],  # Map 'name' from LLM to 'value' for pipeline
+                    'value': entity_value,  # Use 'value' if present, fall back to 'name'
                     'type': entity.get('type', 'Unknown'),
                     'description': entity.get('description', ''),
                     'importance': float(entity.get('importance', 5)) / 10,  # Normalize to 0-1
@@ -535,7 +567,7 @@ class KnowledgeExtractor:
     ) -> List[Dict[str, Any]]:
         """Extract relationships from entities and conversation structure."""
         relationships = []
-        entity_names = {e['name'] for e in entities}
+        entity_names = {e['value'] for e in entities}
         
         # Look for explicit relationships in conversation structure
         topic_groups = conversation_structure.get('topic_groups', [])
@@ -564,8 +596,8 @@ class KnowledgeExtractor:
                 # Simple heuristic: if mentioned close together
                 if abs(entities.index(person) - entities.index(org)) <= 2:
                     relationships.append({
-                        'source': person['name'],
-                        'target': org['name'],
+                        'source': person['value'],
+                        'target': org['value'],
                         'type': 'affiliated_with',
                         'confidence': 0.6,
                         'context': 'Mentioned in close proximity'

@@ -261,6 +261,19 @@ IMPORTANT: Keep all text descriptions concise and focused. Avoid lengthy explana
                         unit['start_index'] = unit.pop('start_segment_index')
                     if 'end_segment_index' in unit and 'end_index' not in unit:
                         unit['end_index'] = unit.pop('end_segment_index')
+                    # Also handle start_segment/end_segment format
+                    if 'start_segment' in unit and 'start_index' not in unit:
+                        unit['start_index'] = unit.pop('start_segment')
+                    if 'end_segment' in unit and 'end_index' not in unit:
+                        unit['end_index'] = unit.pop('end_segment')
+                    
+                    # Ensure start_index and end_index exist (required fields)
+                    if 'start_index' not in unit:
+                        self.logger.warning(f"Unit missing start_index, defaulting to 0")
+                        unit['start_index'] = 0
+                    if 'end_index' not in unit:
+                        self.logger.warning(f"Unit missing end_index, defaulting to start_index")
+                        unit['end_index'] = unit.get('start_index', 0)
                     
                     # Ensure required fields have defaults
                     if 'unit_type' not in unit:
@@ -333,6 +346,32 @@ IMPORTANT: Keep all text descriptions concise and focused. Avoid lengthy explana
             for boundary in structure_dict['boundaries']:
                 if isinstance(boundary, dict) and 'segment_index' in boundary:
                     if 0 <= boundary['segment_index'] < total_segments:
+                        # Ensure all required fields exist
+                        if 'boundary_type' not in boundary:
+                            # Try to infer from description or default
+                            if 'description' in boundary:
+                                desc_lower = boundary['description'].lower()
+                                if 'topic' in desc_lower or 'shift' in desc_lower:
+                                    boundary['boundary_type'] = 'topic_shift'
+                                elif 'speaker' in desc_lower:
+                                    boundary['boundary_type'] = 'speaker_change'
+                                elif 'end' in desc_lower or 'conclusion' in desc_lower:
+                                    boundary['boundary_type'] = 'story_end'
+                                else:
+                                    boundary['boundary_type'] = 'topic_shift'
+                            else:
+                                boundary['boundary_type'] = 'topic_shift'
+                        
+                        if 'confidence' not in boundary:
+                            boundary['confidence'] = 0.7  # Default confidence
+                        
+                        if 'reason' not in boundary:
+                            # Use description if available, otherwise create default
+                            if 'description' in boundary:
+                                boundary['reason'] = boundary['description']
+                            else:
+                                boundary['reason'] = f"Boundary at segment {boundary['segment_index']}"
+                        
                         valid_boundaries.append(boundary)
                     else:
                         self.logger.warning(
@@ -407,13 +446,24 @@ IMPORTANT: Keep all text descriptions concise and focused. Avoid lengthy explana
                 else:
                     structure_dict['insights']['overall_coherence'] = 0.7
                 
-                # Ensure all required fields exist
+                # Ensure all required fields exist and are lists
                 if 'fragmentation_issues' not in structure_dict['insights']:
                     structure_dict['insights']['fragmentation_issues'] = []
+                elif isinstance(structure_dict['insights']['fragmentation_issues'], str):
+                    # Convert string to list
+                    structure_dict['insights']['fragmentation_issues'] = [structure_dict['insights']['fragmentation_issues']]
+                
                 if 'missing_context' not in structure_dict['insights']:
                     structure_dict['insights']['missing_context'] = []
+                elif isinstance(structure_dict['insights']['missing_context'], str):
+                    # Convert string to list
+                    structure_dict['insights']['missing_context'] = [structure_dict['insights']['missing_context']]
+                
                 if 'natural_boundaries' not in structure_dict['insights']:
                     structure_dict['insights']['natural_boundaries'] = []
+                elif isinstance(structure_dict['insights']['natural_boundaries'], (str, int, float)):
+                    # Convert non-list to list
+                    structure_dict['insights']['natural_boundaries'] = [structure_dict['insights']['natural_boundaries']]
         
         # Ensure required top-level fields exist
         if 'flow' not in structure_dict:

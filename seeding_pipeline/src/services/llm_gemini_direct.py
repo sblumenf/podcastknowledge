@@ -307,6 +307,19 @@ class GeminiDirectService:
                 config=config
             )
             
+            # Check if response has text
+            if not response or not hasattr(response, 'text'):
+                logger.error(f"Invalid response from Gemini API: {response}")
+                raise ProviderError("gemini", "Gemini API returned invalid response")
+            
+            # Handle None text
+            if response.text is None:
+                logger.error("Gemini API returned None text")
+                # Try to get candidates if available
+                if hasattr(response, 'candidates') and response.candidates:
+                    logger.error(f"Response candidates: {response.candidates}")
+                raise ProviderError("gemini", "Gemini API returned None text")
+            
             return {
                 'content': response.text,
                 'model': self.model_name,

@@ -73,7 +73,7 @@ class SpeakerIdentifier:
         
         Args:
             segments: List of transcript segments with generic speaker labels
-            metadata: Episode metadata (podcast name, title, description)
+            metadata: Episode metadata (podcast name, title, description, episode_id)
             cached_content_name: Optional cached episode content name
             
         Returns:
@@ -108,50 +108,17 @@ class SpeakerIdentifier:
             logger.info("Only one speaker found, skipping identification")
             return self._create_single_speaker_response(stats)
             
-        # Check speaker database first
-        podcast_name = metadata.get('podcast_name', '')
-        if podcast_name:
-            self.cache_attempts += 1
-            cached_mappings, cached_scores = self.speaker_db.match_speakers(
-                podcast_name, stats, self.confidence_threshold
-            )
-            
-            if cached_mappings:
-                self.cache_hits += 1
-                logger.info(f"Found {len(cached_mappings)} speakers in cache for '{podcast_name}'")
-                
-                # Build result from cache
-                result = {
-                    'speaker_mappings': cached_mappings,
-                    'confidence_scores': cached_scores,
-                    'identification_methods': {
-                        speaker: "Cached from previous episodes" 
-                        for speaker in cached_mappings
-                    },
-                    'unresolved_speakers': [
-                        speaker for speaker in stats.keys() 
-                        if speaker not in cached_mappings
-                    ],
-                    'stats': stats,
-                    'performance': {
-                        'duration_seconds': time.time() - start_time,
-                        'segments_processed': len(segments),
-                        'speakers_identified': len(cached_mappings),
-                        'cache_hit': True
-                    }
-                }
-                
-                # If all speakers identified, return cache result
-                if len(result['unresolved_speakers']) == 0:
-                    # TODO: Fix metrics recording
-                    # self.metrics.record_success('speaker_identification_cache_hit')
-                    
-                    # Record in speaker metrics
-                    self.speaker_metrics.record_identification(
-                        podcast_name, result, time.time() - start_time
-                    )
-                    
-                    return result
+        # DISABLED: Speaker cache causes cross-episode contamination
+        # Each episode should identify its own speakers independently
+        # This prevents guests from one episode appearing in all episodes
+        
+        # Original cache code commented out for reference:
+        # podcast_name = metadata.get('podcast_name', '')
+        # if podcast_name:
+        #     ... cache lookup logic ...
+        
+        # Instead, always use LLM for fresh identification
+        logger.info("Speaker cache disabled - using LLM for fresh identification")
             
         # Prepare context for LLM
         context = self._prepare_context(segments, metadata, stats)
@@ -208,26 +175,15 @@ class SpeakerIdentifier:
             if errors:
                 identification_result['errors'] = errors
                 
-            # Store successful identifications in database
-            if podcast_name and identification_result.get('speaker_mappings'):
-                # Only store high-confidence identifications
-                high_confidence_mappings = {
-                    speaker: name
-                    for speaker, name in identification_result['speaker_mappings'].items()
-                    if identification_result['confidence_scores'].get(speaker, 0) >= self.confidence_threshold
-                }
-                
-                if high_confidence_mappings:
-                    self.speaker_db.store_speakers(
-                        podcast_name,
-                        high_confidence_mappings,
-                        {
-                            speaker: score
-                            for speaker, score in identification_result['confidence_scores'].items()
-                            if speaker in high_confidence_mappings
-                        }
-                    )
-                    logger.info(f"Stored {len(high_confidence_mappings)} speakers in database for '{podcast_name}'")
+            # DISABLED: Speaker cache storage to prevent cross-episode contamination
+            # Each episode should maintain its own unique speakers
+            # This prevents building up a shared cache that applies to all episodes
+            
+            # Original cache storage code commented out:
+            # if podcast_name and identification_result.get('speaker_mappings'):
+            #     ... store_speakers logic ...
+            
+            logger.info("Speaker cache storage disabled - each episode identifies speakers independently")
                 
             # Record success metric
             # TODO: Fix metrics recording

@@ -556,6 +556,7 @@ class GraphStorageService:
                 # "CREATE INDEX IF NOT EXISTS FOR (s:Segment) ON (s.start_time)",  # REMOVED - only MeaningfulUnit
                 "CREATE INDEX IF NOT EXISTS FOR (m:MeaningfulUnit) ON (m.start_time)",
                 "CREATE INDEX IF NOT EXISTS FOR (m:MeaningfulUnit) ON (m.primary_speaker)",
+                # Note: speaker_distribution is a JSON string, indexing may not be optimal
                 "CREATE INDEX IF NOT EXISTS FOR (en:Entity) ON (en.name)",
                 "CREATE INDEX IF NOT EXISTS FOR (en:Entity) ON (en.type)",
                 "CREATE INDEX IF NOT EXISTS FOR ()-[r:MENTIONED_IN]-() ON (r.confidence)"
@@ -779,7 +780,8 @@ class GraphStorageService:
                 - start_time: Start timestamp (adjusted for YouTube)
                 - end_time: End timestamp
                 - summary: Brief summary of content
-                - speaker_distribution: Dict of speaker percentages
+                - primary_speaker: Primary speaker (deprecated, use speaker_distribution)
+                - speaker_distribution: Dict of speaker percentages (e.g., {"Host": 60.5, "Guest": 39.5})
                 - unit_type: Type of unit (e.g., "topic_discussion", "q&a")
                 - themes: List of related themes
                 - segment_indices: List of original segment IDs
@@ -810,6 +812,10 @@ class GraphStorageService:
                     if 'segment_indices' in unit_data and isinstance(unit_data['segment_indices'], list):
                         unit_data['segment_indices'] = json.dumps(unit_data['segment_indices'])
                     
+                    # Convert speaker_distribution dict to JSON string for storage
+                    if 'speaker_distribution' in unit_data and isinstance(unit_data['speaker_distribution'], dict):
+                        unit_data['speaker_distribution'] = json.dumps(unit_data['speaker_distribution'])
+                    
                     # Prepare embedding (Neo4j can store lists of floats directly)
                     embedding = unit_data.get('embedding', None)
                     
@@ -824,6 +830,7 @@ class GraphStorageService:
                             m.end_time = $end_time,
                             m.summary = $summary,
                             m.primary_speaker = $primary_speaker,
+                            m.speaker_distribution = $speaker_distribution,
                             m.unit_type = $unit_type,
                             m.themes = $themes,
                             m.segment_indices = $segment_indices,
@@ -834,6 +841,7 @@ class GraphStorageService:
                             m.end_time = $end_time,
                             m.summary = $summary,
                             m.primary_speaker = $primary_speaker,
+                            m.speaker_distribution = $speaker_distribution,
                             m.unit_type = $unit_type,
                             m.themes = $themes,
                             m.segment_indices = $segment_indices,
@@ -852,6 +860,7 @@ class GraphStorageService:
                             m.end_time = $end_time,
                             m.summary = $summary,
                             m.primary_speaker = $primary_speaker,
+                            m.speaker_distribution = $speaker_distribution,
                             m.unit_type = $unit_type,
                             m.themes = $themes,
                             m.segment_indices = $segment_indices
@@ -861,6 +870,7 @@ class GraphStorageService:
                             m.end_time = $end_time,
                             m.summary = $summary,
                             m.primary_speaker = $primary_speaker,
+                            m.speaker_distribution = $speaker_distribution,
                             m.unit_type = $unit_type,
                             m.themes = $themes,
                             m.segment_indices = $segment_indices
@@ -878,6 +888,7 @@ class GraphStorageService:
                         'end_time': unit_data['end_time'],
                         'summary': unit_data.get('summary', ''),
                         'primary_speaker': unit_data.get('primary_speaker', 'Unknown'),
+                        'speaker_distribution': unit_data.get('speaker_distribution', '{}'),
                         'unit_type': unit_data.get('unit_type', 'unknown'),
                         'themes': unit_data.get('themes', '[]'),
                         'segment_indices': unit_data.get('segment_indices', '[]'),
@@ -1201,7 +1212,24 @@ class GraphStorageService:
                     created = result.single()
                     
                     if not created:
-                        raise ProviderError("neo4j", "Failed to create quote")
+                        # Check if episode exists
+                        episode_check = session.run(
+                            "MATCH (e:Episode {id: $episode_id}) RETURN e.id AS id",
+                            episode_id=episode_id
+                        ).single()
+                        
+                        # Check if meaningful unit exists
+                        unit_check = session.run(
+                            "MATCH (m:MeaningfulUnit {id: $meaningful_unit_id}) RETURN m.id AS id",
+                            meaningful_unit_id=meaningful_unit_id
+                        ).single()
+                        
+                        if not episode_check:
+                            raise ProviderError("neo4j", f"Episode {episode_id} not found in database")
+                        elif not unit_check:
+                            raise ProviderError("neo4j", f"MeaningfulUnit {meaningful_unit_id} not found in database")
+                        else:
+                            raise ProviderError("neo4j", "Failed to create quote for unknown reason")
                     
                     logger.debug(f"Created quote {quote_id} from unit {meaningful_unit_id}")
                     return created['id']

@@ -1,7 +1,7 @@
 """Segment regrouping service for semantic segmentation."""
 
 import logging
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, Tuple
 from dataclasses import dataclass
 from src.core.interfaces import TranscriptSegment
 from src.core.conversation_models.conversation import ConversationStructure, ConversationUnit
@@ -22,7 +22,8 @@ class MeaningfulUnit:
     themes: List[str]
     start_time: float
     end_time: float
-    primary_speaker: str
+    primary_speaker: str  # DEPRECATED: Use speaker_distribution instead. Kept for compatibility only.
+    speaker_distribution: Dict[str, float]  # New field: speaker percentages
     is_complete: bool
     metadata: Optional[Dict[str, Any]] = None
     
@@ -145,8 +146,8 @@ class SegmentRegrouper:
         structure: ConversationStructure
     ) -> MeaningfulUnit:
         """Create a meaningful unit from segments and conversation unit."""
-        # Get primary speaker
-        primary_speaker = self._get_primary_speaker(unit_segments)
+        # Calculate speaker info (primary speaker and distribution)
+        primary_speaker, speaker_distribution = self._calculate_speaker_info(unit_segments)
         
         # Find related themes
         related_themes = []
@@ -171,6 +172,7 @@ class SegmentRegrouper:
             start_time=unit_segments[0].start_time,
             end_time=unit_segments[-1].end_time,
             primary_speaker=primary_speaker,
+            speaker_distribution=speaker_distribution,
             is_complete=is_complete,
             metadata={
                 "original_indices": {
@@ -184,11 +186,31 @@ class SegmentRegrouper:
     
     # Removed _calculate_speaker_distribution - no longer needed with primary_speaker approach
     
-    def _get_primary_speaker(
+    def _calculate_speaker_info(
         self,
         segments: List[TranscriptSegment]
-    ) -> str:
-        """Get the primary speaker (with most speaking time) from segments."""
+    ) -> Tuple[str, Dict[str, float]]:
+        """Calculate primary speaker and speaker distribution percentages.
+        
+        This method calculates how much each speaker talks within a meaningful unit
+        by summing their speaking time and converting to percentages. The percentages
+        are guaranteed to sum to exactly 100% through rounding adjustment.
+        
+        Args:
+            segments: List of transcript segments containing speaker and timing info
+            
+        Returns:
+            Tuple of (primary_speaker, speaker_distribution) where:
+            - primary_speaker: Name of speaker with most speaking time
+            - speaker_distribution: Dict mapping speaker names to percentage of speaking time
+                                  e.g., {"Host": 65.5, "Guest": 34.5}
+        
+        Example:
+            >>> segments = [segment1_host_60s, segment2_guest_40s]
+            >>> primary, dist = _calculate_speaker_info(segments)
+            >>> print(primary)  # "Host"
+            >>> print(dist)     # {"Host": 60.0, "Guest": 40.0}
+        """
         speaker_times = {}
         
         for segment in segments:
@@ -204,11 +226,30 @@ class SegmentRegrouper:
                 speaker_times[speaker] = 0.0
             speaker_times[speaker] += duration
         
-        # Return speaker with most time, or "Unknown" if no segments
-        if speaker_times:
-            return max(speaker_times.items(), key=lambda x: x[1])[0]
-        else:
-            return "Unknown"
+        # Handle empty segments case
+        if not speaker_times:
+            return "Unknown", {"Unknown": 100.0}
+        
+        # Calculate total time
+        total_time = sum(speaker_times.values())
+        
+        # Calculate percentages
+        speaker_distribution = {}
+        for speaker, time in speaker_times.items():
+            percentage = round((time / total_time * 100), 1) if total_time > 0 else 0.0
+            speaker_distribution[speaker] = percentage
+        
+        # Ensure percentages sum to 100% (adjust for rounding)
+        total_percentage = sum(speaker_distribution.values())
+        if total_percentage != 100.0 and speaker_distribution:
+            # Adjust the largest percentage to make total exactly 100
+            max_speaker = max(speaker_distribution.items(), key=lambda x: x[1])[0]
+            speaker_distribution[max_speaker] += round(100.0 - total_percentage, 1)
+        
+        # Get primary speaker (with most time)
+        primary_speaker = max(speaker_times.items(), key=lambda x: x[1])[0]
+        
+        return primary_speaker, speaker_distribution
     
     def _validate_coverage(
         self, 
