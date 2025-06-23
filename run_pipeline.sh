@@ -213,7 +213,14 @@ run_transcriber() {
     
     # Count existing VTT files and add to max episodes
     # This ensures --max-episodes always means "X additional episodes"
-    EXISTING_VTT_COUNT=$(find "$TRANSCRIPT_OUTPUT_DIR" -name "*.vtt" -type f 2>/dev/null | wc -l)
+    if [ -n "$PODCAST_NAME" ]; then
+        # If podcast specified, count only that podcast's VTT files
+        PODCAST_DIR_NAME=$(echo "$PODCAST_NAME" | tr ' ' '_')
+        EXISTING_VTT_COUNT=$(find "$TRANSCRIPT_OUTPUT_DIR/$PODCAST_DIR_NAME" -name "*.vtt" -type f 2>/dev/null | wc -l)
+    else
+        # Otherwise count all VTT files
+        EXISTING_VTT_COUNT=$(find "$TRANSCRIPT_OUTPUT_DIR" -name "*.vtt" -type f 2>/dev/null | wc -l)
+    fi
     ACTUAL_MAX_EPISODES=$((EXISTING_VTT_COUNT + MAX_EPISODES))
     
     if [ "$VERBOSE" = true ]; then

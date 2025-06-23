@@ -1,0 +1,15 @@
+# Backend dependencies for Podcast Knowledge UI
+# Minimal requirements for resource-constrained environments
+
+# FastAPI framework and server
+fastapi==0.115.12  # Latest stable version from context7
+uvicorn[standard]==0.34.0  # ASGI server with standard extras
+
+# Database connectivity
+neo4j==5.28.0  # Neo4j Python driver
+
+# Configuration reading
+pyyaml==6.0.2  # For reading podcast configuration
+
+# Note: All dependencies are already in use by the seeding pipeline
+# No new technologies are being introduced

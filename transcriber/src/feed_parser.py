@@ -168,7 +168,7 @@ def _extract_podcast_metadata(feed: feedparser.FeedParserDict) -> PodcastMetadat
         owner_name=itunes_owner.get('itunes_name') if isinstance(itunes_owner, dict) else None,
         owner_email=itunes_owner.get('itunes_email') if isinstance(itunes_owner, dict) else None,
         category=itunes_category,
-        explicit=itunes_explicit.lower() in ('yes', 'true', '1') if itunes_explicit else False,
+        explicit=(isinstance(itunes_explicit, str) and itunes_explicit.lower() in ('yes', 'true', '1')) or (isinstance(itunes_explicit, bool) and itunes_explicit),
         image_url=image_url
     )
 

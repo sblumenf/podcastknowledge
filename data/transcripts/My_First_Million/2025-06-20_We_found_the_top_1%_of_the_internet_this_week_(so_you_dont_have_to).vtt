@@ -1,0 +1,914 @@
+WEBVTT
+
+NOTE Episode Information
+Podcast: My First Million
+Episode: We found the top 1% of the internet this week (so you don't have to)
+Author: Hubspot Media
+Published: 2025-06-20 11:57:00
+Duration: 0:55:32
+
+NOTE Content Details
+Description: Episode 718: Sam Parr ( https://x.com/theSamParr ) and Shaan Puri ( https://x.com/ShaanVP ) talk about stuff that hit the group chat this week. — Show Notes: (0:00) Apple Just Unlocked a $1B App Idea (04:13) McKinsey got $55M for This? (10:28) Frank Slootman’s Ice-Cold Advice (16:20) “Treat people well, and you’ll win.” (24:41) Man steals $122 million from Facebook and Google, (28:17) ChatGPT’s $10B ARR retention curve (34:58) Elon v. Trump Meltdown (39:54) Ramp’s Monopolist Pitch Deck (46:22) Rich Guy House Alert: Gary Tan Edition (48:55) Sam’s First Ever Bookmark — Links: • Want Sam's top 7 books for entrepreneurs (& his reading strategy)? Get it here: https://clickhubspot.com/kmb • Apple AlarmKit announcement (WWDC) - https://developer.apple.com/wwdc23/ • Waymo Self-Driving Cars - https://waymo.com/ • Ramp (Eric Glyman’s company) - https://ramp.com/• Brex - https://www.brex.com/ • Amp It Up - https://tinyurl.com/5ak4ckux • Les Schwab: Pride in Performance - https://tinyurl.com/5ch39nrv • TBPN - https://www.youtube.com/@thebrospodcastnetwork — Check Out Shaan's Stuff: • Shaan's weekly email - https://www.shaanpuri.com • Visit https://www.somewhere.com/mfm to hire worldwide talent like Shaan and get $500 off for being an MFM listener. Hire developers, assistants, marketing pros, sales teams and more for 80% less than US equivalents. • Mercury - Need a bank for your company? Go check out Mercury (mercury.com). Shaan uses it for all of his companies! Mercury is a financial technology company, not an FDIC-insured bank. Banking services provided by Choice Financial Group, Column, N.A., and Evolve Bank & Trust, Members FDIC — Check Out Sam's Stuff: • Hampton - https://www.joinhampton.com/ • Ideation Bootcamp - https://www.ideationbootcamp.co/ • Copy That - https://copythat.com • Hampton Wealth Survey - https://joinhampton.com/wealth • Sam’s List - http://samslist.co/ My First Million is a HubSpot Original Podcast // Brought to you by HubSpot Media // Production by Arie Desormeaux // Editing by Ezra Bakker Trupiano
+YouTube URL: https://www.youtube.com/watch?v=Lir49w6IfuM
+
+NOTE Transcription Details
+Service: Deepgram
+Model: nova-2 (2024-01-06.5664)
+Request ID: 80514bb6-1105-467b-bf2c-ab9e8ea1fbd6
+Transcribed: 2025-06-22T21:23:17Z
+Audio Duration: 3334.24 seconds
+Words: 11,819
+Speakers: 2 detected
+
+1
+00:00:00.080 --> 00:00:02.419
+<v Speaker 0>alright sam why are we dressed so festive</v>
+
+2
+00:00:02.879 --> 00:00:04.240
+<v Speaker 1>it's casual friday baby</v>
+
+3
+00:00:04.240 --> 00:00:14.085
+<v Speaker 0>it's casual friday and the best stuff is always in the group chat and these are the things that i sent in the group chat that i wouldn't post publicly but decided you know what it's casual friday let's air them out</v>
+
+4
+00:00:19.925 --> 00:00:24.484
+<v Speaker 1>alright can we do the first 1 the first 1 here it is okay this is a</v>
+
+5
+00:00:24.484 --> 00:00:41.000
+<v Speaker 0>tweet from dylan dylan says at long last any app can be your alarm app apple has finally introduced alarmkit this is at the the apple announcement that happened this week that lets any app have the same privileges as the clock app this is long overdue dylan you are absolutely right dude i</v>
+
+6
+00:00:41.000 --> 00:00:43.020
+<v Speaker 1>did not understand this is this a joke</v>
+
+7
+00:00:43.524 --> 00:01:05.109
+<v Speaker 0>no this is real so basically you know like apple gives you certain permissions right if you're an app you can send push notifications you could use the camera you could use the gps but for a long time no app could become your alarm app it couldn't access the same features of an alarm app which is like now any app you don't just have to use the apple alarm app anybody could build an app for alarm</v>
+
+8
+00:01:05.329 --> 00:01:09.989
+<v Speaker 1>sounds i don't understand so yeah this does sound small so change my mind why is this important</v>
+
+9
+00:01:10.049 --> 00:01:43.375
+<v Speaker 0>so think about it this way there's like 2,000,000,000 people with iphones and you know not every app can address all 2,000,000,000 people but an alarm clock can basically address like a billion or 2 people who actually have the need for an alarm clock so what happened was 2 weeks ago or you know a week ago as an app developer you that was not a category you could be in and now it's a category you could be in where there's a billion active users that might want your app and there's been no creativity and no innovation so like the app store's been been out for you know the 16 years</v>
+
+10
+00:01:43.375 --> 00:01:56.459
+<v Speaker 0>now so a lot of stuff is solved right camera apps are pretty good map apps are pretty good with google maps and waze and you know ride sharing apps there's all kinds of apps and there's been tons of innovation but this has been basically artificially blocked</v>
+
+11
+00:01:56.680 --> 00:02:11.894
+<v Speaker 1>wait really quick do you remember the the joke of peter thiel where he said you wanted flying cars but you got a 190 characters like on twitter this is even 1 41 40 this is the even worse version of that you wanted flying cars now you can make alarm apps</v>
+
+12
+00:02:11.894 --> 00:02:22.590
+<v Speaker 0>you wanted ai instead you got a snooze button by the way i met the guy who wrote that line for or i didn't meet him but i i i found out who wrote that line for peter thiel peter thiel has like wait</v>
+
+13
+00:02:22.590 --> 00:02:28.349
+<v Speaker 1>wait wait wait wait you met him okay you you mistakenly said you met him versus you heard i'm a</v>
+
+14
+00:02:28.550 --> 00:02:50.250
+<v Speaker 0>i met him a guy who was like that's the guy who wrote that that's peter's guy he he comes up with those and that was his job was basically follow peter around listen to what he's saying and then try to like transform his sentiment into something really punchy and that guy came up with that line which became the basis for like founders fun and like a rally cry</v>
+
+15
+00:02:50.789 --> 00:02:54.650
+<v Speaker 1>that's cool well tell him a good job alright so check this out</v>
+
+16
+00:02:55.110 --> 00:03:17.819
+<v Speaker 0>easy idea david goggins would you like a million dollars because david goggins today should pay some kid to make the alarm app that's basically the david goggins skinned alarm app like i wanna wake up with david goggins just saying wake up bitch there's miles to run and i just wanna hear that when i wake up and not like you know the default alarm sound for for my phone</v>
+
+17
+00:03:17.960 --> 00:03:22.139
+<v Speaker 1>are there when is this going live when when's this alarm kit thing</v>
+
+18
+00:03:22.280 --> 00:03:33.455
+<v Speaker 0>so they did the developer preview that's what wwdc is right they tell you what's possible and you could start building with it but it's not like available yet to customers but it usually i think it's just like a couple months it's like not not very long</v>
+
+19
+00:03:33.514 --> 00:03:37.435
+<v Speaker 1>this is low hanging fruit my friend it's a good idea it's a good idea yeah</v>
+
+20
+00:03:37.435 --> 00:03:40.074
+<v Speaker 0>this is fruit that might just be on the ground actually this might be rotting fruit</v>
+
+21
+00:03:40.074 --> 00:03:43.275
+<v Speaker 1>i don't know i'm not entirely sure alright</v>
+
+22
+00:03:43.275 --> 00:03:51.740
+<v Speaker 0>next week we go by the way we're totally stealing this gimmick from our boys at tvpn shout out to john and jordy part of the brotherhood</v>
+
+23
+00:03:52.360 --> 00:03:58.375
+<v Speaker 1>but i gave them a shout out later on 1 of my 1 of my photos or tweets is from them which is pretty</v>
+
+24
+00:03:58.375 --> 00:04:45.160
+<v Speaker 0>funny they basically had the the true innovation of the podcast industry of printing out the tweets and we decided that we too shall now print out tweets but i've been doing fine food tuesday for a lot longer than those guys so i i think i'm okay alright this 1 comes from chris bauchi he says this is a this is a chris bauchi banger he says in 2022 mckinsey paid $55,000,000 was paid $55,000,000 to advise warner brothers when they merged with discovery they charged them 37,000,000 by advising them to change hbo to hbo max then to max then back to hbo max and in 2025 they billed them an additional 63,000,000 again to determine that warner brothers and discovery should be separate brands again did you see that mckinsey last week laid off 15% of their staff because of ai because</v>
+
+25
+00:04:45.160 --> 00:04:47.899
+<v Speaker 0>now like ai could do half the job or what is that why</v>
+
+26
+00:04:47.959 --> 00:04:53.740
+<v Speaker 1>yeah for sure this is this is absolutely insane what did you say you're allergic to lack of common sense this is ridiculous</v>
+
+27
+00:04:54.245 --> 00:05:12.490
+<v Speaker 0>this is exactly the sort of lack of common sense i was talking about this tweet has 70,000 likes by the way i don't know if you totally made up these numbers or if these are true but directionally correct there were some good reactions to this greg greg tweeted don't be the problem be the solution that creates the problem that is my takeaway</v>
+
+28
+00:05:14.389 --> 00:05:17.930
+<v Speaker 1>yeah it is pretty ridiculous have you ever had friends that have worked at mckinsey</v>
+
+29
+00:05:18.834 --> 00:05:24.214
+<v Speaker 0>yeah yeah my buddy ramin who i do a bunch of business stuff with he was a former mckinsey guy</v>
+
+30
+00:05:24.274 --> 00:06:26.175
+<v Speaker 1>they're easy to make fun of because you're like what does a a 23 year old know about business but like i have a friend that worked there and she had some pretty amazing like basically a pe firm in her case identified like a a bunch of dairy farms that they wanted to like roll up and so they bought a bunch of them the pe firm did and then they hired mckinsey folks to come and figure out how to make it more efficient and so she literally would go to iowa every single week for about 6 months and devise interesting things like for example we're gonna change the bucket size that we like use that the workers use like like really interesting like have you seen landman yes yeah yeah when like the lawyer shows up on the like on the oil field and she's like got her high heels like stuck in the mud basically that's what i'm imagining the mckinsey consultants showing up at the the cattle farm it it it was kind of great it's like i learned about this whole this whole experience she had there is value that is created from these consultants even though we like to make fun of them have you did romine actually work on anything interesting well they deserve to be made fun of because they're incredibly smart they get paid very well</v>
+
+31
+00:06:26.175 --> 00:07:13.605
+<v Speaker 0>so you know that means you're a punching bag right yeah because that's basically the criteria for like oh it's free game right it's like it's like what a nerd was in middle school it's like the opposite traits right like the person you could give a swirly to in in in sort of junior high would be like somebody who's sort of weak and powerless but when you grow up you can't make fun of the weak and powerless you only make fun of the powerful and yeah so yeah romaine was like this basically he would tell me things that they would do and i'm like oh that's really smart i was i was kinda hoping you guys were a bunch of idiots but actually that sounds pretty good but what i did come away with was they have huge brains but small balls is generally like the person who stays in consulting and that's like a which is a small that's the definition of anxiety is when you're the definition of anxiety is when your brain is a lot bigger than your balls</v>
+
+32
+00:07:13.745 --> 00:07:16.965
+<v Speaker 1>so that's probably why there's a bunch of anxious consultants running around</v>
+
+33
+00:07:18.305 --> 00:07:42.004
+<v Speaker 0>i like how you just i like how you're just saying something is the definition of but it's absolutely not the definition of and that's hilarious i'm gonna start doing that just well well you know the root word of that and then you just make it up it's not even the root word alright we got a couple more reactions our boy tai lopez comes in comes in hot off the top ropes a good gig you know it's you know it's a good scam when tai lopez is giving you giving you respect</v>
+
+34
+00:07:42.464 --> 00:07:47.824
+<v Speaker 1>oh these are all replies to that original 1 okay i didn't even i didn't wasn't even following that yeah</v>
+
+35
+00:07:47.824 --> 00:07:48.865
+<v Speaker 0>we're we're learning</v>
+
+36
+00:07:48.865 --> 00:07:49.665
+<v Speaker 1>that that's insane</v>
+
+37
+00:07:49.665 --> 00:07:49.904
+<v Speaker 0>and what</v>
+
+38
+00:07:49.904 --> 00:07:50.790
+<v Speaker 1>about this 1</v>
+
+39
+00:07:51.350 --> 00:08:10.955
+<v Speaker 0>this is the consulting meme consulting if you're not a part of the solution there's really good money to be made in prolonging the problem there's this thing that happens in sports that i've always wanted to be a part of business so you know in the ufc how they have press conferences where they really talk shit about each other and i i always felt like yeah</v>
+
+40
+00:08:11.035 --> 00:08:11.274
+<v Speaker 1>it's the</v>
+
+41
+00:08:11.274 --> 00:08:14.475
+<v Speaker 0>best part and you know i wish business people would do the same like i wish right now</v>
+
+42
+00:08:14.795 --> 00:08:16.735
+<v Speaker 1>i've gone in by the way they're awesome</v>
+
+43
+00:08:16.795 --> 00:08:18.095
+<v Speaker 0>you've been to the press conferences</v>
+
+44
+00:08:18.319 --> 00:08:34.054
+<v Speaker 1>i've been 1 time i tried to sneak in when i ran the hustle like i would try to like get i couldn't get credit i i was like let me see if i can get credentialed to this and they didn't give it to me and so i showed up anyway and they kicked me out so i i went like they made me walk to the back and like sit with the crowd and i and i watched it yeah it was great</v>
+
+45
+00:08:34.054 --> 00:08:37.434
+<v Speaker 0>they didn't respect the hustle as a newsletter as a media brand</v>
+
+46
+00:08:37.495 --> 00:08:45.115
+<v Speaker 1>dude the the hustle is the worst name ever when you're trying to hustle someone like i was do you know what i mean</v>
+
+47
+00:08:45.450 --> 00:08:46.090
+<v Speaker 0>you know</v>
+
+48
+00:08:46.090 --> 00:08:48.490
+<v Speaker 1>what i mean it was just like some random security guard</v>
+
+49
+00:08:48.490 --> 00:08:54.509
+<v Speaker 0>and she my name is john scam yeah hoping for you to tell me your coinbase password</v>
+
+50
+00:08:55.450 --> 00:09:13.235
+<v Speaker 1>it was the worst like the lady like giggled at me and it was like a it was a pathetic laugh it was like did not work but if anyone's listening who works at the ufc if you and i could get credentialed to go to a ufc event and ask a question i would do that in a heartbeat and i would take it incredibly seriously</v>
+
+51
+00:09:14.120 --> 00:09:58.514
+<v Speaker 0>arguably too seriously might ruin the whole event alright this episode is brought to you by hubspot they're doing a big conference this is their big 1 they do called inbound they have a ton of great speakers that are coming to san francisco september 3 to september 5 and it's got a pretty incredible lineup they have comedians like amy poehler they have dario from anthropic dworkesh sean evans from hot ones and if you're somebody who's in marketing or sales or ai and you just wanna know what's going on what's coming next it's a great event to go to and hey guess what i'm gonna be there you can go to inbound.com/ register to get your ticket to inbound 2025 again september in san francisco hope to see you there alright what's what do you have</v>
+
+52
+00:09:58.514 --> 00:10:00.295
+<v Speaker 1>next do the frank slootman 1</v>
+
+53
+00:10:00.355 --> 00:10:11.730
+<v Speaker 0>0 okay this is good this is related this is actually related to what i was just talking about so frank slootman who is the the man's band ceos he's the david goggins of the corporate world would you agree</v>
+
+54
+00:10:12.590 --> 00:10:28.414
+<v Speaker 1>yeah i mean he's pretty baller he's he kinda says it like it is for people don't know he took over he's been a a bunch of c he's ceo of a bunch of companies but he took over at snowflake and he has all these famous memos that he wrote on linkedin and it was basically like don't be a bitch work hard like that's like how he summarizes everything</v>
+
+55
+00:10:28.554 --> 00:10:58.774
+<v Speaker 0>yeah but it's a little bit different so he's got this book called amp it up but if you really you could just read his blog post called amp it up and get 80% of the the idea it's not even just about working hard it's like pick up the pace pick up the there's his his basic point is that in every organization there's an incredible amount of slack that's just built up it's a expectation of timelines of rigor of of effort of everything and then another 1 of those is common sense and like his approach is just to cut through all the bullshit and</v>
+
+56
+00:10:58.774 --> 00:11:03.269
+<v Speaker 0>so he has this quote where he's like talking about the man in the you know that famous like man in the arena quote</v>
+
+57
+00:11:03.429 --> 00:11:09.370
+<v Speaker 1>yeah it's it kinda i i kinda think that that quote is super lame now it's been hijacked by people i don't like</v>
+
+58
+00:11:09.429 --> 00:11:11.990
+<v Speaker 0>i know chamoth is what you're saying yeah</v>
+
+59
+00:11:11.990 --> 00:11:12.490
+<v Speaker 1>yeah</v>
+
+60
+00:11:14.550 --> 00:12:21.315
+<v Speaker 0>was people a singular word alright here we go so here's what frank slootman says he says there's lots of people in this world who are not really in the arena they're they're either observers consultants or agents or vcs that just provide capital but there are some people in the arena that are very special people and then he says he talks about he he was asked to speak at a business school where they always ask for his advice he says you all have elite educations you'll have many job offers paying you big bucks your parents and siblings will be incredibly proud of you but they're all consulting jobs for bain mckinsey and companies like that you're gonna have an easy path to pretty quick earnings but you'll never know whether you have what it takes to actually build something new in roosevelt's words you will be those cold and timid souls who neither know victory nor defeat i had actually never read that part of the of the quote and i thought that part's way colder than the than the the rest of it you know what i mean imagine saying this to a a room full of stanford kids it's like that's i wonder what that what do you think the reaction would have been like i think the reaction would have been like god he's</v>
+
+61
+00:12:21.315 --> 00:12:37.790
+<v Speaker 0>so right after i finish up this first 4 year tenure at mckinsey then i'm totally gonna do that i think that's the real the true reaction it's like he's so right i'm not actually gonna rescind the i'm gonna actually withdraw the job offer i'm i'll i'll finish up i'll i'm gonna make sure i get the few few years and then i'm gonna go do that thing someday</v>
+
+62
+00:12:37.930 --> 00:13:03.120
+<v Speaker 1>i've hung out with like my friends' children or you know people who are like in the applying to college age right now it's way different than when we were younger like when we were younger not going to college for a huge majority of people for anyone that's like a middle class on up it was like that wasn't even a question now it definitely seems like the smart people are saying i'm not sure what my i'm weighing my options i'm trying to look at all that's available have you noticed that</v>
+
+63
+00:13:03.740 --> 00:13:09.600
+<v Speaker 0>no is that like and when you say that they're thinking about like trade school or dropping out or everything's on the table</v>
+
+64
+00:13:09.740 --> 00:13:10.860
+<v Speaker 1>yeah so for people are</v>
+
+65
+00:13:10.860 --> 00:13:12.764
+<v Speaker 0>their parents entrepreneurs or are they</v>
+
+66
+00:13:13.245 --> 00:13:53.500
+<v Speaker 1>the people people the peep the people who i know it's just like let's say cousins and nephews and things like that and they're mostly like well-to-do or at least like have a household income of $200,000 and it's basically like this and these are smart kids so typically when we were younger sean the smart kids like always went to college now the smart kids are like i'm not sure you know i i've been in contact with this company about just going getting an intern internship right away right at 19 years old other people who are less of the academic like they're they're not like the geniuses they are considering trade school and it's not nearly looked like when i was younger if you said you're going to trade school it was like it was like is that like punishment for getting in trouble do you know what i mean oh you're dumb yeah</v>
+
+67
+00:13:54.679 --> 00:14:21.899
+<v Speaker 1>now i think there is a there is 100% a change in sentiment oh that's good wonder i wonder if like this whole mbas are dumb that's a new feeling ish that's like peter thiel was the 1 who popularized that where he said for your he goes the valuation of your company take a million dollars off for every mba employee you have and so now that's popular and i wonder the mba people who are there now and who would hear something like this how they feel if they acknowledge it or if they don't</v>
+
+68
+00:14:22.540 --> 00:14:36.220
+<v Speaker 0>right that peter tull quote is like how that's like my parenting style i'm like 1 more word 1 more word and we're not going to the pool for 2 days 0 0 3 days and i just keep going i'm just like you say 1 more thing and you lose a little bit more</v>
+
+69
+00:14:36.220 --> 00:14:37.440
+<v Speaker 1>do you stick with it</v>
+
+70
+00:14:38.024 --> 00:14:43.784
+<v Speaker 0>there's all kinds of retrades dude i'm i'm trump i'm trumping the china deal right now</v>
+
+71
+00:14:43.784 --> 00:14:46.044
+<v Speaker 1>wait you let your kids trade budgets</v>
+
+72
+00:14:46.105 --> 00:15:02.050
+<v Speaker 0>i raise the tariffs and then there's a temporary pause for extenuating circumstances while we negotiate and then we have some really good interactions and then we start thinking and then they come back again and they do something you know they just throw their spaghetti on the floor and then we're back at a 125% tariff</v>
+
+73
+00:15:02.050 --> 00:15:06.794
+<v Speaker 1>what age does punishment work because right now when they do something i say no it's just like they laugh at me</v>
+
+74
+00:15:07.274 --> 00:15:50.059
+<v Speaker 0>they can start to understand like cause and effect or consequences somewhere between 2 and 3 years old i think you start to get it at a very basic level but you also have to time it so like if the kid is emotionally upset or is feeling something they're not gonna learn the lesson in the moment or they're having the fit whereas like i think as adults we're like well this is why and we're trying to like explain the thing while they're like you know having their meltdown it's like you have to have let the meltdown happen and then if you wanna have a teaching moment it's like gotta come after which is probably true for adults too but it's like very obvious with kids because they're literally melting down i gotta figure this out because i've yeah i've been trying to like punish her not punish her but be like no you can't do this right and i just get laughed at alright read the</v>
+
+75
+00:15:50.059 --> 00:15:51.820
+<v Speaker 1>next 1 so this is 1</v>
+
+76
+00:15:51.820 --> 00:16:23.579
+<v Speaker 0>of yours so it's a david senra tweet and he says charlie munger told me flex charlie munger told me to read les schwab's autobiography i'm glad i did because les says things like this quote success in life is being a good husband a good father and you end up being a second father to hundreds of other men and women last night i attended a wedding of a young man from our office and the young man told me that 2 men had influenced his life his father and me that's worth more than money</v>
+
+77
+00:16:24.120 --> 00:16:31.079
+<v Speaker 1>so this guy les schwab is amazing i haven't completed his book but i'm in the middle of reading it but let me tell you about this guy</v>
+
+78
+00:16:31.079 --> 00:16:33.980
+<v Speaker 0>so go to the dumb dumb question is les so there's charles schwab</v>
+
+79
+00:16:34.355 --> 00:17:08.615
+<v Speaker 1>no charles schwab okay he's he's he he was a hillbilly in oregon basically he was like orphaned at the age of like 13 or 14 was like a plumber and then started a tire shop at the age of 31 or 32 didn't know anything about tires but started a tire shop eventually over the course of 50 years it grew into a multibillion dollar operation and he's famous for being really great at incentivizing employees and he's famous for being very good at managing and leading to the point where warren buffett charlie munger looked to stories for from him on how to properly lead and incentivize then go to the</v>
+
+80
+00:17:08.615 --> 00:17:31.484
+<v Speaker 1>next slide look at what he looks like so he was a hillbilly he was he was a he was like a from the streets type of guy i've been thinking about how i can describe these types of people because i love them and i think the best way to describe it is small town grit with big number swagger something like that like these guys that you and i love who are these like blue collar</v>
+
+81
+00:17:31.804 --> 00:17:34.464
+<v Speaker 0>so small town grit with big city swagger</v>
+
+82
+00:17:34.924 --> 00:17:38.044
+<v Speaker 1>no with like big number swagger so it's like these guys</v>
+
+83
+00:17:38.125 --> 00:17:39.345
+<v Speaker 0>big city swagger right</v>
+
+84
+00:17:39.484 --> 00:18:13.970
+<v Speaker 1>but what i mean is is that they're like these kind of hillbillies who build these massive companies and so they can they may like for example 1 of our friends kevin van trump is 1 of them where you see this guy and he comes off and he's like hey what's going on brother i gotta write my newsletter and he like he like talks like this but like turns out he makes like $20,000,000 a year and like the people who read his newsletter he'll you know kevin's this big guy from kansas city he comes off like like a hillbilly because he talks funny but his work is read by like world leaders and he makes $20,000,000 a year and in the background of his video zoom call is like a picasso</v>
+
+85
+00:18:14.509 --> 00:18:31.394
+<v Speaker 1>so like i love guys like this and this guy is 1 of them so les schwab started a tire company he died in his nineties but ran the company up until then grew to a multibillion dollar organization and i wanna go go to the next 1 i wanna read he wrote the his own forward to the book and i highlighted my 2 favorite sentences from the forward read that</v>
+
+86
+00:18:31.394 --> 00:19:47.335
+<v Speaker 0>alright so sarcee just says this book is mainly written for the 2,000 families that make their living selling less swab tires and for the thousands of families to follow in the next 20 30 40 years alright so he says this is what you highlighted i wrote this in november and december of 19 85 i did write this a 100% with my 40 year old typewriter and then at the bottom okay i do thank jan nolan my right hand gal lorraine o'hara our word our word processing operator for helping me correct misspelled words and helping me with punctuation i didn't have a gross writer i wanted it in my own words and then it says basically in this i'm gonna pass on my theories of business to our people and he says should we fail to follow these policies towards customers and employees going forward i would prefer that my name be taken off the business and then it ends with he basically says if you're not interested in business this book will bore you and if i were you i wouldn't waste my time reading it how great is that how much of a simpleton am i that is just here's you wanna win me here you go push me away that's that's all it takes oh 0 you think i won't like this book watch me read every word it's come up already buying a second copy treat them mean keep them keen yeah that's that's all you gotta do</v>
+
+87
+00:19:47.634 --> 00:19:49.015
+<v Speaker 0>so easy to manipulate</v>
+
+88
+00:19:49.474 --> 00:19:52.355
+<v Speaker 1>how how beautiful is this guy i so you read</v>
+
+89
+00:19:52.355 --> 00:19:53.154
+<v Speaker 0>this book is it like</v>
+
+90
+00:19:53.315 --> 00:19:56.144
+<v Speaker 1>i'm in the middle of reading it yeah because far</v>
+
+91
+00:19:56.920 --> 00:20:11.775
+<v Speaker 0>7 out of 10 fine and forgettable 8 out of 10 i'll remember the big idea but that's kind of it i didn't need 300 pages 9 out of 10 really enjoyed it good book 10 out of 10 i'm giving this book out as gifts where is it at</v>
+
+92
+00:20:13.214 --> 00:20:19.214
+<v Speaker 1>i'm only a quarter of the way through and it's between an 8 and a 9 yeah an 8 and a 9 yeah quite</v>
+
+93
+00:20:19.214 --> 00:20:20.914
+<v Speaker 0>good the big idea so far</v>
+
+94
+00:20:21.375 --> 00:20:39.519
+<v Speaker 1>he just treats people well and if you treat people well you get rewarded in return so it's it's it's it's a very simple thing which is you said there's a lack of common sense he's a very common sense rational person but often rational means cold and he is he is rational warm oh warm rational</v>
+
+95
+00:20:39.519 --> 00:20:44.884
+<v Speaker 0>okay that's cool that's a good insight because your start of your answer was kinda boring but the end of your answer was fire there that was good</v>
+
+96
+00:20:44.884 --> 00:21:01.580
+<v Speaker 1>so it's sort of like his original quote which was i went to i i became a father to all these people and i go to their weddings and that makes me feel great that is a rational thing to say and it is warm versus you know what a mckinsey consultants would say which is it's all just about these numbers on a spreadsheet that is also rational but it's rational coal</v>
+
+97
+00:21:01.799 --> 00:22:06.009
+<v Speaker 0>yes so do you honest question do you think that you're you kind of are doing that do you think that you have that kinda like i'm a a fatherly influence or a man influence on other men and is that something you think is true or take pride in are you like yes i need to double down on that from this podcast because like remember when we were at this dinner or you were there but i was at his dinner and i told you about it like this guy came up you you know at the end of the dinner he's like hey sorry i wanted to say hi i saw you guys over here i didn't wanna bother you but he's like because i always ask people i say what you know what do you really like about the potter like what is it you know what stood out to you what's helped you and he was like he had basically mentioned he's like me and my girlfriend got pregnant we didn't plan on that but hearing you and sam talk about like kinda how fun it is to have kids and build your business and they're not like either ors like kinda nudged me towards deciding like you know we should keep this we should do this and i remember being like woah that's like a lot of responsibility a lot of weight on the words that i didn't really sort of think about do you feel like that yeah i do i i think it's hard to feel that way because if people knew how we record this we're just in our rooms like by ourselves talking to each other on a screen</v>
+
+98
+00:22:06.009 --> 00:22:39.154
+<v Speaker 1>so it's hard to like feel a presence but i think i view this podcast as well as my company i view it a little bit more as a a very tiny way to decide the life that i want to live with others and just make that reality in my small corner of the world i also think that like i thought about like we are not even remotely like this so it it i don't even love seeing it but like when lebron james or some famous athlete does something bad and they're like i didn't sign up to be a role model i think about that all the time where i'm like well i used to like tweet some something that was a little bit mean and i'm like well i don't care if this influences me this is just me this is this is just my opinion and then</v>
+
+99
+00:22:39.154 --> 00:22:44.055
+<v Speaker 1>now i'm like you know it holds a little bit of weight i wanna make sure that i i'm right about it and not hateful</v>
+
+100
+00:22:44.195 --> 00:23:16.919
+<v Speaker 0>right right and you know the best thing that ever like the best thing about a podcast is that it feels like i'm just talking to you and we're just goofing off here and there's only 2 of us but like you know let's say this episode on average these episodes get like you know 300,000 people listening to them i mean that's bigger than the biggest college football stadiums you know what i mean like if we if we were sitting in the in the 50 yard line and there was 3 stadiums stacked on top of it it'd be like almost 3 or 4 stadiums of people stacked on top of each other do you know how differently we would do this like it would suck i would i would be</v>
+
+101
+00:23:16.919 --> 00:23:27.934
+<v Speaker 0>so nervous and thinking about every word and the show would honestly suck if it was if if it felt that way and so i think 1 of the real blessings is that that's not the case you don't you don't know it you're blind to it</v>
+
+102
+00:23:27.934 --> 00:24:01.845
+<v Speaker 1>we rarely record in real life and 1 time that we did there was a a a the studio manager was a woman who was really attractive and i noticed that 1 time 1 of us or maybe i forget who said something that made her laugh and i was like oh that felt nice i i wanna i wanna make you laugh again and then and then she didn't laugh and i was like that didn't feel good and i started like performing really poorly i'm like i can't stand the the presence of 1 person let alone 300,000 in real life that's crazy alright</v>
+
+103
+00:24:01.984 --> 00:24:12.899
+<v Speaker 0>next next story i want to show show you did you see this did you see this tweet no here here's what it says so this is from at restructuring which is a good it's a good account by the way do you follow this account</v>
+
+104
+00:24:13.119 --> 00:24:15.619
+<v Speaker 1>no is this all about companies that have gone out of business</v>
+
+105
+00:24:15.759 --> 00:24:23.625
+<v Speaker 0>no it's kinda like pe it's like a pe type of account they they do private equity type of stuff anyways i'll</v>
+
+106
+00:24:23.625 --> 00:24:26.345
+<v Speaker 1>say talked about this a while ago i believe didn't we</v>
+
+107
+00:24:26.345 --> 00:24:39.210
+<v Speaker 0>so i i think we mentioned it but i didn't i didn't know the story so the the headline here is man steals a $122,000,000 from facebook facebook and google simply by sending them random bills which they agreed to pay</v>
+
+108
+00:24:39.349 --> 00:24:41.369
+<v Speaker 1>why is that a crime why is that a crime</v>
+
+109
+00:24:41.429 --> 00:25:04.440
+<v Speaker 0>exactly this the tweet here is this remains my favorite path to wealth exploring exploiting the big company inefficiencies should not be illegal i agree all is fair in love and war if you if i send you an invoice and you pay it am i at fault or you hold on what's what's going on here but there is a little more to the story so have you read about how this actually worked</v>
+
+110
+00:25:05.380 --> 00:25:09.400
+<v Speaker 1>no well wasn't he like legitimately a vendor for them</v>
+
+111
+00:25:09.700 --> 00:25:52.285
+<v Speaker 0>no no i think that was a little bit of the problem okay so here's the story so there's a 50 year old dude the guy who's in cuffs here and he was impersonating a company so there was a company called quanta computer that's a legit company that was a vendor for facebook and google he sets up a company also called quanta computer but bases it out of latvia and so he just copies the same company name the same logo but it's incorporated in a different country and he starts making fake invoices contracts letters corporate stamps corporate seals and he's sending these to facebook and google for over 2 years and he got paid out a $122,000,000 across the 2 companies</v>
+
+112
+00:25:52.285 --> 00:26:39.674
+<v Speaker 0>so 98,000,000 from facebook and 23,000,000 from google they then find him in latvia extradite him and here's a great quote from the us attorney so the guy's name i guess it's ruma remasauskas so remasauskas thought he could hide behind a computer screen halfway across the world while he conducted his fraudulent scheme but he has learned the arms of the american justice system are long and he now faces time in a us prison dude how hard is this guy this us attorney this is amazing by the way i think he still made out good he had to give back he had to forfeit 49,000,000 and he had to pay another i think 26,000,000 in restitution that's doesn't add up to a 122,000,000</v>
+
+113
+00:26:39.674 --> 00:26:41.595
+<v Speaker 0>so he he might have still made a bunch of money and</v>
+
+114
+00:26:41.674 --> 00:26:50.414
+<v Speaker 1>what conversation do you have with your wife or your like so what do you do what do you do guy you you don't need today i kinda wanna get him on the pod</v>
+
+115
+00:26:52.714 --> 00:26:56.759
+<v Speaker 0>jail pod a rare category of illegal but impressive no</v>
+
+116
+00:26:57.140 --> 00:27:07.140
+<v Speaker 1>yeah yeah yeah yeah which like it's like the like the bernie madoff scheme not cool and impressive like you know i wanna you like i wanna learn more about it</v>
+
+117
+00:27:07.140 --> 00:27:37.505
+<v Speaker 0>right right and if you judge us for saying impressive and illegal it's like do you like ocean's 11 because that yeah those guys are right here rooting for the guys who are robbing anyways this episode is brought to you by hubspot media they have a cool new podcast that's for ai called the next wave it's by matt wolf and nathan lands and they're basically talking about all the new tools that are coming out how the landscape is changing what's going on with ai tech so if you wanna be up to date on ai tech it's a cool podcast you could check out listen to the</v>
+
+118
+00:27:37.505 --> 00:27:47.045
+<v Speaker 0>next wave wherever you get your podcast alright here we go so what else we got oh i i have something here on chatgpt have you seen this</v>
+
+119
+00:27:47.509 --> 00:28:09.984
+<v Speaker 1>okay so chatgpt's product retention curves is a product manager's wet dream their 1 month retention has skyrocketed from less from less than 60 percent 2 years ago to an unprecedented 90% youtube was best in class with 85% 6 month retention is trending towards 80% and rapidly rising generational product</v>
+
+120
+00:28:10.285 --> 00:28:56.255
+<v Speaker 0>okay so this little line chart here if for people who don't really recognize this imagine when you're at a hospital and they hook the patient up and you have the heart monitor and you see that heartbeat that line and it's gotta keep beeping for the patient to be good right and we have all these these monitors with these little lines well this is the equivalent of that for a company so what this is is a retention curve so the the line at the very bottom here would be like the oldest cohort so that's like people who signed up for chatgpt 2 years ago and as you could see it starts at a 100% of people using it on day 0 or month 0 but then even by month 1 it's at 60% by month 2 only 55% are still using it and by the time you get to a year you know less than it looks like 30% of people are still using the product</v>
+
+121
+00:28:56.255 --> 00:29:30.744
+<v Speaker 0>so that means more than 2 thirds of people just stopped using it after they tried it and that's the sign of a product that won't win as is because the bucket is too leaky you know you're getting too many customers in that are that are churning out they're not finding value in the product and what this curve or the what the other lines are are the next month the next month the next month as they improve the product you can see that the drop offs are way less so now what he's saying is that basically the 1 month retention is now 90% so people are finding so much value the first month that they use it that a month later 90% of them are still using it and</v>
+
+122
+00:29:30.744 --> 00:29:34.525
+<v Speaker 0>so this is how this is like the key metric for most businesses is retention</v>
+
+123
+00:29:35.144 --> 00:29:36.105
+<v Speaker 1>that's the thing that tells you if</v>
+
+124
+00:29:36.105 --> 00:30:21.845
+<v Speaker 0>your business is gonna be around for a long time or if it's just a leaky bucket and seeing this with chatgpt is pretty stunning and it kind of leads into my next tweet here which is that openai is now at 10,000,000,000 in arr so that's 2 x since the end of 20 24 so they basically doubled revenue from 5,000,000,000 to 10,000,000,000 and it's been less than 3 years since it launched so in less than 3 years they've grown this product to $10,000,000,000 in recurring revenue which is just stunning and it highlighted to me 1 1 very big takeaway from this which is that openai is the facebook of this current generation maybe more 20 years ago it was google and amazon were the big deal that was that was it 30 years ago it was like microsoft 20 years ago it was like google and amazon maybe 15 years ago or</v>
+
+125
+00:30:21.845 --> 00:30:50.894
+<v Speaker 0>so you know it was that was the facebook era and facebook was the thing that was like oh it's a billion dollar company a fit $10,000,000,000 company and now it's a trillion dollar company well the 1 right now is is openai for the next decade it's gonna we're just gonna me and you are probably gonna look at ourselves and be like how were we doing this podcast how are we looking at these tweets these charts and just like why didn't we go buy openai stock like how how dumb do we have to be like it was on sarah's list 3 years ago or something like that</v>
+
+126
+00:30:50.894 --> 00:30:52.734
+<v Speaker 1>wait was it really did we talk about it then</v>
+
+127
+00:30:52.734 --> 00:31:02.490
+<v Speaker 0>maybe not 3 but 2 for sure like i think i think the very first sarah's list episode we probably had them on there and it's like i was like what what kind of doofuses are we that we don't own any of this stock</v>
+
+128
+00:31:02.549 --> 00:31:03.930
+<v Speaker 1>can can you own it</v>
+
+129
+00:31:04.230 --> 00:31:05.609
+<v Speaker 0>yeah you can buy it in secondary</v>
+
+130
+00:31:06.549 --> 00:32:28.230
+<v Speaker 1>i i had a buddy of mine about 2 or 3 years ago he was at my house you know who this guy is and we were talking and he was like yeah i have a job offer from neuralink and openai and i was like wow those are both pretty promising what if and he was like what should i do and we just had a conversation about it and i didn't know anything i mean the the at the time it was really hard like they're both like run by tycoons they're both really interesting they're both the hot startup and he he chose openai and he has made so much money just in in 2 or like tens of millions of dollars in the in like 2 and a half or 3 years just from being like the 1 thousandth employee something like that like like nothing like it it it's just astounding at how big this is his job is he he's not like these kinda like the rare ai phd type dudes right is he a pro is he a programmer is he a product person what what's this what's the role product person yeah product person sorry sorry programmer he's a programmer oh okay massive difference and i was gonna say if you're a product guy and you made tens of millions dollars opening a year how is that even possible if you're just like you know random person engineers okay i guess i can see it you know you get a you get a a stock package that's worth $2,000,000 over 4 years but you got it when openai was valued at 60,000,000,000 and</v>
+
+131
+00:32:28.230 --> 00:32:50.009
+<v Speaker 0>now it's valued at 400,000,000,000 right so it's it's up you know 8 x or something like that and so your $2,000,000 stock package has turned out to actually be a $16,000,000 stock package it's crazy that that's a normal thing that happens that's happened to like a thousand people right now or more in like in a in a like 30 mile radius of where i live</v>
+
+132
+00:32:50.309 --> 00:34:00.384
+<v Speaker 1>this was sort of an on we kind of like glazed over this but basically harley from shopify was on the pod and he at 1 point they were worth 250 i think when we recorded with them they were worth a $150,000,000,000 and it's basically like the hundredth largest company in the world right now which means it's like the like the hundredth largest company probably ever ever created it's like around the like so every business ever created it is the 1 hundredth most valuable which is which is astounding right that's a that's an astounding number to think that openai is a less than it's a it's a decade old or something like that company and it is already like the fiftieth or 20 fifth largest company ever created isn't that astounding not even from a like a product or the technology but literally how do you organize that like organize the people who will work there organize the investors just the organizational you know they say like just the idea of like you know have you heard the stories about china building like a a fast railroad in like you know 6 months like it's it's it's it's sort of fascinating like that it's definitely the number 1 most valuable nonprofit ever is it still really a nonprofit i think</v>
+
+133
+00:34:00.384 --> 00:34:00.545
+<v Speaker 0>so</v>
+
+134
+00:34:00.545 --> 00:34:07.585
+<v Speaker 1>and he said they're not gonna he he also said they're not gonna make a profit until they hit at what did he say he goes we can't make a profit until we get to 10,000,000,000 in revenue</v>
+
+135
+00:34:07.585 --> 00:34:47.050
+<v Speaker 0>or something like that thing earlier about like just push me away their investor thing which is like listen we have to put a cap a 100 x cap on your returns because this is gonna get bananas so dude that pitch the balls it takes to have that as your pitch which is like instead of promising upside saying listen we're gonna need to cap your upside because it's gonna be so insane how much value we create so i just need to make sure you're okay with that i'm gonna start using that just wanna i'm gonna start using that form formula in my life skip to the this elon 1 yeah alright why don't you frame this 1 up alright</v>
+
+136
+00:34:47.050 --> 00:35:52.355
+<v Speaker 1>so breaking news president trump comments on elon musk's apology i thought it was very nice that he said that trump says and elon musk has a tweet that says i regret some of the posts about president trump last week they went too far insane this is insane you can't do that and apologize right there is you don't apologize like dude if i called you a a a pedophile or a rapist in front of literally the entire world right i can't say i'm sorry there's no there's no there's no sorry big enough you're saying dude what genghis khan doesn't apologize like when you do like can you imagine napoleon being like hey that 1 it went a little far do you wanna like shake it out like oh you're saying conquerors can't apologize that's the take that was a such a crazy thing to do and say and he tweeted it out very casually where he said have a nice day donald trump like do you know what i mean like it was</v>
+
+137
+00:35:52.355 --> 00:36:01.170
+<v Speaker 1>so it was it was such a a dagger you can't apologize for that the i i i don't see how you can come back from that and i don't see why you would even try right</v>
+
+138
+00:36:01.889 --> 00:36:10.130
+<v Speaker 0>well i could see why you would try which is like you know you well there's no winners at war basically is what what's gonna happen here with these guys fighting but</v>
+
+139
+00:36:10.530 --> 00:36:11.809
+<v Speaker 1>and then look at the next 1</v>
+
+140
+00:36:11.809 --> 00:36:13.969
+<v Speaker 0>dude the the the next</v>
+
+141
+00:36:13.969 --> 00:36:15.829
+<v Speaker 1>1 is great knows i love him</v>
+
+142
+00:36:15.969 --> 00:37:08.119
+<v Speaker 0>no no hold on i'm open to rick reconciling with elon after seeing his latest post elon knows i love him jd knows this too that's just hilarious by the way i don't even know why that's in there jd knows this too i give the best and biggest reconciliations everybody knows this that is incredible i don't even know if this is fake by the way this could totally be a fake truth post because there's nothing easier to fake than a truth social post because nobody has nobody i know has an account on there and so you you could just write anything and make me tell me that he tweeted that and plus he's he might say he might he could totally have said this but dude how funny is this elon knows i love him jd knows this too what's that i don't know i think it's because jd was on theo vonn's podcast talking about it i mean are they not talking day to day and then he goes i give the biggest and best reason dude it's insane man melania knows this</v>
+
+143
+00:37:10.179 --> 00:37:14.215
+<v Speaker 1>it's insane man it's just crazy this is a reality show this is it</v>
+
+144
+00:37:14.215 --> 00:37:37.150
+<v Speaker 0>is we need to clip in you calling this on the podcast that they would break up you were like how long do you give this and it was like a couple months or something and i was like well i don't know they're both like pretty all in on each other it seems like it's gonna be really hard to be really messy if they try to break this off and you're like rule number 1 from the 48 laws of power right that is that what you were quoting you were like never outshine the master</v>
+
+145
+00:37:37.530 --> 00:37:42.670
+<v Speaker 1>yeah and i also said they're gonna break up in june i said it's gonna only last until june</v>
+
+146
+00:37:43.244 --> 00:37:46.464
+<v Speaker 0>wow what what a what a waste of an incredible prediction</v>
+
+147
+00:37:46.924 --> 00:38:34.239
+<v Speaker 1>yeah i mean it was like being the tallest midget like it's not that interesting but like it was a very easy prediction this was i we knew that it was gonna have they were gonna have a falling out and i had you know a 8% chance of guessing the month it was very predictable but i this was sort of 1 of those moments where like i remember where i was when it happened when i saw that when i saw that tweet we're my company had a meeting and everyone said oh my god it it it it it was pretty crazy how elon and trump fighting it brought down the stock market did you see that yeah it was absolutely ridiculous that my finances were impacted by this spat and i thought that that i thought it was kinda funny it was a it was a wild day the the memes that day were incredible i think i tweeted that out i was like listen this is a sad day for america but the content is outstanding right</v>
+
+148
+00:38:34.239 --> 00:39:10.414
+<v Speaker 0>now let's talk self driving real quick so self driving cars are on fire in la they're the rioters are beating up the self driving cars not sure exactly why but i like this 1 from andrew ackerman knotted at the waymo in downtown dc so it would know i'm 1 of the good ones alright this episode is brought to you by mercury they are the finance platform of choice for over 200,000 companies shouldn't be surprised because i use it myself for not 1 not 2 but i have 8 different mercury accounts i have 7 for different companies that i'm a part of and then i have my own personal account because</v>
+
+149
+00:39:10.414 --> 00:39:42.724
+<v Speaker 0>now they have personal banking which is a really cool feature i highly highly recommend it like i said i use it myself and the reason why is because the way that mercury works is beautiful it's very intuitive and you could tell that it's actually made by a startup founder it's an entrepreneur you could tell it's made by somebody who used other banking products in the past and didn't like all the different rough edges and and annoyances and decided to you know actually fix it himself and really any type of entrepreneur you are let's say you're an agency well 1 of the things every agency has to do is be able to send invoices easily create them send them to customers and stay current on your balances with all your customers well you can do that inside mercury and</v>
+
+150
+00:39:42.724 --> 00:39:53.070
+<v Speaker 0>so i think that mercury is great highly recommend you check it out and thank you for sponsoring the show for more information check out mercury.com mercury is a financial technology company not a bank check show notes for details</v>
+
+151
+00:39:55.530 --> 00:39:57.949
+<v Speaker 1>have you developed a relationship with your ai</v>
+
+152
+00:39:58.170 --> 00:40:00.269
+<v Speaker 0>i mean i don't like to say that but yeah</v>
+
+153
+00:40:00.650 --> 00:40:08.965
+<v Speaker 1>like my voice changed on my chat gpt like the talking voice and i had to like i was like i felt uncomfortable talking to her because i had gotten close to the other ones</v>
+
+154
+00:40:08.965 --> 00:40:09.945
+<v Speaker 0>sarah your cat</v>
+
+155
+00:40:10.085 --> 00:40:16.025
+<v Speaker 1>i had to so i had to change it back and so he's joking but not really</v>
+
+156
+00:40:16.244 --> 00:40:31.230
+<v Speaker 0>right i mean this is kind of like the sometimes i pray to god even though i don't believe but just in case there's definitely an element of that with ai where i'm like i'm gonna say please and thank you you know just in case just in case things get a little crazy</v>
+
+157
+00:40:32.170 --> 00:40:33.550
+<v Speaker 1>have you taken away moe</v>
+
+158
+00:40:34.344 --> 00:40:36.285
+<v Speaker 0>yeah they're amazing have you</v>
+
+159
+00:40:36.664 --> 00:41:10.664
+<v Speaker 1>no they don't have them in in connecticut it's not exactly like the best place to try it out but no i i i think they're amazing everyone says they're amazing go to that 1 go to the the eric 1 i think this is like an inspirational 1 so check this out so i i met eric so eric eric's the ceo of a company called ramp which like has grown to like a $6,000,000,000 valuation in like 4 or 5 years and he was telling me about t p what what is it what's it called tbpn what what it stand for the tech bros podcast network i don't know what that actually stands they tried to change it</v>
+
+160
+00:41:10.664 --> 00:41:18.369
+<v Speaker 0>so it's not bro technology brothers i think it's called like the business podcast i think they that's what they changed it but it'll always be technology brothers to me</v>
+
+161
+00:41:18.369 --> 00:41:26.690
+<v Speaker 1>go on so it's this guy named jordy and john coogan they're fantastic they have this new podcast it's more like a like a daily news show not even a podcast but like a video show</v>
+
+162
+00:41:26.690 --> 00:41:35.485
+<v Speaker 0>it's not even a show it's basically they do stuff but you don't even need to watch the show it's all clips for twitter so it's like twitter is like short shorts and clips is what they what they make</v>
+
+163
+00:41:35.545 --> 00:42:25.815
+<v Speaker 1>they're hilarious and i was at eric's office and i said what's this and it was a little booklet and apparently they had made like a 20 page book that they sent to potential sponsors people there according to like you know be their sponsor and they wanted to get like a big check and i turned the page and on 1 of them there was this this piece of copy in the deck and it said our hope is that this partnership is the domino that bankrupts your competitors and grants you a monopoly so powerful that you are dragged in front of congress and i read that line and i was like that is the greatest opening line for a pitch deck that i've ever read it was fantastic yeah and i read that line and i was joking with eric i'm like this is the greatest thing i've ever read and and he he it made him giggle</v>
+
+164
+00:42:25.815 --> 00:42:28.375
+<v Speaker 1>so i guess he shared that and it's wonderful how good is that</v>
+
+165
+00:42:28.375 --> 00:42:57.945
+<v Speaker 0>dude they're so fucking good i love those guys also i have a funny eric story i met eric when i was in college and we both got picked for this trip to go go to the alibaba headquarters so it was like a free all expenses paid trip to china courtesy of jack ma for 50 of the top college entrepreneurs and i was on this bus and eric was right next to me nice guy he's kind of a baby faced guy at the time i don't know if he still is you said you met him in person but yeah</v>
+
+166
+00:42:57.945 --> 00:43:03.885
+<v Speaker 1>he's like he's like he doesn't come off like a tycoon like he comes off like very kind and warm yeah he's lovely</v>
+
+167
+00:43:04.409 --> 00:43:18.750
+<v Speaker 0>and at the time i think he was literally in an mlm i'm not a 100% sure but i'm pretty sure he was selling products that were part of a like a like an mlm sort of skateboard or he was i don't remember exactly</v>
+
+168
+00:43:18.969 --> 00:43:20.030
+<v Speaker 1>what essential oils</v>
+
+169
+00:43:20.164 --> 00:43:49.565
+<v Speaker 0>it was like a creams or something like that and i i i'm vaguely remembering this so i could totally be wrong sorry eric if i got some of the details wrong but i swear if it's not that it's in the zip code and i just remember thinking like oh this guy's kind of cool he's a hustler really nice guy i don't know what he's doing with these you know what whatever it was creams or whatever he was doing at the time and then i've seen him build ramp and i'm like is that the dude from the bus in china who was trying to sell me creams and it just goes to show anything is possible</v>
+
+170
+00:43:49.784 --> 00:44:41.945
+<v Speaker 1>dude when i talked to him it was him and his par it was like me david senra eric and then eric's partner all in a room and we were just riffing and then hanging out i was wanting to meet up with david because david's a buddy of mine he goes hey i'm gonna be hanging out at ramp's office if you just wanna come see me it's right down the street from your office so i go to see him and i walk in and it's and it's and it's these guys and it was so it was pretty cool and the partner of cofounder of ramp kareem i think his name was he told me this story he was like yeah like we had this idea and our goal was to get to a billion dollar valuation in 12 months that was the goal and we did the math and we thought that was possible and i was flabbergasted i was like what i was like did you hit it he goes no man we didn't hit it took like 18 months and and it was just really cool to be in a room of people who thought like craziness like that and it actually worked well you know what's crazy you know i think they were a massive underdog when they started</v>
+
+171
+00:44:41.945 --> 00:45:36.260
+<v Speaker 0>so if you remember back when they were early brex was already out and early as well and brex was the san francisco based company ramp is in new york brex had the yc network and connection they went through yc and they were all the yc companies were kind of like you know yc is kinda like this network effect this little mafia that they have that can kind of king make certain companies if you get enough momentum and i just remember i would have bet like the the odds bet the betting odds were that brex given those advantages given that they're the sf the tech tech focus 1 like really was the is the new york startup gonna beat the the silicon valley startup it didn't really seem like that was usually the case and they had ads everywhere brexit they were advertising everywhere they were a hot name they were nyc like they had a lot of things that would have made you think they would be the winner here and ramp has thoroughly kicked the shit out of brex they are worth way more and have done a much better job i use ramp it's a great you know great product</v>
+
+172
+00:45:36.534 --> 00:45:41.914
+<v Speaker 0>so you know that is very impressive to me i think that that was that is not how i would have guessed that that would have played out</v>
+
+173
+00:45:42.295 --> 00:46:45.204
+<v Speaker 1>100% i agree with you apparently the story is that they ran a company called paribus which is something like you get rebates online so you buy something and you can get like they help you find a deal and you get a little bit of money and the brand saves a little bit of money something like that like you know if it's a $100 you pay $90 and they give you a little bit of cashback whatever they sold the company after 3 years for 40 or $50,000,000 and he was like it was nice like we like but we got a lot wrong and when we sold it we sold it to capital 1 and in capital 1 we learned about the demand for all these things and like the the demand for like a good bank account system demand for all these business services that people needed and we ran the math because we saw like how big capital 1 was and we thought that we could build a billion dollar company in the first year if we did 1 or 2 things right and it was amazing to hear that story that's pretty cool we should get eric on that's that would be well he should come on and and tell the story i'm i'm working i'm working with them on it they have this like huge like event they're basically what they're doing doesn't sound like it would work but it's working</v>
+
+174
+00:46:45.204 --> 00:47:00.000
+<v Speaker 1>so they're like doing all this goodwill stuff sponsoring podcasts they have this huge office that seats 300 people and they just host events there like these things where like people are like oh but like what's the attribution to that and and it's like i don't know but it it somehow it still works right</v>
+
+175
+00:47:02.065 --> 00:47:13.204
+<v Speaker 0>okay we gotta do 1 here this is oh no hold on my my text is gone here but i have a new segment sam rich guy house alert</v>
+
+176
+00:47:14.030 --> 00:47:14.690
+<v Speaker 1>what happened</v>
+
+177
+00:47:15.230 --> 00:47:39.234
+<v Speaker 0>alright i saw this tweet about some event it was like a event i think for like san francisco like kind of like like set policy maybe and i was like okay cool whatever hundreds of people went to this like san francisco policy thing and then somebody goes but the tweet said overwhelmed with the standing room only crowd at gary tan's house and i just started thinking gary tan's house and i see this tweet that says this is gary tan's house big ass house</v>
+
+178
+00:47:39.375 --> 00:47:43.320
+<v Speaker 1>dude gary tan told us he lived in a neighborhood of the city of san francisco</v>
+
+179
+00:47:43.480 --> 00:47:43.800
+<v Speaker 0>yeah so we're</v>
+
+180
+00:47:43.800 --> 00:47:44.360
+<v Speaker 1>gonna try</v>
+
+181
+00:47:44.360 --> 00:47:54.280
+<v Speaker 0>try not to dox him although he said he came in and he goes hell yeah it is my house and this is the house so have you seen this it is a old church remember that</v>
+
+182
+00:47:54.280 --> 00:47:55.880
+<v Speaker 1>yeah across the street from dolores park</v>
+
+183
+00:47:55.880 --> 00:48:08.925
+<v Speaker 0>yeah exactly so so he lives at some he he owns this thing called the lighthouse it's a townhouse condo in a 100 year old restored church right across from dolores 4 bed 3 bath but it's got 30 foot ceilings crazy so look at this house dude</v>
+
+184
+00:48:08.925 --> 00:48:11.744
+<v Speaker 1>wait he lives there or is that like an event space</v>
+
+185
+00:48:12.079 --> 00:48:31.335
+<v Speaker 0>he owns it i don't know if he full time lives there i you know i i don't wanna don't wanna comment on that but like how insane is this i've always by the way i've always dreamed of doing this buying an old church because old churches have like sometimes amazing locations and really like unique bones and structure i didn't know you could convert them to housing so this is kinda interesting here but dude how crazy is this house</v>
+
+186
+00:48:31.335 --> 00:48:50.469
+<v Speaker 1>i remember when this was for sale in san francisco i it was i still live there and i remember it being for sale and i remember there was another person living there not living there it was like a rich it was another rich guy who was using it for events and they put it for sale and i'm amazed that he bought this this looks awesome oh my god</v>
+
+187
+00:48:50.529 --> 00:48:53.954
+<v Speaker 0>look at this bedroom dude i don't even in a steel cage</v>
+
+188
+00:48:54.014 --> 00:48:57.234
+<v Speaker 1>i don't want yeah that's that's</v>
+
+189
+00:48:57.375 --> 00:48:58.175
+<v Speaker 0>pretty sick</v>
+
+190
+00:48:58.175 --> 00:49:07.549
+<v Speaker 1>yeah i don't i don't want that you know if i was like brock lesnar or someone like really hardcore like that looks cool but like</v>
+
+191
+00:49:09.609 --> 00:49:13.549
+<v Speaker 0>when you watch too much wwe you're like fuck it hell in the cell bedroom</v>
+
+192
+00:49:14.009 --> 00:49:17.885
+<v Speaker 1>look look i'm not a tough guy i'm not i'm not brock lester</v>
+
+193
+00:49:19.065 --> 00:49:31.800
+<v Speaker 0>i mean how hardcore is this bedroom dude this is amazing i love how he's got like the plush carpet right outside like a like a waiting room lobby before you enter the the the bed the bed zone alright do we wanna do anymore or are we we out</v>
+
+194
+00:49:32.019 --> 00:49:39.400
+<v Speaker 1>oh yeah 2 more i wanna show you guys my my oldest bookmark from the year 02/2018</v>
+
+195
+00:49:39.859 --> 00:49:49.255
+<v Speaker 0>in preparation for this podcast sam's like cool let me just go look at my twitter bookmarks and see what good tweets i have and you found this your first ever bookmark is this in 2018</v>
+
+196
+00:49:49.554 --> 00:49:50.054
+<v Speaker 1>yep</v>
+
+197
+00:49:52.275 --> 00:49:53.335
+<v Speaker 0>what is this</v>
+
+198
+00:49:54.675 --> 00:49:58.614
+<v Speaker 1>so it's is this this group of kenyan men the samburu men</v>
+
+199
+00:49:58.760 --> 00:50:09.739
+<v Speaker 0>are describe this like you know because there's people who'd listen to this only on audio by the way if you've been listening to this on audio the whole time please get to youtube please please go to youtube and watch this because this is that this whole thing works if you see the tweets</v>
+
+200
+00:50:09.800 --> 00:50:40.809
+<v Speaker 1>do you remember that movie with kevin bank bacon where he went to africa to play basketball and he found this like tribe of like really tall guys and they would jump up and they would wear like like very traditional what you would think of like an african tribes person wearing where they have they're shirtless and they have like amazing beads and and whatever and they have the red hair just like the guy in the movie that's what this is it's a group of guys in kenya and the tweet says that these men are often considered to be the most stylish men on the planet and it's a photo of these guys and</v>
+
+201
+00:50:40.809 --> 00:50:43.735
+<v Speaker 1>so look honestly agreed first of all</v>
+
+202
+00:50:43.735 --> 00:50:47.195
+<v Speaker 0>the account is called at kenya picks is that an account you just follow</v>
+
+203
+00:50:47.815 --> 00:51:17.875
+<v Speaker 1>yeah i love kenya because i've i like i like runners and so my goal has always been to go to the rift valley which is this area of kenya and see kenyan runners i've i've always admired like running and particularly there's like this group imagine like a suburb and like something like 90% of the distance gold medals have been won by this group of like 10,000 people in kenya this and that's always fascinates me and</v>
+
+204
+00:51:17.875 --> 00:51:22.050
+<v Speaker 1>so i've always wanted to go and see these guys and this is like nearby in that tribe</v>
+
+205
+00:51:22.530 --> 00:51:36.210
+<v Speaker 0>and so then and then it just says hashtag international men's day so that was cool back when hashtags were were a thing and then there's also a picture of the guy jumping and he's guy's easily 5 feet off the ground i don't know how this is is this photoshoot this is incredible what is this</v>
+
+206
+00:51:36.210 --> 00:51:37.784
+<v Speaker 1>no i don't i don't know what that is i don't</v>
+
+207
+00:51:37.784 --> 00:51:38.364
+<v Speaker 0>know all</v>
+
+208
+00:51:38.505 --> 00:51:41.144
+<v Speaker 1>i i've i don't know that much about kenya but it looks dope</v>
+
+209
+00:51:41.144 --> 00:51:43.644
+<v Speaker 0>to me should we wear this for next casual friday</v>
+
+210
+00:51:44.184 --> 00:51:51.739
+<v Speaker 1>dude look how like yoked those guys are i get made fun of for like commenting on people's calves and like guys' bodies but like these guys are are just</v>
+
+211
+00:51:52.599 --> 00:51:54.619
+<v Speaker 0>jacked right yeah yeah</v>
+
+212
+00:51:55.160 --> 00:52:00.140
+<v Speaker 1>what about the theo von 1 let's see the last 1 because i actually think this is amazing</v>
+
+213
+00:52:01.480 --> 00:52:10.094
+<v Speaker 0>so it's a picture of theo von smiling like how my son does when i we try to get him to take a picture he's with ivanka trump and who's that jared right</v>
+
+214
+00:52:11.275 --> 00:53:03.844
+<v Speaker 1>yeah jared kushner and ivanka trump and he says y'all's posture is so good what the hell are y'all are y'all in the spine club or something i'm built like a damn raccoon thanks for the hospitality had a blast it's pretty amazing dude well you and i okay so when sean and i started this podcast sean started it and then i joined a little bit later and i said do you like fighter and the kid and sean was like i love fighter and the kid and fighter and the kid is a not so much popular podcast anymore but it was 2 guys brendan schaub and brian callan who would talk about ufc fighting and their friend theo von would occasionally come on the pod he was just a guy he was a he was a character on the pod and that slowly has developed into they had another pod together called king it and sting it and he rose further and further and further dude look at him</v>
+
+215
+00:53:03.844 --> 00:53:12.905
+<v Speaker 1>now he's like he's talking to the president the vice president he's hanging out with these guys how crazy of a career has theo had in the last decade it's amazing</v>
+
+216
+00:53:13.219 --> 00:53:51.579
+<v Speaker 0>it's his rise is pretty crazy i actually knew him from when he was on like road rules 20 years ago like because i like real world road rules and the challenge and stuff like that and so yeah it's pretty wild to see kind of the the crazy growth but even more wild is this this is what i appreciate about this because this tweet it's funny but do you know how hard it is as a man to put up like a a kind of like a thank you post or congratulatory post but not be lame and theo did it you know what i mean like think about what this post is this post is basically like had such a good time at brunch but if you just posted that dude you know that's the lamest thing that you could possibly do but to go with this y'all's posture is</v>
+
+217
+00:53:51.579 --> 00:54:03.355
+<v Speaker 0>so so good what the hell are y'all in spine club or something it's just that's how it's done and so i'm studying the art of how how how men can express themselves while still being still being cool about it you know what i mean</v>
+
+218
+00:54:03.355 --> 00:54:09.214
+<v Speaker 1>dude he's the best he's 1 of the few podcasts that i listen to i listen to him and tim tim dillon have you ever listened to him and tim dylan</v>
+
+219
+00:54:09.680 --> 00:54:11.200
+<v Speaker 0>i'm not a huge tim dylan guy but</v>
+
+220
+00:54:11.200 --> 00:54:24.420
+<v Speaker 1>he it's an acquired taste yeah yeah it's very much an acquired taste it took me about 2 years to get into him he's it's pretty raunchy it's he's these guys are like my 2 favorite podcasters right now it's pretty amazing how good they are</v>
+
+221
+00:54:24.815 --> 00:54:26.914
+<v Speaker 0>alright yeah that's it that's the pod</v>
+
+222
+00:54:41.640 --> 00:55:20.965
+<v Speaker 1>alright so when my employees join hampton we have them do a whole bunch of onboarding stuff but the most important thing that they do is they go through this thing i made called copy that copy that is a thing that i made that teaches people how to write better and the reason this is important is because at work or even just in life we communicate mostly via text right now whether we're emailing slacking blogging texting whatever most of the ways that we're communicating is by the written word and so i made this thing called copy that that's guaranteed to make you write better you could check it out copythat.com i post every single person who leaves a review whether it's good or bad i post it on the website and you're gonna see a trend which is that this is a very very very simple exercise something that's</v>
+
+223
+00:55:20.965 --> 00:55:32.505
+<v Speaker 1>so simple that they laugh at they think how is this gonna actually impact us and make us write better but i promise you it does you gotta try it at copythat.com i guarantee it's gonna change the way you write again copythat.com</v>
+
