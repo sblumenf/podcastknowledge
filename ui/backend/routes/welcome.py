@@ -4,7 +4,7 @@ from datetime import datetime
 from fastapi import APIRouter
 from typing import Dict, Any
 
-from ..config import read_podcast_config
+from config import read_podcast_config
 
 router = APIRouter()
 

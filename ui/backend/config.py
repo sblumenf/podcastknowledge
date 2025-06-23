@@ -32,15 +32,27 @@ def read_podcast_config() -> List[Dict[str, Any]]:
         # Extract podcast information
         podcasts = []
         if config_data and 'podcasts' in config_data:
-            for podcast_id, podcast_info in config_data['podcasts'].items():
-                # Extract only what the UI needs
-                simplified_podcast = {
-                    'id': podcast_id,
-                    'name': podcast_info.get('name', podcast_id),
-                    'description': podcast_info.get('description', ''),
-                    'neo4j_port': podcast_info.get('neo4j_port', 7687)
-                }
-                podcasts.append(simplified_podcast)
+            # Handle list format
+            if isinstance(config_data['podcasts'], list):
+                for podcast_info in config_data['podcasts']:
+                    # Extract only what the UI needs
+                    simplified_podcast = {
+                        'id': podcast_info.get('id', ''),
+                        'name': podcast_info.get('name', ''),
+                        'description': podcast_info.get('metadata', {}).get('description', ''),
+                        'neo4j_port': podcast_info.get('database', {}).get('neo4j_port', 7687)
+                    }
+                    podcasts.append(simplified_podcast)
+            # Handle dict format (legacy)
+            elif isinstance(config_data['podcasts'], dict):
+                for podcast_id, podcast_info in config_data['podcasts'].items():
+                    simplified_podcast = {
+                        'id': podcast_id,
+                        'name': podcast_info.get('name', podcast_id),
+                        'description': podcast_info.get('description', ''),
+                        'neo4j_port': podcast_info.get('neo4j_port', 7687)
+                    }
+                    podcasts.append(simplified_podcast)
         
         logger.info(f"Successfully loaded {len(podcasts)} podcast configurations")
         return podcasts
