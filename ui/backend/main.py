@@ -1,7 +1,10 @@
 """Main FastAPI application for Podcast Knowledge UI."""
 
+from datetime import datetime
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+
+from routes.welcome import router as welcome_router
 
 # Create FastAPI app instance
 app = FastAPI(
@@ -26,8 +29,12 @@ async def root():
     return {
         "message": "Podcast Knowledge UI API",
         "version": "0.1.0",
-        "status": "running"
+        "status": "running",
+        "timestamp": datetime.now().isoformat()
     }
+
+# Include routers
+app.include_router(welcome_router, prefix="/api")
 
 # Run with uvicorn when executed directly
 if __name__ == "__main__":

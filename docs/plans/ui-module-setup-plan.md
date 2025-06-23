@@ -55,7 +55,7 @@ This plan creates a minimal UI module for the podcast knowledge application with
 ## Phase 2: Backend Implementation
 
 ### Task 2.1: Implement Configuration Reader
-- [ ] Create configuration reading logic to access podcast information
+- [x] Create configuration reading logic to access podcast information
 - **Purpose**: Enable the backend to know which podcasts exist and their database connections without duplicating configuration
 - **Steps**:
   1. Remind yourself that the goal is to read the existing podcast configuration without modifying or duplicating it. The configuration file is the single source of truth maintained by the seeding pipeline, and the UI should only read from it. This approach ensures that any changes to podcast configuration are automatically reflected in the UI without manual synchronization.
@@ -67,7 +67,7 @@ This plan creates a minimal UI module for the podcast knowledge application with
 - **Validation**: Create a test script that imports and calls the config function, printing the podcast list
 
 ### Task 2.2: Create Main FastAPI Application
-- [ ] Set up the main FastAPI application with proper middleware and configuration
+- [x] Set up the main FastAPI application with proper middleware and configuration
 - **Purpose**: Create a properly configured API server that can serve the frontend and handle CORS
 - **Steps**:
   1. Remind yourself that the goal is a simple API that will grow to serve podcast data, keeping authentication for later. The API should be structured to easily add authentication middleware in the future without major refactoring. Focus on getting the basic API structure right with proper CORS handling for local development.
@@ -80,7 +80,7 @@ This plan creates a minimal UI module for the podcast knowledge application with
 - **Validation**: Run `python main.py` and verify the server starts on port 8001, test the root endpoint with curl
 
 ### Task 2.3: Implement Welcome Endpoint
-- [ ] Create a simple endpoint that provides data for the welcome page
+- [x] Create a simple endpoint that provides data for the welcome page
 - **Purpose**: Establish the pattern for API endpoints and provide initial data to the frontend
 - **Steps**:
   1. Remind yourself that the goal is to create a simple endpoint that can later be expanded with real podcast data. This endpoint establishes the pattern for how the frontend will communicate with the backend. The response structure should be consistent with what you'll use for other endpoints to maintain API consistency.
