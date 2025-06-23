@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  backend:
+    build: ./backend
+    ports:
+      - "8001:8001"
+    environment:
+      - PYTHONUNBUFFERED=1
+    volumes:
+      # Mount the podcast configuration as read-only
+      - ../seeding_pipeline/config/podcasts.yaml:/app/../../seeding_pipeline/config/podcasts.yaml:ro
+    networks:
+      - ui-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    environment:
+      # In production, the backend is accessible via the docker network
+      - VITE_API_URL=http://backend:8001
+    networks:
+      - ui-network
+
+networks:
+  ui-network:
+    driver: bridge
