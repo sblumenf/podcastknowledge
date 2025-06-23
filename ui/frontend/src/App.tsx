@@ -1,9 +1,10 @@
 import './App.css'
+import WelcomePage from './components/WelcomePage'
 
 function App() {
   return (
     <div className="app">
-      <h1>Podcast Knowledge Explorer</h1>
+      <WelcomePage />
     </div>
   )
 }
