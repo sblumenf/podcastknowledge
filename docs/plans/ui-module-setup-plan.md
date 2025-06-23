@@ -118,7 +118,7 @@ This plan creates a minimal UI module for the podcast knowledge application with
 - **Validation**: View in browser and verify the welcome page displays with proper styling
 
 ### Task 3.3: Connect Frontend to Backend
-- [ ] Implement API communication to fetch and display welcome data
+- [x] Implement API communication to fetch and display welcome data
 - **Purpose**: Establish the pattern for frontend-backend communication that will be used throughout the app
 - **Steps**:
   1. Remind yourself that the goal is to establish a clean API communication pattern that can be reused. This service layer will abstract all HTTP communication and provide a consistent interface for components to fetch data. The pattern established here will be used for all future API calls to maintain consistency.

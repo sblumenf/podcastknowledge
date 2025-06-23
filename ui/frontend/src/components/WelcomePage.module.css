@@ -63,3 +63,25 @@
   content: "✨ ";
   margin-right: 0.5rem;
 }
+
+.status {
+  color: var(--text-secondary, #666);
+  font-style: italic;
+  margin-top: 1rem;
+}
+
+.error {
+  color: var(--error-color, #ef4444);
+  margin-top: 1rem;
+}
+
+.podcast-count {
+  color: var(--text-secondary, #666);
+  margin-top: 1rem;
+  font-size: 1.1rem;
+}
+
+.podcast-count strong {
+  color: var(--text-primary, #333);
+  font-weight: 600;
+}
