@@ -26,6 +26,7 @@ class MeaningfulUnit:
     speaker_distribution: Dict[str, float]  # New field: speaker percentages
     is_complete: bool
     metadata: Optional[Dict[str, Any]] = None
+    embedding: Optional[List[float]] = None  # 768-dimension vector from Gemini embeddings
     
     @property
     def text(self) -> str:

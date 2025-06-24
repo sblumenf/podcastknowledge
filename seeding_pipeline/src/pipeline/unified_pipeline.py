@@ -13,6 +13,7 @@ from typing import Dict, Any, List, Optional, Tuple
 from datetime import datetime
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import threading
+import json
 
 # VTT Processing
 from src.vtt.vtt_parser import VTTParser
@@ -41,7 +42,7 @@ from src.storage.graph_storage import GraphStorageService
 
 # Services
 from src.services.llm import LLMService
-from src.services.embeddings import EmbeddingsService
+from src.services.embeddings import EmbeddingsService, create_embeddings_service
 
 # Configuration
 from src.core.config import PipelineConfig
@@ -103,7 +104,7 @@ class UnifiedKnowledgePipeline:
         Args:
             graph_storage: Neo4j storage service
             llm_service: Default LLM service (for backward compatibility)
-            embeddings_service: Optional embeddings service
+            embeddings_service: Optional embeddings service (auto-created if None)
             llm_flash: Optional Flash model service for fast tasks
             llm_pro: Optional Pro model service for complex tasks
             enable_speaker_mapping: Enable post-processing speaker identification (default: False)
@@ -112,7 +113,9 @@ class UnifiedKnowledgePipeline:
         # Core services - dependency injection
         self.graph_storage = graph_storage
         self.llm_service = llm_service
-        self.embeddings_service = embeddings_service
+        # Ensure embeddings service is always initialized for vector functionality
+        self.embeddings_service = embeddings_service or create_embeddings_service()
+        assert self.embeddings_service is not None, "Embeddings service must be initialized"
         self.enable_speaker_mapping = enable_speaker_mapping
         self.config = config or PipelineConfig()
         
@@ -164,6 +167,9 @@ class UnifiedKnowledgePipeline:
         # Episode tracking
         self.current_episode_id = None
         self.episode_metadata = None  # Store episode metadata for access throughout pipeline
+        
+        # Track failed embeddings for recovery
+        self.failed_embeddings = []
         
         # Checkpoint manager
         self.checkpoint_manager = CheckpointManager()
@@ -531,17 +537,20 @@ class UnifiedKnowledgePipeline:
                 # Generate a unique ID based on episode and unit index
                 unit.id = f"unit_{unit.start_time}_{unit.end_time}"
             
-            # Generate embedding for the unit if embedding service is available
-            if self.embeddings_service:
-                try:
-                    # Use unit text for embedding generation
-                    unit.embedding = self.embeddings_service.generate_embedding(unit.text)
-                    self.logger.debug(f"Generated embedding for unit {unit.id} (dimension: {len(unit.embedding)})")
-                except Exception as e:
-                    self.logger.warning(f"Failed to generate embedding for unit {unit.id}: {e}")
-                    unit.embedding = None
-            else:
+            # Generate embedding for the unit (embeddings service is always available)
+            try:
+                # Use unit text for embedding generation
+                unit.embedding = self.embeddings_service.generate_embedding(unit.text)
+                self.logger.debug(f"Generated embedding for unit {unit.id} (dimension: {len(unit.embedding)})")
+            except Exception as e:
+                self.logger.warning(f"Failed to generate embedding for unit {unit.id}: {e}")
                 unit.embedding = None
+                # Track failed embedding for later recovery
+                self.failed_embeddings.append({
+                    'unit_id': unit.id,
+                    'error': str(e),
+                    'timestamp': datetime.now().isoformat()
+                })
         
         self.logger.info(f"Created {len(meaningful_units)} MeaningfulUnits")
         
@@ -1581,6 +1590,45 @@ class UnifiedKnowledgePipeline:
         # Could also store in a failure log file or database
         # For now, just comprehensive logging
     
+    def _write_embedding_failures(self) -> None:
+        """
+        Write embedding failures to a structured log file for recovery.
+        
+        Creates timestamped JSON files containing all information needed
+        for the recovery script to retry failed embeddings.
+        """
+        if not self.failed_embeddings:
+            return
+        
+        # Create logs directory if not exists
+        logs_dir = Path("logs/embedding_failures")
+        logs_dir.mkdir(parents=True, exist_ok=True)
+        
+        # Create timestamped filename
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        filename = f"failures_{timestamp}_{self.current_episode_id}.json"
+        filepath = logs_dir / filename
+        
+        # Prepare failure data
+        failure_data = {
+            'episode_id': self.current_episode_id,
+            'episode_metadata': self.episode_metadata,
+            'failures': self.failed_embeddings,
+            'total_failures': len(self.failed_embeddings),
+            'written_at': datetime.now().isoformat()
+        }
+        
+        # Write to JSON file
+        try:
+            with open(filepath, 'w') as f:
+                json.dump(failure_data, f, indent=2)
+            self.logger.info(f"Wrote {len(self.failed_embeddings)} embedding failures to {filepath}")
+        except Exception as e:
+            self.logger.error(f"Failed to write embedding failures to file: {e}")
+        
+        # Clear the failures list after writing
+        self.failed_embeddings = []
+    
     def _merge_vtt_metadata(self, episode_metadata: Dict[str, Any], vtt_metadata: Dict[str, Any]) -> None:
         """
         Merge metadata extracted from VTT file into episode metadata.
@@ -1943,6 +1991,9 @@ class UnifiedKnowledgePipeline:
             ) from error
             
         finally:
+            # Write any embedding failures to log file for recovery
+            self._write_embedding_failures()
+            
             # Clean up resources and finalize result
             result['end_time'] = datetime.now().isoformat()
             result['total_time'] = time.time() - pipeline_start_time
