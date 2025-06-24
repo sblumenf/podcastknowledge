@@ -534,7 +534,20 @@ class GraphStorageService:
             raise ProviderError("neo4j", f"Segment processing failed: {e}")
             
     def setup_schema(self) -> None:
-        """Set up basic indexes and constraints."""
+        """
+        Set up basic indexes and constraints.
+        
+        Creates:
+        - Uniqueness constraints for all node types
+        - Standard indexes for common lookups  
+        - Vector index for MeaningfulUnit embeddings (requires Neo4j 5.11+)
+        
+        The vector index enables semantic similarity search on embeddings with:
+        - 768 dimensions (Gemini embedding size)
+        - Cosine similarity function
+        
+        Note: Vector index creation is skipped if Neo4j version < 5.11
+        """
         with self.session() as session:
             # Constraints for uniqueness
             constraints = [
@@ -559,7 +572,13 @@ class GraphStorageService:
                 # Note: speaker_distribution is a JSON string, indexing may not be optimal
                 "CREATE INDEX IF NOT EXISTS FOR (en:Entity) ON (en.name)",
                 "CREATE INDEX IF NOT EXISTS FOR (en:Entity) ON (en.type)",
-                "CREATE INDEX IF NOT EXISTS FOR ()-[r:MENTIONED_IN]-() ON (r.confidence)"
+                "CREATE INDEX IF NOT EXISTS FOR ()-[r:MENTIONED_IN]-() ON (r.confidence)",
+                # Vector index for semantic search on MeaningfulUnit embeddings
+                # - Requires Neo4j 5.11 or later
+                # - 768 dimensions match Gemini embedding output size  
+                # - Cosine similarity is standard for text embeddings
+                # - Enables queries like: CALL db.index.vector.queryNodes('meaningfulUnitEmbeddings', k, queryVector)
+                "CREATE VECTOR INDEX meaningfulUnitEmbeddings IF NOT EXISTS FOR (m:MeaningfulUnit) ON m.embedding OPTIONS { indexConfig: { 'vector.dimensions': 768, 'vector.similarity_function': 'cosine' }}"
             ]
             
             # Create constraints
@@ -570,13 +589,66 @@ class GraphStorageService:
                 except Exception as e:
                     logger.warning(f"Constraint already exists or failed: {e}")
             
+            # Check if vector indexes are supported before attempting to create them
+            supports_vector = self._validate_vector_index_support()
+            
             # Create indexes
             for index in indexes:
+                # Skip vector index if not supported
+                if "VECTOR INDEX" in index and not supports_vector:
+                    logger.warning(f"Skipping vector index creation - not supported by this Neo4j version")
+                    continue
+                    
                 try:
                     session.run(index)
                     logger.info(f"Created index: {index}")
                 except Exception as e:
                     logger.warning(f"Index already exists or failed: {e}")
+    
+    def _validate_vector_index_support(self) -> bool:
+        """
+        Validate if Neo4j version supports vector indexes.
+        
+        Vector indexes require Neo4j 5.11 or later.
+        
+        Returns:
+            bool: True if vector indexes are supported, False otherwise
+        """
+        try:
+            with self.session() as session:
+                # Query Neo4j version
+                result = session.run("""
+                    CALL dbms.components() 
+                    YIELD name, versions 
+                    WHERE name = 'Neo4j Kernel' 
+                    RETURN versions[0] as version
+                """)
+                record = result.single()
+                
+                if record and record['version']:
+                    version_str = record['version']
+                    # Parse version (e.g., "5.12.0" -> [5, 12, 0])
+                    version_parts = version_str.split('.')
+                    major = int(version_parts[0])
+                    minor = int(version_parts[1]) if len(version_parts) > 1 else 0
+                    
+                    # Vector indexes introduced in Neo4j 5.11
+                    if major > 5 or (major == 5 and minor >= 11):
+                        logger.info(f"Neo4j version {version_str} supports vector indexes")
+                        return True
+                    else:
+                        logger.warning(
+                            f"Neo4j version {version_str} does not support vector indexes. "
+                            f"Upgrade to 5.11+ for vector search functionality."
+                        )
+                        return False
+                else:
+                    logger.warning("Could not determine Neo4j version")
+                    return False
+                    
+        except Exception as e:
+            logger.error(f"Error checking Neo4j version: {e}")
+            return False
                     
     @trace_operation("neo4j_create_nodes_bulk")
     def create_nodes_bulk(self, node_type: str, nodes_data: List[Dict[str, Any]]) -> List[str]:

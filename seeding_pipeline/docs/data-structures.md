@@ -216,3 +216,79 @@ When field access fails:
   - Fixed entity name/value inconsistency
   - Fixed quote text/value inconsistency
   - Added insight text normalization for storage
+
+## Embedding Storage and Vector Indexing
+
+### MeaningfulUnit Embeddings
+
+Each `MeaningfulUnit` can store a vector embedding for semantic search:
+
+#### Field Structure
+- **`embedding`** (Optional[List[float]]): 768-dimension vector from Gemini embeddings
+- Generated from the concatenated text of all segments in the unit
+- Stored as a property on the MeaningfulUnit node in Neo4j
+
+#### Example
+```python
+meaningful_unit = {
+    "id": "episode_123_unit_001_topic_discussion",
+    "segments": [...],
+    "embedding": [0.123, -0.456, 0.789, ...],  # 768 dimensions
+    # ... other fields
+}
+```
+
+### Vector Index Configuration
+
+Neo4j vector indexes enable efficient similarity search:
+
+#### Requirements
+- **Neo4j 5.11 or later** - Vector indexes were introduced in 5.11
+- Index created automatically by `GraphStorageService.setup_schema()`
+
+#### Index Details
+- **Name**: `meaningfulUnitEmbeddings`
+- **Dimensions**: 768 (matches Gemini embedding output)
+- **Similarity Function**: Cosine (standard for text embeddings)
+- **Target**: `MeaningfulUnit.embedding` property
+
+#### Example Vector Search Query
+```cypher
+// Find 5 most similar MeaningfulUnits to a query vector
+CALL db.index.vector.queryNodes(
+    'meaningfulUnitEmbeddings',  // index name
+    5,                           // number of results (k)
+    $queryVector                 // 768-dimension query embedding
+) YIELD node, score
+RETURN node.id, node.text, score
+ORDER BY score DESC
+```
+
+### Embedding Recovery
+
+Failed embeddings are logged for recovery:
+
+#### Failure Log Location
+- `logs/embedding_failures/failures_{timestamp}_{episode_id}.json`
+
+#### Log Structure
+```json
+{
+    "episode_id": "podcast_episode_2024_01_01",
+    "failures": [
+        {
+            "unit_id": "episode_123_unit_001_topic_discussion",
+            "error": "Rate limit exceeded",
+            "timestamp": "2024-01-01T12:00:00"
+        }
+    ],
+    "total_failures": 1,
+    "written_at": "2024-01-01T12:00:00"
+}
+```
+
+#### Recovery Script
+- Located at `scripts/recover_missing_embeddings.py`
+- Finds MeaningfulUnits with NULL embeddings
+- Generates embeddings in batches
+- Updates Neo4j with recovered embeddings
