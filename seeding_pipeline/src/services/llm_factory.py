@@ -15,7 +15,6 @@ logger = logging.getLogger(__name__)
 
 class LLMServiceType(str, Enum):
     """Available LLM service implementations."""
-    LANGCHAIN = "langchain"
     GEMINI_DIRECT = "gemini_direct"
     GEMINI_CACHED = "gemini_cached"
 
@@ -38,7 +37,7 @@ class LLMServiceFactory:
         
         Args:
             api_key: Gemini API key (uses environment if not provided)
-            service_type: Type of service to create (defaults to env var or langchain)
+            service_type: Type of service to create (defaults to env var or gemini_direct)
             model_name: Model to use
             temperature: Generation temperature
             max_tokens: Maximum output tokens
@@ -51,14 +50,14 @@ class LLMServiceFactory:
         """
         # Determine service type
         if service_type is None:
-            service_type = os.getenv('LLM_SERVICE_TYPE', LLMServiceType.LANGCHAIN)
+            service_type = os.getenv('LLM_SERVICE_TYPE', LLMServiceType.GEMINI_DIRECT)
         
         # Validate service type
         try:
             service_type = LLMServiceType(service_type)
         except ValueError:
-            logger.warning(f"Invalid service type: {service_type}, defaulting to langchain")
-            service_type = LLMServiceType.LANGCHAIN
+            logger.warning(f"Invalid service type: {service_type}, defaulting to gemini_direct")
+            service_type = LLMServiceType.GEMINI_DIRECT
             
         logger.info(f"Creating LLM service: {service_type}")
         
@@ -71,17 +70,7 @@ class LLMServiceFactory:
                 model_name = 'gemini-2.5-pro-001'
         
         # Create service based on type
-        if service_type == LLMServiceType.LANGCHAIN:
-            return LLMService(
-                api_key=api_key,
-                model_name=model_name,
-                temperature=temperature,
-                max_tokens=max_tokens,
-                enable_cache=enable_cache,
-                cache_ttl=cache_ttl
-            )
-            
-        elif service_type == LLMServiceType.GEMINI_DIRECT:
+        if service_type == LLMServiceType.GEMINI_DIRECT:
             return GeminiDirectService(
                 api_key=api_key,
                 model_name=model_name,
@@ -138,13 +127,6 @@ class LLMServiceFactory:
             Dict with service information
         """
         info = {
-            LLMServiceType.LANGCHAIN: {
-                'name': 'LangChain LLM Service',
-                'description': 'Original LangChain-based implementation',
-                'features': ['API key rotation', 'Response caching', 'Retry logic'],
-                'dependencies': ['langchain-google-genai'],
-                'status': 'stable'
-            },
             LLMServiceType.GEMINI_DIRECT: {
                 'name': 'Gemini Direct Service',
                 'description': 'Direct Gemini API implementation',

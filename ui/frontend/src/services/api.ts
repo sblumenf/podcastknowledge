@@ -16,6 +16,29 @@ interface WelcomeData {
   description: string
 }
 
+interface RAGStatus {
+  status: string
+  uri?: string
+  database?: string
+  node_count?: number
+  graphrag_ready: boolean
+  error?: string
+}
+
+interface RAGSearchRequest {
+  query: string
+  top_k?: number
+}
+
+interface RAGSearchResponse {
+  query: string
+  top_k: number
+  results: any[]
+  message?: string
+  error?: string
+  details?: any
+}
+
 // Generic error handler
 async function handleResponse<T>(response: Response): Promise<T> {
   if (!response.ok) {
@@ -32,6 +55,33 @@ export async function getWelcomeData(): Promise<WelcomeData> {
     return handleResponse<WelcomeData>(response)
   } catch (error) {
     console.error('Failed to fetch welcome data:', error)
+    throw error
+  }
+}
+
+// RAG API functions
+export async function getRAGStatus(): Promise<RAGStatus> {
+  try {
+    const response = await fetch(`${API_URL}/api/rag/status`)
+    return handleResponse<RAGStatus>(response)
+  } catch (error) {
+    console.error('Failed to fetch RAG status:', error)
+    throw error
+  }
+}
+
+export async function searchKnowledge(request: RAGSearchRequest): Promise<RAGSearchResponse> {
+  try {
+    const response = await fetch(`${API_URL}/api/rag/search`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(request)
+    })
+    return handleResponse<RAGSearchResponse>(response)
+  } catch (error) {
+    console.error('Failed to search knowledge:', error)
     throw error
   }
 }

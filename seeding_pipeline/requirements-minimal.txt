@@ -28,6 +28,5 @@ PyYAML==6.0.1          # Configuration file parsing
 # uvicorn[standard]==0.24.0
 
 # For advanced LLM features:
-# langchain==0.1.0
 # openai==1.6.1
 # google-genai>=1.0.0

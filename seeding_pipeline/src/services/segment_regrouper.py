@@ -54,7 +54,8 @@ class SegmentRegrouper:
     def regroup_segments(
         self, 
         segments: List[TranscriptSegment], 
-        structure: ConversationStructure
+        structure: ConversationStructure,
+        episode_id: str = None
     ) -> List[MeaningfulUnit]:
         """
         Regroup segments based on conversation structure analysis.
@@ -98,7 +99,8 @@ class SegmentRegrouper:
                     unit_segments=unit_segments,
                     conv_unit=conv_unit,
                     unit_index=idx,
-                    structure=structure
+                    structure=structure,
+                    episode_id=episode_id
                 )
                 
                 meaningful_units.append(meaningful_unit)
@@ -143,7 +145,8 @@ class SegmentRegrouper:
         unit_segments: List[TranscriptSegment],
         conv_unit: ConversationUnit,
         unit_index: int,
-        structure: ConversationStructure
+        structure: ConversationStructure,
+        episode_id: str = None
     ) -> MeaningfulUnit:
         """Create a meaningful unit from segments and conversation unit."""
         # Calculate speaker info (primary speaker and distribution)
@@ -160,8 +163,14 @@ class SegmentRegrouper:
         if not is_complete:
             self.logger.warning(f"Unit {unit_index} marked as incomplete: {conv_unit.completeness}")
         
-        # Create unit ID
-        unit_id = f"unit_{unit_index:03d}_{conv_unit.unit_type}"
+        # Create unit ID with episode prefix to ensure global uniqueness
+        if episode_id:
+            unit_id = f"{episode_id}_unit_{unit_index:03d}_{conv_unit.unit_type}"
+            self.logger.debug(f"Created unit ID with episode prefix: {unit_id}")
+        else:
+            # Fallback for backward compatibility
+            unit_id = f"unit_{unit_index:03d}_{conv_unit.unit_type}"
+            self.logger.warning("No episode_id provided, using legacy ID format")
         
         return MeaningfulUnit(
             id=unit_id,

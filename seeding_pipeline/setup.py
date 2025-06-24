@@ -47,7 +47,6 @@ setup(
         "numpy>=1.24.3",
         "google-generativeai>=0.3.2",
         "google-genai>=1.0.0",
-        "langchain-google-genai>=0.0.5",
         "psutil>=5.9.6",
         "pyyaml>=6.0.1",
         "pydantic>=2.5.0",

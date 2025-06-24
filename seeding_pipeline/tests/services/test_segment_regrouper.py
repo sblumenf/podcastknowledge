@@ -96,7 +96,7 @@ class TestSegmentRegrouper:
         """Test basic segment regrouping."""
         regrouper = SegmentRegrouper()
         
-        units = regrouper.regroup_segments(sample_segments, sample_structure)
+        units = regrouper.regroup_segments(sample_segments, sample_structure, episode_id="test_episode")
         
         assert len(units) == 3
         assert units[0].unit_type == "introduction"
@@ -109,11 +109,24 @@ class TestSegmentRegrouper:
         
         assert units[2].unit_type == "conclusion"
         assert units[2].is_complete is False
+        
+    def test_regroup_segments_with_episode_id(self, sample_segments, sample_structure):
+        """Test segment regrouping with episode ID."""
+        regrouper = SegmentRegrouper()
+        
+        episode_id = "test_podcast_episode_2024_01_01"
+        units = regrouper.regroup_segments(sample_segments, sample_structure, episode_id=episode_id)
+        
+        assert len(units) == 3
+        # Check that unit IDs contain the episode ID
+        assert units[0].id == f"{episode_id}_unit_000_introduction"
+        assert units[1].id == f"{episode_id}_unit_001_topic_discussion"
+        assert units[2].id == f"{episode_id}_unit_002_conclusion"
     
     def test_meaningful_unit_properties(self, sample_segments, sample_structure):
         """Test MeaningfulUnit properties."""
         regrouper = SegmentRegrouper()
-        units = regrouper.regroup_segments(sample_segments, sample_structure)
+        units = regrouper.regroup_segments(sample_segments, sample_structure, episode_id="test_episode")
         
         first_unit = units[0]
         assert first_unit.duration == 30.0  # 3 segments * 10s each
@@ -128,7 +141,7 @@ class TestSegmentRegrouper:
     def test_speaker_distribution(self, sample_segments, sample_structure):
         """Test speaker distribution calculation."""
         regrouper = SegmentRegrouper()
-        units = regrouper.regroup_segments(sample_segments, sample_structure)
+        units = regrouper.regroup_segments(sample_segments, sample_structure, episode_id="test_episode")
         
         # First unit has segments 0, 1, 2 (Host, Guest, Host)
         first_unit = units[0]
@@ -139,7 +152,7 @@ class TestSegmentRegrouper:
     def test_unit_statistics(self, sample_segments, sample_structure):
         """Test unit statistics generation."""
         regrouper = SegmentRegrouper()
-        units = regrouper.regroup_segments(sample_segments, sample_structure)
+        units = regrouper.regroup_segments(sample_segments, sample_structure, episode_id="test_episode")
         
         stats = regrouper.get_unit_statistics(units)
         

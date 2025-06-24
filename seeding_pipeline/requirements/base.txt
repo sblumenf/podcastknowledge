@@ -10,7 +10,6 @@ PyYAML==6.0.1
 
 # LLM & Embeddings (Gemini-based)
 google-generativeai==0.3.2
-langchain-google-genai==0.0.5
 
 # Essential Processing
 numpy==1.24.3

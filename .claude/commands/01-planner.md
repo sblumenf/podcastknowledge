@@ -17,19 +17,22 @@ Generate a detailed implementation plan using "ultrathink" for: $ARGUMENTS
    - Executive Summary (plain language outcome)
    - Phases with todo lists
    - Each task must include:
-     - [ ] Task description (micro-process detail)
+     - [ ] Task description (micro-process detail - MINIMUM 3 SENTENCES describing what, why, and how)
      - Purpose: What this achieves
      - Steps: Explicit substeps Claude Code can execute
+     - Reference: Explicit reference to relevant phase/section of this plan to maintain alignment
      - Validation: How to verify done
    - Success Criteria (measurable outcomes)
    - Technology Requirements (flag any new tech for approval)
 
-5. **Detail level**: Over-engineer for Claude Code execution - every action must be explicit, no assumptions
+5. **Detail level**: Over-engineer for Claude Code execution - every action must be explicit, NO ASSUMPTIONS OR INTUITION
 
 6. **Self-review**: After drafting, critically verify:
    - Tasks are unambiguous
-   - No hidden steps requiring human intuition  
+   - No hidden steps requiring human intuition or assumptions
    - Each task independently executable
+   - Each task description is at least 3 sentences
+   - Each task references the overall plan for alignment
    - New technologies clearly marked
    - Plan achieves the confirmed understanding from step 2
 

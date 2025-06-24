@@ -238,11 +238,6 @@ class SeedingConfig(PipelineConfig):
         
                 
         # Check LLM providers
-        try:
-            import langchain_google_genai
-            available.append("langchain-google-genai")
-        except ImportError:
-            missing.append("langchain-google-genai")
             
         try:
             import openai

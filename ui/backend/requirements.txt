@@ -7,6 +7,7 @@ uvicorn[standard]==0.34.0  # ASGI server with standard extras
 
 # Database connectivity
 neo4j==5.28.0  # Neo4j Python driver
+neo4j-graphrag==1.7.0  # Neo4j GraphRAG for RAG functionality
 
 # Configuration reading
 pyyaml==6.0.2  # For reading podcast configuration

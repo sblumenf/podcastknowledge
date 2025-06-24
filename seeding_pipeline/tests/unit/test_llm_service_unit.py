@@ -88,19 +88,20 @@ class TestLLMService:
     
     def test_ensure_client_import_error(self, llm_service):
         """Test client initialization with import error."""
-        with patch.dict('sys.modules', {'langchain_google_genai': None}):
-            with pytest.raises(ImportError, match="langchain_google_genai is not installed"):
-                llm_service._ensure_client("test_api_key")
+        with patch.dict('sys.modules', {'google.genai': None}):
+            with pytest.raises(ImportError, match="google-genai is not installed"):
+                llm_service._ensure_client()
     
-    @patch('src.services.llm.ChatGoogleGenerativeAI')
-    def test_ensure_client_changes_with_different_key(self, mock_chat_class, llm_service):
+    @patch('src.services.llm.genai.Client')
+    def test_ensure_client_changes_with_different_key(self, mock_client_class, llm_service):
         """Test that _ensure_client creates new client for different API key."""
         mock_client1 = Mock()
         mock_client2 = Mock()
-        mock_chat_class.side_effect = [mock_client1, mock_client2]
+        mock_client_class.side_effect = [mock_client1, mock_client2]
         
         # Call with first key
-        llm_service._ensure_client("key1")
+        llm_service.api_key = "key1"
+        llm_service._ensure_client()
         assert llm_service.client == mock_client1
         
         # Call with different key
@@ -114,16 +115,19 @@ class TestLLMService:
     def test_complete_success(self, mock_ensure, llm_service, mock_rotation_manager):
         """Test successful completion with rotation."""
         mock_response = Mock()
-        mock_response.content = "Generated text response"
+        mock_response.text = "Generated text response"
+        
+        mock_models = Mock()
+        mock_models.generate_content.return_value = mock_response
         
         mock_client = Mock()
-        mock_client.invoke.return_value = mock_response
+        mock_client.models = mock_models
         llm_service.client = mock_client
         
         result = llm_service.complete("Test prompt")
         
         assert result == "Generated text response"
-        mock_client.invoke.assert_called_once_with("Test prompt")
+        mock_models.generate_content.assert_called_once()
         
         # Verify rotation manager was used
         mock_rotation_manager.get_next_key.assert_called()
@@ -132,11 +136,15 @@ class TestLLMService:
     
     @patch.object(LLMService, '_ensure_client')
     def test_complete_no_content_attribute(self, mock_ensure, llm_service, mock_rotation_manager):
-        """Test completion when response has no content attribute."""
-        mock_response = "String response"
+        """Test completion when response has text attribute."""
+        mock_response = Mock()
+        mock_response.text = "String response"
+        
+        mock_models = Mock()
+        mock_models.generate_content.return_value = mock_response
         
         mock_client = Mock()
-        mock_client.invoke.return_value = mock_response
+        mock_client.models = mock_models
         llm_service.client = mock_client
         
         result = llm_service.complete("Test prompt")
@@ -154,8 +162,11 @@ class TestLLMService:
     @patch.object(LLMService, '_ensure_client')
     def test_complete_api_quota_error(self, mock_ensure, llm_service):
         """Test completion with API quota error."""
+        mock_models = Mock()
+        mock_models.generate_content.side_effect = Exception("Quota exceeded for API")
+        
         mock_client = Mock()
-        mock_client.invoke.side_effect = Exception("Quota exceeded for API")
+        mock_client.models = mock_models
         llm_service.client = mock_client
         
         llm_service.rate_limiter.can_make_request = Mock(return_value=True)
@@ -378,15 +389,17 @@ class TestLLMService:
         assert 'config' in call_args[1]
 
     def test_complete_with_options_non_json_mode(self, llm_service):
-        """Test completion without JSON mode uses LangChain client."""
+        """Test completion without JSON mode uses Google GenAI SDK."""
         with patch.object(llm_service, '_ensure_client'):
-            with patch('src.services.llm.ChatGoogleGenerativeAI') as mock_chat_class:
+            with patch('src.services.llm.genai.Client') as mock_client_class:
                 mock_response = Mock()
-                mock_response.content = "Regular response"
+                mock_response.text = "Regular response"
                 
-                mock_temp_client = Mock()
-                mock_temp_client.invoke.return_value = mock_response
-                mock_chat_class.return_value = mock_temp_client
+                mock_client = Mock()
+                mock_models = Mock()
+                mock_models.generate_content.return_value = mock_response
+                mock_client.models = mock_models
+                mock_client_class.return_value = mock_client
                 
                 llm_service.rate_limiter.can_make_request = Mock(return_value=True)
                 llm_service.rate_limiter.record_request = Mock()
@@ -401,8 +414,8 @@ class TestLLMService:
                 assert result['content'] == "Regular response"
                 assert result['json_mode'] is False
                 
-                # Verify LangChain client was used, not Google GenAI
-                mock_chat_class.assert_called_once()
+                # Verify Google GenAI client was used
+                mock_client_class.assert_called_once()
 
     def test_generate_completion_with_json_mode(self, llm_service):
         """Test generate_completion method uses JSON mode when response_format is provided."""

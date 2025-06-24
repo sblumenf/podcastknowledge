@@ -509,8 +509,8 @@ class UnifiedKnowledgePipeline:
         """
         self.logger.info(f"Creating MeaningfulUnits from {len(segments)} segments")
         
-        # Call regroup_segments() with segments and structure
-        meaningful_units = self.segment_regrouper.regroup_segments(segments, structure)
+        # Call regroup_segments() with segments and structure, including episode_id
+        meaningful_units = self.segment_regrouper.regroup_segments(segments, structure, episode_id=self.current_episode_id)
         
         if not meaningful_units:
             raise PipelineError("No meaningful units created from segments")

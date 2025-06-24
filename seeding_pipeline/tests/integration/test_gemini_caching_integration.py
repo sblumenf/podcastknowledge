@@ -51,14 +51,6 @@ class TestGeminiCachingIntegration:
         mock_client = Mock()
         mock_genai.Client.return_value = mock_client
         
-        # Test LangChain service
-        service = LLMServiceFactory.create_service(
-            key_rotation_manager=mock_key_manager,
-            service_type=LLMServiceType.LANGCHAIN
-        )
-        assert service is not None
-        assert hasattr(service, 'complete')
-        
         # Test Gemini Direct service
         service = LLMServiceFactory.create_service(
             key_rotation_manager=mock_key_manager,
@@ -224,10 +216,6 @@ class TestGeminiCachingIntegration:
     def test_service_info(self):
         """Test service information retrieval."""
         # Get info for each service type
-        langchain_info = LLMServiceFactory.get_service_info(LLMServiceType.LANGCHAIN)
-        assert langchain_info['name'] == 'LangChain LLM Service'
-        assert 'API key rotation' in langchain_info['features']
-        
         direct_info = LLMServiceFactory.get_service_info(LLMServiceType.GEMINI_DIRECT)
         assert direct_info['name'] == 'Gemini Direct Service'
         assert 'Context caching' in direct_info['features']

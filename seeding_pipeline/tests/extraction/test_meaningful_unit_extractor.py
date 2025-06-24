@@ -58,7 +58,7 @@ class TestMeaningfulUnitExtractor:
     def sample_meaningful_unit(self, sample_segments):
         """Create sample meaningful unit."""
         return MeaningfulUnit(
-            id="unit_001_topic_discussion",
+            id="test_episode_001_unit_001_topic_discussion",
             segments=sample_segments,
             unit_type="topic_discussion",
             summary="Discussion of AI applications in cancer detection",
@@ -80,7 +80,7 @@ class TestMeaningfulUnitExtractor:
         result = extractor.extract_from_unit(sample_meaningful_unit)
         
         assert isinstance(result, MeaningfulUnitExtractionResult)
-        assert result.unit_id == "unit_001_topic_discussion"
+        assert result.unit_id == "test_episode_001_unit_001_topic_discussion"
         assert len(result.entities) > 0
         assert len(result.insights) > 0
         assert result.themes == ["Healthcare AI", "Cancer Detection"]
@@ -186,7 +186,7 @@ class TestMeaningfulUnitExtractor:
     def test_incomplete_unit_handling(self, base_extractor, sample_segments):
         """Test handling of incomplete units."""
         incomplete_unit = MeaningfulUnit(
-            id="unit_002_conclusion",
+            id="test_episode_001_unit_002_conclusion",
             segments=sample_segments,
             unit_type="conclusion",
             summary="Partial conclusion about future of AI in medicine",
@@ -217,7 +217,7 @@ class TestMeaningfulUnitExtractor:
         
         assert len(results) == 3
         assert all(isinstance(r, MeaningfulUnitExtractionResult) for r in results)
-        assert all(r.unit_id == "unit_001_topic_discussion" for r in results)
+        assert all(r.unit_id == "test_episode_001_unit_001_topic_discussion" for r in results)
     
     def test_extraction_metadata(self, base_extractor, sample_meaningful_unit):
         """Test extraction metadata generation."""

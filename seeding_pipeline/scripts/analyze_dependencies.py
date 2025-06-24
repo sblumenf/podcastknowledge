@@ -38,8 +38,7 @@ def map_dependencies_to_functionality():
         'feedparser': 'rss_feed',
         
         # LLM and AI
-        'langchain': 'llm_ai',
-        'openai': 'llm_ai',
+            'openai': 'llm_ai',
         'google': 'llm_ai',
         
         # Embeddings

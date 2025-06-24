@@ -30,8 +30,7 @@ class CachingBenchmark:
         self.key_manager = create_key_rotation_manager()
         self.test_episodes = self._load_test_episodes()
         self.results = {
-            'langchain': {'times': [], 'costs': [], 'errors': 0},
-            'gemini_direct': {'times': [], 'costs': [], 'errors': 0},
+                'gemini_direct': {'times': [], 'costs': [], 'errors': 0},
             'gemini_cached': {'times': [], 'costs': [], 'errors': 0}
         }
         
@@ -170,8 +169,7 @@ class CachingBenchmark:
         """Run full benchmark suite."""
         logger.info(f"Running benchmarks with {iterations} iterations per service")
         
-        for service_type in [LLMServiceType.LANGCHAIN, 
-                           LLMServiceType.GEMINI_DIRECT,
+        for service_type in [LLMServiceType.GEMINI_DIRECT,
                            LLMServiceType.GEMINI_CACHED]:
             
             logger.info(f"\nBenchmarking {service_type}...")
@@ -210,14 +208,14 @@ class CachingBenchmark:
                 analysis[service_type] = {'error': 'No successful runs'}
                 
         # Calculate improvements
-        if 'langchain' in analysis and 'gemini_cached' in analysis:
-            base_cost = analysis['langchain']['avg_cost']
+        if 'gemini_direct' in analysis and 'gemini_cached' in analysis:
+            base_cost = analysis['gemini_direct']['avg_cost']
             cached_cost = analysis['gemini_cached']['avg_cost']
             
             analysis['improvements'] = {
                 'cost_reduction_pct': ((base_cost - cached_cost) / base_cost) * 100,
                 'cost_reduction_abs': base_cost - cached_cost,
-                'speed_improvement': analysis['langchain']['avg_time'] / analysis['gemini_cached']['avg_time']
+                'speed_improvement': analysis['gemini_direct']['avg_time'] / analysis['gemini_cached']['avg_time']
             }
             
         return analysis
@@ -255,7 +253,7 @@ def main():
         print()
         
     if 'improvements' in results:
-        print("Improvements (Cached vs LangChain):")
+        print("Improvements (Cached vs Direct):")
         print(f"  Cost reduction: {results['improvements']['cost_reduction_pct']:.1f}%")
         print(f"  Cost savings: ${results['improvements']['cost_reduction_abs']:.4f} per episode")
         print(f"  Speed improvement: {results['improvements']['speed_improvement']:.1f}x")

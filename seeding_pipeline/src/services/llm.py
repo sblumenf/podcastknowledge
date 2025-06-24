@@ -37,6 +37,7 @@ class LLMService:
         self.temperature = temperature
         self.max_tokens = max_tokens
         self.client = None
+        self._genai_client = None  # For direct Google GenAI SDK usage
         self.provider = "gemini"
         
         # Resilience features
@@ -51,19 +52,14 @@ class LLMService:
             return
             
         try:
-            from langchain_google_genai import ChatGoogleGenerativeAI
+            from google import genai
         except ImportError:
             raise ImportError(
-                "langchain_google_genai is not installed. "
-                "Install with: pip install langchain-google-genai"
+                "google-genai is not installed. "
+                "Install with: pip install google-genai"
             )
             
-        self.client = ChatGoogleGenerativeAI(
-            model=self.model_name,
-            google_api_key=self.api_key,
-            temperature=self.temperature,
-            max_output_tokens=self.max_tokens,
-        )
+        self.client = genai.Client(api_key=self.api_key)
         logger.debug(f"Initialized Gemini client with model: {self.model_name}")
             
     def _get_cache_key(self, prompt: str, temperature: Optional[float] = None) -> str:
@@ -129,14 +125,19 @@ class LLMService:
         
         for attempt in range(3):  # Max 3 attempts
             try:
-                # Make the request
-                response = self.client.invoke(prompt)
+                # Make the request using Google GenAI SDK
+                from google.genai import types
                 
-                # Extract content from response
-                if hasattr(response, 'content'):
-                    result = response.content
-                else:
-                    result = str(response)
+                response = self.client.models.generate_content(
+                    model=self.model_name,
+                    contents=prompt,
+                    config=types.GenerateContentConfig(
+                        temperature=self.temperature,
+                        max_output_tokens=self.max_tokens
+                    )
+                )
+                
+                result = response.text
                 
                 # Cache successful response
                 self._cache_response(cache_key, result)
@@ -194,7 +195,7 @@ class LLMService:
                 from google.genai import types
                 
                 # Initialize client if needed
-                if not hasattr(self, '_genai_client'):
+                if not hasattr(self, '_genai_client') or self._genai_client is None:
                     self._genai_client = genai.Client(api_key=self.api_key)
                 
                 # Generate content with JSON mode
@@ -210,17 +211,24 @@ class LLMService:
                 
                 content = response.text
             else:
-                # Use LangChain for non-JSON mode
-                from langchain_google_genai import ChatGoogleGenerativeAI
-                temp_client = ChatGoogleGenerativeAI(
+                # Use Google GenAI SDK for non-JSON mode
+                from google import genai
+                from google.genai import types
+                
+                # Initialize client if needed
+                if not hasattr(self, '_genai_client') or self._genai_client is None:
+                    self._genai_client = genai.Client(api_key=self.api_key)
+                
+                response = self._genai_client.models.generate_content(
                     model=self.model_name,
-                    google_api_key=self.api_key,
-                    temperature=temp,
-                    max_output_tokens=tokens,
+                    contents=prompt,
+                    config=types.GenerateContentConfig(
+                        temperature=temp,
+                        max_output_tokens=tokens
+                    )
                 )
                 
-                response = temp_client.invoke(prompt)
-                content = response.content if hasattr(response, 'content') else str(response)
+                content = response.text
             
             return {
                 'content': content,
