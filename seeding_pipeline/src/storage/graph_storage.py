@@ -578,7 +578,7 @@ class GraphStorageService:
                 # - 768 dimensions match Gemini embedding output size  
                 # - Cosine similarity is standard for text embeddings
                 # - Enables queries like: CALL db.index.vector.queryNodes('meaningfulUnitEmbeddings', k, queryVector)
-                "CREATE VECTOR INDEX meaningfulUnitEmbeddings IF NOT EXISTS FOR (m:MeaningfulUnit) ON m.embedding OPTIONS { indexConfig: { 'vector.dimensions': 768, 'vector.similarity_function': 'cosine' }}"
+                "CREATE VECTOR INDEX meaningfulUnitEmbeddings IF NOT EXISTS FOR (m:MeaningfulUnit) ON m.embedding OPTIONS {indexConfig: {`vector.dimensions`: 768, `vector.similarity_function`: 'cosine'}}"
             ]
             
             # Create constraints

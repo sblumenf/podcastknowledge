@@ -426,6 +426,19 @@ Environment Variables:
         skipped_count = 0
         failed_files = []
         
+        # Aggregate statistics
+        total_stats = {
+            'segments_parsed': 0,
+            'meaningful_units_created': 0,
+            'entities_extracted': 0,
+            'quotes_extracted': 0,
+            'insights_extracted': 0,
+            'relationships_extracted': 0,
+            'nodes_created': 0,
+            'relationships_created': 0,
+            'processing_time': 0.0
+        }
+        
         for idx, vtt_file in enumerate(vtt_files, 1):
             # Extract title from filename
             title = extract_title_from_filename(vtt_file.stem)
@@ -457,6 +470,18 @@ Environment Variables:
                 else:
                     print(f"  ✓ Success ({processing_time:.1f}s)\n")
                     success_count += 1
+                    
+                    # Aggregate statistics
+                    stats = result.get('stats', {})
+                    total_stats['segments_parsed'] += stats.get('segments_parsed', 0)
+                    total_stats['meaningful_units_created'] += stats.get('meaningful_units_created', 0)
+                    total_stats['entities_extracted'] += stats.get('entities_extracted', 0)
+                    total_stats['quotes_extracted'] += stats.get('quotes_extracted', 0)
+                    total_stats['insights_extracted'] += stats.get('insights_extracted', 0)
+                    total_stats['relationships_extracted'] += stats.get('relationships_extracted', 0)
+                    total_stats['nodes_created'] += stats.get('nodes_created', 0)
+                    total_stats['relationships_created'] += stats.get('relationships_created', 0)
+                    total_stats['processing_time'] += result.get('total_time', 0)
                 
             except KeyboardInterrupt:
                 print("\n\nProcessing interrupted by user")
@@ -479,6 +504,20 @@ Environment Variables:
         print(f"Successful: {success_count}")
         print(f"Skipped: {skipped_count}")
         print(f"Failed: {len(failed_files)}")
+        
+        if success_count > 0:
+            print(f"\nProcessing Time: {total_stats['processing_time']:.2f} seconds ({total_stats['processing_time']/60:.1f} minutes)")
+            print(f"\nAggregate Statistics:")
+            print(f"  Segments Processed: {total_stats['segments_parsed']:,}")
+            print(f"  Meaningful Units Created: {total_stats['meaningful_units_created']:,}")
+            print(f"\n  Knowledge Extracted:")
+            print(f"    - Entities: {total_stats['entities_extracted']:,}")
+            print(f"    - Quotes: {total_stats['quotes_extracted']:,}")
+            print(f"    - Insights: {total_stats['insights_extracted']:,}")
+            print(f"    - Relationships: {total_stats['relationships_extracted']:,}")
+            print(f"\n  Graph Storage:")
+            print(f"    - Nodes Created: {total_stats['nodes_created']:,}")
+            print(f"    - Relationships Created: {total_stats['relationships_created']:,}")
         
         if failed_files:
             print("\nFailed files:")
@@ -545,12 +584,12 @@ Environment Variables:
                 sys.exit(0)
             
             print(f"Episode ID: {result.get('episode_id', 'N/A')}")
-            print(f"Processing Time: {result.get('processing_time', 0):.2f} seconds")
+            print(f"Processing Time: {result.get('total_time', 0):.2f} seconds")
             
             # Get stats from nested dictionary or top level
             stats = result.get('stats', {})
             
-            print(f"\nSegments Processed: {stats.get('segments_processed', result.get('segments_processed', 0))}")
+            print(f"\nSegments Processed: {stats.get('segments_parsed', result.get('segments_parsed', 0))}")
             print(f"Meaningful Units Created: {stats.get('meaningful_units_created', result.get('meaningful_units_created', 0))}")
             print(f"\nKnowledge Extracted:")
             print(f"  - Entities: {stats.get('entities_extracted', result.get('entities_extracted', 0))}")
@@ -561,9 +600,15 @@ Environment Variables:
             print(f"  - Nodes Created: {stats.get('nodes_created', result.get('nodes_created', 0))}")
             print(f"  - Relationships Created: {stats.get('relationships_created', result.get('relationships_created', 0))}")
             print(f"\nAnalysis Results:")
-            print(f"  - Structural Gaps: {stats.get('gaps_detected', result.get('gaps_detected', 0))}")
-            print(f"  - Missing Links: {stats.get('missing_links_found', result.get('missing_links_found', 0))}")
-            print(f"  - Diversity Score: {stats.get('diversity_score', result.get('diversity_score', 0)):.3f}")
+            # Get analysis results from stats
+            analysis_results = stats.get('analysis_results', {})
+            gaps = analysis_results.get('gap_detection', {}).get('gaps_detected', 0)
+            missing_links = analysis_results.get('missing_links', {}).get('missing_links_found', 0)
+            diversity = analysis_results.get('diversity_metrics', {}).get('diversity_score', 0.0)
+            
+            print(f"  - Structural Gaps: {gaps}")
+            print(f"  - Missing Links: {missing_links}")
+            print(f"  - Diversity Score: {diversity:.3f}")
             
             if result.get('errors'):
                 print(f"\nErrors encountered: {len(result['errors'])}")

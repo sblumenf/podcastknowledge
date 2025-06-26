@@ -12,5 +12,6 @@ neo4j-graphrag==1.7.0  # Neo4j GraphRAG for RAG functionality
 # Configuration reading
 pyyaml==6.0.2  # For reading podcast configuration
 
-# Note: All dependencies are already in use by the seeding pipeline
-# No new technologies are being introduced
+# RAG dependencies
+google-generativeai==0.3.2  # For embeddings via Gemini (same version as seeding pipeline)
+groq==0.11.0  # For Groq LLM responses

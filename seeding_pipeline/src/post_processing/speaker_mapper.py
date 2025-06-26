@@ -62,6 +62,7 @@ class SpeakerMapper:
         
         logger.info(f"Found {len(generic_speakers)} generic speakers to identify")
         
+        
         # Try identification methods in order
         mappings = {}
         
@@ -1138,7 +1139,7 @@ Consider:
 
 Provide ONLY the most likely full name (first and last name if available). If you cannot determine the name with reasonable confidence, respond with "UNKNOWN".
 
-Name:"""
+Response (just the name, nothing else):"""
         
         return prompt
     
@@ -1209,10 +1210,24 @@ Name:"""
                 # Parse response
                 name = response.strip()
                 
+                # Handle common LLM response formats
+                if name.startswith("Name: "):
+                    name = name[6:].strip()  # Remove "Name: " prefix
+                elif name.startswith("Response: "):
+                    name = name[10:].strip()  # Remove "Response: " prefix
+                elif ":" in name and not any(char in name.split(":", 1)[0] for char in ".-'"):
+                    # Handle other formats like "Speaker: John Doe" but not "Dr.: John"
+                    name = name.split(":", 1)[1].strip()
+                
+                # Clean up common formatting issues
+                name = name.strip('"\'')  # Remove quotes
+                name = name.replace("**", "")  # Remove markdown bold
+                
                 # Validate response
                 if name and name != "UNKNOWN" and len(name) > 2:
-                    # Basic validation - should look like a name
-                    if re.match(r'^[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*$', name):
+                    # More flexible validation - allow names with accents, apostrophes, hyphens
+                    # Just check it starts with a letter and contains mostly letters
+                    if re.match(r'^[A-Za-zÀ-ÿ][\w\s\'\-\.À-ÿ]*$', name) and sum(c.isalpha() for c in name) >= len(name) * 0.5:
                         mappings[generic_speaker] = name
                         logger.info(f"LLM identified '{generic_speaker}' as '{name}'")
                     else:

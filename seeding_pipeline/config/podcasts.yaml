@@ -7,7 +7,7 @@ podcasts:
   database:
     uri: neo4j://localhost:7687
     neo4j_port: 7687
-    database_name: mel_robbins_podcast
+    database_name: neo4j
   processing:
     batch_size: 10
     max_retries: 3

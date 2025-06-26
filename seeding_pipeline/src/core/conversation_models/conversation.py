@@ -109,9 +109,11 @@ class ConversationUnit(BaseModel):
     def validate_completeness(cls, v: str) -> str:
         """Validate completeness is one of allowed values."""
         allowed_values = {'complete', 'incomplete', 'fragmented'}
-        if v not in allowed_values:
-            raise ValueError(f"completeness must be one of {allowed_values}")
-        return v
+        # Normalize to lowercase
+        v_lower = v.lower() if isinstance(v, str) else str(v).lower()
+        if v_lower not in allowed_values:
+            raise ValueError(f"completeness must be one of {allowed_values}, got '{v}'")
+        return v_lower
 
 
 class TopicGroup(BaseModel):

@@ -1889,6 +1889,7 @@ class UnifiedKnowledgePipeline:
                     result['stats']['entities_extracted'] = len(extraction_results.get('entities', []))
                     result['stats']['insights_extracted'] = len(extraction_results.get('insights', []))
                     result['stats']['quotes_extracted'] = len(extraction_results.get('quotes', []))
+                    result['stats']['relationships_extracted'] = len(extraction_results.get('relationships', []))
                 result['phases_completed'].append("KNOWLEDGE_EXTRACTION")
             else:
                 self._start_phase("KNOWLEDGE_EXTRACTION")
@@ -1897,6 +1898,7 @@ class UnifiedKnowledgePipeline:
                     result['stats']['entities_extracted'] = len(extraction_results.get('entities', []))
                     result['stats']['insights_extracted'] = len(extraction_results.get('insights', []))
                     result['stats']['quotes_extracted'] = len(extraction_results.get('quotes', []))
+                    result['stats']['relationships_extracted'] = len(extraction_results.get('relationships', []))
                 result['phases_completed'].append("KNOWLEDGE_EXTRACTION")
                 self._end_phase()
                 self._save_checkpoint("KNOWLEDGE_EXTRACTION", extraction_results, episode_metadata)
@@ -1905,10 +1907,45 @@ class UnifiedKnowledgePipeline:
             if self._should_skip_phase("KNOWLEDGE_STORAGE", checkpoint):
                 self.logger.info("Skipping KNOWLEDGE_STORAGE - already completed")
                 result['phases_completed'].append("KNOWLEDGE_STORAGE")
+                # Restore storage stats from extraction results
+                if extraction_results:
+                    result['stats']['nodes_created'] = (
+                        len(extraction_results.get('entities', [])) +
+                        len(extraction_results.get('quotes', [])) +
+                        len(extraction_results.get('insights', [])) +
+                        len(meaningful_units) +
+                        2  # Episode + Podcast nodes
+                    )
+                    result['stats']['relationships_created'] = (
+                        len(extraction_results.get('relationships', [])) +
+                        len(extraction_results.get('entities', [])) +
+                        len(extraction_results.get('quotes', [])) +
+                        len(extraction_results.get('insights', []))
+                    )
             else:
                 self._start_phase("KNOWLEDGE_STORAGE")
                 await self._store_knowledge(extraction_results, meaningful_units)
                 result['phases_completed'].append("KNOWLEDGE_STORAGE")
+                # Track storage stats (using extraction counts as approximation)
+                if extraction_results:
+                    # Nodes = entities + quotes + insights + meaningful units + episode + podcast
+                    result['stats']['nodes_created'] = (
+                        len(extraction_results.get('entities', [])) +
+                        len(extraction_results.get('quotes', [])) +
+                        len(extraction_results.get('insights', [])) +
+                        len(meaningful_units) +
+                        2  # Episode + Podcast nodes
+                    )
+                    # Relationships = extracted relationships + entity mentions + quote sources + insight sources
+                    result['stats']['relationships_created'] = (
+                        len(extraction_results.get('relationships', [])) +
+                        len(extraction_results.get('entities', [])) +  # MENTIONED_IN relationships
+                        len(extraction_results.get('quotes', [])) +  # QUOTED_IN relationships
+                        len(extraction_results.get('insights', []))  # SOURCE relationships
+                    )
+                else:
+                    result['stats']['nodes_created'] = 0
+                    result['stats']['relationships_created'] = 0
                 self._end_phase()
                 self._save_checkpoint("KNOWLEDGE_STORAGE", {'stored': True}, episode_metadata)
             

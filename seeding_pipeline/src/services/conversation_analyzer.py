@@ -280,6 +280,9 @@ IMPORTANT: Keep all text descriptions concise and focused. Avoid lengthy explana
                         unit['unit_type'] = 'topic_discussion'
                     if 'completeness' not in unit:
                         unit['completeness'] = 'complete'
+                    else:
+                        # Normalize completeness to lowercase
+                        unit['completeness'] = str(unit['completeness']).lower()
                     if 'confidence' not in unit:
                         unit['confidence'] = 0.8
                     

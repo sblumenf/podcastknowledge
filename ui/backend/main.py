@@ -6,6 +6,8 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from routes.welcome import router as welcome_router
 from routes.rag import router as rag_router
+from routes.dashboard import router as dashboard_router
+from routes.chat import router as chat_router
 
 # Create FastAPI app instance
 app = FastAPI(
@@ -37,6 +39,8 @@ async def root():
 # Include routers
 app.include_router(welcome_router, prefix="/api")
 app.include_router(rag_router, prefix="/api")
+app.include_router(dashboard_router, prefix="/api")
+app.include_router(chat_router, prefix="/api")
 
 # Run with uvicorn when executed directly
 if __name__ == "__main__":
