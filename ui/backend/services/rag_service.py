@@ -2,8 +2,11 @@
 
 import os
 import logging
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 from neo4j import GraphDatabase
+import google.generativeai as genai
+from groq import Groq
+import numpy as np
 
 logger = logging.getLogger(__name__)
 
@@ -16,15 +19,37 @@ class RAGService:
         # Get Neo4j connection details from environment
         self.neo4j_uri = os.getenv("NEO4J_URI", "bolt://localhost:7687")
         self.neo4j_username = os.getenv("NEO4J_USERNAME", "neo4j")
-        self.neo4j_password = os.getenv("NEO4J_PASSWORD")
+        self.neo4j_password = os.getenv("NEO4J_PASSWORD", "password")
         self.neo4j_database = os.getenv("NEO4J_DATABASE", "neo4j")
         
         # Driver will be created on demand
         self._driver = None
         
-        # Placeholder for future GraphRAG components
-        self._retriever = None
-        self._rag_pipeline = None
+        # Initialize API keys
+        self.gemini_api_key = os.getenv("GEMINI_API_KEY")
+        self.groq_api_key = os.getenv("GROQ_API_KEY")
+        
+        # Initialize Gemini for embeddings
+        if self.gemini_api_key:
+            genai.configure(api_key=self.gemini_api_key)
+            self.embed_model = genai.GenerativeModel('models/text-embedding-004')
+        else:
+            logger.warning("GEMINI_API_KEY not found in environment")
+            self.embed_model = None
+        
+        # Initialize Groq client for LLM responses
+        if self.groq_api_key:
+            # Create a custom httpx client to avoid the proxies parameter issue
+            import httpx
+            custom_http_client = httpx.Client(
+                timeout=httpx.Timeout(timeout=120.0, connect=5.0),
+                limits=httpx.Limits(max_keepalive_connections=5, max_connections=10),
+                follow_redirects=True
+            )
+            self.groq_client = Groq(api_key=self.groq_api_key, http_client=custom_http_client)
+        else:
+            logger.warning("GROQ_API_KEY not found in environment")
+            self.groq_client = None
         
     def _get_driver(self):
         """Get or create Neo4j driver."""
@@ -66,33 +91,202 @@ class RAGService:
                 "graphrag_ready": False
             }
     
-    def search(self, query: str, top_k: int = 5) -> Dict[str, Any]:
+    def _embed_query(self, query: str) -> List[float]:
         """
-        Placeholder for RAG search functionality.
+        Convert a text query into a 768-dimensional embedding vector using Gemini.
         
         Args:
-            query: The search query
+            query: The text query to embed
+            
+        Returns:
+            List of 768 floats representing the embedding
+        """
+        try:
+            if not self.embed_model:
+                raise ValueError("Gemini embedding model not initialized")
+                
+            # Use Gemini to generate embeddings
+            result = genai.embed_content(
+                model='models/text-embedding-004',
+                content=query
+            )
+            
+            embedding = result['embedding']
+            logger.debug(f"Generated embedding of dimension: {len(embedding)}")
+            return embedding
+            
+        except Exception as e:
+            logger.error(f"Failed to embed query: {e}")
+            raise
+    
+    def _vector_search(self, embedding: List[float], database: str, top_k: int = 5) -> List[Dict[str, Any]]:
+        """
+        Perform vector similarity search in Neo4j using the embedding.
+        
+        Args:
+            embedding: The query embedding vector
+            database: The database name to search in
             top_k: Number of results to return
             
         Returns:
-            Search results dict
+            List of results with node data and similarity scores
         """
-        # For now, just test the connection and return a placeholder
-        connection_status = self.test_connection()
+        try:
+            driver = self._get_driver()
+            
+            # Cypher query for vector similarity search
+            query = """
+            CALL db.index.vector.queryNodes('meaningfulUnitEmbeddings', $top_k, $embedding) 
+            YIELD node, score 
+            RETURN node.text AS text, 
+                   node.speaker AS speaker, 
+                   node.episodeTitle AS episodeTitle,
+                   node.episodeId AS episodeId,
+                   node.timestamp AS timestamp,
+                   score
+            ORDER BY score DESC
+            """
+            
+            results = []
+            with driver.session(database=database) as session:
+                result = session.run(query, embedding=embedding, top_k=top_k)
+                
+                for record in result:
+                    results.append({
+                        "text": record["text"],
+                        "speaker": record.get("speaker", "Unknown"),
+                        "episodeTitle": record.get("episodeTitle", "Unknown Episode"),
+                        "episodeId": record.get("episodeId"),
+                        "timestamp": record.get("timestamp"),
+                        "score": record["score"]
+                    })
+            
+            logger.info(f"Vector search returned {len(results)} results")
+            return results
+            
+        except Exception as e:
+            logger.error(f"Vector search failed: {e}")
+            raise
+    
+    def _generate_response(self, query: str, context: List[Dict[str, Any]]) -> str:
+        """
+        Generate a response using Groq's Llama3 model based on the retrieved context.
         
-        if connection_status["status"] != "connected":
+        Args:
+            query: The user's query
+            context: List of relevant context from vector search
+            
+        Returns:
+            Generated response text
+        """
+        try:
+            if not self.groq_client:
+                raise ValueError("Groq client not initialized")
+            
+            # Build context string with citations
+            context_parts = []
+            for i, item in enumerate(context, 1):
+                episode_info = f"[{item['episodeTitle']}]" if item.get('episodeTitle') else "[Unknown Episode]"
+                speaker_info = f"{item.get('speaker', 'Unknown')}: " if item.get('speaker') else ""
+                context_parts.append(f"{i}. {episode_info} {speaker_info}{item['text']}")
+            
+            context_str = "\n\n".join(context_parts)
+            
+            # Create the prompt
+            system_prompt = """You are a helpful assistant answering questions about podcast content. 
+            Use the provided context to answer the user's question. When referencing information, 
+            cite the episode by including [Episode Title] in your response. If the context doesn't 
+            contain relevant information to answer the question, say so."""
+            
+            user_prompt = f"""Context from podcast episodes:
+{context_str}
+
+Question: {query}
+
+Please provide a comprehensive answer based on the context above, citing specific episodes when referencing information."""
+            
+            # Generate response using Groq
+            response = self.groq_client.chat.completions.create(
+                model="llama3-8b-8192",
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt}
+                ],
+                temperature=0.7,
+                max_tokens=1024
+            )
+            
+            generated_text = response.choices[0].message.content
+            logger.info("Successfully generated response")
+            return generated_text
+            
+        except Exception as e:
+            logger.error(f"Response generation failed: {e}")
+            raise
+    
+    def search(self, query: str, database_name: str = None, top_k: int = 5) -> Dict[str, Any]:
+        """
+        Perform RAG search: embed query, search vectors, generate response.
+        
+        Args:
+            query: The search query
+            database_name: The database to search in (defaults to self.neo4j_database)
+            top_k: Number of results to return
+            
+        Returns:
+            Search results dict with generated response
+        """
+        # Use provided database or default
+        database = database_name or self.neo4j_database
+        
+        try:
+            # Step 1: Embed the query
+            logger.info(f"Embedding query for database '{database}': {query}")
+            embedding = self._embed_query(query)
+            
+            # Step 2: Perform vector search
+            logger.info(f"Performing vector search in database '{database}'")
+            search_results = self._vector_search(embedding, database, top_k)
+            
+            # Step 3: Generate response if we have results
+            if search_results:
+                logger.info(f"Generating response based on {len(search_results)} results")
+                response = self._generate_response(query, search_results)
+                
+                return {
+                    "query": query,
+                    "database": database,
+                    "response": response,
+                    "sources": search_results,
+                    "status": "success"
+                }
+            else:
+                return {
+                    "query": query,
+                    "database": database,
+                    "response": "I couldn't find any relevant information in the podcast episodes to answer your question.",
+                    "sources": [],
+                    "status": "no_results"
+                }
+                
+        except ValueError as e:
+            # Handle missing API keys or initialization errors
+            logger.error(f"Configuration error: {e}")
             return {
-                "error": "Not connected to Neo4j",
-                "details": connection_status
+                "query": query,
+                "database": database,
+                "error": str(e),
+                "status": "configuration_error"
             }
-        
-        # Placeholder response
-        return {
-            "query": query,
-            "top_k": top_k,
-            "results": [],
-            "message": "GraphRAG search not yet implemented. Connection is ready."
-        }
+        except Exception as e:
+            # Handle other errors
+            logger.error(f"Search failed: {e}")
+            return {
+                "query": query,
+                "database": database,
+                "error": f"An error occurred during search: {str(e)}",
+                "status": "error"
+            }
     
     def close(self):
         """Close Neo4j driver connection."""

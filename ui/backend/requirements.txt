@@ -11,6 +11,7 @@ neo4j-graphrag==1.7.0  # Neo4j GraphRAG for RAG functionality
 
 # Configuration reading
 pyyaml==6.0.2  # For reading podcast configuration
+python-dotenv==1.0.1  # For loading environment variables
 
 # RAG dependencies
 google-generativeai==0.3.2  # For embeddings via Gemini (same version as seeding pipeline)
