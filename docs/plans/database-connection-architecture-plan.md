@@ -125,7 +125,7 @@ Based on your requirements, this plan will achieve: A simple connection caching 
 ## Phase 4: Update Tests and Validation
 
 ### Task 4.1: Test Mel Robbins podcast chat with new architecture
-- [ ] Task: Manually test the Mel Robbins podcast chat to ensure it connects to the correct database on port 7687 and successfully completes the full RAG pipeline with the new connection architecture. This test involves restarting the backend server to clear any cached connections, navigating to the dashboard, clicking the Mel Robbins podcast card, and sending a test query to verify that the connection is established to the correct database and responses are generated properly. The test confirms that the new podcast-specific connection system works correctly for the first podcast without any hardcoded defaults.
+- [x] Task: Manually test the Mel Robbins podcast chat to ensure it connects to the correct database on port 7687 and successfully completes the full RAG pipeline with the new connection architecture. This test involves restarting the backend server to clear any cached connections, navigating to the dashboard, clicking the Mel Robbins podcast card, and sending a test query to verify that the connection is established to the correct database and responses are generated properly. The test confirms that the new podcast-specific connection system works correctly for the first podcast without any hardcoded defaults.
 - Purpose: Verify the new connection architecture works for Mel Robbins podcast
 - Steps:
   1. Restart the backend server to ensure clean state: `ctrl+c` and restart
@@ -140,7 +140,7 @@ Based on your requirements, this plan will achieve: A simple connection caching 
 - Documentation: Use context7 MCP tool to review testing best practices
 
 ### Task 4.2: Test My First Million podcast with different port
-- [ ] Task: Test the My First Million podcast chat to verify it correctly connects to its configured database on port 7688, demonstrating that the system properly handles different database configurations per podcast. This test involves clicking the MFM podcast card and sending a query to ensure the connection is established to the different port specified in podcasts.yaml, with no fallback to the default port. The test is critical to confirm that the multi-database architecture is working correctly and each podcast maintains its own isolated connection to the appropriate database instance.
+- [x] Task: Test the My First Million podcast chat to verify it correctly connects to its configured database on port 7688, demonstrating that the system properly handles different database configurations per podcast. This test involves clicking the MFM podcast card and sending a query to ensure the connection is established to the different port specified in podcasts.yaml, with no fallback to the default port. The test is critical to confirm that the multi-database architecture is working correctly and each podcast maintains its own isolated connection to the appropriate database instance.
 - Purpose: Confirm the system correctly handles different database ports per podcast
 - Steps:
   1. Return to dashboard by clicking back button
@@ -155,7 +155,7 @@ Based on your requirements, this plan will achieve: A simple connection caching 
 - Documentation: Use context7 MCP tool to check multi-database testing strategies
 
 ### Task 4.3: Test connection caching behavior
-- [ ] Task: Verify that the connection caching mechanism is working correctly by sending multiple messages in the same podcast chat and checking that connections are reused rather than recreated. This test involves sending several messages in succession to the same podcast, monitoring the backend logs to ensure no new connection messages appear after the first message, and then switching between podcasts to confirm each maintains its own cached connection. The test validates that the simple caching mechanism improves efficiency by reusing connections while maintaining isolation between different podcasts.
+- [x] Task: Verify that the connection caching mechanism is working correctly by sending multiple messages in the same podcast chat and checking that connections are reused rather than recreated. This test involves sending several messages in succession to the same podcast, monitoring the backend logs to ensure no new connection messages appear after the first message, and then switching between podcasts to confirm each maintains its own cached connection. The test validates that the simple caching mechanism improves efficiency by reusing connections while maintaining isolation between different podcasts.
 - Purpose: Ensure connections are efficiently reused across multiple messages
 - Steps:
   1. In Mel Robbins chat, send first message: "Tell me about motivation"
@@ -170,7 +170,7 @@ Based on your requirements, this plan will achieve: A simple connection caching 
 - Documentation: Use context7 MCP tool to verify connection pooling patterns
 
 ### Task 4.4: Test error handling for unavailable database
-- [ ] Task: Test the error handling by attempting to connect to a podcast whose database is not running, ensuring the system provides clear, immediate feedback rather than timing out or crashing. This test involves temporarily stopping one of the Neo4j databases or configuring a podcast with an invalid port, then attempting to access that podcast's chat to verify that a clear error message is displayed immediately upon entering the chat. The test confirms that the validation added to the RAG service properly catches connection issues early and provides helpful error messages to users.
+- [x] Task: Test the error handling by attempting to connect to a podcast whose database is not running, ensuring the system provides clear, immediate feedback rather than timing out or crashing. This test involves temporarily stopping one of the Neo4j databases or configuring a podcast with an invalid port, then attempting to access that podcast's chat to verify that a clear error message is displayed immediately upon entering the chat. The test confirms that the validation added to the RAG service properly catches connection issues early and provides helpful error messages to users.
 - Purpose: Verify clear error messages when databases are unavailable
 - Steps:
   1. If possible, stop the MFM database on port 7688
