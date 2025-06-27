@@ -14,13 +14,13 @@ logger = logging.getLogger(__name__)
 class RAGService:
     """Minimal service for Neo4j GraphRAG functionality."""
     
-    def __init__(self):
-        """Initialize RAG service with Neo4j connection parameters from environment."""
-        # Get Neo4j connection details from environment
-        self.neo4j_uri = os.getenv("NEO4J_URI", "bolt://localhost:7687")
-        self.neo4j_username = os.getenv("NEO4J_USERNAME", "neo4j")
-        self.neo4j_password = os.getenv("NEO4J_PASSWORD", "password")
-        self.neo4j_database = os.getenv("NEO4J_DATABASE", "neo4j")
+    def __init__(self, uri: str, database_name: str, username: str = "neo4j", password: str = None):
+        """Initialize RAG service with Neo4j connection parameters."""
+        # Get Neo4j connection details from parameters
+        self.neo4j_uri = uri
+        self.neo4j_username = username
+        self.neo4j_password = password or os.getenv("NEO4J_PASSWORD", "password")
+        self.neo4j_database = database_name
         
         # Driver will be created on demand
         self._driver = None
@@ -50,6 +50,22 @@ class RAGService:
         else:
             logger.warning("GROQ_API_KEY not found in environment")
             self.groq_client = None
+        
+        # Validate connection on initialization
+        self.validate_connection()
+        
+    def validate_connection(self) -> None:
+        """Validate database connection immediately upon creation."""
+        try:
+            driver = self._get_driver()
+            # Test the connection with a simple query
+            with driver.session(database=self.neo4j_database) as session:
+                result = session.run("RETURN 1 as test")
+                record = result.single()
+                if not record:
+                    raise ConnectionError("Failed to execute test query")
+        except Exception as e:
+            raise ConnectionError(f"Cannot connect to database '{self.neo4j_database}' at {self.neo4j_uri}: {str(e)}")
         
     def _get_driver(self):
         """Get or create Neo4j driver."""
@@ -296,13 +312,17 @@ Please provide a comprehensive answer based on the context above, citing specifi
             logger.info("Neo4j driver closed")
 
 
-# Global instance (optional - can be created per request instead)
-_rag_service = None
+# Connection cache for podcast-specific RAG services
+_rag_service_cache = {}
 
 
-def get_rag_service() -> RAGService:
-    """Get or create the global RAG service instance."""
-    global _rag_service
-    if _rag_service is None:
-        _rag_service = RAGService()
-    return _rag_service
+def get_or_create_rag_service(podcast_id: str, uri: str, database_name: str, username: str = "neo4j") -> RAGService:
+    """Get or create a RAG service instance for a specific podcast."""
+    if podcast_id not in _rag_service_cache:
+        _rag_service_cache[podcast_id] = RAGService(uri=uri, database_name=database_name, username=username)
+    return _rag_service_cache[podcast_id]
+
+
+def get_rag_service():
+    """Deprecated - use get_or_create_rag_service with podcast-specific config."""
+    raise NotImplementedError("RAG service now requires podcast-specific configuration. Use the chat endpoint for podcast-specific queries.")
