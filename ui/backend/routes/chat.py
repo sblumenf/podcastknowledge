@@ -4,7 +4,7 @@ from typing import Dict, Any
 import yaml
 from pathlib import Path
 import logging
-from services.rag_service import get_rag_service
+from services.rag_service import get_or_create_rag_service
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -48,11 +48,18 @@ async def chat_with_podcast(podcast_id: str, request: ChatRequest) -> ChatRespon
             raise HTTPException(status_code=404, detail=f"Podcast '{podcast_id}' not found")
         
         # Get database connection details
-        db_name = podcast.get('database', {}).get('database_name', 'neo4j')
+        db_config = podcast.get('database', {})
+        db_uri = db_config.get('uri', 'bolt://localhost:7687')
+        db_username = db_config.get('username', 'neo4j')
+        db_name = db_config.get('database_name', 'neo4j')
         podcast_name = podcast.get('name', 'Unknown Podcast')
         
         # Get RAG service instance
-        rag_service = get_rag_service()
+        try:
+            rag_service = get_or_create_rag_service(podcast_id, db_uri, db_name, db_username)
+        except ConnectionError as e:
+            logger.error(f"Database connection failed for {podcast_name}: {e}")
+            raise HTTPException(status_code=503, detail=f"{podcast_name} database is currently unavailable. {str(e)}")
         
         try:
             # Perform RAG search with database name
@@ -61,15 +68,6 @@ async def chat_with_podcast(podcast_id: str, request: ChatRequest) -> ChatRespon
                 query=request.query,
                 database_name=db_name
             )
-            
-            # Check if we need to fallback to default database name
-            # This handles the case where MFM uses 'neo4j' instead of 'my_first_million'
-            if result.get("status") == "error" and "database does not exist" in result.get("error", "").lower():
-                logger.info(f"Database '{db_name}' not found, trying default 'neo4j'")
-                result = rag_service.search(
-                    query=request.query,
-                    database_name="neo4j"
-                )
             
             # Handle different response statuses
             if result.get("status") == "success":

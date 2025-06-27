@@ -80,7 +80,7 @@ Based on your requirements, this plan will achieve: A simple connection caching 
 ## Phase 3: Update Chat Endpoint to Use Podcast-Specific Connections
 
 ### Task 3.1: Modify chat endpoint to pass database configuration
-- [ ] Task: Update the chat endpoint to read full database configuration from podcasts.yaml and pass it to the RAG service cache function instead of using the global get_rag_service function. This modification involves extracting not just the database name but also the URI and username from the podcast configuration, then passing these values to get_or_create_rag_service to ensure each podcast gets its own properly configured connection. The endpoint will now be responsible for providing the complete database configuration from the single source of truth (podcasts.yaml) rather than relying on hardcoded environment variables.
+- [x] Task: Update the chat endpoint to read full database configuration from podcasts.yaml and pass it to the RAG service cache function instead of using the global get_rag_service function. This modification involves extracting not just the database name but also the URI and username from the podcast configuration, then passing these values to get_or_create_rag_service to ensure each podcast gets its own properly configured connection. The endpoint will now be responsible for providing the complete database configuration from the single source of truth (podcasts.yaml) rather than relying on hardcoded environment variables.
 - Purpose: Connect chat requests to the correct podcast-specific database
 - Steps:
   1. Open `/home/sergeblumenfeld/podcastknowledge/ui/backend/routes/chat.py`
@@ -95,7 +95,7 @@ Based on your requirements, this plan will achieve: A simple connection caching 
 - Documentation: Use context7 MCP tool to verify FastAPI dependency injection patterns
 
 ### Task 3.2: Add connection error handling to chat endpoint
-- [ ] Task: Implement proper error handling in the chat endpoint to catch connection errors from the RAG service validation and return user-friendly error messages. This implementation involves wrapping the RAG service creation in a try-except block that specifically catches ConnectionError exceptions and returns an appropriate HTTP 503 Service Unavailable status with a clear message explaining which podcast's database is unavailable. The error handling ensures users get immediate feedback when a podcast's database is offline rather than experiencing timeouts or cryptic error messages during chat.
+- [x] Task: Implement proper error handling in the chat endpoint to catch connection errors from the RAG service validation and return user-friendly error messages. This implementation involves wrapping the RAG service creation in a try-except block that specifically catches ConnectionError exceptions and returns an appropriate HTTP 503 Service Unavailable status with a clear message explaining which podcast's database is unavailable. The error handling ensures users get immediate feedback when a podcast's database is offline rather than experiencing timeouts or cryptic error messages during chat.
 - Purpose: Provide clear feedback when a podcast's database is unavailable
 - Steps:
   1. Wrap the `get_or_create_rag_service` call in a try-except block
@@ -110,7 +110,7 @@ Based on your requirements, this plan will achieve: A simple connection caching 
 - Documentation: Use context7 MCP tool to check FastAPI error handling best practices
 
 ### Task 3.3: Remove database fallback logic
-- [ ] Task: Remove the database name fallback logic from the chat endpoint since each podcast now connects to its specific configured database with the correct URI and port. This cleanup involves deleting the code that attempts to retry with the 'neo4j' database name when the configured database name fails, as this fallback mechanism is no longer needed and could actually cause incorrect behavior by connecting to the wrong database. The removal of this logic simplifies the code and ensures each podcast only connects to its designated database instance without any ambiguous fallback behavior.
+- [x] Task: Remove the database name fallback logic from the chat endpoint since each podcast now connects to its specific configured database with the correct URI and port. This cleanup involves deleting the code that attempts to retry with the 'neo4j' database name when the configured database name fails, as this fallback mechanism is no longer needed and could actually cause incorrect behavior by connecting to the wrong database. The removal of this logic simplifies the code and ensures each podcast only connects to its designated database instance without any ambiguous fallback behavior.
 - Purpose: Simplify code and ensure each podcast uses only its configured database
 - Steps:
   1. In the chat endpoint, locate the code block starting with: `if result.get("status") == "error" and "database does not exist"`
