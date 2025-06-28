@@ -112,5 +112,10 @@ data/transcripts/
 # Component tracking files (generated)
 seeding_pipeline/component_tracking/
 
-# Temporary reports
+# Temporary reports and documentation
 youtube_url_analysis_report.md
+ui/docs/
+ui/backend/*.md
+*_ANALYSIS.md
+*-report.md
+*-tracking.md
