@@ -6,8 +6,99 @@ from typing import Optional, Dict, Any, List
 from neo4j import GraphDatabase
 import google.generativeai as genai
 import numpy as np
+from neo4j_graphrag.llm.base import LLMInterface
+from neo4j_graphrag.llm.types import LLMResponse
+from neo4j_graphrag.embeddings.base import Embedder
+# Importing specific classes to avoid loading OpenAI dependencies
+from neo4j_graphrag.retrievers.vector import VectorRetriever
+from neo4j_graphrag.generation.graphrag import GraphRAG
 
 logger = logging.getLogger(__name__)
+
+# Import configuration
+from config import GEMINI_CONFIG
+
+
+# Custom Google Generative AI LLM implementation
+class GoogleGenerativeAILLM(LLMInterface):
+    """Custom LLM implementation for Google Generative AI."""
+    
+    def __init__(self, model_name: str = None, model_params: Optional[Dict[str, Any]] = None, api_key: str = None):
+        """Initialize Google Generative AI LLM."""
+        model_name = model_name or GEMINI_CONFIG["model_name"]
+        model_params = model_params or {
+            "temperature": GEMINI_CONFIG["temperature"],
+            "max_output_tokens": GEMINI_CONFIG["max_tokens"]
+        }
+        super().__init__(model_name, model_params)
+        
+        # Configure API key
+        if api_key:
+            genai.configure(api_key=api_key)
+        else:
+            genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+            
+        # Initialize the model
+        self.model = genai.GenerativeModel(model_name)
+        logger.info(f"Initialized GoogleGenerativeAILLM with model: {model_name}")
+    
+    def invoke(self, input: str, message_history=None, system_instruction=None) -> LLMResponse:
+        """Synchronous invocation of the LLM."""
+        try:
+            # Build the prompt with system instruction if provided
+            if system_instruction:
+                full_prompt = f"{system_instruction}\n\n{input}"
+            else:
+                full_prompt = input
+                
+            # Generate response
+            response = self.model.generate_content(full_prompt)
+            return LLMResponse(content=response.text)
+            
+        except Exception as e:
+            logger.error(f"Error invoking Google Generative AI: {e}")
+            raise
+    
+    async def ainvoke(self, input: str, message_history=None, system_instruction=None) -> LLMResponse:
+        """Asynchronous invocation - currently using sync implementation."""
+        # TODO: Implement proper async support
+        return self.invoke(input, message_history, system_instruction)
+
+
+# Custom Google Generative AI Embeddings implementation
+class GoogleGenerativeAIEmbeddings(Embedder):
+    """Custom embeddings implementation for Google Generative AI."""
+    
+    def __init__(self, model: str = "models/text-embedding-004", api_key: str = None):
+        """Initialize Google Generative AI Embeddings."""
+        self.model_name = model
+        
+        # Configure API key
+        if api_key:
+            genai.configure(api_key=api_key)
+        else:
+            genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+            
+        logger.info(f"Initialized GoogleGenerativeAIEmbeddings with model: {model}")
+    
+    def embed_query(self, text: str) -> List[float]:
+        """Generate embeddings for a single text query."""
+        try:
+            result = genai.embed_content(
+                model=self.model_name,
+                content=text
+            )
+            return result['embedding']
+        except Exception as e:
+            logger.error(f"Error generating embeddings: {e}")
+            raise
+    
+    def embed_documents(self, texts: List[str]) -> List[List[float]]:
+        """Generate embeddings for multiple texts."""
+        embeddings = []
+        for text in texts:
+            embeddings.append(self.embed_query(text))
+        return embeddings
 
 
 class RAGService:
@@ -27,13 +118,28 @@ class RAGService:
         # Initialize API keys
         self.gemini_api_key = os.getenv("GEMINI_API_KEY")
         
-        # Initialize Gemini for embeddings
+        # Initialize neo4j-graphrag components
+        self.embedder = None
+        self.llm = None
+        self.retriever = None
+        self.rag = None
+        
         if self.gemini_api_key:
-            genai.configure(api_key=self.gemini_api_key)
-            self.embed_model = genai.GenerativeModel('models/text-embedding-004')
+            # Initialize embeddings
+            self.embedder = GoogleGenerativeAIEmbeddings(
+                model="models/text-embedding-004",
+                api_key=self.gemini_api_key
+            )
+            
+            # Initialize LLM
+            self.llm = GoogleGenerativeAILLM(
+                api_key=self.gemini_api_key
+            )
+            
+            # Retriever and RAG will be initialized on demand with database
+            logger.info("Initialized Google Generative AI components")
         else:
             logger.warning("GEMINI_API_KEY not found in environment")
-            self.embed_model = None
         
         # Validate connection on initialization
         self.validate_connection()
@@ -63,6 +169,33 @@ class RAGService:
             )
             logger.info(f"Connected to Neo4j at {self.neo4j_uri}")
         return self._driver
+    
+    def _initialize_rag_components(self, database: str):
+        """Initialize or get RAG components for the specific database."""
+        # Only initialize if not already done or if database changed
+        if self.retriever is None or getattr(self.retriever, '_database', None) != database:
+            if not self.embedder or not self.llm:
+                raise ValueError("Embedder and LLM must be initialized first")
+                
+            driver = self._get_driver()
+            
+            # Initialize retriever with the meaningful unit embeddings index
+            self.retriever = VectorRetriever(
+                driver=driver,
+                index_name="meaningfulUnitEmbeddings",
+                embedder=self.embedder,
+                neo4j_database=database
+            )
+            # Store the database for reference
+            self.retriever._database = database
+            
+            # Initialize GraphRAG pipeline
+            self.rag = GraphRAG(
+                retriever=self.retriever,
+                llm=self.llm
+            )
+            
+            logger.info(f"Initialized RAG components for database: {database}")
     
     def test_connection(self) -> Dict[str, Any]:
         """Test Neo4j connection and return basic info."""
@@ -96,7 +229,7 @@ class RAGService:
     
     def search(self, query: str, database_name: str = None, top_k: int = 5) -> Dict[str, Any]:
         """
-        Perform RAG search: embed query, search vectors, generate response.
+        Perform RAG search using neo4j-graphrag.
         
         Args:
             query: The search query
@@ -110,34 +243,46 @@ class RAGService:
         database = database_name or self.neo4j_database
         
         try:
-            # Step 1: Embed the query
-            logger.info(f"Embedding query for database '{database}': {query}")
-            embedding = self._embed_query(query)
-            
-            # Step 2: Perform vector search
-            logger.info(f"Performing vector search in database '{database}'")
-            search_results = self._vector_search(embedding, database, top_k)
-            
-            # Step 3: Generate response if we have results
-            if search_results:
-                logger.info(f"Generating response based on {len(search_results)} results")
-                response = self._generate_response(query, search_results)
+            if not self.embedder or not self.llm:
+                raise ValueError("Gemini API key not configured")
                 
-                return {
-                    "query": query,
-                    "database": database,
-                    "response": response,
-                    "sources": search_results,
-                    "status": "success"
-                }
-            else:
-                return {
-                    "query": query,
-                    "database": database,
-                    "response": "I couldn't find any relevant information in the podcast episodes to answer your question.",
-                    "sources": [],
-                    "status": "no_results"
-                }
+            # Initialize RAG components for the specific database
+            self._initialize_rag_components(database)
+            
+            # Perform search using neo4j-graphrag
+            logger.info(f"Performing GraphRAG search for database '{database}': {query}")
+            
+            # Configure retriever to return context
+            retriever_config = {"top_k": top_k}
+            
+            # Use GraphRAG to search and generate response
+            result = self.rag.search(
+                query_text=query,
+                retriever_config=retriever_config,
+                return_context=True  # Get the source context
+            )
+            
+            # Extract sources from the context
+            sources = []
+            if hasattr(result, 'retriever_result') and result.retriever_result:
+                for item in result.retriever_result.items:
+                    # Extract relevant metadata from the retriever result
+                    source_data = {
+                        "text": item.content,
+                        "score": getattr(item, 'score', 0.0)
+                    }
+                    # Add any additional metadata
+                    if hasattr(item, 'metadata'):
+                        source_data.update(item.metadata)
+                    sources.append(source_data)
+            
+            return {
+                "query": query,
+                "database": database,
+                "response": result.answer,
+                "sources": sources,
+                "status": "success"
+            }
                 
         except ValueError as e:
             # Handle missing API keys or initialization errors
