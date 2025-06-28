@@ -19,6 +19,8 @@ const Admin: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>('');
   const [showMissingOnly, setShowMissingOnly] = useState(false);
+  const [editingTitle, setEditingTitle] = useState<string>('');
+  const [editingUrl, setEditingUrl] = useState<string>('');
 
   // Fetch podcasts on component mount
   useEffect(() => {
@@ -58,6 +60,49 @@ const Admin: React.FC = () => {
       console.error(err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleEdit = (title: string, currentUrl: string) => {
+    setEditingTitle(title);
+    setEditingUrl(currentUrl || '');
+  };
+
+  const handleCancel = () => {
+    setEditingTitle('');
+    setEditingUrl('');
+  };
+
+  const handleSave = async (title: string) => {
+    try {
+      const response = await fetch(
+        `http://localhost:8000/api/admin/podcasts/${selectedPodcast}/episodes/${encodeURIComponent(title)}`,
+        {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ youtube_url: editingUrl }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error('Failed to update YouTube URL');
+      }
+
+      // Update the local state
+      setEpisodes(episodes.map(episode => 
+        episode.title === title 
+          ? { ...episode, youtube_url: editingUrl }
+          : episode
+      ));
+
+      // Clear edit state
+      setEditingTitle('');
+      setEditingUrl('');
+    } catch (err) {
+      setError('Failed to update YouTube URL');
+      console.error(err);
     }
   };
 
@@ -139,6 +184,7 @@ const Admin: React.FC = () => {
                   <th style={{ padding: '10px', textAlign: 'left', border: '1px solid #444', color: 'rgba(255, 255, 255, 0.87)' }}>Title</th>
                   <th style={{ padding: '10px', textAlign: 'left', border: '1px solid #444', color: 'rgba(255, 255, 255, 0.87)' }}>Episode Date</th>
                   <th style={{ padding: '10px', textAlign: 'left', border: '1px solid #444', color: 'rgba(255, 255, 255, 0.87)' }}>YouTube URL</th>
+                  <th style={{ padding: '10px', textAlign: 'left', border: '1px solid #444', color: 'rgba(255, 255, 255, 0.87)' }}>Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -148,7 +194,71 @@ const Admin: React.FC = () => {
                     <tr key={index} style={{ backgroundColor: index % 2 === 0 ? '#1a1a1a' : '#242424' }}>
                       <td style={{ padding: '10px', border: '1px solid #444', color: 'rgba(255, 255, 255, 0.87)' }}>{episode.title}</td>
                       <td style={{ padding: '10px', border: '1px solid #444', color: 'rgba(255, 255, 255, 0.87)' }}>{episode.episode_date}</td>
-                      <td style={{ padding: '10px', border: '1px solid #444', color: 'rgba(255, 255, 255, 0.87)' }}>{episode.youtube_url || '(missing)'}</td>
+                      <td style={{ padding: '10px', border: '1px solid #444', color: 'rgba(255, 255, 255, 0.87)' }}>
+                        {editingTitle === episode.title ? (
+                          <input
+                            type="text"
+                            value={editingUrl}
+                            onChange={(e) => setEditingUrl(e.target.value)}
+                            style={{
+                              backgroundColor: '#333',
+                              color: 'rgba(255, 255, 255, 0.87)',
+                              border: '1px solid #555',
+                              padding: '4px',
+                              width: '100%'
+                            }}
+                          />
+                        ) : (
+                          episode.youtube_url || '(missing)'
+                        )}
+                      </td>
+                      <td style={{ padding: '10px', border: '1px solid #444', color: 'rgba(255, 255, 255, 0.87)' }}>
+                        {editingTitle === episode.title ? (
+                          <>
+                            <button
+                              onClick={() => handleSave(episode.title)}
+                              style={{
+                                backgroundColor: '#4CAF50',
+                                color: 'white',
+                                border: 'none',
+                                padding: '5px 10px',
+                                marginRight: '5px',
+                                cursor: 'pointer',
+                                borderRadius: '4px'
+                              }}
+                            >
+                              Save
+                            </button>
+                            <button
+                              onClick={handleCancel}
+                              style={{
+                                backgroundColor: '#f44336',
+                                color: 'white',
+                                border: 'none',
+                                padding: '5px 10px',
+                                cursor: 'pointer',
+                                borderRadius: '4px'
+                              }}
+                            >
+                              Cancel
+                            </button>
+                          </>
+                        ) : (
+                          <button
+                            onClick={() => handleEdit(episode.title, episode.youtube_url)}
+                            style={{
+                              backgroundColor: '#2196F3',
+                              color: 'white',
+                              border: 'none',
+                              padding: '5px 10px',
+                              cursor: 'pointer',
+                              borderRadius: '4px'
+                            }}
+                          >
+                            Edit
+                          </button>
+                        )}
+                      </td>
                     </tr>
                   ))}
               </tbody>

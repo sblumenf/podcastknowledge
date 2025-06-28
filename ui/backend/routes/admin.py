@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException
 from typing import List, Dict, Any
 from neo4j import GraphDatabase
+from pydantic import BaseModel
 import logging
 import yaml
 from pathlib import Path
@@ -8,6 +9,9 @@ import os
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/admin", tags=["admin"])
+
+class UpdateYouTubeURL(BaseModel):
+    youtube_url: str
 
 @router.get("/podcasts")
 async def get_podcasts() -> List[Dict[str, str]]:
@@ -87,3 +91,56 @@ async def get_youtube_urls(podcast_id: str) -> List[Dict[str, Any]]:
     except Exception as e:
         logger.error(f"Error getting YouTube URLs for podcast {podcast_id}: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Failed to get YouTube URLs: {str(e)}")
+
+@router.put("/podcasts/{podcast_id}/episodes/{episode_title}")
+async def update_episode_youtube_url(podcast_id: str, episode_title: str, data: UpdateYouTubeURL):
+    """Update YouTube URL for a specific episode"""
+    try:
+        # Load config to get database details
+        config_path = Path(__file__).parent.parent.parent.parent / "seeding_pipeline" / "config" / "podcasts.yaml"
+        
+        with open(config_path, 'r') as file:
+            config = yaml.safe_load(file)
+        
+        # Find the podcast
+        podcast = None
+        for p in config.get('podcasts', []):
+            if p.get('id') == podcast_id:
+                podcast = p
+                break
+        
+        if not podcast:
+            raise HTTPException(status_code=404, detail=f"Podcast '{podcast_id}' not found")
+        
+        # Get database connection details
+        db_config = podcast.get('database', {})
+        db_uri = db_config.get('uri', 'bolt://localhost:7687')
+        db_username = db_config.get('username', 'neo4j')
+        db_password = os.getenv('NEO4J_PASSWORD', 'password')
+        db_name = db_config.get('database_name', 'neo4j')
+        
+        # Connect to database
+        driver = GraphDatabase.driver(db_uri, auth=(db_username, db_password))
+        
+        with driver.session(database=db_name) as session:
+            # Update the episode's YouTube URL
+            query = """
+            MATCH (e:Episode {title: $title})
+            SET e.youtube_url = $youtube_url
+            RETURN e.title as title
+            """
+            
+            result = session.run(query, title=episode_title, youtube_url=data.youtube_url)
+            
+            # Check if episode was found and updated
+            record = result.single()
+            if not record:
+                raise HTTPException(status_code=404, detail=f"Episode '{episode_title}' not found")
+            
+            return {"message": "YouTube URL updated successfully", "title": record["title"]}
+            
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error updating YouTube URL for episode {episode_title}: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to update YouTube URL: {str(e)}")
