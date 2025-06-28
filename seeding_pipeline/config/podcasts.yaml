@@ -31,7 +31,7 @@ podcasts:
   database:
     uri: neo4j://localhost:7688
     neo4j_port: 7688
-    database_name: my_first_million
+    database_name: neo4j
   processing:
     batch_size: 10
     max_retries: 3
