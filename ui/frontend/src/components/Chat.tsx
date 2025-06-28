@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import ReactMarkdown from 'react-markdown';
 import styles from './Chat.module.css';
 
 interface ChatProps {
@@ -92,7 +93,7 @@ export function Chat({ podcast, onBack }: ChatProps) {
               className={`${styles.message} ${styles[message.role]}`}
             >
               <div className={styles.messageContent}>
-                {message.content}
+                <ReactMarkdown>{message.content}</ReactMarkdown>
               </div>
             </div>
           ))}

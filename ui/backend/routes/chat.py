@@ -64,9 +64,14 @@ async def chat_with_podcast(podcast_id: str, request: ChatRequest) -> ChatRespon
         try:
             # Perform RAG search with database name
             logger.info(f"Searching in database '{db_name}' for podcast '{podcast_name}'")
+        
+            # Get persona directive
+            persona_directive = podcast.get("persona", {}).get("prompt_directive", "You are a helpful AI assistant.")
+
             result = rag_service.search(
                 query=request.query,
-                database_name=db_name
+                database_name=db_name,
+                system_instruction=persona_directive
             )
             
             # Handle different response statuses

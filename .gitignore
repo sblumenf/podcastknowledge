@@ -101,3 +101,6 @@ dependency_analysis.json
 # Benchmarks and performance data
 benchmarks/neo4j_benchmark_*.json
 performance_*.json
+
+# Backups
+backups/

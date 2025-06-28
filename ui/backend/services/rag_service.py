@@ -227,7 +227,7 @@ class RAGService:
     
     
     
-    def search(self, query: str, database_name: str = None, top_k: int = 5) -> Dict[str, Any]:
+    def search(self, query: str, database_name: str = None, top_k: int = 5, system_instruction: str = None) -> Dict[str, Any]:
         """
         Perform RAG search using neo4j-graphrag.
         
@@ -259,7 +259,8 @@ class RAGService:
             result = self.rag.search(
                 query_text=query,
                 retriever_config=retriever_config,
-                return_context=True  # Get the source context
+                return_context=True,  # Get the source context
+                system_instruction=system_instruction
             )
             
             # Extract sources from the context

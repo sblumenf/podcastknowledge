@@ -7,8 +7,8 @@ import os
 # Connect to Mel Robbins database
 uri = "bolt://localhost:7687"
 username = "neo4j"
-password = os.environ.get("NEO4J_PASSWORD", "password")
-database = "mel_robbins_podcast"
+password = os.environ.get("NEO4J_PASSWORD", "changeme")
+database = "neo4j"
 
 driver = GraphDatabase.driver(uri, auth=(username, password))
 
@@ -34,11 +34,24 @@ try:
             print(f"\nTotal nodes: {total_nodes}")
             
             # Get some sample episodes if they exist
-            episodes = session.run("MATCH (e:Episode) RETURN e.title as title LIMIT 5").data()
+            episodes = session.run("MATCH (e:Episode) RETURN e.title as title, e.youtube_url as youtube_url LIMIT 5").data()
             if episodes:
                 print("\nSample episodes:")
                 for ep in episodes:
-                    print(f"  - {ep['title']}")
+                    youtube_status = " (No YouTube URL)" if not ep.get('youtube_url') else ""
+                    print(f"  - {ep['title']}{youtube_status}")
+
+            # Check for episodes missing youtube_url
+            missing_youtube_episodes_count = session.run("MATCH (e:Episode) WHERE NOT EXISTS(e.youtube_url) RETURN count(e) as count").single()["count"]
+            if missing_youtube_episodes_count > 0:
+                print(f"\nWARNING: {missing_youtube_episodes_count} episodes are missing a YouTube URL.")
+                sample_missing = session.run("MATCH (e:Episode) WHERE NOT EXISTS(e.youtube_url) RETURN e.title as title LIMIT 3").data()
+                if sample_missing:
+                    print("Sample episodes missing YouTube URL:")
+                    for ep in sample_missing:
+                        print(f"  - {ep['title']}")
+            else:
+                print("\nAll episodes have a YouTube URL.")
                     
 except Exception as e:
     print(f"Error connecting to database: {e}")

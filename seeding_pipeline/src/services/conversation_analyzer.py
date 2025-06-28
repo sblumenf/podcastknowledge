@@ -455,12 +455,54 @@ IMPORTANT: Keep all text descriptions concise and focused. Avoid lengthy explana
                 elif isinstance(structure_dict['insights']['fragmentation_issues'], str):
                     # Convert string to list
                     structure_dict['insights']['fragmentation_issues'] = [structure_dict['insights']['fragmentation_issues']]
+                elif isinstance(structure_dict['insights']['fragmentation_issues'], list):
+                    # Convert any dict items to strings
+                    fixed_issues = []
+                    for issue in structure_dict['insights']['fragmentation_issues']:
+                        if isinstance(issue, dict):
+                            # Convert dict to string format
+                            if 'type' in issue and 'description' in issue:
+                                fixed_issues.append(f"{issue['type']}: {issue['description']}")
+                            elif 'type' in issue:
+                                fixed_issues.append(issue['type'])
+                            elif 'description' in issue:
+                                fixed_issues.append(issue['description'])
+                            else:
+                                # Fallback: convert dict to string representation
+                                fixed_issues.append(str(issue))
+                        elif isinstance(issue, str):
+                            fixed_issues.append(issue)
+                        else:
+                            # Convert any other type to string
+                            fixed_issues.append(str(issue))
+                    structure_dict['insights']['fragmentation_issues'] = fixed_issues
                 
                 if 'missing_context' not in structure_dict['insights']:
                     structure_dict['insights']['missing_context'] = []
                 elif isinstance(structure_dict['insights']['missing_context'], str):
                     # Convert string to list
                     structure_dict['insights']['missing_context'] = [structure_dict['insights']['missing_context']]
+                elif isinstance(structure_dict['insights']['missing_context'], list):
+                    # Convert any dict items to strings
+                    fixed_context = []
+                    for context in structure_dict['insights']['missing_context']:
+                        if isinstance(context, dict):
+                            # Convert dict to string format
+                            if 'type' in context and 'description' in context:
+                                fixed_context.append(f"{context['type']}: {context['description']}")
+                            elif 'description' in context:
+                                fixed_context.append(context['description'])
+                            elif 'context' in context:
+                                fixed_context.append(context['context'])
+                            else:
+                                # Fallback: convert dict to string representation
+                                fixed_context.append(str(context))
+                        elif isinstance(context, str):
+                            fixed_context.append(context)
+                        else:
+                            # Convert any other type to string
+                            fixed_context.append(str(context))
+                    structure_dict['insights']['missing_context'] = fixed_context
                 
                 if 'natural_boundaries' not in structure_dict['insights']:
                     structure_dict['insights']['natural_boundaries'] = []

@@ -87,7 +87,7 @@ async def process_vtt_file(
     if not neo4j_uri:
         try:
             import yaml
-            with open('config/podcasts.yaml', 'r') as f:
+            with open(Path(__file__).parent / 'config/podcasts.yaml', 'r') as f:
                 podcasts_config = yaml.safe_load(f)
             
             # Find podcast by name - try RSS title first, then display name
@@ -378,6 +378,9 @@ Environment Variables:
     if args.timeout:
         os.environ['PIPELINE_TIMEOUT'] = str(args.timeout)
         logger.info(f"Set pipeline timeout to {args.timeout} seconds")
+
+    from src.persona_creation import ensure_persona_exists
+    ensure_persona_exists(args.podcast)
     
     # Handle checkpoint management commands
     if args.list_checkpoints or args.clear_checkpoint:
