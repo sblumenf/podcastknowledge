@@ -1,11 +1,19 @@
 """Configuration reader for accessing podcast information from seeding pipeline."""
 
+import os
 import yaml
 from pathlib import Path
 from typing import List, Dict, Any, Optional
 import logging
 
 logger = logging.getLogger(__name__)
+
+# Gemini LLM Configuration
+GEMINI_CONFIG = {
+    "model_name": os.getenv("GEMINI_MODEL", "gemini-2.5-pro"),
+    "temperature": 0.7,
+    "max_tokens": 1024
+}
 
 
 def read_podcast_config() -> List[Dict[str, Any]]:

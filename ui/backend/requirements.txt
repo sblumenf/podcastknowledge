@@ -14,5 +14,5 @@ pyyaml==6.0.2  # For reading podcast configuration
 python-dotenv==1.0.1  # For loading environment variables
 
 # RAG dependencies
-google-generativeai==0.3.2  # For embeddings via Gemini (same version as seeding pipeline)
-groq==0.11.0  # For Groq LLM responses
+google-generativeai==0.8.3  # For embeddings and LLM via Gemini
+numpy==1.26.4  # For vector operations in RAG service

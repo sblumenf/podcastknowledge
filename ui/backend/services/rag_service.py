@@ -154,10 +154,11 @@ class RAGService:
             query = """
             CALL db.index.vector.queryNodes('meaningfulUnitEmbeddings', $top_k, $embedding) 
             YIELD node, score 
+            MATCH (node)-[:PART_OF]->(episode:Episode)
             RETURN node.text AS text, 
                    node.speaker AS speaker, 
-                   node.episodeTitle AS episodeTitle,
-                   node.episodeId AS episodeId,
+                   episode.title AS episodeTitle,
+                   episode.id AS episodeId,
                    node.timestamp AS timestamp,
                    score
             ORDER BY score DESC
