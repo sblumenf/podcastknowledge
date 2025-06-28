@@ -104,3 +104,13 @@ performance_*.json
 
 # Backups
 backups/
+
+# Data files (should be stored externally)
+data/transcripts/
+*.vtt
+
+# Component tracking files (generated)
+seeding_pipeline/component_tracking/
+
+# Temporary reports
+youtube_url_analysis_report.md
