@@ -3,6 +3,7 @@ import { useRef, useState, useEffect } from 'react'
 import { PanelDivider } from './PanelDivider'
 import { ChatPanel } from './ChatPanel'
 import { EpisodePanel } from './EpisodePanel'
+import { GraphPanel } from './GraphPanel'
 import styles from './ThreePanelLayout.module.css'
 
 export function ThreePanelLayout() {
@@ -119,7 +120,7 @@ export function ThreePanelLayout() {
             <h2>Knowledge Graph</h2>
           </div>
           <div className={styles.panelContent}>
-            <p>Graph placeholder - Phase 6 implementation pending</p>
+            <GraphPanel />
           </div>
         </section>
         
