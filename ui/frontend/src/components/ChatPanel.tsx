@@ -45,7 +45,7 @@ export function ChatPanel({ podcastId }: ChatPanelProps) {
     setIsLoading(true)
     
     try {
-      const response = await fetch(`http://localhost:8000/api/chat/${podcastId}`, {
+      const response = await fetch(`http://localhost:8001/api/chat/${podcastId}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -54,7 +54,13 @@ export function ChatPanel({ podcastId }: ChatPanelProps) {
       })
       
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
+        if (response.status === 503) {
+          throw new Error('The chat service is temporarily unavailable. Please try again in a moment.')
+        } else if (response.status === 404) {
+          throw new Error('This podcast is not available for chat. Please try another podcast.')
+        } else {
+          throw new Error(`Unable to send message (${response.status})`)
+        }
       }
       
       const data = await response.json()
@@ -69,7 +75,7 @@ export function ChatPanel({ podcastId }: ChatPanelProps) {
     } catch (error) {
       const errorMessage: ChatMessage = {
         role: 'assistant',
-        content: 'Sorry, there was an error processing your request. Please try again.',
+        content: error instanceof Error ? error.message : 'Sorry, there was an error processing your request. Please try again.',
         timestamp: new Date().toISOString()
       }
       setMessages(prev => [...prev, errorMessage].slice(-MAX_MESSAGES))

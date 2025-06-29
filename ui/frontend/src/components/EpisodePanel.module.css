@@ -45,6 +45,19 @@
   font-style: italic;
 }
 
+.loading {
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
 .error {
   color: #d32f2f;
 }

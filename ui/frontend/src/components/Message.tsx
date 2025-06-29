@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import ReactMarkdown from 'react-markdown'
 import type { ChatMessage } from '../types'
 import styles from './Message.module.css'
@@ -6,7 +7,7 @@ interface MessageProps {
   message: ChatMessage
 }
 
-export function Message({ message }: MessageProps) {
+export const Message = memo(function Message({ message }: MessageProps) {
   const formatTimestamp = (timestamp?: string) => {
     if (!timestamp) return ''
     const date = new Date(timestamp)
@@ -60,4 +61,4 @@ export function Message({ message }: MessageProps) {
       </div>
     </div>
   )
-}
+})

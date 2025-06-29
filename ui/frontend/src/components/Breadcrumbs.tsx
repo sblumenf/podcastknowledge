@@ -14,7 +14,7 @@ export function Breadcrumbs({ podcastId }: BreadcrumbsProps) {
     // Fetch podcast info to get the name
     const fetchPodcastInfo = async () => {
       try {
-        const response = await fetch('http://localhost:8000/api/podcasts')
+        const response = await fetch('http://localhost:8001/api/podcasts')
         if (response.ok) {
           const podcasts: Podcast[] = await response.json()
           const currentPodcast = podcasts.find(p => p.id === podcastId)

@@ -29,7 +29,7 @@ const Admin: React.FC = () => {
 
   const fetchPodcasts = async () => {
     try {
-      const response = await fetch('http://localhost:8000/api/admin/podcasts');
+      const response = await fetch('http://localhost:8001/api/admin/podcasts');
       if (!response.ok) throw new Error('Failed to fetch podcasts');
       const data = await response.json();
       setPodcasts(data);
@@ -51,7 +51,7 @@ const Admin: React.FC = () => {
     setError('');
     
     try {
-      const response = await fetch(`http://localhost:8000/api/admin/podcasts/${selectedPodcast}/youtube-urls`);
+      const response = await fetch(`http://localhost:8001/api/admin/podcasts/${selectedPodcast}/youtube-urls`);
       if (!response.ok) throw new Error('Failed to fetch YouTube URLs');
       const data = await response.json();
       setEpisodes(data);
@@ -76,7 +76,7 @@ const Admin: React.FC = () => {
   const handleSave = async (title: string) => {
     try {
       const response = await fetch(
-        `http://localhost:8000/api/admin/podcasts/${selectedPodcast}/episodes/${encodeURIComponent(title)}`,
+        `http://localhost:8001/api/admin/podcasts/${selectedPodcast}/episodes/${encodeURIComponent(title)}`,
         {
           method: 'PUT',
           headers: {

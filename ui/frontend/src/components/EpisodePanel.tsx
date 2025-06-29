@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import type { Episode } from '../types'
+import { ErrorDisplay } from './ErrorDisplay'
 import styles from './EpisodePanel.module.css'
 
 interface EpisodePanelProps {
@@ -21,42 +22,57 @@ export function EpisodePanel({ podcastId }: EpisodePanelProps) {
   const scrollRef = useRef<HTMLDivElement>(null)
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   
+  const fetchEpisodes = useCallback(async () => {
+    setLoading(true)
+    setError(null)
+    
+    try {
+      const response = await fetch(`http://localhost:8001/api/podcasts/${podcastId}/episodes`)
+      
+      if (!response.ok) {
+        throw new Error(`Unable to load episodes (${response.status})`)
+      }
+      
+      const data = await response.json()
+      setEpisodes(data)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load episodes')
+    } finally {
+      setLoading(false)
+    }
+  }, [podcastId])
+
   // Fetch episodes when podcast changes
   useEffect(() => {
     // Clear search when switching podcasts
     setSearchTerm('')
     setDebouncedSearchTerm('')
     
-    const fetchEpisodes = async () => {
-      setLoading(true)
-      setError(null)
-      
-      try {
-        const response = await fetch(`http://localhost:8000/api/podcasts/${podcastId}/episodes`)
-        
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`)
-        }
-        
-        const data = await response.json()
-        setEpisodes(data)
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load episodes')
-      } finally {
-        setLoading(false)
-      }
-    }
-    
     fetchEpisodes()
-  }, [podcastId])
+  }, [fetchEpisodes])
   
-  // Handle scroll for virtual scrolling
+  // Handle scroll for virtual scrolling with throttling
+  const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const handleScroll = useCallback(() => {
-    if (scrollRef.current) {
-      setScrollTop(scrollRef.current.scrollTop)
-    }
+    if (scrollTimeoutRef.current) return
+    
+    scrollTimeoutRef.current = setTimeout(() => {
+      if (scrollRef.current) {
+        setScrollTop(scrollRef.current.scrollTop)
+      }
+      scrollTimeoutRef.current = null
+    }, 16) // ~60fps throttle
   }, [])
   
+  // Cleanup scroll throttle on unmount
+  useEffect(() => {
+    return () => {
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current)
+      }
+    }
+  }, [])
+
   // Debounce search input
   useEffect(() => {
     if (searchTimeoutRef.current) {
@@ -86,12 +102,15 @@ export function EpisodePanel({ podcastId }: EpisodePanelProps) {
       )
     : episodes
   
-  // Calculate visible items for virtual scrolling
+  /**
+   * Virtual scrolling calculations
+   * Only renders visible items plus a buffer for smooth scrolling
+   */
   const containerHeight = containerRef.current?.clientHeight || 600
   const startIndex = Math.floor(scrollTop / ITEM_HEIGHT)
   const endIndex = Math.ceil((scrollTop + containerHeight) / ITEM_HEIGHT)
   
-  // Add buffer for smooth scrolling
+  // Add buffer items above and below visible area for smooth scrolling
   const visibleStartIndex = Math.max(0, startIndex - BUFFER_ITEMS)
   const visibleEndIndex = Math.min(filteredEpisodes.length, endIndex + BUFFER_ITEMS)
   const visibleEpisodes = filteredEpisodes.slice(visibleStartIndex, visibleEndIndex)
@@ -110,7 +129,10 @@ export function EpisodePanel({ podcastId }: EpisodePanelProps) {
   if (error) {
     return (
       <div className={styles.container}>
-        <div className={styles.error}>Error: {error}</div>
+        <ErrorDisplay 
+          error={error}
+          onRetry={fetchEpisodes}
+        />
       </div>
     )
   }

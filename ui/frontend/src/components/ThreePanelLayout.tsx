@@ -50,6 +50,10 @@ export function ThreePanelLayout() {
     localStorage.setItem('panelState', JSON.stringify(state))
   }, [leftWidth, rightWidth, leftCollapsed, rightCollapsed])
   
+  /**
+   * Handles resizing of the left panel
+   * @param delta - Mouse movement delta in pixels
+   */
   const handleLeftResize = (delta: number) => {
     const container = containerRef.current
     if (!container) return
@@ -64,6 +68,10 @@ export function ThreePanelLayout() {
     // Adjust middle panel size (right panel stays the same)
   }
   
+  /**
+   * Handles resizing of the right panel
+   * @param delta - Mouse movement delta in pixels (negative when dragging left)
+   */
   const handleRightResize = (delta: number) => {
     const container = containerRef.current
     if (!container) return

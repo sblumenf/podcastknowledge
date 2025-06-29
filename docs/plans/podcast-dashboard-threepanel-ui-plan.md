@@ -15,7 +15,7 @@ This plan delivers a desktop web application for podcast knowledge discovery. Us
 ## Phase 1: Project Setup and Structure (Day 1)
 
 ### Task 1.1: Clean and Prepare UI Directory
-- [ ] **Task**: Remove experimental UI code while explicitly preserving the admin functionality and technology stack configuration. This involves identifying and keeping all admin-related components and routes while removing only the experimental dashboard and chat components. The cleanup ensures a fresh start for the new UI while maintaining both the admin interface and the established build pipeline.
+- [x] **Task**: Remove experimental UI code while explicitly preserving the admin functionality and technology stack configuration. This involves identifying and keeping all admin-related components and routes while removing only the experimental dashboard and chat components. The cleanup ensures a fresh start for the new UI while maintaining both the admin interface and the established build pipeline.
 - **Purpose**: Create a clean slate for new UI while preserving admin functionality and configuration
 - **Steps**:
   1. Navigate to `ui/frontend/src/components` and identify admin-related components
@@ -29,7 +29,7 @@ This plan delivers a desktop web application for podcast knowledge discovery. Us
 - **REMINDER**: Review plan goals - KISS principle, preserve admin, use existing stack only
 
 ### Task 1.2: Setup React Router
-- [ ] **Task**: Configure React Router for traditional navigation between dashboard and podcast views to prevent memory issues from loading all podcasts at once. This setup enables proper URL-based routing where each podcast loads in isolation, preventing the performance problems that would occur with SPA state management. React Router is already in the package.json so no new technology is introduced.
+- [x] **Task**: Configure React Router for traditional navigation between dashboard and podcast views to prevent memory issues from loading all podcasts at once. This setup enables proper URL-based routing where each podcast loads in isolation, preventing the performance problems that would occur with SPA state management. React Router is already in the package.json so no new technology is introduced.
 - **Purpose**: Enable traditional navigation to prevent memory overload from multiple visualizations
 - **Steps**:
   1. Create `ui/frontend/src/App.tsx` with React Router setup
@@ -43,7 +43,7 @@ This plan delivers a desktop web application for podcast knowledge discovery. Us
 - **REMINDER**: Review plan goals - prevent performance issues, KISS principle, use existing dependencies
 
 ### Task 1.3: Define TypeScript Interfaces
-- [ ] **Task**: Create simple TypeScript interfaces in a flat structure for all data types including Podcast, Episode, ChatMessage, and PanelState. The interfaces must exactly match the existing backend response formats without adding extra properties. Keep all interfaces in the existing types folder without creating subdirectories to maintain KISS principles.
+- [x] **Task**: Create simple TypeScript interfaces in a flat structure for all data types including Podcast, Episode, ChatMessage, and PanelState. The interfaces must exactly match the existing backend response formats without adding extra properties. Keep all interfaces in the existing types folder without creating subdirectories to maintain KISS principles.
 - **Purpose**: Establish type safety matching existing backend data structures
 - **Steps**:
   1. Create `ui/frontend/src/types.ts` file (single file for simplicity)
@@ -59,7 +59,7 @@ This plan delivers a desktop web application for podcast knowledge discovery. Us
 ## Phase 2: Dashboard Implementation (Day 2)
 
 ### Task 2.1: Create Dashboard Layout Component
-- [ ] **Task**: Build the main dashboard component that displays all podcasts in a responsive card grid layout. This component will fetch podcast data from the existing `/api/podcasts` endpoint which reads from `seeding_pipeline/config/podcasts.yaml` as the source of truth. The layout must use CSS Grid for simplicity and performance, keeping all components in the flat components directory.
+- [x] **Task**: Build the main dashboard component that displays all podcasts in a responsive card grid layout. This component will fetch podcast data from the existing `/api/podcasts` endpoint which reads from `seeding_pipeline/config/podcasts.yaml` as the source of truth. The layout must use CSS Grid for simplicity and performance, keeping all components in the flat components directory.
 - **Purpose**: Provide the entry point showing all available podcasts from the YAML configuration
 - **Steps**:
   1. Create `ui/frontend/src/components/Dashboard.tsx` (flat structure, no subdirectory)
@@ -74,7 +74,7 @@ This plan delivers a desktop web application for podcast knowledge discovery. Us
 - **REMINDER**: Review plan goals - KISS principle, flat directory structure, use existing API
 
 ### Task 2.2: Create Podcast Card Component
-- [ ] **Task**: Design and implement individual podcast card components that display podcast metadata and handle click navigation using React Router. Each card shows the podcast title and minimal metadata from the API response. Cards must use React Router's Link component to navigate to `/podcast/:id` route for proper memory management and URL-based navigation.
+- [x] **Task**: Design and implement individual podcast card components that display podcast metadata and handle click navigation using React Router. Each card shows the podcast title and minimal metadata from the API response. Cards must use React Router's Link component to navigate to `/podcast/:id` route for proper memory management and URL-based navigation.
 - **Purpose**: Display individual podcasts as clickable elements with proper routing
 - **Steps**:
   1. Create `ui/frontend/src/components/PodcastCard.tsx` (flat structure)
@@ -88,7 +88,7 @@ This plan delivers a desktop web application for podcast knowledge discovery. Us
 - **REMINDER**: Review plan goals - simple cards, React Router navigation, no complex features
 
 ### Task 2.3: Remove Task - Navigation Handled by React Router
-- [ ] **Task**: This task is no longer needed as navigation is handled by React Router configuration from Task 1.2. The traditional routing approach eliminates the need for state-based navigation logic. Navigation happens automatically through React Router Links in the PodcastCard component, preventing memory issues from loading multiple podcast visualizations.
+- [x] **Task**: This task is no longer needed as navigation is handled by React Router configuration from Task 1.2. The traditional routing approach eliminates the need for state-based navigation logic. Navigation happens automatically through React Router Links in the PodcastCard component, preventing memory issues from loading multiple podcast visualizations.
 - **Purpose**: Document that navigation is already handled by React Router
 - **Steps**:
   1. Verify React Router setup from Task 1.2 is complete
@@ -102,7 +102,7 @@ This plan delivers a desktop web application for podcast knowledge discovery. Us
 ## Phase 3: Three-Panel Layout Implementation (Day 3)
 
 ### Task 3.1: Create Three-Panel Container Component
-- [ ] **Task**: Build the main three-panel layout container that houses chat (left), graph placeholder (middle), and episode list (right) panels. This component receives the podcast ID from React Router params and manages the overall layout using CSS Grid. The layout must be kept simple with minimal state to support future heavy graph visualizations without performance issues.
+- [x] **Task**: Build the main three-panel layout container that houses chat (left), graph placeholder (middle), and episode list (right) panels. This component receives the podcast ID from React Router params and manages the overall layout using CSS Grid. The layout must be kept simple with minimal state to support future heavy graph visualizations without performance issues.
 - **Purpose**: Establish the three-panel structure with proper layout management
 - **Steps**:
   1. Create `ui/frontend/src/components/ThreePanelLayout.tsx` (flat structure)
@@ -117,7 +117,7 @@ This plan delivers a desktop web application for podcast knowledge discovery. Us
 - **REMINDER**: Review plan goals - simple grid layout, chat on left, prepare for graph performance
 
 ### Task 3.2: Implement Panel Resize Functionality
-- [ ] **Task**: Add draggable dividers between panels that allow users to resize panel widths by dragging. This feature uses mouse events to track drag operations and updates CSS Grid column sizes dynamically. Keep the implementation simple without external libraries to maintain performance for future graph visualizations.
+- [x] **Task**: Add draggable dividers between panels that allow users to resize panel widths by dragging. This feature uses mouse events to track drag operations and updates CSS Grid column sizes dynamically. Keep the implementation simple without external libraries to maintain performance for future graph visualizations.
 - **Purpose**: Allow users to adjust panel sizes for their workflow
 - **Steps**:
   1. Create `ui/frontend/src/components/PanelDivider.tsx` (flat structure)
@@ -132,7 +132,7 @@ This plan delivers a desktop web application for podcast knowledge discovery. Us
 - **REMINDER**: Review plan goals - KISS principle, no resize libraries, maintain performance
 
 ### Task 3.3: Add Panel Collapse/Expand Controls
-- [ ] **Task**: Implement collapse and expand functionality for the chat and episode panels, allowing users to maximize the graph area. Each collapsible panel needs a toggle button that animates the panel to a minimal width. The graph panel remains always visible as it will be the primary focus for heavy visualizations.
+- [x] **Task**: Implement collapse and expand functionality for the chat and episode panels, allowing users to maximize the graph area. Each collapsible panel needs a toggle button that animates the panel to a minimal width. The graph panel remains always visible as it will be the primary focus for heavy visualizations.
 - **Purpose**: Maximize space for future graph visualization
 - **Steps**:
   1. Add collapse state to ThreePanelLayout using useState
@@ -149,7 +149,7 @@ This plan delivers a desktop web application for podcast knowledge discovery. Us
 ## Phase 4: Chat Panel Implementation (Day 4)
 
 ### Task 4.0: Analyze Existing Chat Implementation
-- [ ] **Task**: Study the existing chat functionality to understand how persona integration and markdown rendering currently work in the experimental code. This analysis ensures the new implementation maintains compatibility with the neo4j-graphrag backend that includes persona-based system instructions. Understanding the current implementation prevents breaking existing functionality.
+- [x] **Task**: Study the existing chat functionality to understand how persona integration and markdown rendering currently work in the experimental code. This analysis ensures the new implementation maintains compatibility with the neo4j-graphrag backend that includes persona-based system instructions. Understanding the current implementation prevents breaking existing functionality.
 - **Purpose**: Understand existing chat patterns before implementing new UI
 - **Steps**:
   1. Examine existing chat components for persona handling
@@ -163,7 +163,7 @@ This plan delivers a desktop web application for podcast knowledge discovery. Us
 - **REMINDER**: Review plan goals - maintain existing neo4j-graphrag integration, understand before building
 
 ### Task 4.1: Create Chat Panel Layout
-- [ ] **Task**: Build the chat panel component that interfaces with the existing neo4j-graphrag powered backend chat endpoint. This panel displays chat history with persona-based responses and provides an input field for user queries. The component must properly display markdown-formatted messages from the neo4j-graphrag backend.
+- [x] **Task**: Build the chat panel component that interfaces with the existing neo4j-graphrag powered backend chat endpoint. This panel displays chat history with persona-based responses and provides an input field for user queries. The component must properly display markdown-formatted messages from the neo4j-graphrag backend.
 - **Purpose**: Provide interface for neo4j-graphrag powered chat functionality with persona
 - **Steps**:
   1. Create `ui/frontend/src/components/ChatPanel.tsx` (flat structure)
@@ -179,7 +179,7 @@ This plan delivers a desktop web application for podcast knowledge discovery. Us
 - **REMINDER**: Review plan goals - use existing neo4j-graphrag API, maintain persona functionality
 
 ### Task 4.2: Implement Chat Message Components
-- [ ] **Task**: Create reusable message components that display user queries and AI responses with appropriate styling and markdown formatting. Messages must properly render markdown responses from the neo4j-graphrag backend using the existing react-markdown library. The implementation must match how the current experimental chat handles markdown to ensure consistency.
+- [x] **Task**: Create reusable message components that display user queries and AI responses with appropriate styling and markdown formatting. Messages must properly render markdown responses from the neo4j-graphrag backend using the existing react-markdown library. The implementation must match how the current experimental chat handles markdown to ensure consistency.
 - **Purpose**: Display chat messages with proper markdown formatting
 - **Steps**:
   1. Create `ui/frontend/src/components/Message.tsx` (flat structure)
@@ -195,7 +195,7 @@ This plan delivers a desktop web application for podcast knowledge discovery. Us
 - **REMINDER**: Review plan goals - use existing react-markdown, match current markdown handling
 
 ### Task 4.3: Add Chat State Management
-- [ ] **Task**: Implement local state management for chat history that persists messages for the current session and handles message sending flow. This includes managing loading states, error handling, and proper message ordering. The state must integrate cleanly with the existing chat API structure.
+- [x] **Task**: Implement local state management for chat history that persists messages for the current session and handles message sending flow. This includes managing loading states, error handling, and proper message ordering. The state must integrate cleanly with the existing chat API structure.
 - **Purpose**: Manage chat conversation state and API interactions
 - **Steps**:
   1. Add chat state using useState in ChatPanel
@@ -212,7 +212,7 @@ This plan delivers a desktop web application for podcast knowledge discovery. Us
 ## Phase 5: Episode List Panel Implementation (Day 5)
 
 ### Task 5.0: Create Episodes API Endpoint
-- [ ] **Task**: Create a new API endpoint `/api/podcasts/{podcast_id}/episodes` that queries the podcast's Neo4j database to retrieve all episodes. The Neo4j database for each podcast is the source of truth for episodes, containing meaningful units that represent individual episodes. This endpoint must connect to the correct podcast-specific Neo4j instance and return episode data.
+- [x] **Task**: Create a new API endpoint `/api/podcasts/{podcast_id}/episodes` that queries the podcast's Neo4j database to retrieve all episodes. The Neo4j database for each podcast is the source of truth for episodes, containing meaningful units that represent individual episodes. This endpoint must connect to the correct podcast-specific Neo4j instance and return episode data.
 - **Purpose**: Provide episode data from Neo4j database source of truth
 - **Steps**:
   1. Create new route in `ui/backend/routes/episodes.py`
@@ -227,7 +227,7 @@ This plan delivers a desktop web application for podcast knowledge discovery. Us
 - **REMINDER**: Review plan goals - Neo4j is source of truth, reuse existing connection patterns
 
 ### Task 5.1: Create Episode List Panel
-- [ ] **Task**: Build the episode list panel that displays all episodes from the podcast's Neo4j database with virtual scrolling for performance. This panel fetches episodes from the new `/api/podcasts/{podcast_id}/episodes` endpoint and must handle potentially thousands of episodes efficiently. The implementation uses a simple virtual scrolling approach without external libraries.
+- [x] **Task**: Build the episode list panel that displays all episodes from the podcast's Neo4j database with virtual scrolling for performance. This panel fetches episodes from the new `/api/podcasts/{podcast_id}/episodes` endpoint and must handle potentially thousands of episodes efficiently. The implementation uses a simple virtual scrolling approach without external libraries.
 - **Purpose**: Display large episode lists from Neo4j without performance issues
 - **Steps**:
   1. Create `ui/frontend/src/components/EpisodePanel.tsx` (flat structure)
@@ -242,7 +242,7 @@ This plan delivers a desktop web application for podcast knowledge discovery. Us
 - **REMINDER**: Review plan goals - simple virtual scrolling, Neo4j as source, no complex libraries
 
 ### Task 5.2: Create Episode List Item Component
-- [ ] **Task**: Design episode list items that display just the episode title as specified in the requirements. Each item must have consistent height for virtual scrolling calculations. The design should be minimal but clear, with hover states for future interactivity.
+- [x] **Task**: Design episode list items that display just the episode title as specified in the requirements. Each item must have consistent height for virtual scrolling calculations. The design should be minimal but clear, with hover states for future interactivity.
 - **Purpose**: Display individual episodes in the list
 - **Steps**:
   1. Create `ui/frontend/src/components/ThreePanel/EpisodePanel/EpisodeItem.tsx`
@@ -257,7 +257,7 @@ This plan delivers a desktop web application for podcast knowledge discovery. Us
 - **REMINDER**: Review plan goals - title only, no additional metadata, keep simple
 
 ### Task 5.3: Implement Episode Search/Filter
-- [ ] **Task**: Add a simple search input at the top of the episode panel that filters the episode list by title. The search must be performant even with large lists by using debouncing. The filtered results should maintain virtual scrolling functionality.
+- [x] **Task**: Add a simple search input at the top of the episode panel that filters the episode list by title. The search must be performant even with large lists by using debouncing. The filtered results should maintain virtual scrolling functionality.
 - **Purpose**: Help users find specific episodes in large lists
 - **Steps**:
   1. Add search input component at top of EpisodePanel
@@ -274,7 +274,7 @@ This plan delivers a desktop web application for podcast knowledge discovery. Us
 ## Phase 6: Graph Placeholder and Integration (Day 6)
 
 ### Task 6.1: Create Knowledge Graph Placeholder
-- [ ] **Task**: Build a simple placeholder component for the knowledge graph panel that displays "Coming Soon" messaging. The placeholder must be styled consistently with the rest of the application and provide visual context for what will eventually be displayed. This panel takes up the center space and is the primary focus area.
+- [x] **Task**: Build a simple placeholder component for the knowledge graph panel that displays "Coming Soon" messaging. The placeholder must be styled consistently with the rest of the application and provide visual context for what will eventually be displayed. This panel takes up the center space and is the primary focus area.
 - **Purpose**: Reserve space for future graph visualization
 - **Steps**:
   1. Create `ui/frontend/src/components/ThreePanel/GraphPanel/GraphPanel.tsx`
@@ -289,7 +289,7 @@ This plan delivers a desktop web application for podcast knowledge discovery. Us
 - **REMINDER**: Review plan goals - simple placeholder only, prepare for future heavy visualization
 
 ### Task 6.2: Add Navigation Breadcrumbs
-- [ ] **Task**: Implement breadcrumb navigation at the top of the three-panel view that shows "Dashboard > [Podcast Name]" and allows users to return to the dashboard. The breadcrumb uses React Router's Link component for navigation and gets the current podcast info from router params. The implementation must be simple without external breadcrumb libraries.
+- [x] **Task**: Implement breadcrumb navigation at the top of the three-panel view that shows "Dashboard > [Podcast Name]" and allows users to return to the dashboard. The breadcrumb uses React Router's Link component for navigation and gets the current podcast info from router params. The implementation must be simple without external breadcrumb libraries.
 - **Purpose**: Provide clear navigation back to dashboard using React Router
 - **Steps**:
   1. Create `ui/frontend/src/components/Breadcrumbs.tsx` (flat structure)
@@ -305,7 +305,7 @@ This plan delivers a desktop web application for podcast knowledge discovery. Us
 - **REMINDER**: Review plan goals - use React Router for navigation, maintain KISS principle
 
 ### Task 6.3: Implement Panel State Persistence
-- [ ] **Task**: Add localStorage persistence for panel sizes and collapse states so user preferences are maintained between sessions. This includes saving panel widths when resized and collapse states when toggled. The implementation must handle edge cases like missing localStorage data gracefully.
+- [x] **Task**: Add localStorage persistence for panel sizes and collapse states so user preferences are maintained between sessions. This includes saving panel widths when resized and collapse states when toggled. The implementation must handle edge cases like missing localStorage data gracefully.
 - **Purpose**: Remember user's panel configuration preferences
 - **Steps**:
   1. Create utility functions for localStorage read/write
@@ -322,7 +322,7 @@ This plan delivers a desktop web application for podcast knowledge discovery. Us
 ## Phase 7: Integration and Polish (Day 7)
 
 ### Task 7.1: Add Loading States and Transitions
-- [ ] **Task**: Implement loading states for all async operations and smooth transitions between dashboard and panel views. This includes skeleton screens for initial loads and spinner indicators for active requests. Transitions should be subtle and not impact performance given the future heavy graph visualization needs.
+- [x] **Task**: Implement loading states for all async operations and smooth transitions between dashboard and panel views. This includes skeleton screens for initial loads and spinner indicators for active requests. Transitions should be subtle and not impact performance given the future heavy graph visualization needs.
 - **Purpose**: Provide visual feedback during async operations
 - **Steps**:
   1. Create loading skeleton for podcast cards
@@ -337,7 +337,7 @@ This plan delivers a desktop web application for podcast knowledge discovery. Us
 - **REMINDER**: Review plan goals - simple transitions, performance is priority
 
 ### Task 7.2: Implement Error Handling UI
-- [ ] **Task**: Add user-friendly error handling throughout the application for failed API calls, network issues, and invalid states. Each error should provide clear feedback and possible actions. The error handling must not interrupt the user experience and should allow recovery without page refresh.
+- [x] **Task**: Add user-friendly error handling throughout the application for failed API calls, network issues, and invalid states. Each error should provide clear feedback and possible actions. The error handling must not interrupt the user experience and should allow recovery without page refresh.
 - **Purpose**: Handle failures gracefully with clear user feedback
 - **Steps**:
   1. Create `ui/frontend/src/components/Common/ErrorMessage.tsx`
@@ -352,7 +352,7 @@ This plan delivers a desktop web application for podcast knowledge discovery. Us
 - **REMINDER**: Review plan goals - simple error handling, maintain user flow
 
 ### Task 7.3: Performance Optimization Pass
-- [ ] **Task**: Review and optimize the application for performance, particularly focusing on render performance and preparing for future heavy graph visualizations. This includes implementing React.memo for expensive components, optimizing re-renders, and ensuring efficient event handlers. The focus is on measurable improvements without premature optimization.
+- [x] **Task**: Review and optimize the application for performance, particularly focusing on render performance and preparing for future heavy graph visualizations. This includes implementing React.memo for expensive components, optimizing re-renders, and ensuring efficient event handlers. The focus is on measurable improvements without premature optimization.
 - **Purpose**: Ensure app performs well with large datasets
 - **Steps**:
   1. Add React.memo to PodcastCard components
@@ -369,7 +369,7 @@ This plan delivers a desktop web application for podcast knowledge discovery. Us
 ## Phase 8: Testing and Documentation (Day 8)
 
 ### Task 8.1: Create Component Documentation
-- [ ] **Task**: Write clear documentation for each major component describing its purpose, props, and usage examples. This documentation lives alongside the components and helps future development. The documentation should be concise and focus on practical usage rather than extensive technical details.
+- [x] **Task**: Write clear documentation for each major component describing its purpose, props, and usage examples. This documentation lives alongside the components and helps future development. The documentation should be concise and focus on practical usage rather than extensive technical details.
 - **Purpose**: Document components for maintainability
 - **Steps**:
   1. Add JSDoc comments to all component files
@@ -384,7 +384,7 @@ This plan delivers a desktop web application for podcast knowledge discovery. Us
 - **REMINDER**: Review plan goals - simple, practical documentation only
 
 ### Task 8.2: Manual Testing Checklist
-- [ ] **Task**: Create and execute a comprehensive manual testing checklist covering all user flows and edge cases. This includes testing with various numbers of podcasts and episodes, different screen sizes, and error conditions. The checklist ensures all functionality works as specified without introducing complex testing frameworks.
+- [x] **Task**: Create and execute a comprehensive manual testing checklist covering all user flows and edge cases. This includes testing with various numbers of podcasts and episodes, different screen sizes, and error conditions. The checklist ensures all functionality works as specified without introducing complex testing frameworks.
 - **Purpose**: Verify all functionality works correctly
 - **Steps**:
   1. Test dashboard loads and displays all podcasts
@@ -401,7 +401,7 @@ This plan delivers a desktop web application for podcast knowledge discovery. Us
 - **REMINDER**: Review plan goals - focus on specified features only
 
 ### Task 8.3: Update API Documentation
-- [ ] **Task**: Document the new episodes API endpoint `/api/podcasts/{podcast_id}/episodes` that queries Neo4j for episode data. This documentation must clearly state that Neo4j is the source of truth for episodes and explain how the endpoint connects to podcast-specific databases. Include any performance considerations for large episode lists from Neo4j queries.
+- [x] **Task**: Document the new episodes API endpoint `/api/podcasts/{podcast_id}/episodes` that queries Neo4j for episode data. This documentation must clearly state that Neo4j is the source of truth for episodes and explain how the endpoint connects to podcast-specific databases. Include any performance considerations for large episode lists from Neo4j queries.
 - **Purpose**: Document the episodes endpoint and Neo4j integration
 - **Steps**:
   1. Document `/api/podcasts/{podcast_id}/episodes` endpoint

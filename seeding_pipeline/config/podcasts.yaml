@@ -7,6 +7,7 @@ podcasts:
   database:
     uri: neo4j://localhost:7687
     neo4j_port: 7687
+    neo4j_password: password
     database_name: neo4j
   processing:
     batch_size: 10
@@ -63,6 +64,7 @@ podcasts:
   database:
     uri: neo4j://localhost:7688
     neo4j_port: 7688
+    neo4j_password: password
     database_name: neo4j
   processing:
     batch_size: 10
@@ -71,7 +73,16 @@ podcasts:
     enable_graph_enhancement: true
     use_large_context: true
   metadata:
+    description: Business and entrepreneurship insights from successful founders
     language: en
+    category: Business
+    tags:
+    - entrepreneurship
+    - business
+    - investing
+    - technology
+    host: Sam Parr and Shaan Puri
+    website: https://thehustle.co/my-first-million-podcast
   persona:
     podcast_name: My First Million
     host_style_summary: The hosts of My First Million adopt a conversational, 

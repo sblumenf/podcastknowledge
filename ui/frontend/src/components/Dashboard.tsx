@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
 import type { Podcast } from '../types'
 import { PodcastCard } from './PodcastCard'
+import { PodcastCardSkeleton } from './PodcastCardSkeleton'
+import { ErrorDisplay } from './ErrorDisplay'
 import styles from './Dashboard.module.css'
 
 export function Dashboard() {
@@ -8,13 +10,16 @@ export function Dashboard() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  useEffect(() => {
+  const fetchPodcasts = () => {
+    setLoading(true)
+    setError(null)
+    
     // Fetch podcasts from API
     // Source of truth: seeding_pipeline/config/podcasts.yaml
-    fetch('http://localhost:8000/api/podcasts')
+    fetch('http://localhost:8001/api/podcasts')
       .then(response => {
         if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`)
+          throw new Error(`Unable to load podcasts (${response.status})`)
         }
         return response.json()
       })
@@ -23,23 +28,24 @@ export function Dashboard() {
         setLoading(false)
       })
       .catch(err => {
-        setError(err.message)
+        setError(err.message || 'Failed to load podcasts')
         setLoading(false)
       })
+  }
+
+  useEffect(() => {
+    fetchPodcasts()
   }, [])
 
-  if (loading) {
-    return (
-      <div className={styles.container}>
-        <div className={styles.loading}>Loading podcasts...</div>
-      </div>
-    )
-  }
+  const showSkeletons = loading || podcasts.length === 0
 
   if (error) {
     return (
       <div className={styles.container}>
-        <div className={styles.error}>Error loading podcasts: {error}</div>
+        <ErrorDisplay 
+          error={error}
+          onRetry={fetchPodcasts}
+        />
       </div>
     )
   }
@@ -53,9 +59,16 @@ export function Dashboard() {
       
       <main className={styles.main}>
         <div className={styles.grid}>
-          {podcasts.map(podcast => (
-            <PodcastCard key={podcast.id} podcast={podcast} />
-          ))}
+          {showSkeletons ? (
+            // Show 6 skeleton cards while loading
+            Array.from({ length: 6 }).map((_, index) => (
+              <PodcastCardSkeleton key={`skeleton-${index}`} />
+            ))
+          ) : (
+            podcasts.map(podcast => (
+              <PodcastCard key={podcast.id} podcast={podcast} />
+            ))
+          )}
         </div>
       </main>
     </div>

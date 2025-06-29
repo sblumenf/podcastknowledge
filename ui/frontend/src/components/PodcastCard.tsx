@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import { Link } from 'react-router-dom'
 import type { Podcast } from '../types'
 import styles from './PodcastCard.module.css'
@@ -6,7 +7,7 @@ interface PodcastCardProps {
   podcast: Podcast
 }
 
-export function PodcastCard({ podcast }: PodcastCardProps) {
+export const PodcastCard = memo(function PodcastCard({ podcast }: PodcastCardProps) {
   return (
     <Link to={`/podcast/${podcast.id}`} className={styles.card}>
       <div className={styles.cardContent}>
@@ -16,4 +17,4 @@ export function PodcastCard({ podcast }: PodcastCardProps) {
       </div>
     </Link>
   )
-}
+})
