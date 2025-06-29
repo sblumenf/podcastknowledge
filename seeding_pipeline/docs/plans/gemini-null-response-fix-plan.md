@@ -39,7 +39,7 @@ This plan fixes the issue where Gemini API returns null responses for legitimate
 ## Phase 2: Verify Fix
 
 ### Task 2.1: Test Failed Episode Processing
-- [ ] **Task**: Re-run the pipeline on the failed episode "2025-06-04_How_the_Smartest_Founders_Are_Quietly_Winning_with_AI.vtt" to verify the fix works correctly. This test must be run with the same command and parameters as the original batch processing to ensure an accurate comparison. The test should complete successfully without null pointer exceptions, and the episode should be fully processed with knowledge extraction completing as expected.
+- [x] **Task**: Re-run the pipeline on the failed episode "2025-06-04_How_the_Smartest_Founders_Are_Quietly_Winning_with_AI.vtt" to verify the fix works correctly. This test must be run with the same command and parameters as the original batch processing to ensure an accurate comparison. The test should complete successfully without null pointer exceptions, and the episode should be fully processed with knowledge extraction completing as expected.
 - **Purpose**: Confirms the fix resolves the original issue
 - **Steps**:
   1. Navigate to seeding_pipeline directory
@@ -49,7 +49,7 @@ This plan fixes the issue where Gemini API returns null responses for legitimate
 - **Validation**: Episode processes successfully with knowledge extracted and stored in Neo4j
 
 ### Task 2.2: Run Full Batch Test
-- [ ] **Task**: Run the complete batch of 16 MFM podcast episodes again to ensure the fix doesn't break processing of the other 15 episodes that previously succeeded. This regression test must use the same batch processing command and monitor for any new failures or performance degradation. All 16 episodes should now process successfully, demonstrating that the safety settings don't negatively impact normal content processing.
+- [x] **Task**: Run the complete batch of 16 MFM podcast episodes again to ensure the fix doesn't break processing of the other 15 episodes that previously succeeded. This regression test must use the same batch processing command and monitor for any new failures or performance degradation. All 16 episodes should now process successfully, demonstrating that the safety settings don't negatively impact normal content processing.
 - **Purpose**: Ensures fix doesn't break existing functionality
 - **Steps**:
   1. Run full batch processing on all 16 MFM episodes
