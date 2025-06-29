@@ -10,6 +10,7 @@ import shutil
 from src.utils.logging import get_logger
 from src.monitoring import get_pipeline_metrics
 from src.core.dependencies import get_psutil, get_memory_info, get_cpu_info, PSUTIL_AVAILABLE
+from src.core.env_config import EnvironmentConfig
 
 
 class HealthStatus:
@@ -239,7 +240,7 @@ class HealthChecker:
             # Try to initialize service with rotation support
             from src.services import create_llm_service_only
             try:
-                service = create_llm_service_only(model_name="gemini-2.5-flash")
+                service = create_llm_service_only(model_name=EnvironmentConfig.get_flash_model())
                 # Check rate limit status
                 rate_status = service.get_rate_limit_status()
             except ValueError:
@@ -256,7 +257,7 @@ class HealthChecker:
                 message="LLM API is configured with key rotation",
                 details={
                     'provider': 'google',
-                    'model': 'gemini-2.5-flash',
+                    'model': EnvironmentConfig.get_flash_model(),
                     'api_keys_available': rate_status.get('total_keys', 0),
                     'active_keys': rate_status.get('available_keys', 0),
                     'rate_limit_status': rate_status
