@@ -4,6 +4,7 @@ import { PanelDivider } from './PanelDivider'
 import { ChatPanel } from './ChatPanel'
 import { EpisodePanel } from './EpisodePanel'
 import { GraphPanel } from './GraphPanel'
+import { Breadcrumbs } from './Breadcrumbs'
 import styles from './ThreePanelLayout.module.css'
 
 export function ThreePanelLayout() {
@@ -91,6 +92,7 @@ export function ThreePanelLayout() {
   
   return (
     <div className={styles.container} ref={containerRef}>
+      <Breadcrumbs podcastId={id || ''} />
       <div className={styles.panelGrid} style={{ gridTemplateColumns }}>
         {/* Left Panel - Chat */}
         <section className={`${styles.leftPanel} ${leftCollapsed ? styles.collapsed : ''}`} ref={leftPanelRef}>

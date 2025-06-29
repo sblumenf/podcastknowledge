@@ -39,7 +39,7 @@ def main():
         
         # Calculate total duration
         if segments:
-            total_duration = segments[-1]['end_time'] - segments[0]['start_time']
+            total_duration = segments[-1].end_time - segments[0].start_time
             logger.info(f"Total duration: {total_duration:.1f} seconds ({total_duration/60:.1f} minutes)")
         
         # Initialize LLM service
