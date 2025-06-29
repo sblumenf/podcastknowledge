@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Podcast } from '../types'
+import type { Podcast } from '../types'
 import { PodcastCard } from './PodcastCard'
 import styles from './Dashboard.module.css'
 
