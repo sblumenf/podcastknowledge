@@ -176,12 +176,12 @@ class EnvironmentConfig:
             # Model Configuration
             "GEMINI_FLASH_MODEL": cls.get_optional(
                 "GEMINI_FLASH_MODEL",
-                "gemini-2.5-flash-001",
+                "gemini-2.5-flash-preview-05-20",
                 "Gemini Flash model for fast processing (speaker ID, conversation analysis)"
             ),
             "GEMINI_PRO_MODEL": cls.get_optional(
                 "GEMINI_PRO_MODEL", 
-                "gemini-2.5-pro-001",
+                "gemini-2.5-pro-preview-06-05",
                 "Gemini Pro model for complex reasoning (knowledge extraction)"
             ),
             "GEMINI_EMBEDDING_MODEL": cls.get_optional(
@@ -307,12 +307,12 @@ class EnvironmentConfig:
     @classmethod
     def get_flash_model(cls) -> str:
         """Get the configured Gemini Flash model name."""
-        return cls.get_optional("GEMINI_FLASH_MODEL", "gemini-2.5-flash-001", "Gemini Flash model")
+        return cls.get_optional("GEMINI_FLASH_MODEL", "gemini-2.5-flash-preview-05-20", "Gemini Flash model")
     
     @classmethod
     def get_pro_model(cls) -> str:
         """Get the configured Gemini Pro model name."""
-        return cls.get_optional("GEMINI_PRO_MODEL", "gemini-2.5-pro-001", "Gemini Pro model")
+        return cls.get_optional("GEMINI_PRO_MODEL", "gemini-2.5-pro-preview-06-05", "Gemini Pro model")
     
     @classmethod
     def get_embedding_model(cls) -> str:

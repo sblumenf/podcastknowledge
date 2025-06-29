@@ -45,8 +45,8 @@ If environment variables are not set, the system uses these defaults:
 
 | Variable | Default Value |
 |----------|---------------|
-| `GEMINI_FLASH_MODEL` | `gemini-2.5-flash-001` |
-| `GEMINI_PRO_MODEL` | `gemini-2.5-pro-001` |
+| `GEMINI_FLASH_MODEL` | `gemini-2.5-flash-preview-05-20` |
+| `GEMINI_PRO_MODEL` | `gemini-2.5-pro-preview-06-05` |
 | `GEMINI_EMBEDDING_MODEL` | `text-embedding-004` |
 
 ## Model Usage by Component
@@ -69,24 +69,24 @@ If environment variables are not set, the system uses these defaults:
 ### Development Configuration
 ```bash
 # Use faster, cheaper models for development
-GEMINI_FLASH_MODEL=gemini-2.5-flash-001
-GEMINI_PRO_MODEL=gemini-2.5-flash-001  # Use flash for everything
+GEMINI_FLASH_MODEL=gemini-2.5-flash-preview-05-20
+GEMINI_PRO_MODEL=gemini-2.5-flash-preview-05-20  # Use flash for everything
 GEMINI_EMBEDDING_MODEL=text-embedding-004
 ```
 
 ### Production Configuration
 ```bash
-# Use optimal models for production
-GEMINI_FLASH_MODEL=gemini-2.5-flash-001
-GEMINI_PRO_MODEL=gemini-2.5-pro-001
+# Use working models for production
+GEMINI_FLASH_MODEL=gemini-2.5-flash-preview-05-20
+GEMINI_PRO_MODEL=gemini-2.5-pro-preview-06-05
 GEMINI_EMBEDDING_MODEL=text-embedding-004
 ```
 
-### Legacy Configuration
+### Future Model Configuration
 ```bash
-# Support for existing preview models
-GEMINI_FLASH_MODEL=gemini-2.5-flash-preview-05-20
-GEMINI_PRO_MODEL=gemini-2.5-pro-preview-06-05
+# When newer models become available
+GEMINI_FLASH_MODEL=gemini-2.0-flash-001
+GEMINI_PRO_MODEL=gemini-2.5-pro-001
 GEMINI_EMBEDDING_MODEL=text-embedding-004
 ```
 
