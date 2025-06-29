@@ -50,6 +50,7 @@ from src.services.embeddings import EmbeddingsService
 from src.core.config import SeedingConfig
 from src.core.pipeline_config import PipelineConfig
 from src.core.exceptions import PipelineError
+from src.core.env_config import EnvironmentConfig
 
 
 async def process_vtt_file(
@@ -117,11 +118,23 @@ async def process_vtt_file(
     if not gemini_api_key:
         raise ValueError("Gemini API key required. Set GEMINI_API_KEY or GOOGLE_API_KEY environment variable or pass --gemini-api-key")
     
+    # Validate model configuration
+    validation_result = EnvironmentConfig.validate_model_configuration()
+    if not validation_result['valid']:
+        error_msg = "Invalid model configuration:\n" + "\n".join(f"  - {error}" for error in validation_result['errors'])
+        logger.error(error_msg)
+        raise ValueError(error_msg)
+    
+    logger.info(f"✓ Model configuration validated:")
+    logger.info(f"  - Flash model: {validation_result['flash_model']['name']}")
+    logger.info(f"  - Pro model: {validation_result['pro_model']['name']}")
+    logger.info(f"  - Embedding model: {validation_result['embedding_model']['name']}")
+    
     # Model configuration for tiered approach
     MODEL_CONFIG = {
-        "speaker_identification": "gemini-2.5-flash-preview-05-20",
-        "conversation_analysis": "gemini-2.5-flash-preview-05-20", 
-        "knowledge_extraction": "gemini-2.5-pro-preview-06-05"
+        "speaker_identification": EnvironmentConfig.get_flash_model(),
+        "conversation_analysis": EnvironmentConfig.get_flash_model(), 
+        "knowledge_extraction": EnvironmentConfig.get_pro_model()
     }
     
     # Initialize services
@@ -141,14 +154,14 @@ async def process_vtt_file(
     # Create separate LLM services for different models
     llm_flash = LLMService(
         api_key=gemini_api_key,
-        model_name='gemini-2.5-flash-preview-05-20',
+        model_name=EnvironmentConfig.get_flash_model(),
         max_tokens=30000,  # Flash model has lower token limit
         temperature=0.1  # Low temperature for extraction tasks
     )
     
     llm_pro = LLMService(
         api_key=gemini_api_key,
-        model_name='gemini-2.5-pro-preview-06-05', 
+        model_name=EnvironmentConfig.get_pro_model(), 
         max_tokens=65000,  # Pro model can handle larger responses
         temperature=0.1  # Low temperature for extraction tasks
     )

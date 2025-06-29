@@ -11,14 +11,15 @@ from .llm_gemini_direct import GeminiDirectService
 from .llm_factory import LLMServiceFactory, LLMServiceType
 from .cache_manager import CacheManager
 from .cached_prompt_service import CachedPromptService
+from ..core.env_config import EnvironmentConfig
 
 logger = logging.getLogger(__name__)
 
 
 def create_gemini_services(
     api_key: Optional[str] = None,
-    llm_model: str = 'gemini-2.5-flash',
-    embeddings_model: str = 'models/text-embedding-004',
+    llm_model: Optional[str] = None,
+    embeddings_model: Optional[str] = None,
     temperature: float = 0.7,
     max_tokens: int = 4096,
     embeddings_batch_size: int = 100,
@@ -29,8 +30,8 @@ def create_gemini_services(
     
     Args:
         api_key: Gemini API key (uses environment if not provided)
-        llm_model: Model name for LLM service (default: gemini-2.5-flash)
-        embeddings_model: Model name for embeddings (default: models/text-embedding-004)
+        llm_model: Model name for LLM service (uses GEMINI_FLASH_MODEL from environment if not provided)
+        embeddings_model: Model name for embeddings (uses GEMINI_EMBEDDING_MODEL from environment if not provided)
         temperature: Generation temperature for LLM (default: 0.7)
         max_tokens: Maximum output tokens for LLM (default: 4096)
         embeddings_batch_size: Batch size for embeddings (default: 100)
@@ -44,6 +45,10 @@ def create_gemini_services(
         ValueError: If no API keys are found in environment
     """
     logger.info("Creating Gemini services")
+    
+    # Apply environment defaults
+    llm_model = llm_model or EnvironmentConfig.get_flash_model()
+    embeddings_model = embeddings_model or EnvironmentConfig.get_embedding_model()
     
     # Create LLM service using factory
     llm_service = LLMServiceFactory.create_service(
@@ -69,7 +74,7 @@ def create_gemini_services(
 
 def create_llm_service_only(
     api_key: Optional[str] = None,
-    model_name: str = 'gemini-2.5-flash',
+    model_name: Optional[str] = None,
     temperature: float = 0.7,
     max_tokens: int = 4096,
     enable_cache: bool = True,
@@ -79,7 +84,7 @@ def create_llm_service_only(
     
     Args:
         api_key: Gemini API key (uses environment if not provided)
-        model_name: Model name for LLM service (default: gemini-2.5-flash)
+        model_name: Model name for LLM service (uses GEMINI_FLASH_MODEL from environment if not provided)
         temperature: Generation temperature (default: 0.7)
         max_tokens: Maximum output tokens (default: 4096)
         enable_cache: Enable response caching (default: True)

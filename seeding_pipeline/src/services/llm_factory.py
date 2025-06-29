@@ -9,6 +9,7 @@ from src.services.llm import LLMService
 from src.services.llm_gemini_direct import GeminiDirectService
 from src.services.cache_manager import CacheManager
 from src.services.cached_prompt_service import CachedPromptService
+from src.core.env_config import EnvironmentConfig
 
 logger = logging.getLogger(__name__)
 
@@ -26,7 +27,7 @@ class LLMServiceFactory:
     def create_service(
         api_key: Optional[str] = None,
         service_type: Optional[str] = None,
-        model_name: str = 'gemini-2.5-flash',
+        model_name: Optional[str] = None,
         temperature: float = 0.7,
         max_tokens: int = 4096,
         enable_cache: bool = True,
@@ -38,7 +39,7 @@ class LLMServiceFactory:
         Args:
             api_key: Gemini API key (uses environment if not provided)
             service_type: Type of service to create (defaults to env var or gemini_direct)
-            model_name: Model to use
+            model_name: Model to use (uses GEMINI_FLASH_MODEL from environment if not provided)
             temperature: Generation temperature
             max_tokens: Maximum output tokens
             enable_cache: Enable response caching
@@ -59,15 +60,22 @@ class LLMServiceFactory:
             logger.warning(f"Invalid service type: {service_type}, defaulting to gemini_direct")
             service_type = LLMServiceType.GEMINI_DIRECT
             
-        logger.info(f"Creating LLM service: {service_type}")
+        # Apply environment configuration
+        if model_name is None:
+            model_name = EnvironmentConfig.get_flash_model()
+        
+        logger.info(f"Creating LLM service: {service_type} with model: {model_name}")
         
         # Convert model name for direct API if needed
         if service_type in [LLMServiceType.GEMINI_DIRECT, LLMServiceType.GEMINI_CACHED]:
-            # Add version suffix for stable caching
-            if model_name == 'gemini-2.5-flash' and '-001' not in model_name:
-                model_name = 'gemini-2.5-flash-001'
-            elif model_name == 'gemini-2.5-pro' and '-001' not in model_name:
-                model_name = 'gemini-2.5-pro-001'
+            # Add version suffix for stable caching (only for models without version)
+            flash_base = EnvironmentConfig.get_flash_model().replace('-001', '')
+            pro_base = EnvironmentConfig.get_pro_model().replace('-001', '')
+            
+            if model_name == flash_base and '-001' not in model_name:
+                model_name = f"{model_name}-001"
+            elif model_name == pro_base and '-001' not in model_name:
+                model_name = f"{model_name}-001"
         
         # Create service based on type
         if service_type == LLMServiceType.GEMINI_DIRECT:

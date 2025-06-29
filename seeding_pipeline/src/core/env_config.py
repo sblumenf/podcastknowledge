@@ -173,6 +173,23 @@ class EnvironmentConfig:
                 "Hugging Face token for model access"
             ),
             
+            # Model Configuration
+            "GEMINI_FLASH_MODEL": cls.get_optional(
+                "GEMINI_FLASH_MODEL",
+                "gemini-2.5-flash-001",
+                "Gemini Flash model for fast processing (speaker ID, conversation analysis)"
+            ),
+            "GEMINI_PRO_MODEL": cls.get_optional(
+                "GEMINI_PRO_MODEL", 
+                "gemini-2.5-pro-001",
+                "Gemini Pro model for complex reasoning (knowledge extraction)"
+            ),
+            "GEMINI_EMBEDDING_MODEL": cls.get_optional(
+                "GEMINI_EMBEDDING_MODEL",
+                "text-embedding-004", 
+                "Gemini embedding model for vector operations"
+            ),
+            
             # Feature Flags
             "USE_SCHEMALESS_EXTRACTION": cls.get_bool(
                 "USE_SCHEMALESS_EXTRACTION",
@@ -286,6 +303,86 @@ class EnvironmentConfig:
                 f"Please set these in your .env file or export them:\n"
                 + '\n'.join(f"  export {var}=your_value" for var in missing)
             )
+    
+    @classmethod
+    def get_flash_model(cls) -> str:
+        """Get the configured Gemini Flash model name."""
+        return cls.get_optional("GEMINI_FLASH_MODEL", "gemini-2.5-flash-001", "Gemini Flash model")
+    
+    @classmethod
+    def get_pro_model(cls) -> str:
+        """Get the configured Gemini Pro model name."""
+        return cls.get_optional("GEMINI_PRO_MODEL", "gemini-2.5-pro-001", "Gemini Pro model")
+    
+    @classmethod
+    def get_embedding_model(cls) -> str:
+        """Get the configured Gemini embedding model name."""
+        return cls.get_optional("GEMINI_EMBEDDING_MODEL", "text-embedding-004", "Gemini embedding model")
+    
+    @classmethod
+    def validate_model_configuration(cls) -> Dict[str, Any]:
+        """Validate that configured model names are valid.
+        
+        Returns:
+            Dictionary with validation results:
+            {
+                'valid': bool,
+                'flash_model': {'name': str, 'valid': bool, 'message': str},
+                'pro_model': {'name': str, 'valid': bool, 'message': str},
+                'embedding_model': {'name': str, 'valid': bool, 'message': str},
+                'errors': List[str]
+            }
+        """
+        # Valid model names from Google GenAI documentation
+        valid_text_models = {
+            'gemini-2.0-flash-001',
+            'gemini-2.5-flash-001', 
+            'gemini-2.5-pro-001',
+            # Include preview models for backward compatibility
+            'gemini-2.5-flash-preview-05-20',
+            'gemini-2.5-pro-preview-06-05'
+        }
+        
+        valid_embedding_models = {
+            'text-embedding-004',
+            'models/text-embedding-004'
+        }
+        
+        # Get configured models
+        flash_model = cls.get_flash_model()
+        pro_model = cls.get_pro_model()
+        embedding_model = cls.get_embedding_model()
+        
+        results = {
+            'valid': True,
+            'flash_model': {'name': flash_model, 'valid': True, 'message': 'Valid'},
+            'pro_model': {'name': pro_model, 'valid': True, 'message': 'Valid'},
+            'embedding_model': {'name': embedding_model, 'valid': True, 'message': 'Valid'},
+            'errors': []
+        }
+        
+        # Validate flash model
+        if flash_model not in valid_text_models:
+            results['flash_model']['valid'] = False
+            results['flash_model']['message'] = f"Invalid model. Valid options: {', '.join(sorted(valid_text_models))}"
+            results['errors'].append(f"GEMINI_FLASH_MODEL '{flash_model}' is not a valid model name")
+            results['valid'] = False
+        
+        # Validate pro model
+        if pro_model not in valid_text_models:
+            results['pro_model']['valid'] = False
+            results['pro_model']['message'] = f"Invalid model. Valid options: {', '.join(sorted(valid_text_models))}"
+            results['errors'].append(f"GEMINI_PRO_MODEL '{pro_model}' is not a valid model name")
+            results['valid'] = False
+        
+        # Validate embedding model
+        if embedding_model not in valid_embedding_models:
+            results['embedding_model']['valid'] = False
+            results['embedding_model']['message'] = f"Invalid model. Valid options: {', '.join(sorted(valid_embedding_models))}"
+            results['errors'].append(f"GEMINI_EMBEDDING_MODEL '{embedding_model}' is not a valid model name")
+            results['valid'] = False
+        
+        return results
     
     @classmethod
     def get_config_summary(cls) -> str:

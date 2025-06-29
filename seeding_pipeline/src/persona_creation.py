@@ -9,6 +9,7 @@ from pathlib import Path
 import yaml
 from ruamel.yaml import YAML
 from google.generativeai import GenerativeModel
+from src.core.env_config import EnvironmentConfig
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -73,7 +74,7 @@ def _generate_persona_for_podcast(podcast_name):
         with open(transcript_path, 'r') as f:
             content += f.read() + "\n\n"
 
-    model = GenerativeModel("gemini-1.5-flash")
+    model = GenerativeModel(EnvironmentConfig.get_flash_model())
     
     prompt = f"""
     You are an expert podcast analyst. Your task is to analyze the following transcript text to understand the unique voice, tone, and style of the podcast hosts. Based on your analysis, generate a JSON object that describes the podcast's persona. The JSON object must have the following structure:

@@ -6,6 +6,7 @@ from datetime import datetime, timedelta
 
 from src.services.llm_gemini_direct import GeminiDirectService
 from src.core.exceptions import ProviderError, RateLimitError
+from src.core.env_config import EnvironmentConfig
 
 
 class TestGeminiDirectService:
@@ -26,7 +27,7 @@ class TestGeminiDirectService:
         """Create service instance with mocked dependencies."""
         return GeminiDirectService(
             key_rotation_manager=mock_key_manager,
-            model_name='gemini-2.5-flash-001',
+            model_name=EnvironmentConfig.get_flash_model(),
             temperature=0.7,
             max_tokens=4096
         )
@@ -35,13 +36,13 @@ class TestGeminiDirectService:
         """Test service initialization."""
         service = GeminiDirectService(
             key_rotation_manager=mock_key_manager,
-            model_name='gemini-2.5-pro-001',
+            model_name=EnvironmentConfig.get_pro_model(),
             temperature=0.5,
             max_tokens=2048,
             enable_cache=False
         )
         
-        assert service.model_name == 'gemini-2.5-pro-001'
+        assert service.model_name == EnvironmentConfig.get_pro_model()
         assert service.temperature == 0.5
         assert service.max_tokens == 2048
         assert service.enable_cache is False
@@ -149,7 +150,7 @@ class TestGeminiDirectService:
         mock_client.models.generate_content.assert_called_once()
         
         # Verify key manager interactions
-        mock_key_manager.get_next_key.assert_called_once_with('gemini-2.5-flash-001')
+        mock_key_manager.get_next_key.assert_called_once_with(EnvironmentConfig.get_flash_model())
         mock_key_manager.mark_key_success.assert_called_once_with(0)
         mock_key_manager.update_key_usage.assert_called_once()
         
@@ -181,7 +182,7 @@ class TestGeminiDirectService:
         
         # Verify the config included cached_content
         call_args = mock_client.models.generate_content.call_args
-        assert call_args[1]['model'] == 'gemini-2.5-flash-001'
+        assert call_args[1]['model'] == EnvironmentConfig.get_flash_model()
         assert call_args[1]['contents'] == "test prompt"
         
     @patch('src.services.llm_gemini_direct.genai')
@@ -349,7 +350,7 @@ class TestGeminiDirectService:
             assert result['temperature'] == 0.3
             assert result['max_tokens'] == 1024
             assert result['cached_content'] == "cache-123"
-            assert result['model'] == 'gemini-2.5-flash-001'
+            assert result['model'] == EnvironmentConfig.get_flash_model()
             
     def test_generate_alias(self, service):
         """Test that generate method works as alias for complete."""

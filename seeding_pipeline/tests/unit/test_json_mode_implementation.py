@@ -8,6 +8,7 @@ all components that were updated in the implementation plan.
 import json
 import pytest
 from unittest.mock import Mock, patch, MagicMock
+from src.core.env_config import EnvironmentConfig
 
 from src.extraction.extraction import KnowledgeExtractor, ExtractionConfig
 from src.services.llm import LLMService
@@ -173,8 +174,8 @@ class TestJSONModeImplementation:
         mock_client.models.generate_content.return_value = mock_response
         mock_client_class.return_value = mock_client
 
-        # Create LLM service
-        llm_service = LLMService(api_key="test_key", model_name="gemini-1.5-flash")
+        # Create LLM service using environment configuration
+        llm_service = LLMService(api_key="test_key", model_name=EnvironmentConfig.get_flash_model())
 
         # Test JSON mode
         result = llm_service.complete_with_options(
@@ -194,7 +195,7 @@ class TestJSONModeImplementation:
         # Verify generate_content was called
         mock_client.models.generate_content.assert_called_once()
         call_args = mock_client.models.generate_content.call_args
-        assert call_args[1]['model'] == "gemini-1.5-flash"
+        assert call_args[1]['model'] == EnvironmentConfig.get_flash_model()
         assert call_args[1]['contents'] == "Test prompt"
 
     def test_generate_completion_with_response_format(self):

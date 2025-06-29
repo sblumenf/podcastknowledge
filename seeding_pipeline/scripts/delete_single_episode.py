@@ -46,18 +46,18 @@ def delete_episode(episode_id: str, dry_run: bool = False):
         print("\n=== FINDING RELATED DATA ===")
         
         with storage.session() as session:
-            # Count nodes to be deleted
+            # Count nodes to be deleted - try both id and episode_id fields
             result = session.run("""
-                MATCH (e:Episode {episode_id: $episode_id})
-                OPTIONAL MATCH (e)-[:HAS_SEGMENT]->(s:Segment)
-                OPTIONAL MATCH (e)-[:HAS_UNIT]->(u:MeaningfulUnit)
-                OPTIONAL MATCH (u)-[:HAS_ENTITY]->(ent:Entity)
-                OPTIONAL MATCH (u)-[:HAS_QUOTE]->(q:Quote)
-                OPTIONAL MATCH (u)-[:HAS_INSIGHT]->(i:Insight)
-                WITH e, count(DISTINCT s) as segments, count(DISTINCT u) as units,
+                MATCH (e:Episode)
+                WHERE e.id = $episode_id OR e.episode_id = $episode_id
+                OPTIONAL MATCH (u:MeaningfulUnit)-[:PART_OF]->(e)
+                OPTIONAL MATCH (ent:Entity)-[:MENTIONED_IN]->(u)
+                OPTIONAL MATCH (q:Quote)-[:EXTRACTED_FROM]->(u)
+                OPTIONAL MATCH (i:Insight)-[:EXTRACTED_FROM]->(u)
+                WITH e, count(DISTINCT u) as units,
                      count(DISTINCT ent) as entities, count(DISTINCT q) as quotes,
                      count(DISTINCT i) as insights
-                RETURN e.episode_id as episode_id, segments, units, entities, quotes, insights
+                RETURN coalesce(e.episode_id, e.id) as episode_id, units, entities, quotes, insights
             """, episode_id=episode_id)
             
             record = result.single()
@@ -66,7 +66,6 @@ def delete_episode(episode_id: str, dry_run: bool = False):
                 return
             
             print(f"Found episode: {record['episode_id']}")
-            print(f"  Segments: {record['segments']}")
             print(f"  Meaningful Units: {record['units']}")
             print(f"  Entities: {record['entities']}")
             print(f"  Quotes: {record['quotes']}")
@@ -79,16 +78,15 @@ def delete_episode(episode_id: str, dry_run: bool = False):
                 # Delete all relationships and nodes related to this episode
                 # This query deletes everything connected to the episode
                 result = session.run("""
-                    MATCH (e:Episode {episode_id: $episode_id})
-                    OPTIONAL MATCH (e)-[:HAS_SEGMENT]->(s:Segment)
-                    OPTIONAL MATCH (e)-[:HAS_UNIT]->(u:MeaningfulUnit)
-                    OPTIONAL MATCH (u)-[:HAS_ENTITY]->(ent:Entity)
-                    OPTIONAL MATCH (u)-[:HAS_QUOTE]->(q:Quote)
-                    OPTIONAL MATCH (u)-[:HAS_INSIGHT]->(i:Insight)
+                    MATCH (e:Episode)
+                    WHERE e.id = $episode_id OR e.episode_id = $episode_id
+                    OPTIONAL MATCH (u:MeaningfulUnit)-[:PART_OF]->(e)
+                    OPTIONAL MATCH (ent:Entity)-[:MENTIONED_IN]->(u)
+                    OPTIONAL MATCH (q:Quote)-[:EXTRACTED_FROM]->(u)
+                    OPTIONAL MATCH (i:Insight)-[:EXTRACTED_FROM]->(u)
                     OPTIONAL MATCH (u)-[r1]-()
                     OPTIONAL MATCH (e)-[r2]-()
-                    OPTIONAL MATCH (s)-[r3]-()
-                    DELETE r1, r2, r3, ent, q, i, u, s, e
+                    DELETE r1, r2, ent, q, i, u, e
                     RETURN count(*) as deleted_count
                 """, episode_id=episode_id)
                 

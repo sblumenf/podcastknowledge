@@ -3,7 +3,7 @@
 import logging
 from typing import Dict, Any, List, Optional, Union
 import json
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from src.core.interfaces import TranscriptSegment
 from src.services.llm_gemini_direct import GeminiDirectService
@@ -11,6 +11,7 @@ from src.services.cache_manager import CacheManager
 from src.services.cached_prompt_service import CachedPromptService
 from src.extraction.prompts import PromptBuilder
 from src.monitoring import get_pipeline_metrics
+from src.core.env_config import EnvironmentConfig
 
 logger = logging.getLogger(__name__)
 
@@ -18,8 +19,8 @@ logger = logging.getLogger(__name__)
 @dataclass
 class CachedExtractionConfig:
     """Configuration for cached extraction."""
-    entity_extraction_model: str = 'gemini-2.5-flash-001'
-    insight_extraction_model: str = 'gemini-2.5-flash-001'
+    entity_extraction_model: str = field(default_factory=EnvironmentConfig.get_flash_model)
+    insight_extraction_model: str = field(default_factory=EnvironmentConfig.get_flash_model)
     use_large_context: bool = True
     cache_ttl: int = 3600
     batch_size: int = 10

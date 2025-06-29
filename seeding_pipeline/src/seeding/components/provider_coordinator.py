@@ -11,6 +11,7 @@ from src.processing.episode_flow import EpisodeFlowAnalyzer
 from src.processing.segmentation import VTTTranscriptSegmenter
 from src.services import create_gemini_services, LLMService, GeminiEmbeddingsService
 from src.storage import GraphStorageService
+from src.core.env_config import EnvironmentConfig
 logger = logging.getLogger(__name__)
 
 
@@ -63,8 +64,8 @@ class ProviderCoordinator:
             try:
                 # Create Gemini services with shared key rotation
                 self.llm_service, self.embedding_service = create_gemini_services(
-                    llm_model=getattr(self.config, 'model_name', 'gemini-2.5-flash'),
-                    embeddings_model=getattr(self.config, 'embedding_model', 'models/text-embedding-004'),
+                    llm_model=getattr(self.config, 'model_name', None) or EnvironmentConfig.get_flash_model(),
+                    embeddings_model=getattr(self.config, 'embedding_model', None) or EnvironmentConfig.get_embedding_model(),
                     temperature=getattr(self.config, 'temperature', 0.7),
                     max_tokens=getattr(self.config, 'max_tokens', 4096),
                     embeddings_batch_size=getattr(self.config, 'embedding_batch_size', 100),

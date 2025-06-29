@@ -11,6 +11,7 @@ from src.core.exceptions import ProviderError, RateLimitError
 from src.utils.retry import ExponentialBackoff
 from src.monitoring import get_pipeline_metrics
 from src.utils.api_key import get_gemini_api_key
+from src.core.env_config import EnvironmentConfig
 
 logger = logging.getLogger(__name__)
 
@@ -19,21 +20,21 @@ class LLMService:
     """Direct Gemini LLM service."""
     
     def __init__(self, api_key: Optional[str] = None,
-                 model_name: str = 'gemini-1.5-flash', 
+                 model_name: Optional[str] = None, 
                  temperature: float = 0.7, max_tokens: int = 4096,
                  enable_cache: bool = True, cache_ttl: int = 3600):
         """Initialize LLM service.
         
         Args:
             api_key: Gemini API key (uses environment if not provided)
-            model_name: Model to use (default: gemini-1.5-flash)
+            model_name: Model to use (uses GEMINI_FLASH_MODEL from environment if not provided)
             temperature: Generation temperature (default: 0.7)
             max_tokens: Maximum output tokens (default: 4096)
             enable_cache: Enable response caching (default: True)
             cache_ttl: Cache time-to-live in seconds (default: 3600)
         """
         self.api_key = api_key or get_gemini_api_key()
-        self.model_name = model_name
+        self.model_name = model_name or EnvironmentConfig.get_flash_model()
         self.temperature = temperature
         self.max_tokens = max_tokens
         self.client = None
