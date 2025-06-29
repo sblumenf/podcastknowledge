@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import type { ChatMessage } from '../types'
+import { Message } from './Message'
 import styles from './ChatPanel.module.css'
 
 interface ChatPanelProps {
@@ -84,14 +85,7 @@ export function ChatPanel({ podcastId }: ChatPanelProps) {
           </div>
         ) : (
           messages.map((message, index) => (
-            <div 
-              key={index}
-              className={`${styles.message} ${styles[message.role]}`}
-            >
-              <div className={styles.messageContent}>
-                {message.content}
-              </div>
-            </div>
+            <Message key={index} message={message} />
           ))
         )}
         {isLoading && (
