@@ -138,6 +138,8 @@ class LLMService:
                 )
                 
                 result = response.text
+                if not result:
+                    raise ProviderError(self.provider, "LLM returned empty response (None or empty string).")
                 
                 # Cache successful response
                 self._cache_response(cache_key, result)
@@ -198,6 +200,30 @@ class LLMService:
                 if not hasattr(self, '_genai_client') or self._genai_client is None:
                     self._genai_client = genai.Client(api_key=self.api_key)
                 
+                # Create safety settings to disable content filtering
+                safety_settings = [
+                    types.SafetySetting(
+                        category='HARM_CATEGORY_HATE_SPEECH',
+                        threshold='BLOCK_NONE',
+                    ),
+                    types.SafetySetting(
+                        category='HARM_CATEGORY_SEXUALLY_EXPLICIT',
+                        threshold='BLOCK_NONE',
+                    ),
+                    types.SafetySetting(
+                        category='HARM_CATEGORY_DANGEROUS_CONTENT',
+                        threshold='BLOCK_NONE',
+                    ),
+                    types.SafetySetting(
+                        category='HARM_CATEGORY_HARASSMENT',
+                        threshold='BLOCK_NONE',
+                    ),
+                    types.SafetySetting(
+                        category='HARM_CATEGORY_CIVIC_INTEGRITY',
+                        threshold='BLOCK_NONE',
+                    ),
+                ]
+                
                 # Generate content with JSON mode
                 response = self._genai_client.models.generate_content(
                     model=self.model_name,
@@ -205,11 +231,14 @@ class LLMService:
                     config=types.GenerateContentConfig(
                         response_mime_type='application/json',
                         temperature=temp,
-                        max_output_tokens=tokens
+                        max_output_tokens=tokens,
+                        safety_settings=safety_settings
                     )
                 )
                 
                 content = response.text
+                if not content:
+                    raise ProviderError(self.provider, "LLM returned empty response (None or empty string).")
             else:
                 # Use Google GenAI SDK for non-JSON mode
                 from google import genai
@@ -219,16 +248,43 @@ class LLMService:
                 if not hasattr(self, '_genai_client') or self._genai_client is None:
                     self._genai_client = genai.Client(api_key=self.api_key)
                 
+                # Create safety settings to disable content filtering
+                safety_settings = [
+                    types.SafetySetting(
+                        category='HARM_CATEGORY_HATE_SPEECH',
+                        threshold='BLOCK_NONE',
+                    ),
+                    types.SafetySetting(
+                        category='HARM_CATEGORY_SEXUALLY_EXPLICIT',
+                        threshold='BLOCK_NONE',
+                    ),
+                    types.SafetySetting(
+                        category='HARM_CATEGORY_DANGEROUS_CONTENT',
+                        threshold='BLOCK_NONE',
+                    ),
+                    types.SafetySetting(
+                        category='HARM_CATEGORY_HARASSMENT',
+                        threshold='BLOCK_NONE',
+                    ),
+                    types.SafetySetting(
+                        category='HARM_CATEGORY_CIVIC_INTEGRITY',
+                        threshold='BLOCK_NONE',
+                    ),
+                ]
+                
                 response = self._genai_client.models.generate_content(
                     model=self.model_name,
                     contents=prompt,
                     config=types.GenerateContentConfig(
                         temperature=temp,
-                        max_output_tokens=tokens
+                        max_output_tokens=tokens,
+                        safety_settings=safety_settings
                     )
                 )
                 
                 content = response.text
+                if not content:
+                    raise ProviderError(self.provider, "LLM returned empty response (None or empty string).")
             
             return {
                 'content': content,
