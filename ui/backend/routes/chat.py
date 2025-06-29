@@ -70,8 +70,7 @@ async def chat_with_podcast(podcast_id: str, request: ChatRequest) -> ChatRespon
 
             result = rag_service.search(
                 query=request.query,
-                database_name=db_name,
-                system_instruction=persona_directive
+                database_name=db_name
             )
             
             # Handle different response statuses
