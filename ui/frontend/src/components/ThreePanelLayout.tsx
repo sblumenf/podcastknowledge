@@ -1,6 +1,7 @@
 import { useParams } from 'react-router-dom'
 import { useRef, useState, useEffect } from 'react'
 import { PanelDivider } from './PanelDivider'
+import { ChatPanel } from './ChatPanel'
 import styles from './ThreePanelLayout.module.css'
 
 export function ThreePanelLayout() {
@@ -103,8 +104,7 @@ export function ThreePanelLayout() {
           </div>
           {!leftCollapsed && (
             <div className={styles.panelContent}>
-              <p>Podcast ID: {id}</p>
-              <p>Chat panel - Phase 4 implementation pending</p>
+              <ChatPanel podcastId={id || ''} />
             </div>
           )}
         </section>

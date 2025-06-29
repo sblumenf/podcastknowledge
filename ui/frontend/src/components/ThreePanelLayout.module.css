@@ -69,6 +69,13 @@
 
 .panelContent {
   flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.middlePanel .panelContent,
+.rightPanel .panelContent {
   padding: 1.5rem;
   overflow-y: auto;
 }

@@ -1,0 +1,127 @@
+import { useState, useRef, useEffect } from 'react'
+import type { ChatMessage } from '../types'
+import styles from './ChatPanel.module.css'
+
+interface ChatPanelProps {
+  podcastId: string
+}
+
+export function ChatPanel({ podcastId }: ChatPanelProps) {
+  const [messages, setMessages] = useState<ChatMessage[]>([])
+  const [inputValue, setInputValue] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
+  const messagesEndRef = useRef<HTMLDivElement>(null)
+  
+  // Auto-scroll to bottom when new messages arrive
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }
+  
+  useEffect(() => {
+    scrollToBottom()
+  }, [messages])
+  
+  const handleSend = async () => {
+    if (!inputValue.trim() || isLoading) return
+    
+    const userMessage: ChatMessage = {
+      role: 'user',
+      content: inputValue,
+      timestamp: new Date().toISOString()
+    }
+    
+    setMessages(prev => [...prev, userMessage])
+    setInputValue('')
+    setIsLoading(true)
+    
+    try {
+      const response = await fetch(`http://localhost:8000/api/chat/${podcastId}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ query: inputValue })
+      })
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+      
+      const data = await response.json()
+      
+      const assistantMessage: ChatMessage = {
+        role: 'assistant',
+        content: data.answer || 'Sorry, I could not process your request.',
+        timestamp: new Date().toISOString()
+      }
+      
+      setMessages(prev => [...prev, assistantMessage])
+    } catch (error) {
+      const errorMessage: ChatMessage = {
+        role: 'assistant',
+        content: 'Sorry, there was an error processing your request. Please try again.',
+        timestamp: new Date().toISOString()
+      }
+      setMessages(prev => [...prev, errorMessage])
+    } finally {
+      setIsLoading(false)
+    }
+  }
+  
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault()
+      handleSend()
+    }
+  }
+  
+  return (
+    <div className={styles.chatPanel}>
+      <div className={styles.messagesContainer}>
+        {messages.length === 0 ? (
+          <div className={styles.emptyState}>
+            <p>Ask a question about this podcast!</p>
+          </div>
+        ) : (
+          messages.map((message, index) => (
+            <div 
+              key={index}
+              className={`${styles.message} ${styles[message.role]}`}
+            >
+              <div className={styles.messageContent}>
+                {message.content}
+              </div>
+            </div>
+          ))
+        )}
+        {isLoading && (
+          <div className={`${styles.message} ${styles.assistant}`}>
+            <div className={styles.messageContent}>
+              <div className={styles.loading}>Thinking...</div>
+            </div>
+          </div>
+        )}
+        <div ref={messagesEndRef} />
+      </div>
+      
+      <div className={styles.inputContainer}>
+        <textarea
+          className={styles.input}
+          value={inputValue}
+          onChange={(e) => setInputValue(e.target.value)}
+          onKeyPress={handleKeyPress}
+          placeholder="Type your question..."
+          disabled={isLoading}
+          rows={1}
+        />
+        <button 
+          className={styles.sendButton}
+          onClick={handleSend}
+          disabled={!inputValue.trim() || isLoading}
+        >
+          Send
+        </button>
+      </div>
+    </div>
+  )
+}
