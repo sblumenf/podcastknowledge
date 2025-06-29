@@ -7,6 +7,8 @@ interface ChatPanelProps {
   podcastId: string
 }
 
+const MAX_MESSAGES = 50 // Limit message history for performance
+
 export function ChatPanel({ podcastId }: ChatPanelProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [inputValue, setInputValue] = useState('')
@@ -22,6 +24,13 @@ export function ChatPanel({ podcastId }: ChatPanelProps) {
     scrollToBottom()
   }, [messages])
   
+  // Clear chat when switching podcasts
+  useEffect(() => {
+    setMessages([])
+    setInputValue('')
+    setIsLoading(false)
+  }, [podcastId])
+  
   const handleSend = async () => {
     if (!inputValue.trim() || isLoading) return
     
@@ -31,7 +40,7 @@ export function ChatPanel({ podcastId }: ChatPanelProps) {
       timestamp: new Date().toISOString()
     }
     
-    setMessages(prev => [...prev, userMessage])
+    setMessages(prev => [...prev, userMessage].slice(-MAX_MESSAGES))
     setInputValue('')
     setIsLoading(true)
     
@@ -56,14 +65,14 @@ export function ChatPanel({ podcastId }: ChatPanelProps) {
         timestamp: new Date().toISOString()
       }
       
-      setMessages(prev => [...prev, assistantMessage])
+      setMessages(prev => [...prev, assistantMessage].slice(-MAX_MESSAGES))
     } catch (error) {
       const errorMessage: ChatMessage = {
         role: 'assistant',
         content: 'Sorry, there was an error processing your request. Please try again.',
         timestamp: new Date().toISOString()
       }
-      setMessages(prev => [...prev, errorMessage])
+      setMessages(prev => [...prev, errorMessage].slice(-MAX_MESSAGES))
     } finally {
       setIsLoading(false)
     }
