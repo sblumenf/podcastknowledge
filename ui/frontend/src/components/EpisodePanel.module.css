@@ -5,9 +5,38 @@
   background: white;
 }
 
+.searchContainer {
+  padding: 1rem;
+  border-bottom: 1px solid #e0e0e0;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.searchInput {
+  flex: 1;
+  padding: 0.5rem 1rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  font-family: inherit;
+}
+
+.searchInput:focus {
+  outline: none;
+  border-color: #1976d2;
+}
+
+.resultCount {
+  font-size: 0.875rem;
+  color: #666;
+  white-space: nowrap;
+}
+
 .loading,
 .error,
-.empty {
+.empty,
+.noResults {
   flex: 1;
   display: flex;
   align-items: center;

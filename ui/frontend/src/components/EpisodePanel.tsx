@@ -14,12 +14,19 @@ export function EpisodePanel({ podcastId }: EpisodePanelProps) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [scrollTop, setScrollTop] = useState(0)
+  const [searchTerm, setSearchTerm] = useState('')
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('')
   
   const containerRef = useRef<HTMLDivElement>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
+  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   
   // Fetch episodes when podcast changes
   useEffect(() => {
+    // Clear search when switching podcasts
+    setSearchTerm('')
+    setDebouncedSearchTerm('')
+    
     const fetchEpisodes = async () => {
       setLoading(true)
       setError(null)
@@ -50,6 +57,35 @@ export function EpisodePanel({ podcastId }: EpisodePanelProps) {
     }
   }, [])
   
+  // Debounce search input
+  useEffect(() => {
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current)
+    }
+    
+    searchTimeoutRef.current = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm)
+      // Reset scroll position when search changes
+      if (scrollRef.current) {
+        scrollRef.current.scrollTop = 0
+        setScrollTop(0)
+      }
+    }, 300)
+    
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current)
+      }
+    }
+  }, [searchTerm])
+  
+  // Filter episodes based on search term
+  const filteredEpisodes = debouncedSearchTerm
+    ? episodes.filter(episode => 
+        episode.title.toLowerCase().includes(debouncedSearchTerm.toLowerCase())
+      )
+    : episodes
+  
   // Calculate visible items for virtual scrolling
   const containerHeight = containerRef.current?.clientHeight || 600
   const startIndex = Math.floor(scrollTop / ITEM_HEIGHT)
@@ -57,11 +93,11 @@ export function EpisodePanel({ podcastId }: EpisodePanelProps) {
   
   // Add buffer for smooth scrolling
   const visibleStartIndex = Math.max(0, startIndex - BUFFER_ITEMS)
-  const visibleEndIndex = Math.min(episodes.length, endIndex + BUFFER_ITEMS)
-  const visibleEpisodes = episodes.slice(visibleStartIndex, visibleEndIndex)
+  const visibleEndIndex = Math.min(filteredEpisodes.length, endIndex + BUFFER_ITEMS)
+  const visibleEpisodes = filteredEpisodes.slice(visibleStartIndex, visibleEndIndex)
   
   // Total height for scroll container
-  const totalHeight = episodes.length * ITEM_HEIGHT
+  const totalHeight = filteredEpisodes.length * ITEM_HEIGHT
   
   if (loading) {
     return (
@@ -89,35 +125,59 @@ export function EpisodePanel({ podcastId }: EpisodePanelProps) {
   
   return (
     <div className={styles.container} ref={containerRef}>
+      <div className={styles.searchContainer}>
+        <input
+          type="text"
+          className={styles.searchInput}
+          placeholder="Search episodes..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+        {debouncedSearchTerm && (
+          <span className={styles.resultCount}>
+            {filteredEpisodes.length} of {episodes.length} episodes
+          </span>
+        )}
+      </div>
       <div 
         className={styles.scrollContainer}
         ref={scrollRef}
         onScroll={handleScroll}
       >
-        <div 
-          className={styles.virtualSpacer}
-          style={{ height: totalHeight }}
-        >
-          <div 
-            className={styles.episodesList}
-            style={{ transform: `translateY(${visibleStartIndex * ITEM_HEIGHT}px)` }}
-          >
-            {visibleEpisodes.map((episode, index) => (
-              <div 
-                key={episode.id}
-                className={styles.episodeItem}
-                style={{ height: ITEM_HEIGHT }}
-              >
-                <span className={styles.episodeNumber}>
-                  {visibleStartIndex + index + 1}
-                </span>
-                <span className={styles.episodeTitle}>
-                  {episode.title}
-                </span>
-              </div>
-            ))}
+        {filteredEpisodes.length === 0 ? (
+          <div className={styles.noResults}>
+            No episodes match "{debouncedSearchTerm}"
           </div>
-        </div>
+        ) : (
+          <div 
+            className={styles.virtualSpacer}
+            style={{ height: totalHeight }}
+          >
+            <div 
+              className={styles.episodesList}
+              style={{ transform: `translateY(${visibleStartIndex * ITEM_HEIGHT}px)` }}
+            >
+              {visibleEpisodes.map((episode) => {
+                // Find actual index in original episodes array
+                const originalIndex = episodes.findIndex(ep => ep.id === episode.id)
+                return (
+                  <div 
+                    key={episode.id}
+                    className={styles.episodeItem}
+                    style={{ height: ITEM_HEIGHT }}
+                  >
+                    <span className={styles.episodeNumber}>
+                      {originalIndex + 1}
+                    </span>
+                    <span className={styles.episodeTitle}>
+                      {episode.title}
+                    </span>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )
