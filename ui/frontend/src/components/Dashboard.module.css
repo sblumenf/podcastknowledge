@@ -1,26 +1,55 @@
 .container {
   min-height: 100vh;
-  background: var(--color-surface-variant);
+  background: transparent;
   padding: var(--spacing-xl);
 }
 
 .header {
-  text-align: center;
-  margin-bottom: var(--spacing-xxl);
+  margin-bottom: var(--spacing-xl);
 }
 
 .title {
-  font-size: var(--text-display-large);
+  font-size: 2rem;
   font-weight: var(--font-weight-regular);
   color: var(--color-on-surface);
-  margin: 0 0 var(--spacing-xs) 0;
+  margin: 0 0 var(--spacing-lg) 0;
   font-family: var(--font-family-display);
+  text-align: center;
 }
 
-.subtitle {
-  font-size: var(--text-body-large);
-  color: var(--color-on-surface-variant);
-  margin: 0;
+.toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 var(--spacing-md);
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.createButton {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-sm) var(--spacing-lg);
+  background: var(--color-surface-container);
+  border: 1px solid var(--color-outline-variant);
+  border-radius: var(--radius-full);
+  color: var(--color-on-surface);
+  font-size: var(--text-body-medium);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.createButton:hover {
+  background: var(--color-surface-container-high);
+  border-color: var(--color-outline);
+  box-shadow: var(--elevation-1);
+}
+
+.createButton svg {
+  width: 20px;
+  height: 20px;
 }
 
 .main {
@@ -30,8 +59,16 @@
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: var(--spacing-lg);
+  padding: 0 var(--spacing-md);
+}
+
+/* List view styles */
+.listView {
+  grid-template-columns: 1fr;
+  max-width: 800px;
+  margin: 0 auto;
 }
 
 .loading,
@@ -58,11 +95,21 @@
   }
   
   .title {
-    font-size: 2rem;
+    font-size: 1.5rem;
+  }
+  
+  .toolbar {
+    flex-direction: column;
+    gap: var(--spacing-md);
+    align-items: stretch;
+  }
+  
+  .createButton {
+    justify-content: center;
   }
   
   .grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
     gap: var(--spacing-md);
   }
 }
