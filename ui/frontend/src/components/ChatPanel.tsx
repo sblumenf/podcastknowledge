@@ -67,7 +67,7 @@ export function ChatPanel({ podcastId }: ChatPanelProps) {
       
       const assistantMessage: ChatMessage = {
         role: 'assistant',
-        content: data.answer || 'Sorry, I could not process your request.',
+        content: data.response || 'Sorry, I could not process your request.',
         timestamp: new Date().toISOString()
       }
       

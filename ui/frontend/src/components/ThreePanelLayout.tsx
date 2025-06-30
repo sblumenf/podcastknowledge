@@ -5,6 +5,8 @@ import { ChatPanel } from './ChatPanel'
 import { EpisodePanel } from './EpisodePanel'
 import { GraphPanel } from './GraphPanel'
 import { Breadcrumbs } from './Breadcrumbs'
+import { CollapseIcon } from './CollapseIcon'
+import { ChatBubbleIcon, EpisodeIcon, AddIcon } from './NavigationIcons'
 import styles from './ThreePanelLayout.module.css'
 
 export function ThreePanelLayout() {
@@ -19,6 +21,10 @@ export function ThreePanelLayout() {
   const [leftWidth, setLeftWidth] = useState(25)
   const [rightWidth, setRightWidth] = useState(25)
   
+  // Store widths before collapse to restore later
+  const [preCollapseLeftWidth, setPreCollapseLeftWidth] = useState(25)
+  const [preCollapseRightWidth, setPreCollapseRightWidth] = useState(25)
+  
   // Collapse states
   const [leftCollapsed, setLeftCollapsed] = useState(false)
   const [rightCollapsed, setRightCollapsed] = useState(false)
@@ -31,6 +37,8 @@ export function ThreePanelLayout() {
         const state = JSON.parse(savedState)
         setLeftWidth(state.leftWidth || 25)
         setRightWidth(state.rightWidth || 25)
+        setPreCollapseLeftWidth(state.preCollapseLeftWidth || state.leftWidth || 25)
+        setPreCollapseRightWidth(state.preCollapseRightWidth || state.rightWidth || 25)
         setLeftCollapsed(state.leftCollapsed || false)
         setRightCollapsed(state.rightCollapsed || false)
       } catch (e) {
@@ -44,11 +52,41 @@ export function ThreePanelLayout() {
     const state = {
       leftWidth,
       rightWidth,
+      preCollapseLeftWidth,
+      preCollapseRightWidth,
       leftCollapsed,
       rightCollapsed
     }
     localStorage.setItem('panelState', JSON.stringify(state))
-  }, [leftWidth, rightWidth, leftCollapsed, rightCollapsed])
+  }, [leftWidth, rightWidth, preCollapseLeftWidth, preCollapseRightWidth, leftCollapsed, rightCollapsed])
+  
+  /**
+   * Toggle collapse state for left panel
+   */
+  const toggleLeftCollapse = () => {
+    if (leftCollapsed) {
+      // Restore to previous width
+      setLeftWidth(preCollapseLeftWidth)
+    } else {
+      // Store current width before collapsing
+      setPreCollapseLeftWidth(leftWidth)
+    }
+    setLeftCollapsed(!leftCollapsed)
+  }
+  
+  /**
+   * Toggle collapse state for right panel
+   */
+  const toggleRightCollapse = () => {
+    if (rightCollapsed) {
+      // Restore to previous width
+      setRightWidth(preCollapseRightWidth)
+    } else {
+      // Store current width before collapsing
+      setPreCollapseRightWidth(rightWidth)
+    }
+    setRightCollapsed(!rightCollapsed)
+  }
   
   /**
    * Handles resizing of the left panel
@@ -87,34 +125,75 @@ export function ThreePanelLayout() {
   }
   
   // Calculate grid template with collapse states
-  const collapsedSize = 64 // px
-  const getColumnSize = (width: number, collapsed: boolean) => {
-    return collapsed ? `${collapsedSize}px` : `${width}%`
+  const collapsedSize = 48 // px - narrower to match NotebookLM
+  
+  // Calculate actual widths accounting for collapsed panels
+  const getActualWidth = (baseWidth: number, isCollapsed: boolean) => {
+    if (!containerRef.current) return baseWidth
+    const containerWidth = containerRef.current.offsetWidth
+    const collapsedPercent = (collapsedSize / containerWidth) * 100
+    return isCollapsed ? collapsedPercent : baseWidth
   }
   
-  const actualLeftWidth = leftCollapsed ? 0 : leftWidth
-  const actualRightWidth = rightCollapsed ? 0 : rightWidth
-  const middleWidth = 100 - actualLeftWidth - actualRightWidth
+  const actualLeftWidth = getActualWidth(leftWidth, leftCollapsed)
+  const actualRightWidth = getActualWidth(rightWidth, rightCollapsed)
   
-  const gridTemplateColumns = `${getColumnSize(leftWidth, leftCollapsed)} 4px ${middleWidth}% 4px ${getColumnSize(rightWidth, rightCollapsed)}`
+  // Ensure middle panel takes remaining space properly
+  const dividerSpace = 10 // 5px * 2 dividers
+  const totalCollapsedSpace = (leftCollapsed ? collapsedSize : 0) + (rightCollapsed ? collapsedSize : 0)
+  const availableSpace = 100 - (dividerSpace / (containerRef.current?.offsetWidth || 1000) * 100)
+  
+  const middleWidth = leftCollapsed && rightCollapsed 
+    ? availableSpace - (totalCollapsedSpace / (containerRef.current?.offsetWidth || 1000) * 100)
+    : 100 - actualLeftWidth - actualRightWidth
+  
+  // Build grid template with proper collapse sizing
+  const leftColumnSize = leftCollapsed ? `${collapsedSize}px` : `${leftWidth}%`
+  const rightColumnSize = rightCollapsed ? `${collapsedSize}px` : `${rightWidth}%`
+  
+  const gridTemplateColumns = `${leftColumnSize} 1px ${middleWidth}% 1px ${rightColumnSize}`
   
   return (
     <div className={styles.container} ref={containerRef}>
       <Breadcrumbs podcastId={id || ''} />
       <div className={styles.panelGrid} style={{ gridTemplateColumns }}>
         {/* Left Panel - Chat */}
-        <section className={`${styles.leftPanel} ${leftCollapsed ? styles.collapsed : ''}`} ref={leftPanelRef}>
-          <div className={styles.panelHeader}>
-            <h2>{leftCollapsed ? 'C' : 'Chat'}</h2>
-            <button 
-              className={styles.collapseButton}
-              onClick={() => setLeftCollapsed(!leftCollapsed)}
-              aria-label={leftCollapsed ? 'Expand chat panel' : 'Collapse chat panel'}
-            >
-              {leftCollapsed ? '→' : '←'}
-            </button>
-          </div>
+        <section 
+          className={`${styles.leftPanel} ${leftCollapsed ? styles.collapsed : ''}`} 
+          ref={leftPanelRef}
+          onClick={leftCollapsed ? toggleLeftCollapse : undefined}
+        >
           {!leftCollapsed && (
+            <div className={styles.panelHeader}>
+              <h2>Chat</h2>
+              <button 
+                className={styles.collapseButton}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  toggleLeftCollapse()
+                }}
+                aria-label="Collapse chat panel"
+              >
+                <CollapseIcon direction="left" />
+              </button>
+            </div>
+          )}
+          {leftCollapsed ? (
+            <div className={styles.navigationRail}>
+              <button 
+                className={styles.expandButton}
+                onClick={toggleLeftCollapse}
+                aria-label="Expand chat panel"
+              >
+                <CollapseIcon direction="left" />
+              </button>
+              <div className={styles.railIcons}>
+                <ChatBubbleIcon className={styles.railIcon} />
+                <ChatBubbleIcon className={styles.railIcon} />
+                <ChatBubbleIcon className={styles.railIcon} />
+              </div>
+            </div>
+          ) : (
             <div className={styles.panelContent}>
               <ChatPanel podcastId={id || ''} />
             </div>
@@ -138,18 +217,43 @@ export function ThreePanelLayout() {
         <PanelDivider onResize={handleRightResize} />
         
         {/* Right Panel - Episodes */}
-        <section className={`${styles.rightPanel} ${rightCollapsed ? styles.collapsed : ''}`} ref={rightPanelRef}>
-          <div className={styles.panelHeader}>
-            <h2>{rightCollapsed ? 'E' : 'Episodes'}</h2>
-            <button 
-              className={styles.collapseButton}
-              onClick={() => setRightCollapsed(!rightCollapsed)}
-              aria-label={rightCollapsed ? 'Expand episodes panel' : 'Collapse episodes panel'}
-            >
-              {rightCollapsed ? '←' : '→'}
-            </button>
-          </div>
+        <section 
+          className={`${styles.rightPanel} ${rightCollapsed ? styles.collapsed : ''}`} 
+          ref={rightPanelRef}
+          onClick={rightCollapsed ? toggleRightCollapse : undefined}
+        >
           {!rightCollapsed && (
+            <div className={styles.panelHeader}>
+              <h2>Studio</h2>
+              <button 
+                className={styles.collapseButton}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  toggleRightCollapse()
+                }}
+                aria-label="Collapse studio panel"
+              >
+                <CollapseIcon direction="right" />
+              </button>
+            </div>
+          )}
+          {rightCollapsed ? (
+            <div className={styles.navigationRail}>
+              <button 
+                className={styles.expandButton}
+                onClick={toggleRightCollapse}
+                aria-label="Expand studio panel"
+              >
+                <CollapseIcon direction="right" />
+              </button>
+              <div className={styles.railIcons}>
+                <AddIcon className={styles.railIcon} />
+                <EpisodeIcon number={1} className={styles.railIcon} />
+                <EpisodeIcon number={2} className={styles.railIcon} />
+                <EpisodeIcon number={3} className={styles.railIcon} />
+              </div>
+            </div>
+          ) : (
             <div className={styles.panelContent}>
               <EpisodePanel podcastId={id || ''} />
             </div>

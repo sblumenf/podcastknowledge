@@ -1,7 +1,7 @@
 .container {
   height: 100vh;
   overflow: hidden;
-  background: #f5f5f5;
+  background: #1a1b1d; /* Darker background like NotebookLM */
   display: flex;
   flex-direction: column;
 }
@@ -9,65 +9,119 @@
 .panelGrid {
   display: grid;
   flex: 1;
-  background: #f5f5f5;
+  background: transparent;
   overflow: hidden;
+  gap: 0;
+  padding: 0;
 }
 
 .leftPanel,
 .middlePanel,
 .rightPanel {
-  background: white;
+  background: var(--color-surface);
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  transition: all 0.3s ease;
+  transition: width var(--transition-medium) ease;
+  border-radius: 0;
+  box-shadow: none;
+  position: relative;
+  border-right: 1px solid var(--color-outline-variant);
+}
+
+.rightPanel {
+  border-right: none;
 }
 
 .panelHeader {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1rem 1.5rem;
-  border-bottom: 1px solid #e0e0e0;
-  background: #fafafa;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-bottom: 1px solid var(--color-outline-variant);
+  background: transparent;
+  min-height: 48px;
+  position: relative;
 }
 
 .panelHeader h2 {
   margin: 0;
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: #333;
+  font-size: var(--text-headline-medium);
+  font-weight: var(--font-weight-regular);
+  color: var(--color-on-surface);
+  font-family: var(--font-family-display);
+  letter-spacing: 0;
 }
 
-.collapseButton {
-  background: none;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  padding: 0.25rem 0.5rem;
+.collapseButton,
+.expandButton {
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-xs);
+  padding: var(--spacing-xxs);
   cursor: pointer;
-  font-size: 1rem;
-  color: #666;
-  transition: all 0.2s ease;
-}
-
-.collapseButton:hover {
-  background: #f0f0f0;
-  border-color: #999;
-}
-
-.collapsed .panelHeader {
-  writing-mode: vertical-lr;
-  text-orientation: mixed;
-  padding: 1rem 0.5rem;
+  color: var(--color-on-surface-variant);
+  transition: all var(--transition-fast);
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
   justify-content: center;
+  position: absolute;
+  top: var(--spacing-sm);
+  right: var(--spacing-sm);
 }
 
-.collapsed .panelHeader h2 {
-  font-size: 1.1rem;
+.expandButton {
+  position: static;
+  margin: var(--spacing-sm) auto var(--spacing-md);
 }
 
-.collapsed .collapseButton {
-  margin-top: 0.5rem;
+.collapseButton:hover,
+.expandButton:hover {
+  background: var(--color-surface-container);
+  color: var(--color-on-surface);
+}
+
+.collapsed {
+  flex-shrink: 0;
+  width: 48px !important;
+  cursor: pointer;
+}
+
+.collapsed:hover {
+  background: var(--color-surface-variant);
+}
+
+/* Navigation rail for collapsed panels */
+.navigationRail {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: var(--spacing-xs) 0;
+  height: 100%;
+}
+
+.railIcons {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-md);
+}
+
+.railIcon {
+  width: 32px;
+  height: 32px;
+  padding: var(--spacing-xxs);
+  color: var(--color-on-surface-variant);
+  cursor: pointer;
+  border-radius: var(--radius-xs);
+  transition: all var(--transition-fast);
+}
+
+.railIcon:hover {
+  background: var(--color-surface-container);
+  color: var(--color-on-surface);
 }
 
 .panelContent {
@@ -75,27 +129,34 @@
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  background: var(--color-surface);
 }
 
 .middlePanel .panelContent,
 .rightPanel .panelContent {
-  padding: 1.5rem;
+  padding: var(--spacing-lg);
   overflow-y: auto;
 }
 
 .panelContent p {
-  color: #666;
+  color: var(--color-on-surface-variant);
+  font-size: var(--text-body-medium);
+  line-height: 1.5;
 }
 
 /* Ensure panels maintain minimum width */
-.leftPanel {
+.leftPanel,
+.rightPanel {
   min-width: 200px;
+}
+
+.leftPanel.collapsed,
+.rightPanel.collapsed {
+  min-width: 48px;
+  max-width: 48px;
+  width: 48px;
 }
 
 .middlePanel {
   min-width: 400px;
-}
-
-.rightPanel {
-  min-width: 200px;
 }

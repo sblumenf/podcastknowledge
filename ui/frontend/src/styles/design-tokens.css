@@ -1,0 +1,102 @@
+/* Google NotebookLM-inspired Design Tokens */
+/* Based on Material Design 3 and NotebookLM's aesthetic */
+
+:root {
+  /* Colors - NotebookLM Dark Theme */
+  --color-primary: #8ab4f8;
+  --color-primary-hover: #669df6;
+  --color-primary-light: #1a73e8;
+  
+  --color-surface: #202124;
+  --color-surface-variant: #28292d;
+  --color-surface-container: #303134;
+  --color-surface-container-high: #3c4043;
+  
+  --color-on-surface: #e8eaed;
+  --color-on-surface-variant: #9aa0a6;
+  --color-on-surface-disabled: #5f6368;
+  
+  --color-outline: #3c4043;
+  --color-outline-variant: #303134;
+  
+  --color-error: #d93025;
+  --color-success: #1e8e3e;
+  
+  /* Typography - Google Sans inspired */
+  --font-family-display: 'Google Sans Display', 'Roboto', system-ui, -apple-system, sans-serif;
+  --font-family-text: 'Google Sans Text', 'Roboto', system-ui, -apple-system, sans-serif;
+  --font-family-mono: 'Google Sans Mono', 'Roboto Mono', monospace;
+  
+  /* Font sizes */
+  --text-display-large: 2.5rem;
+  --text-display-medium: 2rem;
+  --text-display-small: 1.75rem;
+  
+  --text-headline-large: 1.5rem;
+  --text-headline-medium: 1.25rem;
+  --text-headline-small: 1.125rem;
+  
+  --text-title-large: 1.375rem;
+  --text-title-medium: 1rem;
+  --text-title-small: 0.875rem;
+  
+  --text-body-large: 1rem;
+  --text-body-medium: 0.875rem;
+  --text-body-small: 0.75rem;
+  
+  --text-label-large: 0.875rem;
+  --text-label-medium: 0.75rem;
+  --text-label-small: 0.6875rem;
+  
+  /* Font weights */
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  
+  /* Spacing */
+  --spacing-xxs: 0.25rem;
+  --spacing-xs: 0.5rem;
+  --spacing-sm: 0.75rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 1.5rem;
+  --spacing-xl: 2rem;
+  --spacing-xxl: 3rem;
+  
+  /* Border radius */
+  --radius-xs: 0.25rem;
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
+  --radius-full: 9999px;
+  
+  /* Elevation (shadows) */
+  --elevation-none: none;
+  --elevation-1: 0 1px 2px 0 rgba(60, 64, 67, 0.3), 0 1px 3px 1px rgba(60, 64, 67, 0.15);
+  --elevation-2: 0 1px 2px 0 rgba(60, 64, 67, 0.3), 0 2px 6px 2px rgba(60, 64, 67, 0.15);
+  --elevation-3: 0 1px 3px 0 rgba(60, 64, 67, 0.3), 0 4px 8px 3px rgba(60, 64, 67, 0.15);
+  --elevation-4: 0 2px 3px 0 rgba(60, 64, 67, 0.3), 0 6px 10px 4px rgba(60, 64, 67, 0.15);
+  --elevation-5: 0 4px 4px 0 rgba(60, 64, 67, 0.3), 0 8px 12px 6px rgba(60, 64, 67, 0.15);
+  
+  /* Transitions */
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-medium: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 350ms cubic-bezier(0.4, 0, 0.2, 1);
+  
+  /* Z-index layers */
+  --z-base: 0;
+  --z-dropdown: 1000;
+  --z-sticky: 1020;
+  --z-fixed: 1030;
+  --z-modal-backdrop: 1040;
+  --z-modal: 1050;
+  --z-popover: 1060;
+  --z-tooltip: 1070;
+}
+
+/* Light mode overrides - NotebookLM is dark by default */
+@media (prefers-color-scheme: light) {
+  :root {
+    /* Keep dark theme even in light mode to match NotebookLM */
+  }
+}
