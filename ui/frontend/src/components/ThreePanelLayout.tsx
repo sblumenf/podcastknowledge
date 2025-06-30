@@ -6,7 +6,6 @@ import { EpisodePanel } from './EpisodePanel'
 import { GraphPanel } from './GraphPanel'
 import { Breadcrumbs } from './Breadcrumbs'
 import { CollapseIcon } from './CollapseIcon'
-import { ChatBubbleIcon, EpisodeIcon, AddIcon } from './NavigationIcons'
 import styles from './ThreePanelLayout.module.css'
 
 export function ThreePanelLayout() {
@@ -41,7 +40,7 @@ export function ThreePanelLayout() {
         setPreCollapseRightWidth(state.preCollapseRightWidth || state.rightWidth || 25)
         setLeftCollapsed(state.leftCollapsed || false)
         setRightCollapsed(state.rightCollapsed || false)
-      } catch (e) {
+      } catch {
         // Invalid saved state, use defaults
       }
     }
@@ -161,39 +160,18 @@ export function ThreePanelLayout() {
         <section 
           className={`${styles.leftPanel} ${leftCollapsed ? styles.collapsed : ''}`} 
           ref={leftPanelRef}
-          onClick={leftCollapsed ? toggleLeftCollapse : undefined}
         >
+          <div className={styles.panelHeader}>
+            {!leftCollapsed && <h2>Chat</h2>}
+            <button 
+              className={styles.collapseButton}
+              onClick={toggleLeftCollapse}
+              aria-label={leftCollapsed ? 'Expand chat panel' : 'Collapse chat panel'}
+            >
+              <CollapseIcon direction="left" />
+            </button>
+          </div>
           {!leftCollapsed && (
-            <div className={styles.panelHeader}>
-              <h2>Chat</h2>
-              <button 
-                className={styles.collapseButton}
-                onClick={(e) => {
-                  e.stopPropagation()
-                  toggleLeftCollapse()
-                }}
-                aria-label="Collapse chat panel"
-              >
-                <CollapseIcon direction="left" />
-              </button>
-            </div>
-          )}
-          {leftCollapsed ? (
-            <div className={styles.navigationRail}>
-              <button 
-                className={styles.expandButton}
-                onClick={toggleLeftCollapse}
-                aria-label="Expand chat panel"
-              >
-                <CollapseIcon direction="left" />
-              </button>
-              <div className={styles.railIcons}>
-                <ChatBubbleIcon className={styles.railIcon} />
-                <ChatBubbleIcon className={styles.railIcon} />
-                <ChatBubbleIcon className={styles.railIcon} />
-              </div>
-            </div>
-          ) : (
             <div className={styles.panelContent}>
               <ChatPanel podcastId={id || ''} />
             </div>
@@ -220,40 +198,18 @@ export function ThreePanelLayout() {
         <section 
           className={`${styles.rightPanel} ${rightCollapsed ? styles.collapsed : ''}`} 
           ref={rightPanelRef}
-          onClick={rightCollapsed ? toggleRightCollapse : undefined}
         >
+          <div className={styles.panelHeader}>
+            {!rightCollapsed && <h2>Episodes</h2>}
+            <button 
+              className={styles.collapseButton}
+              onClick={toggleRightCollapse}
+              aria-label={rightCollapsed ? 'Expand episodes panel' : 'Collapse episodes panel'}
+            >
+              <CollapseIcon direction="right" />
+            </button>
+          </div>
           {!rightCollapsed && (
-            <div className={styles.panelHeader}>
-              <h2>Studio</h2>
-              <button 
-                className={styles.collapseButton}
-                onClick={(e) => {
-                  e.stopPropagation()
-                  toggleRightCollapse()
-                }}
-                aria-label="Collapse studio panel"
-              >
-                <CollapseIcon direction="right" />
-              </button>
-            </div>
-          )}
-          {rightCollapsed ? (
-            <div className={styles.navigationRail}>
-              <button 
-                className={styles.expandButton}
-                onClick={toggleRightCollapse}
-                aria-label="Expand studio panel"
-              >
-                <CollapseIcon direction="right" />
-              </button>
-              <div className={styles.railIcons}>
-                <AddIcon className={styles.railIcon} />
-                <EpisodeIcon number={1} className={styles.railIcon} />
-                <EpisodeIcon number={2} className={styles.railIcon} />
-                <EpisodeIcon number={3} className={styles.railIcon} />
-              </div>
-            </div>
-          ) : (
             <div className={styles.panelContent}>
               <EpisodePanel podcastId={id || ''} />
             </div>

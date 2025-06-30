@@ -30,13 +30,19 @@ interface RAGSearchRequest {
   top_k?: number
 }
 
+interface RAGSearchResult {
+  content: string
+  metadata?: Record<string, unknown>
+  score?: number
+}
+
 interface RAGSearchResponse {
   query: string
   top_k: number
-  results: any[]
+  results: RAGSearchResult[]
   message?: string
   error?: string
-  details?: any
+  details?: unknown
 }
 
 // Generic error handler
