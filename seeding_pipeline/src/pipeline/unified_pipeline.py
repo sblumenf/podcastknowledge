@@ -149,10 +149,11 @@ class UnifiedKnowledgePipeline:
         self.entity_resolver = EntityResolver()
         self.complexity_analyzer = ComplexityAnalyzer()
         self.importance_scorer = ImportanceScorer()
-        # Configure sentiment analyzer with lower confidence threshold
+        # Configure sentiment analyzer with configurable thresholds
+        import os
         sentiment_config = SentimentConfig(
-            min_confidence_threshold=0.5,  # Lowered from default 0.6
-            emotion_detection_threshold=0.3  # Keep default
+            min_confidence_threshold=float(os.getenv('SENTIMENT_MIN_CONFIDENCE', '0.5')),
+            emotion_detection_threshold=float(os.getenv('SENTIMENT_EMOTION_THRESHOLD', '0.3'))
         )
         self.sentiment_analyzer = SentimentAnalyzer(self.llm_flash, config=sentiment_config)
         

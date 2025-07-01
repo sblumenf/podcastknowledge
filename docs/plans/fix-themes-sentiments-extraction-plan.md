@@ -13,7 +13,7 @@ Ensure all new episodes processed through the pipeline properly extract and stor
 
 ### Tasks
 
-#### Task 1.1: Lower Sentiment Confidence Threshold
+#### Task 1.1: Lower Sentiment Confidence Threshold ✅ COMPLETED
 **Description**: The sentiment analyzer is currently filtering out all sentiments because its confidence threshold is set too high at 60%. We need to lower this to 50% to allow more sentiments to be stored. This is a simple configuration change that will immediately allow sentiments to be captured.
 
 **Purpose**: Allow sentiment analysis results to be stored instead of being filtered out.
@@ -33,7 +33,7 @@ Ensure all new episodes processed through the pipeline properly extract and stor
 - Check that SentimentAnalyzer is initialized with custom config
 - Verify in next processed episode that sentiments are created (count > 0)
 
-#### Task 1.2: Add Logging for Theme Extraction
+#### Task 1.2: Add Logging for Theme Extraction ✅ COMPLETED
 **Description**: Add simple logging to understand what themes are being extracted by the conversation analyzer and whether they're being stored successfully. This will help diagnose if themes are being found but not stored, or not found at all. Keep logging minimal and focused on the problem.
 
 **Purpose**: Provide visibility into theme extraction to diagnose issues.
@@ -52,7 +52,7 @@ Ensure all new episodes processed through the pipeline properly extract and stor
 - Process a test episode and check logs show theme extraction attempts
 - Verify logs clearly show which themes succeeded/failed
 
-#### Task 1.3: Add Logging for Sentiment Processing
+#### Task 1.3: Add Logging for Sentiment Processing ✅ COMPLETED
 **Description**: Add minimal logging to track sentiment analysis success/failure rates. This will show if sentiments are being analyzed but failing, or if the analysis itself is failing. We need to know the failure rate to understand the scope of the problem.
 
 **Purpose**: Diagnose why sentiment nodes aren't being created.
@@ -78,7 +78,7 @@ Extract themes from all existing episodes in the database without reprocessing t
 
 ### Tasks
 
-#### Task 2.1: Create Theme Extraction Script
+#### Task 2.1: Create Theme Extraction Script ✅ COMPLETED
 **Description**: Create a Python script that reads existing MeaningfulUnits from the database and extracts themes using the LLM. The script will query episodes without themes, gather their MeaningfulUnits, send them to Gemini 2.5 Pro for theme extraction, and store the results. This follows KISS principles by reusing existing storage methods. Script must support multi-podcast architecture.
 
 **Purpose**: Add missing themes to existing episodes for UI browsing/filtering.
@@ -121,7 +121,7 @@ Extract themes from all existing episodes in the database without reprocessing t
 - Themes are visible in correct database after running
 - Dry-run mode shows what would be processed
 
-#### Task 2.2: Create Theme Extraction Prompt
+#### Task 2.2: Create Theme Extraction Prompt ✅ COMPLETED
 **Description**: Design a focused prompt that sends all MeaningfulUnit texts from an episode to the LLM and asks for 3-7 main themes. The prompt should be simple and direct, asking for theme names and brief descriptions. Include episode title and description for context.
 
 **Purpose**: Get high-quality themes that represent the episode content.
@@ -145,7 +145,7 @@ Extract themes from all existing episodes in the database without reprocessing t
 - Verify themes are relevant and specific (not generic)
 - Confirm JSON parsing works reliably
 
-#### Task 2.3: Test Script on Single Episode
+#### Task 2.3: Test Script on Single Episode ✅ COMPLETED
 **Description**: Before running on all episodes, test the script on one episode to verify themes are extracted correctly and stored in the database. Check that the themes make sense for the episode content and are properly linked with HAS_TOPIC relationships.
 
 **Purpose**: Validate the approach before processing all episodes.
@@ -174,7 +174,7 @@ Make confidence thresholds configurable without code changes (minimal approach).
 
 ### Tasks
 
-#### Task 3.1: Add Sentiment Config to Environment
+#### Task 3.1: Add Sentiment Config to Environment ✅ COMPLETED
 **Description**: Add sentiment analysis configuration to the existing .env file so thresholds can be adjusted without code changes. This is the simplest approach that follows existing patterns in the codebase. Just add two new environment variables.
 
 **Purpose**: Allow easy adjustment of thresholds without code deployment.
