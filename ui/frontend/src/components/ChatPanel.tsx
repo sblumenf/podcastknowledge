@@ -14,6 +14,7 @@ export function ChatPanel({ podcastId }: ChatPanelProps) {
   const [inputValue, setInputValue] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
   
   // Auto-scroll to bottom when new messages arrive
   const scrollToBottom = () => {
@@ -30,6 +31,13 @@ export function ChatPanel({ podcastId }: ChatPanelProps) {
     setInputValue('')
     setIsLoading(false)
   }, [podcastId])
+  
+  // Reset textarea height when input is cleared
+  useEffect(() => {
+    if (textareaRef.current && !inputValue) {
+      textareaRef.current.style.height = 'auto'
+    }
+  }, [inputValue])
   
   const handleSend = async () => {
     if (!inputValue.trim() || isLoading) return
@@ -115,9 +123,15 @@ export function ChatPanel({ podcastId }: ChatPanelProps) {
       
       <div className={styles.inputContainer}>
         <textarea
+          ref={textareaRef}
           className={styles.input}
           value={inputValue}
-          onChange={(e) => setInputValue(e.target.value)}
+          onChange={(e) => {
+            setInputValue(e.target.value)
+            // Auto-resize to content
+            e.target.style.height = 'auto'
+            e.target.style.height = Math.min(e.target.scrollHeight, 200) + 'px'
+          }}
           onKeyPress={handleKeyPress}
           placeholder="Type your question..."
           disabled={isLoading}
