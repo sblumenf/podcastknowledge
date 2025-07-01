@@ -36,7 +36,9 @@ class Neo4jClusterUpdater:
     def update_graph(
         self,
         cluster_results: Dict[str, Any],
-        labeled_clusters: Optional[Dict[int, Dict[str, Any]]] = None
+        labeled_clusters: Optional[Dict[int, Dict[str, Any]]] = None,
+        mode: str = "current",
+        snapshot_period: Optional[str] = None
     ) -> Dict[str, Any]:
         """
         Update Neo4j with new cluster assignments.
@@ -44,11 +46,14 @@ class Neo4jClusterUpdater:
         Args:
             cluster_results: Results from HDBSCAN clusterer
             labeled_clusters: Optional dict with cluster labels (from Phase 5)
+            mode: Clustering mode - "current" or "snapshot"
+            snapshot_period: Quarter period for snapshot mode (e.g., "2023Q1")
             
         Returns:
             Statistics about the update operation
         """
-        logger.info("Updating Neo4j with clustering results")
+        logger.info(f"Updating Neo4j with clustering results in {mode} mode" + 
+                   (f" for period {snapshot_period}" if snapshot_period else ""))
         
         stats = {
             'clusters_created': 0,
@@ -62,16 +67,23 @@ class Neo4jClusterUpdater:
             with self.neo4j.driver.session() as session:
                 # Step 1: Create ClusteringState node
                 state_id = self._create_clustering_state(
-                    session, cluster_results
+                    session, cluster_results, mode, snapshot_period
                 )
                 stats['clustering_state_created'] = True
                 
                 # Step 2: Archive old cluster assignments
-                self._archive_old_assignments(session)
+                # Only archive if in current mode (snapshots don't affect current clusters)
+                if mode == "current":
+                    self._archive_old_clusters(session)
+                    self._archive_old_assignments(session)
                 
                 # Step 3: Create Cluster nodes
                 for cluster_id, units in cluster_results['clusters'].items():
-                    cluster_node_id = f"cluster_{cluster_id}"
+                    # Generate cluster ID based on mode
+                    if mode == "current":
+                        cluster_node_id = f"current_cluster_{cluster_id}"
+                    else:  # snapshot mode
+                        cluster_node_id = f"snapshot_{snapshot_period}_cluster_{cluster_id}"
                     
                     # Get label if available, otherwise use generic label
                     if labeled_clusters and cluster_id in labeled_clusters:
@@ -82,13 +94,15 @@ class Neo4jClusterUpdater:
                     # Get centroid
                     centroid = cluster_results['centroids'].get(cluster_id, [])
                     
-                    # Create cluster node
+                    # Create cluster node with mode-specific properties
                     self._create_cluster_node(
                         session,
                         cluster_node_id,
                         label,
                         len(units),
-                        centroid
+                        centroid,
+                        mode=mode,
+                        period=snapshot_period
                     )
                     stats['clusters_created'] += 1
                     
@@ -98,7 +112,8 @@ class Neo4jClusterUpdater:
                             session,
                             unit_data['unit_id'],
                             cluster_node_id,
-                            unit_data['confidence']
+                            unit_data['confidence'],
+                            mode
                         )
                         stats['relationships_created'] += 1
                 
@@ -120,17 +135,24 @@ class Neo4jClusterUpdater:
     def _create_clustering_state(
         self,
         session,
-        cluster_results: Dict[str, Any]
+        cluster_results: Dict[str, Any],
+        mode: str,
+        snapshot_period: Optional[str] = None
     ) -> str:
         """Create ClusteringState node to track this clustering run."""
         
         timestamp = datetime.now()
-        state_id = f"state_{timestamp.strftime('%Y%m%d_%H%M%S')}"
+        if mode == "snapshot" and snapshot_period:
+            state_id = f"state_{snapshot_period}_{timestamp.strftime('%Y%m%d_%H%M%S')}"
+        else:
+            state_id = f"state_current_{timestamp.strftime('%Y%m%d_%H%M%S')}"
         
         query = """
         CREATE (cs:ClusteringState {
             id: $state_id,
             timestamp: $timestamp,
+            type: $type,
+            period: $period,
             n_clusters: $n_clusters,
             n_outliers: $n_outliers,
             total_units: $total_units,
@@ -146,6 +168,8 @@ class Neo4jClusterUpdater:
         result = session.run(query, {
             'state_id': state_id,
             'timestamp': timestamp,
+            'type': mode,
+            'period': snapshot_period,
             'n_clusters': cluster_results['n_clusters'],
             'n_outliers': cluster_results['n_outliers'],
             'total_units': cluster_results['total_units'],
@@ -157,11 +181,23 @@ class Neo4jClusterUpdater:
         
         return result.single()['state_id']
     
+    def _archive_old_clusters(self, session):
+        """Archive existing current clusters."""
+        
+        query = """
+        MATCH (c:Cluster {type: 'current'})
+        SET c.status = 'archived',
+            c.archived_at = datetime()
+        """
+        
+        session.run(query)
+        logger.info("Archived existing current clusters")
+    
     def _archive_old_assignments(self, session):
         """Mark old cluster assignments as non-primary."""
         
         query = """
-        MATCH (m:MeaningfulUnit)-[r:IN_CLUSTER]->(:Cluster)
+        MATCH (m:MeaningfulUnit)-[r:IN_CLUSTER]->(c:Cluster {type: 'current'})
         WHERE r.is_primary = true
         SET r.is_primary = false,
             r.archived_at = datetime()
@@ -176,43 +212,54 @@ class Neo4jClusterUpdater:
         cluster_id: str,
         label: str,
         member_count: int,
-        centroid: List[float]
+        centroid: List[float],
+        mode: str = "current",
+        period: Optional[str] = None
     ):
-        """Create a Cluster node in Neo4j."""
+        """Create a Cluster node in Neo4j with mode-specific properties."""
         
-        query = """
-        CREATE (c:Cluster {
-            id: $cluster_id,
-            label: $label,
-            member_count: $member_count,
-            status: 'active',
-            centroid: $centroid,
-            created_timestamp: datetime()
-        })
-        """
-        
-        session.run(query, {
-            'cluster_id': cluster_id,
+        # Build properties based on mode
+        properties = {
+            'id': cluster_id,
             'label': label,
             'member_count': member_count,
-            'centroid': centroid.tolist() if hasattr(centroid, 'tolist') else list(centroid)
-        })
+            'status': 'active',
+            'centroid': centroid.tolist() if hasattr(centroid, 'tolist') else list(centroid),
+            'created_timestamp': datetime.now(),
+            'type': mode  # Add type property
+        }
+        
+        # Add period for snapshot mode
+        if mode == "snapshot" and period:
+            properties['period'] = period
+        
+        query = """
+        CREATE (c:Cluster $properties)
+        """
+        
+        session.run(query, properties=properties)
     
     def _create_cluster_assignment(
         self,
         session,
         unit_id: str,
         cluster_id: str,
-        confidence: float
+        confidence: float,
+        mode: str = "current"
     ):
-        """Create IN_CLUSTER relationship."""
+        """Create IN_CLUSTER relationship with mode-specific properties."""
+        
+        # Set is_primary based on mode
+        # Current mode: is_primary=true (user-facing clusters)
+        # Snapshot mode: is_primary=false (historical clusters)
+        is_primary = mode == "current"
         
         query = """
         MATCH (m:MeaningfulUnit {id: $unit_id})
         MATCH (c:Cluster {id: $cluster_id})
         CREATE (m)-[:IN_CLUSTER {
             confidence: $confidence,
-            is_primary: true,
+            is_primary: $is_primary,
             assignment_method: 'hdbscan',
             assigned_at: datetime()
         }]->(c)
@@ -221,7 +268,8 @@ class Neo4jClusterUpdater:
         session.run(query, {
             'unit_id': unit_id,
             'cluster_id': cluster_id,
-            'confidence': confidence
+            'confidence': confidence,
+            'is_primary': is_primary
         })
     
     def _link_state_to_clusters(self, session, state_id: str):

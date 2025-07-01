@@ -108,7 +108,7 @@ class SemanticClusteringSystem:
         
         logger.info("Initialized SemanticClusteringSystem")
     
-    def run_clustering(self) -> Dict[str, Any]:
+    def run_clustering(self, mode: str = "current", snapshot_period: Optional[str] = None) -> Dict[str, Any]:
         """
         Execute the complete clustering pipeline.
         
@@ -120,6 +120,10 @@ class SemanticClusteringSystem:
         5. Update Neo4j with cluster assignments and evolution
         6. Save clustering state for next comparison
         7. Return summary statistics
+        
+        Args:
+            mode: Clustering mode - "current" for user-facing clusters, "snapshot" for historical snapshots
+            snapshot_period: Quarter period for snapshot mode (e.g., "2023Q1"). Required if mode="snapshot"
             
         Returns:
             Dictionary containing:
@@ -127,12 +131,21 @@ class SemanticClusteringSystem:
             - 'message': Description of outcome
             - 'stats': Clustering statistics
             - 'errors': List of any errors encountered
+        
+        Raises:
+            ValueError: If mode="snapshot" but snapshot_period is not provided
         """
+        # Validate parameters
+        if mode not in ["current", "snapshot"]:
+            raise ValueError(f"Invalid mode '{mode}'. Must be 'current' or 'snapshot'")
+        if mode == "snapshot" and not snapshot_period:
+            raise ValueError("snapshot_period is required when mode='snapshot'")
             
         # Start monitoring - track execution time
         start_time = time.time()
         
-        logger.info("Starting semantic clustering")
+        logger.info(f"Starting semantic clustering in {mode} mode" + 
+                   (f" for period {snapshot_period}" if snapshot_period else ""))
         
         result = {
             'status': 'success',
@@ -181,7 +194,9 @@ class SemanticClusteringSystem:
             logger.info("Step 5: Updating Neo4j with cluster assignments")
             update_stats = self.neo4j_updater.update_graph(
                 cluster_results,
-                labeled_clusters=labeled_clusters
+                labeled_clusters=labeled_clusters,
+                mode=mode,
+                snapshot_period=snapshot_period
             )
             
             # Step 6: Store evolution events in Neo4j
