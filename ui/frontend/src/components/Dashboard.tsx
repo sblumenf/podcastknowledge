@@ -18,7 +18,7 @@ export function Dashboard() {
     
     // Fetch podcasts from API
     // Source of truth: seeding_pipeline/config/podcasts.yaml
-    fetch('http://localhost:8002/api/podcasts')
+    fetch('http://localhost:8001/api/podcasts')
       .then(response => {
         if (!response.ok) {
           throw new Error(`Unable to load podcasts (${response.status})`)
