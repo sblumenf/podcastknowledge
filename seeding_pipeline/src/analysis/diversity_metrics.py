@@ -378,8 +378,8 @@ def run_diversity_analysis(episode_id: str, session) -> Dict[str, Any]:
     """
     # Get topics from the new episode
     query = """
-    MATCH (e:Episode {id: $episode_id})-[:HAS_TOPIC]->(t:Topic)
-    RETURN COLLECT(t.name) as topics
+    MATCH (e:Episode {id: $episode_id})-[:CONTAINS]->(m:MeaningfulUnit)-[:IN_CLUSTER]->(c:Cluster)
+    RETURN COLLECT(DISTINCT c.label) as topics
     """
     
     try:

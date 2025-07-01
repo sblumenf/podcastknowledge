@@ -24,8 +24,8 @@ def identify_topic_clusters(session) -> List[Set[str]]:
     """
     # Query to find topic co-occurrences
     query = """
-    MATCH (e:Episode)-[:HAS_TOPIC]->(t1:Topic)
-    MATCH (e)-[:HAS_TOPIC]->(t2:Topic)
+    MATCH (e:Episode)-[:IN_CLUSTER.*Cluster)
+    MATCH (e)-[:IN_CLUSTER.*Cluster)
     WHERE t1.name < t2.name
     WITH t1.name as topic1, t2.name as topic2, COUNT(DISTINCT e) as cooccurrence_count
     WHERE cooccurrence_count > 1
@@ -53,7 +53,7 @@ def identify_topic_clusters(session) -> List[Set[str]]:
         # Get total episode counts for each topic
         topic_counts = {}
         count_query = """
-        MATCH (e:Episode)-[:HAS_TOPIC]->(t:Topic)
+        MATCH (e:Episode)-[:IN_CLUSTER.*Cluster)
         WHERE t.name IN $topics
         WITH t.name as topic, COUNT(DISTINCT e) as episode_count
         RETURN topic, episode_count
@@ -125,12 +125,12 @@ def calculate_gap_score(cluster1: Set[str], cluster2: Set[str], session) -> floa
     # Query to count episodes for each cluster and their overlap
     query = """
     // Count episodes with cluster1 topics
-    MATCH (e1:Episode)-[:HAS_TOPIC]->(t1:Topic)
+    MATCH (e1:Episode)-[:IN_CLUSTER.*Cluster)
     WHERE t1.name IN $cluster1_topics
     WITH COLLECT(DISTINCT e1) as cluster1_episodes
     
     // Count episodes with cluster2 topics
-    MATCH (e2:Episode)-[:HAS_TOPIC]->(t2:Topic)
+    MATCH (e2:Episode)-[:IN_CLUSTER.*Cluster)
     WHERE t2.name IN $cluster2_topics
     WITH cluster1_episodes, COLLECT(DISTINCT e2) as cluster2_episodes
     
@@ -189,13 +189,13 @@ def find_bridge_concepts(cluster1: Set[str], cluster2: Set[str], session) -> Lis
     """
     query = """
     // Find entities connected to cluster1 topics
-    MATCH (e1:Episode)-[:HAS_TOPIC]->(t1:Topic)
+    MATCH (e1:Episode)-[:IN_CLUSTER.*Cluster)
     WHERE t1.name IN $cluster1_topics
     MATCH (entity1)-[:MENTIONED_IN]->(e1)
     WITH COLLECT(DISTINCT entity1.name) as cluster1_entities
     
     // Find entities connected to cluster2 topics
-    MATCH (e2:Episode)-[:HAS_TOPIC]->(t2:Topic)
+    MATCH (e2:Episode)-[:IN_CLUSTER.*Cluster)
     WHERE t2.name IN $cluster2_topics
     MATCH (entity2)-[:MENTIONED_IN]->(e2)
     WITH cluster1_entities, COLLECT(DISTINCT entity2.name) as cluster2_entities
@@ -205,13 +205,13 @@ def find_bridge_concepts(cluster1: Set[str], cluster2: Set[str], session) -> Lis
     UNWIND bridge_entities as bridge
     
     // Count occurrences with each cluster
-    MATCH (ep1:Episode)-[:HAS_TOPIC]->(t1:Topic)
+    MATCH (ep1:Episode)-[:IN_CLUSTER.*Cluster)
     WHERE t1.name IN $cluster1_topics
     MATCH (ent1)-[:MENTIONED_IN]->(ep1)
     WHERE ent1.name = bridge
     WITH bridge, COUNT(DISTINCT ep1) as cluster1_mentions
     
-    MATCH (ep2:Episode)-[:HAS_TOPIC]->(t2:Topic)
+    MATCH (ep2:Episode)-[:IN_CLUSTER.*Cluster)
     WHERE t2.name IN $cluster2_topics
     MATCH (ent2)-[:MENTIONED_IN]->(ep2)
     WHERE ent2.name = bridge
@@ -384,7 +384,7 @@ def run_gap_detection(episode_id: str, session) -> Dict[str, Any]:
     """
     # Get topics from the new episode
     query = """
-    MATCH (e:Episode {id: $episode_id})-[:HAS_TOPIC]->(t:Topic)
+    MATCH (e:Episode {id: $episode_id})-[:IN_CLUSTER.*Cluster)
     RETURN COLLECT(t.name) as topics
     """
     

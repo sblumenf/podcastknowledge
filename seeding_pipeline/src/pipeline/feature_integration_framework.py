@@ -634,14 +634,14 @@ class FeatureIntegrationFramework:
         query = """
         MATCH (e:Episode {id: $episode_id})
         UNWIND $transitions as transition
-        CREATE (t:TopicTransition {
+        CREATE (t:ClusterTransition {
             segment_index: transition.segment_index,
             timestamp: transition.timestamp,
             previous_entities: transition.previous_entities,
             new_entities: transition.new_entities,
             overlap_entities: transition.overlap
         })
-        CREATE (e)-[:HAS_TOPIC_TRANSITION]->(t)
+        CREATE (e)-[:HAS_CLUSTER_TRANSITION]->(t)
         """
         
         try:

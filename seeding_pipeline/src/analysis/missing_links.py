@@ -152,12 +152,12 @@ def calculate_connection_potential(
     // Find shared topics
     MATCH (entity1)-[:MENTIONED_IN]->(e1:Episode)
     WHERE entity1.name = $entity1
-    MATCH (e1)-[:HAS_TOPIC]->(t1:Topic)
+    MATCH (e1)-[:IN_CLUSTER.*Cluster)
     WITH COLLECT(DISTINCT t1.name) as topics1
     
     MATCH (entity2)-[:MENTIONED_IN]->(e2:Episode)
     WHERE entity2.name = $entity2
-    MATCH (e2)-[:HAS_TOPIC]->(t2:Topic)
+    MATCH (e2)-[:IN_CLUSTER.*Cluster)
     WITH topics1, COLLECT(DISTINCT t2.name) as topics2
     
     // Calculate overlap

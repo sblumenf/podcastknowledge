@@ -40,7 +40,7 @@ def generate_gap_report(podcast_name: str, session) -> Dict[str, Any]:
     # Query for gaps related to this podcast
     query = """
     MATCH (p:Podcast {name: $podcast_name})-[:HAS_EPISODE]->(e:Episode)
-    MATCH (e)-[:HAS_TOPIC]->(t:Topic)
+    MATCH (e)-[:IN_CLUSTER.*Cluster)
     WITH COLLECT(DISTINCT t.name) as podcast_topics
     
     MATCH (gap:StructuralGap)

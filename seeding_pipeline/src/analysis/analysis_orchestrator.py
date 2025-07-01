@@ -48,10 +48,10 @@ def run_knowledge_discovery(episode_id: str, session) -> Dict[str, Any]:
         # First, verify episode exists and has required data
         verification_query = """
         MATCH (e:Episode {id: $episode_id})
-        OPTIONAL MATCH (e)-[:HAS_TOPIC]->(t:Topic)
+        OPTIONAL MATCH (e)-[:CONTAINS]->(m:MeaningfulUnit)-[:IN_CLUSTER]->(c:Cluster)
         OPTIONAL MATCH (entity)-[:MENTIONED_IN]->(e)
         RETURN e.title as title,
-               COUNT(DISTINCT t) as topic_count,
+               COUNT(DISTINCT c) as cluster_count,
                COUNT(DISTINCT entity) as entity_count
         """
         
@@ -64,7 +64,7 @@ def run_knowledge_discovery(episode_id: str, session) -> Dict[str, Any]:
             return results
         
         episode_title = record["title"]
-        has_topics = record["topic_count"] > 0
+        has_clusters = record["cluster_count"] > 0
         has_entities = record["entity_count"] > 0
         
         logger.info(f"Running knowledge discovery for episode: {episode_title}")
@@ -72,11 +72,11 @@ def run_knowledge_discovery(episode_id: str, session) -> Dict[str, Any]:
         # Run analyses based on available data
         analyses_to_run = []
         
-        if has_topics:
+        if has_clusters:
             analyses_to_run.append(("gap_detection", run_gap_detection))
             analyses_to_run.append(("diversity_metrics", run_diversity_analysis))
         else:
-            logger.warning(f"No topics found for episode {episode_id}, skipping related analyses")
+            logger.warning(f"No clusters found for episode {episode_id}, skipping related analyses")
         
         if has_entities:
             analyses_to_run.append(("missing_links", run_missing_link_analysis))
