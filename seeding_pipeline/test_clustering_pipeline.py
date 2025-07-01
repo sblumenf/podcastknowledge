@@ -18,7 +18,7 @@ from pathlib import Path
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent))
 
-from src.services.neo4j_service import GraphStorageService
+from src.storage.graph_storage import GraphStorageService
 from src.clustering import (
     SemanticClusteringSystem,
     EmbeddingsExtractor,
