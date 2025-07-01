@@ -24,6 +24,51 @@ from .evolution_tracker import EvolutionTracker
 logger = get_logger(__name__)
 
 
+def get_quarter(date_str: str) -> str:
+    """Convert a date string to a quarter string.
+    
+    Args:
+        date_str: Date in YYYY-MM-DD format
+        
+    Returns:
+        Quarter string in format YYYYQN (e.g., "2023Q1")
+        
+    Raises:
+        ValueError: If date_str is invalid
+    """
+    try:
+        # Parse date
+        if not date_str:
+            raise ValueError("Empty date string")
+            
+        parts = date_str.split('-')
+        if len(parts) != 3:
+            raise ValueError(f"Invalid date format: {date_str}")
+            
+        year = int(parts[0])
+        month = int(parts[1])
+        
+        # Validate month
+        if month < 1 or month > 12:
+            raise ValueError(f"Invalid month: {month}")
+        
+        # Calculate quarter
+        if month <= 3:
+            quarter = 1
+        elif month <= 6:
+            quarter = 2
+        elif month <= 9:
+            quarter = 3
+        else:
+            quarter = 4
+            
+        return f"{year}Q{quarter}"
+        
+    except (ValueError, IndexError) as e:
+        logger.error(f"Failed to parse date '{date_str}': {e}")
+        raise ValueError(f"Invalid date string: {date_str}")
+
+
 class SemanticClusteringSystem:
     """
     Main orchestrator for semantic clustering pipeline.

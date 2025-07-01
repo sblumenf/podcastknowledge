@@ -27,7 +27,7 @@ from typing import Dict, Any, Optional
 sys.path.insert(0, str(Path(__file__).parent))
 
 from src.storage.graph_storage import GraphStorageService
-from src.services.llm_service import LLMService
+from src.services.llm import LLMService
 from src.clustering.semantic_clustering import SemanticClusteringSystem
 from src.utils.logging import get_logger
 

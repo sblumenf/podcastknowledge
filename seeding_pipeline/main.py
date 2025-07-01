@@ -187,6 +187,9 @@ async def process_vtt_file(
         config=config
     )
     
+    # Extract episode date from filename
+    episode_date = extract_episode_date(vtt_path.name)
+    
     # Prepare episode metadata
     if resume_episode_id:
         # Use the provided episode ID for resume
@@ -199,7 +202,8 @@ async def process_vtt_file(
             'youtube_url': episode_url,  # Map to youtube_url for create_episode
             'vtt_file_path': str(vtt_path),
             'vtt_filename': vtt_path.name,  # Add filename for duplicate checking
-            'processing_timestamp': datetime.now().isoformat()
+            'processing_timestamp': datetime.now().isoformat(),
+            'published_date': episode_date  # Add extracted date
         }
     else:
         episode_metadata = {
@@ -211,7 +215,8 @@ async def process_vtt_file(
             'youtube_url': episode_url,  # Map to youtube_url for create_episode
             'vtt_file_path': str(vtt_path),
             'vtt_filename': vtt_path.name,  # Add filename for duplicate checking
-            'processing_timestamp': datetime.now().isoformat()
+            'processing_timestamp': datetime.now().isoformat(),
+            'published_date': episode_date  # Add extracted date
         }
     
     try:
@@ -241,6 +246,44 @@ async def process_vtt_file(
         logger.error(f"Pipeline processing failed: {e}")
         graph_storage.close()
         raise
+
+
+def extract_episode_date(filename: str) -> Optional[str]:
+    """Extract episode date from VTT filename.
+    
+    Args:
+        filename: The filename (with or without extension)
+        
+    Returns:
+        Date string in YYYY-MM-DD format if found, None otherwise
+    """
+    import re
+    
+    # Extract just the filename without extension if needed
+    if '.' in filename:
+        filename = filename.rsplit('.', 1)[0]
+    
+    # Look for date pattern at the beginning of filename
+    # Pattern matches YYYY-MM-DD format
+    date_pattern = r'^(\d{4}-\d{2}-\d{2})'
+    match = re.match(date_pattern, filename)
+    
+    if match:
+        date_str = match.group(1)
+        # Validate it's a reasonable date
+        try:
+            parts = date_str.split('-')
+            year = int(parts[0])
+            month = int(parts[1])
+            day = int(parts[2])
+            
+            # Basic validation
+            if 2000 <= year <= 2100 and 1 <= month <= 12 and 1 <= day <= 31:
+                return date_str
+        except:
+            pass
+    
+    return None
 
 
 def extract_title_from_filename(filename: str) -> str:
