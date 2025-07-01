@@ -64,7 +64,7 @@
 
 .timestamp {
   font-size: 0.75rem;
-  color: var(--color-on-surface-variant);
+  color: var(--color-on-surface-high);
   padding: 0 0.5rem;
 }
 
@@ -72,9 +72,15 @@
   text-align: right;
 }
 
-/* Markdown styles */
+/* Markdown styles - Discord/Slack approach */
 .markdown {
   line-height: 1.6;
+  color: var(--color-on-surface);
+}
+
+/* Force all markdown children to inherit base color */
+.markdown * {
+  color: inherit;
 }
 
 .plainText {
@@ -83,6 +89,7 @@
 
 .paragraph {
   margin: 0 0 0.75rem 0;
+  color: inherit;
 }
 
 .paragraph:last-child {
@@ -92,6 +99,7 @@
 .heading {
   margin: 1rem 0 0.5rem 0;
   font-weight: 600;
+  color: inherit;
 }
 
 .heading:first-child {
@@ -101,33 +109,43 @@
 .list {
   margin: 0 0 0.75rem 0;
   padding-left: 1.5rem;
+  color: inherit;
+}
+
+/* Ensure list markers match text color */
+.list li::marker {
+  color: inherit;
 }
 
 .listItem {
   margin: 0.25rem 0;
   font-size: inherit;
+  color: inherit;
 }
 
 .inlineCode {
-  background: rgba(0, 0, 0, 0.1);
+  background: rgba(0, 0, 0, 0.2);
   padding: 0.1rem 0.3rem;
   border-radius: 3px;
-  font-family: 'Courier New', monospace;
+  font-family: var(--font-family-mono);
   font-size: 0.9em;
+  color: var(--color-on-surface-high);
 }
 
 .codeBlock {
-  background: rgba(0, 0, 0, 0.05);
+  background: rgba(0, 0, 0, 0.15);
   padding: 1rem;
   border-radius: 6px;
   overflow-x: auto;
   margin: 0.5rem 0;
+  color: var(--color-on-surface-high);
 }
 
 .codeBlock code {
-  font-family: 'Courier New', monospace;
+  font-family: var(--font-family-mono);
   font-size: 0.9rem;
   line-height: 1.4;
+  color: inherit;
 }
 
 .blockquote {
