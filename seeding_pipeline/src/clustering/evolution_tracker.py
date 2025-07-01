@@ -41,14 +41,12 @@ class EvolutionTracker:
         
         logger.info("Initialized EvolutionTracker")
     
-    def detect_evolution(self, current_clusters: Dict[str, Any], 
-                        current_week: str) -> List[Dict[str, Any]]:
+    def detect_evolution(self, current_clusters: Dict[str, Any]) -> List[Dict[str, Any]]:
         """
         Detect how clusters evolved from previous clustering run.
         
         Args:
             current_clusters: Results from current clustering with cluster assignments
-            current_week: ISO week string (e.g., "2024-W20")
             
         Returns:
             List of evolution events with types and metadata:
@@ -62,7 +60,7 @@ class EvolutionTracker:
                 ...
             ]
         """
-        logger.info(f"Detecting evolution for week {current_week}")
+        logger.info("Detecting evolution from previous clustering")
         
         # Load previous clustering state from Neo4j
         previous_state = self._load_previous_state()
@@ -70,7 +68,7 @@ class EvolutionTracker:
             logger.info("No previous state found - this is the first clustering run")
             return []
         
-        logger.info(f"Comparing with previous state from week {previous_state.get('week', 'unknown')}")
+        logger.info("Comparing with previous clustering state")
         
         # Build transition matrix showing unit movements
         transition_matrix = self._build_transition_matrix(
@@ -114,8 +112,7 @@ class EvolutionTracker:
             unit_ids: collect(m.id)
         }) as cluster_data
         
-        RETURN cs.week as week,
-               cs.timestamp as timestamp,
+        RETURN cs.timestamp as timestamp,
                cluster_data
         """
         
@@ -135,7 +132,6 @@ class EvolutionTracker:
                             assignments[unit_id] = cluster_info['cluster_id']
             
             return {
-                'week': result['week'],
                 'timestamp': result['timestamp'],
                 'assignments': assignments
             }
@@ -315,21 +311,20 @@ class EvolutionTracker:
         
         return continuation_events
     
-    def save_state(self, cluster_results: Dict[str, Any], current_week: str) -> str:
+    def save_state(self, cluster_results: Dict[str, Any]) -> str:
         """
         Save current clustering state to Neo4j for next comparison.
         
         Args:
             cluster_results: Results from clustering
-            current_week: ISO week string
             
         Returns:
             Created ClusteringState node ID
         """
-        logger.info(f"Saving clustering state for week {current_week}")
+        logger.info("Saving clustering state")
         
         timestamp = datetime.now()
-        state_id = f"state_{current_week}_{timestamp.strftime('%Y%m%d_%H%M%S')}"
+        state_id = f"state_{timestamp.strftime('%Y%m%d_%H%M%S')}"
         
         # Calculate statistics
         cluster_sizes = [len(units) for units in cluster_results['clusters'].values()]
@@ -342,7 +337,6 @@ class EvolutionTracker:
         state_query = """
         CREATE (cs:ClusteringState {
             id: $state_id,
-            week: $week,
             timestamp: $timestamp,
             n_clusters: $n_clusters,
             n_outliers: $n_outliers,
@@ -358,7 +352,6 @@ class EvolutionTracker:
         
         result = self.neo4j.query(state_query, {
             'state_id': state_id,
-            'week': current_week,
             'timestamp': timestamp,
             'n_clusters': cluster_results['n_clusters'],
             'n_outliers': cluster_results['n_outliers'],
@@ -374,8 +367,7 @@ class EvolutionTracker:
         
         return created_state_id
     
-    def store_evolution_events(self, evolution_events: List[Dict[str, Any]], 
-                              current_week: str) -> Dict[str, int]:
+    def store_evolution_events(self, evolution_events: List[Dict[str, Any]]) -> Dict[str, int]:
         """
         Store evolution events as relationships in Neo4j.
         
@@ -385,7 +377,6 @@ class EvolutionTracker:
         
         Args:
             evolution_events: List of evolution events from detect_evolution()
-            current_week: ISO week string for the current clustering
             
         Returns:
             Statistics about stored relationships
@@ -402,17 +393,17 @@ class EvolutionTracker:
         for event in evolution_events:
             try:
                 if event['type'] == 'split':
-                    self._store_split_event(event, current_week)
+                    self._store_split_event(event)
                     stats['splits_stored'] += 1
                     stats['total_relationships'] += len(event['to_clusters'])
                     
                 elif event['type'] == 'merge':
-                    self._store_merge_event(event, current_week)
+                    self._store_merge_event(event)
                     stats['merges_stored'] += 1
                     stats['total_relationships'] += len(event['from_clusters'])
                     
                 elif event['type'] == 'continuation':
-                    self._store_continuation_event(event, current_week)
+                    self._store_continuation_event(event)
                     stats['continuations_stored'] += 1
                     stats['total_relationships'] += 1
                     
@@ -422,20 +413,19 @@ class EvolutionTracker:
         logger.info(f"Stored evolution relationships: {stats}")
         return stats
     
-    def _store_split_event(self, event: Dict[str, Any], current_week: str):
+    def _store_split_event(self, event: Dict[str, Any]):
         """Store split event as EVOLVED_INTO relationships."""
         
         from_cluster_id = event['from_cluster']
         
         for to_cluster in event['to_clusters']:
-            to_cluster_id = f"{current_week}_cluster_{to_cluster}"
+            to_cluster_id = f"cluster_{to_cluster}"
             proportion = event['proportions'].get(to_cluster, 0.0)
             
             query = """
             MATCH (from_cluster:Cluster {id: $from_cluster_id})
             MATCH (to_cluster:Cluster {id: $to_cluster_id})
             CREATE (from_cluster)-[:EVOLVED_INTO {
-                week: $week,
                 type: 'split',
                 proportion: $proportion,
                 total_units: $total_units,
@@ -446,17 +436,16 @@ class EvolutionTracker:
             self.neo4j.query(query, {
                 'from_cluster_id': from_cluster_id,
                 'to_cluster_id': to_cluster_id,
-                'week': current_week,
                 'proportion': proportion,
                 'total_units': event['total_units']
             })
             
             logger.debug(f"Stored split relationship: {from_cluster_id} -> {to_cluster_id}")
     
-    def _store_merge_event(self, event: Dict[str, Any], current_week: str):
+    def _store_merge_event(self, event: Dict[str, Any]):
         """Store merge event as EVOLVED_INTO relationships."""
         
-        to_cluster_id = f"{current_week}_cluster_{event['to_cluster']}"
+        to_cluster_id = f"cluster_{event['to_cluster']}"
         
         for from_cluster in event['from_clusters']:
             from_cluster_id = from_cluster
@@ -466,7 +455,6 @@ class EvolutionTracker:
             MATCH (from_cluster:Cluster {id: $from_cluster_id})
             MATCH (to_cluster:Cluster {id: $to_cluster_id})
             CREATE (from_cluster)-[:EVOLVED_INTO {
-                week: $week,
                 type: 'merge',
                 proportion: $proportion,
                 total_units: $total_units,
@@ -477,24 +465,22 @@ class EvolutionTracker:
             self.neo4j.query(query, {
                 'from_cluster_id': from_cluster_id,
                 'to_cluster_id': to_cluster_id,
-                'week': current_week,
                 'proportion': proportion,
                 'total_units': event['total_units']
             })
             
             logger.debug(f"Stored merge relationship: {from_cluster_id} -> {to_cluster_id}")
     
-    def _store_continuation_event(self, event: Dict[str, Any], current_week: str):
+    def _store_continuation_event(self, event: Dict[str, Any]):
         """Store continuation event as EVOLVED_INTO relationship."""
         
         from_cluster_id = event['from_cluster']
-        to_cluster_id = f"{current_week}_cluster_{event['to_cluster']}"
+        to_cluster_id = f"cluster_{event['to_cluster']}"
         
         query = """
         MATCH (from_cluster:Cluster {id: $from_cluster_id})
         MATCH (to_cluster:Cluster {id: $to_cluster_id})
         CREATE (from_cluster)-[:EVOLVED_INTO {
-            week: $week,
             type: 'continuation',
             proportion: $proportion,
             total_units: $total_units,
@@ -505,7 +491,6 @@ class EvolutionTracker:
         self.neo4j.query(query, {
             'from_cluster_id': from_cluster_id,
             'to_cluster_id': to_cluster_id,
-            'week': current_week,
             'proportion': event['proportion'],
             'total_units': event['total_units']
         })

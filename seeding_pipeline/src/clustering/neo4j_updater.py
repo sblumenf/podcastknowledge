@@ -36,8 +36,7 @@ class Neo4jClusterUpdater:
     def update_graph(
         self,
         cluster_results: Dict[str, Any],
-        labeled_clusters: Optional[Dict[int, Dict[str, Any]]] = None,
-        current_week: Optional[str] = None
+        labeled_clusters: Optional[Dict[int, Dict[str, Any]]] = None
     ) -> Dict[str, Any]:
         """
         Update Neo4j with new cluster assignments.
@@ -45,15 +44,11 @@ class Neo4jClusterUpdater:
         Args:
             cluster_results: Results from HDBSCAN clusterer
             labeled_clusters: Optional dict with cluster labels (from Phase 5)
-            current_week: ISO week string (e.g., "2024-W20")
             
         Returns:
             Statistics about the update operation
         """
-        if not current_week:
-            current_week = datetime.now().strftime("%Y-W%U")
-        
-        logger.info(f"Updating Neo4j with clustering results for week {current_week}")
+        logger.info("Updating Neo4j with clustering results")
         
         stats = {
             'clusters_created': 0,
@@ -67,16 +62,16 @@ class Neo4jClusterUpdater:
             with self.neo4j.driver.session() as session:
                 # Step 1: Create ClusteringState node
                 state_id = self._create_clustering_state(
-                    session, cluster_results, current_week
+                    session, cluster_results
                 )
                 stats['clustering_state_created'] = True
                 
                 # Step 2: Archive old cluster assignments
-                self._archive_old_assignments(session, current_week)
+                self._archive_old_assignments(session)
                 
                 # Step 3: Create Cluster nodes
                 for cluster_id, units in cluster_results['clusters'].items():
-                    cluster_node_id = f"{current_week}_cluster_{cluster_id}"
+                    cluster_node_id = f"cluster_{cluster_id}"
                     
                     # Get label if available, otherwise use generic label
                     if labeled_clusters and cluster_id in labeled_clusters:
@@ -92,7 +87,6 @@ class Neo4jClusterUpdater:
                         session,
                         cluster_node_id,
                         label,
-                        current_week,
                         len(units),
                         centroid
                     )
@@ -104,13 +98,12 @@ class Neo4jClusterUpdater:
                             session,
                             unit_data['unit_id'],
                             cluster_node_id,
-                            unit_data['confidence'],
-                            current_week
+                            unit_data['confidence']
                         )
                         stats['relationships_created'] += 1
                 
                 # Step 5: Link ClusteringState to created clusters
-                self._link_state_to_clusters(session, state_id, current_week)
+                self._link_state_to_clusters(session, state_id)
                 
             logger.info(
                 f"Neo4j update complete: {stats['clusters_created']} clusters, "
@@ -127,18 +120,16 @@ class Neo4jClusterUpdater:
     def _create_clustering_state(
         self,
         session,
-        cluster_results: Dict[str, Any],
-        current_week: str
+        cluster_results: Dict[str, Any]
     ) -> str:
         """Create ClusteringState node to track this clustering run."""
         
         timestamp = datetime.now()
-        state_id = f"state_{current_week}_{timestamp.strftime('%Y%m%d_%H%M%S')}"
+        state_id = f"state_{timestamp.strftime('%Y%m%d_%H%M%S')}"
         
         query = """
         CREATE (cs:ClusteringState {
             id: $state_id,
-            week: $week,
             timestamp: $timestamp,
             n_clusters: $n_clusters,
             n_outliers: $n_outliers,
@@ -154,7 +145,6 @@ class Neo4jClusterUpdater:
         
         result = session.run(query, {
             'state_id': state_id,
-            'week': current_week,
             'timestamp': timestamp,
             'n_clusters': cluster_results['n_clusters'],
             'n_outliers': cluster_results['n_outliers'],
@@ -167,17 +157,17 @@ class Neo4jClusterUpdater:
         
         return result.single()['state_id']
     
-    def _archive_old_assignments(self, session, current_week: str):
+    def _archive_old_assignments(self, session):
         """Mark old cluster assignments as non-primary."""
         
         query = """
         MATCH (m:MeaningfulUnit)-[r:IN_CLUSTER]->(:Cluster)
         WHERE r.is_primary = true
         SET r.is_primary = false,
-            r.archived_week = $week
+            r.archived_at = datetime()
         """
         
-        session.run(query, {'week': current_week})
+        session.run(query)
         logger.info("Archived old cluster assignments")
     
     def _create_cluster_node(
@@ -185,7 +175,6 @@ class Neo4jClusterUpdater:
         session,
         cluster_id: str,
         label: str,
-        created_week: str,
         member_count: int,
         centroid: List[float]
     ):
@@ -195,7 +184,6 @@ class Neo4jClusterUpdater:
         CREATE (c:Cluster {
             id: $cluster_id,
             label: $label,
-            created_week: $created_week,
             member_count: $member_count,
             status: 'active',
             centroid: $centroid,
@@ -206,7 +194,6 @@ class Neo4jClusterUpdater:
         session.run(query, {
             'cluster_id': cluster_id,
             'label': label,
-            'created_week': created_week,
             'member_count': member_count,
             'centroid': centroid.tolist() if hasattr(centroid, 'tolist') else list(centroid)
         })
@@ -216,8 +203,7 @@ class Neo4jClusterUpdater:
         session,
         unit_id: str,
         cluster_id: str,
-        confidence: float,
-        assigned_week: str
+        confidence: float
     ):
         """Create IN_CLUSTER relationship."""
         
@@ -226,30 +212,31 @@ class Neo4jClusterUpdater:
         MATCH (c:Cluster {id: $cluster_id})
         CREATE (m)-[:IN_CLUSTER {
             confidence: $confidence,
-            assigned_week: $assigned_week,
             is_primary: true,
-            assignment_method: 'hdbscan'
+            assignment_method: 'hdbscan',
+            assigned_at: datetime()
         }]->(c)
         """
         
         session.run(query, {
             'unit_id': unit_id,
             'cluster_id': cluster_id,
-            'confidence': confidence,
-            'assigned_week': assigned_week
+            'confidence': confidence
         })
     
-    def _link_state_to_clusters(self, session, state_id: str, current_week: str):
+    def _link_state_to_clusters(self, session, state_id: str):
         """Link ClusteringState to the clusters it created."""
         
+        # Get the timestamp from the state to find clusters created at the same time
         query = """
         MATCH (cs:ClusteringState {id: $state_id})
-        MATCH (c:Cluster {created_week: $week})
+        MATCH (c:Cluster)
+        WHERE c.created_timestamp >= cs.timestamp - duration('PT1S')
+          AND c.created_timestamp <= cs.timestamp + duration('PT1S')
         CREATE (cs)-[:CREATED_CLUSTER]->(c)
         """
         
         session.run(query, {
-            'state_id': state_id,
-            'week': current_week
+            'state_id': state_id
         })
     

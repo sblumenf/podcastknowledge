@@ -63,7 +63,7 @@ class SemanticClusteringSystem:
         
         logger.info("Initialized SemanticClusteringSystem")
     
-    def run_clustering(self, current_week: Optional[str] = None) -> Dict[str, Any]:
+    def run_clustering(self) -> Dict[str, Any]:
         """
         Execute the complete clustering pipeline.
         
@@ -75,9 +75,6 @@ class SemanticClusteringSystem:
         5. Update Neo4j with cluster assignments and evolution
         6. Save clustering state for next comparison
         7. Return summary statistics
-        
-        Args:
-            current_week: ISO week string (e.g., "2024-W20"). If None, uses current week.
             
         Returns:
             Dictionary containing:
@@ -86,13 +83,11 @@ class SemanticClusteringSystem:
             - 'stats': Clustering statistics
             - 'errors': List of any errors encountered
         """
-        if not current_week:
-            current_week = datetime.now().strftime("%Y-W%U")
             
         # Start monitoring - track execution time
         start_time = time.time()
         
-        logger.info(f"Starting semantic clustering for week {current_week}")
+        logger.info("Starting semantic clustering")
         
         result = {
             'status': 'success',
@@ -134,28 +129,25 @@ class SemanticClusteringSystem:
             # Step 4: Detect evolution from previous clustering
             logger.info("Step 4: Detecting evolution from previous clustering")
             evolution_events = self.evolution_tracker.detect_evolution(
-                cluster_results,
-                current_week
+                cluster_results
             )
             
             # Step 5: Update Neo4j
             logger.info("Step 5: Updating Neo4j with cluster assignments")
             update_stats = self.neo4j_updater.update_graph(
                 cluster_results,
-                labeled_clusters=labeled_clusters,
-                current_week=current_week
+                labeled_clusters=labeled_clusters
             )
             
             # Step 6: Store evolution events in Neo4j
             logger.info("Step 6: Storing evolution relationships in Neo4j")
             evolution_stats = self.evolution_tracker.store_evolution_events(
-                evolution_events,
-                current_week
+                evolution_events
             )
             
             # Step 7: Save clustering state for next comparison
             logger.info("Step 7: Saving clustering state for future evolution tracking")
-            state_id = self.evolution_tracker.save_state(cluster_results, current_week)
+            state_id = self.evolution_tracker.save_state(cluster_results)
             
             # Calculate execution time
             execution_time = time.time() - start_time
@@ -180,8 +172,7 @@ class SemanticClusteringSystem:
                 'clustering_state_id': state_id,
                 'label_validation': self.labeler.get_validation_stats(),
                 'execution_time_seconds': round(execution_time, 2),
-                'units_per_second': round(cluster_results['total_units'] / execution_time, 1) if execution_time > 0 else 0,
-                'week': current_week
+                'units_per_second': round(cluster_results['total_units'] / execution_time, 1) if execution_time > 0 else 0
             }
             
             result['message'] = (
