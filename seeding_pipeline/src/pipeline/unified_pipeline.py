@@ -29,7 +29,7 @@ from src.extraction.extraction import KnowledgeExtractor
 from src.extraction.entity_resolution import EntityResolver
 from src.extraction.complexity_analysis import ComplexityAnalyzer
 from src.extraction.importance_scoring import ImportanceScorer
-from src.extraction.sentiment_analyzer import SentimentAnalyzer
+from src.extraction.sentiment_analyzer import SentimentAnalyzer, SentimentConfig
 
 # Analysis Modules
 from src.analysis import analysis_orchestrator
@@ -149,7 +149,12 @@ class UnifiedKnowledgePipeline:
         self.entity_resolver = EntityResolver()
         self.complexity_analyzer = ComplexityAnalyzer()
         self.importance_scorer = ImportanceScorer()
-        self.sentiment_analyzer = SentimentAnalyzer(self.llm_flash)
+        # Configure sentiment analyzer with lower confidence threshold
+        sentiment_config = SentimentConfig(
+            min_confidence_threshold=0.5,  # Lowered from default 0.6
+            emotion_detection_threshold=0.3  # Keep default
+        )
+        self.sentiment_analyzer = SentimentAnalyzer(self.llm_flash, config=sentiment_config)
         
         # Logging setup with clear phase tracking
         self.logger = logger
@@ -473,7 +478,7 @@ class UnifiedKnowledgePipeline:
                 # Log themes
                 if structure.themes:
                     theme_list = [theme.theme for theme in structure.themes]
-                    self.logger.debug(f"  Themes identified: {theme_list}")
+                    self.logger.info(f"  Themes identified: {theme_list}")  # Changed to info for visibility
                 
                 # Log insights if available
                 if structure.insights:
@@ -602,9 +607,11 @@ class UnifiedKnowledgePipeline:
                         episode_id=episode_id
                     )
                     if success:
-                        self.logger.debug(f"Created/linked topic: {theme.theme}")
+                        self.logger.info(f"Successfully created/linked topic: {theme.theme}")  # Changed to info
                     else:
                         self.logger.warning(f"Failed to create/link topic: {theme.theme}")
+            else:
+                self.logger.warning(f"No themes found for episode {episode_id} to store")
             
             # Store each MeaningfulUnit with PART_OF relationship
             # Simple loop - no complex batch processing
@@ -889,13 +896,15 @@ class UnifiedKnowledgePipeline:
                                 f"{len(extraction_result.entities)} entities, "
                                 f"{len(extraction_result.quotes)} quotes, "
                                 f"{len(extraction_result.relationships)} relationships, "
-                                f"{len(extraction_result.insights)} insights"
+                                f"{len(extraction_result.insights)} insights, "
+                                f"sentiment analyzed: YES"
                             )
                         else:
                             # Handle error case
                             with self._error_lock:
                                 self._extraction_errors.append(result['error'])
                                 extraction_metadata['extraction_errors'].append(result['error'])
+                            self.logger.debug(f"Unit {idx} extraction failed, sentiment analyzed: NO")
                         
                     except Exception as e:
                         # Handle future execution error
@@ -952,11 +961,16 @@ class UnifiedKnowledgePipeline:
         
         # Log parallel processing performance summary
         avg_time_per_unit = extraction_metadata['total_extraction_time'] / max(extraction_metadata['units_processed'], 1)
+        sentiment_success_rate = len(all_sentiments) / len(meaningful_units) * 100 if meaningful_units else 0
         self.logger.info(
             f"Parallel processing performance: "
             f"{extraction_metadata['units_processed']} units processed in "
             f"{extraction_metadata['total_extraction_time']:.1f}s total compute time "
             f"(avg {avg_time_per_unit:.1f}s per unit)"
+        )
+        self.logger.info(
+            f"Sentiment analysis success rate: {len(all_sentiments)}/{len(meaningful_units)} units "
+            f"({sentiment_success_rate:.1f}%)"
         )
         
         # Deduplicate entities across all units using entity resolver
@@ -1186,7 +1200,7 @@ class UnifiedKnowledgePipeline:
                     meaningful_unit_id=unit_id
                 )
                 
-            self.logger.info(f"Processed {len(sentiments)} sentiment analyses")
+            self.logger.info(f"Stored {len(sentiments)} sentiment analyses in Neo4j")
             
             self.logger.info("Knowledge storage complete")
             

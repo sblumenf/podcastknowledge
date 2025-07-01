@@ -1,0 +1,51 @@
+diff --git a/seeding_pipeline/src/core/conversation_models/conversation.py b/seeding_pipeline/src/core/conversation_models/conversation.py
+index abc123..def456 100644
+--- a/seeding_pipeline/src/core/conversation_models/conversation.py
++++ b/seeding_pipeline/src/core/conversation_models/conversation.py
+@@ -239,7 +239,7 @@ class ConversationStructure(BaseModel):
+         for i in range(1, len(sorted_units)):
+             prev_unit = sorted_units[i-1]
+             curr_unit = sorted_units[i]
+-            if prev_unit.end_index > curr_unit.start_index:
++            if prev_unit.end_index >= curr_unit.start_index:
+                 raise ValueError(
+                     f"Units overlap: unit ending at {prev_unit.end_index} "
+                     f"overlaps with unit starting at {curr_unit.start_index}"
+
+diff --git a/seeding_pipeline/src/services/conversation_analyzer.py b/seeding_pipeline/src/services/conversation_analyzer.py
+index abc123..def456 100644
+--- a/seeding_pipeline/src/services/conversation_analyzer.py
++++ b/seeding_pipeline/src/services/conversation_analyzer.py
+@@ -208,6 +208,7 @@ class ConversationAnalyzer:
+ - boundaries: Key boundary points between units
+ - total_segments: {transcript_data['total_segments']}
+ 
++CRITICAL: Ensure units do not overlap - if unit 1 ends at index N, unit 2 must start at index N+1 or later, not at N.
+ IMPORTANT: Keep all text descriptions concise and focused. Avoid lengthy explanations.
+ """
+         return prompt
+@@ -395,6 +396,23 @@ class ConversationAnalyzer:
+                     # Ensure start <= end
+                     if 'start_index' in unit and 'end_index' in unit:
+                         if unit['start_index'] > unit['end_index']:
+                             unit['start_index'], unit['end_index'] = unit['end_index'], unit['start_index']
++        
++        # Fix overlapping units after all other fixes
++        if 'units' in structure_dict and isinstance(structure_dict['units'], list):
++            sorted_units = sorted(structure_dict['units'], key=lambda u: u.get('start_index', 0))
++            for i in range(1, len(sorted_units)):
++                prev_unit = sorted_units[i-1]
++                curr_unit = sorted_units[i]
++                if 'end_index' in prev_unit and 'start_index' in curr_unit:
++                    if prev_unit['end_index'] >= curr_unit['start_index']:
++                        old_end = prev_unit['end_index']
++                        prev_unit['end_index'] = curr_unit['start_index'] - 1
++                        self.logger.warning(
++                            f"Fixed overlapping units: adjusted unit {i-1} end_index from {old_end} to {prev_unit['end_index']} "
++                            f"(unit {i} starts at {curr_unit['start_index']})"
++                        )
++                        # Ensure we don't create invalid ranges
++                        if prev_unit['end_index'] < prev_unit['start_index']:
++                            prev_unit['end_index'] = prev_unit['start_index']
+         
+         # Fix insights structure

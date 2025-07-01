@@ -524,6 +524,13 @@ IMPORTANT: Keep all text descriptions concise and focused. Avoid lengthy explana
         if 'total_segments' not in structure_dict:
             structure_dict['total_segments'] = total_segments
         
+        # Fix overlapping units
+        if 'units' in structure_dict:
+            units = structure_dict['units']
+            for i in range(1, len(units)):
+                if units[i-1]['end_index'] >= units[i]['start_index']:
+                    units[i-1]['end_index'] = units[i]['start_index'] - 1
+        
         return structure_dict
     
     def _create_fallback_structure(self, segments: List[TranscriptSegment]) -> ConversationStructure:

@@ -373,11 +373,4 @@ echo "- Transcripts directory: $DATA_DIR/transcripts"
 echo "- Processed directory: $DATA_DIR/processed"
 echo "- Logs directory: $DATA_DIR/logs"
 
-# Count files
-TRANSCRIPT_COUNT=$(find "$DATA_DIR/transcripts" -name "*.vtt" -type f 2>/dev/null | wc -l)
-PROCESSED_COUNT=$(find "$DATA_DIR/processed" -name "*.vtt" -type f 2>/dev/null | wc -l)
-
-echo ""
-echo "Files:"
-echo "- Transcripts waiting: $TRANSCRIPT_COUNT"
-echo "- Files processed: $PROCESSED_COUNT"
+# File statistics are shown in the batch processing summary above

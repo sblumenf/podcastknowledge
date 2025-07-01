@@ -239,7 +239,7 @@ class ConversationStructure(BaseModel):
         for i in range(1, len(sorted_units)):
             prev_unit = sorted_units[i-1]
             curr_unit = sorted_units[i]
-            if prev_unit.end_index > curr_unit.start_index:
+            if prev_unit.end_index >= curr_unit.start_index:
                 raise ValueError(
                     f"Units overlap: unit ending at {prev_unit.end_index} "
                     f"overlaps with unit starting at {curr_unit.start_index}"
