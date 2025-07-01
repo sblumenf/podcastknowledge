@@ -17,6 +17,7 @@ from .embeddings_extractor import EmbeddingsExtractor
 from .hdbscan_clusterer import SimpleHDBSCANClusterer
 from .neo4j_updater import Neo4jClusterUpdater
 from .label_generator import ClusterLabeler
+from .evolution_tracker import EvolutionTracker
 
 logger = get_logger(__name__)
 
@@ -28,6 +29,8 @@ class SemanticClusteringSystem:
     Ties together:
     - EmbeddingsExtractor: Gets embeddings from Neo4j
     - SimpleHDBSCANClusterer: Performs clustering
+    - ClusterLabeler: Generates human-readable labels
+    - EvolutionTracker: Tracks cluster evolution over time
     - Neo4jClusterUpdater: Stores results back to Neo4j
     
     This is the main entry point for clustering operations.
@@ -52,6 +55,7 @@ class SemanticClusteringSystem:
         self.embeddings_extractor = EmbeddingsExtractor(neo4j_service)
         self.clusterer = SimpleHDBSCANClusterer(self.config)
         self.labeler = ClusterLabeler(llm_service)
+        self.evolution_tracker = EvolutionTracker(neo4j_service)
         self.neo4j_updater = Neo4jClusterUpdater(neo4j_service)
         
         
@@ -64,8 +68,11 @@ class SemanticClusteringSystem:
         Steps:
         1. Extract all embeddings from Neo4j
         2. Run HDBSCAN clustering
-        3. Update Neo4j with cluster assignments
-        4. Return summary statistics
+        3. Generate human-readable cluster labels
+        4. Detect evolution from previous clustering (if exists)
+        5. Update Neo4j with cluster assignments and evolution
+        6. Save clustering state for next comparison
+        7. Return summary statistics
         
         Args:
             current_week: ISO week string (e.g., "2024-W20"). If None, uses current week.
@@ -116,13 +123,31 @@ class SemanticClusteringSystem:
                 embeddings_data
             )
             
-            # Step 4: Update Neo4j
-            logger.info("Step 4: Updating Neo4j with cluster assignments")
+            # Step 4: Detect evolution from previous clustering
+            logger.info("Step 4: Detecting evolution from previous clustering")
+            evolution_events = self.evolution_tracker.detect_evolution(
+                cluster_results,
+                current_week
+            )
+            
+            # Step 5: Update Neo4j
+            logger.info("Step 5: Updating Neo4j with cluster assignments")
             update_stats = self.neo4j_updater.update_graph(
                 cluster_results,
                 labeled_clusters=labeled_clusters,
                 current_week=current_week
             )
+            
+            # Step 6: Store evolution events in Neo4j
+            logger.info("Step 6: Storing evolution relationships in Neo4j")
+            evolution_stats = self.evolution_tracker.store_evolution_events(
+                evolution_events,
+                current_week
+            )
+            
+            # Step 7: Save clustering state for next comparison
+            logger.info("Step 7: Saving clustering state for future evolution tracking")
+            state_id = self.evolution_tracker.save_state(cluster_results, current_week)
             
             # Compile statistics
             result['stats'] = {
@@ -134,6 +159,12 @@ class SemanticClusteringSystem:
                 'labeled_clusters': len(labeled_clusters),
                 'clusters_created': update_stats['clusters_created'],
                 'relationships_created': update_stats['relationships_created'],
+                'evolution_events': len(evolution_events),
+                'evolution_splits': evolution_stats['splits_stored'],
+                'evolution_merges': evolution_stats['merges_stored'],
+                'evolution_continuations': evolution_stats['continuations_stored'],
+                'evolution_relationships': evolution_stats['total_relationships'],
+                'clustering_state_id': state_id,
                 'label_validation': self.labeler.get_validation_stats(),
                 'week': current_week
             }
@@ -141,7 +172,11 @@ class SemanticClusteringSystem:
             result['message'] = (
                 f"Successfully clustered {result['stats']['total_units']} units into "
                 f"{result['stats']['n_clusters']} clusters with labels "
-                f"({result['stats']['n_outliers']} outliers)"
+                f"({result['stats']['n_outliers']} outliers). "
+                f"Evolution tracking: {result['stats']['evolution_events']} events detected "
+                f"({result['stats']['evolution_splits']} splits, "
+                f"{result['stats']['evolution_merges']} merges, "
+                f"{result['stats']['evolution_continuations']} continuations)"
             )
             
             logger.info(result['message'])
