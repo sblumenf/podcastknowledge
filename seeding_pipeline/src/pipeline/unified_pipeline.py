@@ -599,20 +599,6 @@ class UnifiedKnowledgePipeline:
             episode_node_id = self.graph_storage.create_episode(episode_metadata)
             self.logger.info(f"Episode node created/retrieved: {episode_node_id}")
             
-            # Store topics/themes from conversation structure
-            if conversation_structure and conversation_structure.themes:
-                self.logger.info(f"Creating {len(conversation_structure.themes)} topic nodes")
-                for theme in conversation_structure.themes:
-                    success = self.graph_storage.create_topic_for_episode(
-                        topic_name=theme.theme,
-                        episode_id=episode_id
-                    )
-                    if success:
-                        self.logger.info(f"Successfully created/linked topic: {theme.theme}")  # Changed to info
-                    else:
-                        self.logger.warning(f"Failed to create/link topic: {theme.theme}")
-            else:
-                self.logger.warning(f"No themes found for episode {episode_id} to store")
             
             # Store each MeaningfulUnit with PART_OF relationship
             # Simple loop - no complex batch processing

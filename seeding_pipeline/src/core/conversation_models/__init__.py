@@ -8,7 +8,6 @@ from .conversation import (
     ConversationFlow,
     StructuralInsights,
     ConversationStructure,
-    TopicGroup
 )
 
 __all__ = [
@@ -19,5 +18,4 @@ __all__ = [
     "ConversationFlow",
     "StructuralInsights",
     "ConversationStructure",
-    "TopicGroup"
 ]

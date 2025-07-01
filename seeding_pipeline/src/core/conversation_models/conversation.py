@@ -116,23 +116,6 @@ class ConversationUnit(BaseModel):
         return v_lower
 
 
-class TopicGroup(BaseModel):
-    """Represents related conversation units around a topic."""
-    model_config = ConfigDict(frozen=True)
-    
-    topic: str = Field(
-        description="Topic name",
-        min_length=1,
-        max_length=200
-    )
-    unit_indices: List[int] = Field(
-        description="Indices of units discussing this topic",
-        min_items=1
-    )
-    description: str = Field(
-        description="Description of topic coverage",
-        min_length=1
-    )
 
 
 class ConversationTheme(BaseModel):

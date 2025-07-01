@@ -130,7 +130,7 @@ async def get_graph_stats(request: Request):
         stats = {}
         
         # Get node counts by type
-        node_types = ["Podcast", "Episode", "Person", "Topic", "Insight"]
+        node_types = ["Podcast", "Episode", "Person", "Insight"]
         for node_type in node_types:
             query = f"MATCH (n:{node_type}) RETURN count(n) as count"
             result = graph_provider.query(query)

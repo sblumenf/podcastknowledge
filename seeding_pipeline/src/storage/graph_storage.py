@@ -555,8 +555,7 @@ class GraphStorageService:
                 "CREATE CONSTRAINT IF NOT EXISTS FOR (e:Episode) REQUIRE e.id IS UNIQUE",
                 # "CREATE CONSTRAINT IF NOT EXISTS FOR (s:Segment) REQUIRE s.id IS UNIQUE",  # REMOVED - only MeaningfulUnit
                 "CREATE CONSTRAINT IF NOT EXISTS FOR (m:MeaningfulUnit) REQUIRE m.id IS UNIQUE",
-                "CREATE CONSTRAINT IF NOT EXISTS FOR (en:Entity) REQUIRE en.id IS UNIQUE",
-                "CREATE CONSTRAINT IF NOT EXISTS FOR (t:Topic) REQUIRE t.name IS UNIQUE"
+                "CREATE CONSTRAINT IF NOT EXISTS FOR (en:Entity) REQUIRE en.id IS UNIQUE"
             ]
             
             # Indexes for common lookups
@@ -1470,44 +1469,6 @@ class GraphStorageService:
                 logger.error(f"Failed to create sentiment: {e}")
                 raise ProviderError("neo4j", f"Failed to create sentiment: {e}") from e
     
-    def create_topic_for_episode(self, topic_name: str, episode_id: str) -> bool:
-        """Create a Topic node and link it to an Episode.
-        
-        This method is idempotent - it creates the Topic if it doesn't exist
-        and creates the HAS_TOPIC relationship if it doesn't exist.
-        
-        Args:
-            topic_name: Name of the topic/theme
-            episode_id: ID of the episode
-            
-        Returns:
-            True if successful, False otherwise
-        """
-        with self._lock:
-            try:
-                with self.session() as session:
-                    # Create topic and relationship in one query
-                    cypher = """
-                    MATCH (e:Episode {id: $episode_id})
-                    MERGE (t:Topic {name: $topic_name})
-                    MERGE (e)-[:HAS_TOPIC]->(t)
-                    RETURN t.name AS topic
-                    """
-                    
-                    result = session.run(
-                        cypher,
-                        episode_id=episode_id,
-                        topic_name=topic_name
-                    )
-                    
-                    if result.single():
-                        logger.debug(f"Created/linked topic '{topic_name}' to episode {episode_id}")
-                        return True
-                    return False
-                    
-            except Exception as e:
-                logger.error(f"Failed to create topic: {e}")
-                return False
     
     def get_performance_metrics(self) -> Dict[str, Any]:
         """Get performance metrics.

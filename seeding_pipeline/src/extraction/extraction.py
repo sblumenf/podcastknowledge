@@ -1933,52 +1933,6 @@ class KnowledgeExtractor:
         # Otherwise delegate to compatibility method
         return self.extract_quotes_compatibility(segments)
 
-    def extract_topics(self, text: str) -> List[Any]:
-        """
-        Extract topics from text (compatibility method for tests).
-
-        Args:
-            text: Text to extract topics from
-
-        Returns:
-            List of topic-like objects
-        """
-        # Generate test topics based on content
-        topics = []
-
-        if "healthcare" in text.lower() or "medical" in text.lower():
-            # Create mock topic objects with the attributes tests might expect
-            topics = [
-                type(
-                    "Topic",
-                    (),
-                    {
-                        "name": "Healthcare AI",
-                        "description": "Applications of AI in healthcare",
-                        "type": "topic",
-                    },
-                )(),
-                type(
-                    "Topic",
-                    (),
-                    {
-                        "name": "Medical Diagnostics",
-                        "description": "Diagnostic technologies and methods",
-                        "type": "topic",
-                    },
-                )(),
-                type(
-                    "Topic",
-                    (),
-                    {
-                        "name": "Machine Learning",
-                        "description": "ML algorithms and applications",
-                        "type": "topic",
-                    },
-                )(),
-            ]
-
-        return topics
 
 
 # Utility functions for backward compatibility

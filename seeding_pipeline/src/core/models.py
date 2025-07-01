@@ -323,36 +323,6 @@ class Quote:
         }
 
 
-@dataclass
-class Topic:
-    """Represents a topic or theme."""
-    id: str
-    name: str
-    description: Optional[str] = None
-    trend: Optional[str] = None  # "emerging", "established", "declining"
-    keywords: List[str] = field(default_factory=list)
-    
-    # Hierarchy
-    hierarchy_level: int = 0
-    parent_topics: List[str] = field(default_factory=list)
-    child_topics: List[str] = field(default_factory=list)
-    
-    # Timestamps
-    created_at: Optional[datetime] = None
-    last_seen: Optional[datetime] = None
-    
-    def to_dict(self) -> Dict[str, Any]:
-        """Convert to dictionary for Neo4j."""
-        return {
-            "id": self.id,
-            "name": self.name,
-            "description": self.description,
-            "trend": self.trend,
-            "keywords": self.keywords,
-            "hierarchy_level": self.hierarchy_level,
-            "parent_topics": self.parent_topics,
-            "child_topics": self.child_topics
-        }
 
 
 @dataclass
@@ -413,7 +383,6 @@ class ProcessingResult:
     entities: List[Entity] = field(default_factory=list)
     insights: List[Insight] = field(default_factory=list)
     quotes: List[Quote] = field(default_factory=list)
-    topics: List[Topic] = field(default_factory=list)
     
     # Metrics
     processing_time: float = 0.0
@@ -432,7 +401,6 @@ class ProcessingResult:
             "entity_count": len(self.entities),
             "insight_count": len(self.insights),
             "quote_count": len(self.quotes),
-            "topic_count": len(self.topics),
             "processing_time": self.processing_time,
             "tokens_used": self.tokens_used,
             "errors": self.errors,

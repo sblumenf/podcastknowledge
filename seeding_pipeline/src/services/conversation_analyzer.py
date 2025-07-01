@@ -189,8 +189,7 @@ ANALYSIS REQUIREMENTS:
 1. Identify natural conversation units where related content is discussed together
 2. Detect boundaries where topics shift, stories end, or Q&A pairs complete
 3. Note where arbitrary segmentation has split coherent thoughts
-4. Identify major themes and how they evolve
-5. Assess overall conversation flow and coherence
+4. Assess overall conversation flow and coherence
 
 IMPORTANT GUIDELINES:
 - Group segments that belong together semantically (complete thoughts, full stories, Q&A exchanges)
@@ -201,7 +200,7 @@ IMPORTANT GUIDELINES:
 
 Return a JSON object matching the ConversationStructure schema with:
 - units: List of semantic conversation units (keep descriptions under 400 characters)
-- themes: Major themes throughout the conversation (keep descriptions under 400 characters)
+- themes: [] (always return empty list - theme analysis is disabled)
 - flow: Overall narrative arc (keep opening/development/conclusion under 800 characters each)
 - insights: Structural observations including fragmentation issues
 - boundaries: Key boundary points between units
