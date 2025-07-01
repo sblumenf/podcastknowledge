@@ -10,10 +10,12 @@ from .embeddings_extractor import EmbeddingsExtractor
 from .hdbscan_clusterer import SimpleHDBSCANClusterer
 from .neo4j_updater import Neo4jClusterUpdater
 from .semantic_clustering import SemanticClusteringSystem
+from .label_generator import ClusterLabeler
 
 __all__ = [
     'EmbeddingsExtractor',
     'SimpleHDBSCANClusterer', 
     'Neo4jClusterUpdater',
-    'SemanticClusteringSystem'
+    'SemanticClusteringSystem',
+    'ClusterLabeler'
 ]

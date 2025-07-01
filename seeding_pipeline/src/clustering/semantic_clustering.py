@@ -16,6 +16,7 @@ from src.utils.logging import get_logger
 from .embeddings_extractor import EmbeddingsExtractor
 from .hdbscan_clusterer import SimpleHDBSCANClusterer
 from .neo4j_updater import Neo4jClusterUpdater
+from .label_generator import ClusterLabeler
 
 logger = get_logger(__name__)
 
@@ -32,15 +33,17 @@ class SemanticClusteringSystem:
     This is the main entry point for clustering operations.
     """
     
-    def __init__(self, neo4j_service, config: Optional[Dict[str, Any]] = None):
+    def __init__(self, neo4j_service, llm_service, config: Optional[Dict[str, Any]] = None):
         """
         Initialize semantic clustering system.
         
         Args:
             neo4j_service: GraphStorageService instance
+            llm_service: LLMService instance for label generation
             config: Optional configuration dictionary. If None, loads from YAML.
         """
         self.neo4j = neo4j_service
+        self.llm_service = llm_service
         
         # Pass config to clusterer
         self.config = config
@@ -48,6 +51,7 @@ class SemanticClusteringSystem:
         # Initialize components
         self.embeddings_extractor = EmbeddingsExtractor(neo4j_service)
         self.clusterer = SimpleHDBSCANClusterer(self.config)
+        self.labeler = ClusterLabeler(llm_service)
         self.neo4j_updater = Neo4jClusterUpdater(neo4j_service)
         
         
@@ -105,11 +109,18 @@ class SemanticClusteringSystem:
                 embeddings_data['unit_ids']
             )
             
-            # Step 3: Update Neo4j
-            logger.info("Step 3: Updating Neo4j with cluster assignments")
+            # Step 3: Generate cluster labels
+            logger.info("Step 3: Generating human-readable cluster labels")
+            labeled_clusters = self.labeler.generate_labels(
+                cluster_results, 
+                embeddings_data
+            )
+            
+            # Step 4: Update Neo4j
+            logger.info("Step 4: Updating Neo4j with cluster assignments")
             update_stats = self.neo4j_updater.update_graph(
                 cluster_results,
-                labeled_clusters=None,  # Will be implemented in Phase 5
+                labeled_clusters=labeled_clusters,
                 current_week=current_week
             )
             
@@ -120,14 +131,16 @@ class SemanticClusteringSystem:
                 'n_outliers': cluster_results['n_outliers'],
                 'outlier_ratio': cluster_results['outlier_ratio'],
                 'avg_cluster_size': cluster_results['avg_cluster_size'],
+                'labeled_clusters': len(labeled_clusters),
                 'clusters_created': update_stats['clusters_created'],
                 'relationships_created': update_stats['relationships_created'],
+                'label_validation': self.labeler.get_validation_stats(),
                 'week': current_week
             }
             
             result['message'] = (
                 f"Successfully clustered {result['stats']['total_units']} units into "
-                f"{result['stats']['n_clusters']} clusters "
+                f"{result['stats']['n_clusters']} clusters with labels "
                 f"({result['stats']['n_outliers']} outliers)"
             )
             

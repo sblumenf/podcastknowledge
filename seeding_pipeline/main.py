@@ -51,6 +51,8 @@ from src.core.config import SeedingConfig
 from src.core.pipeline_config import PipelineConfig
 from src.core.exceptions import PipelineError
 from src.core.env_config import EnvironmentConfig
+from src.clustering.semantic_clustering import SemanticClusteringSystem
+import yaml
 
 
 async def process_vtt_file(
@@ -539,6 +541,136 @@ Environment Variables:
             print("\nFailed files:")
             for filename, error in failed_files:
                 print(f"  - {filename}: {error}")
+        
+        # AUTOMATIC CLUSTERING TRIGGER - Runs after successful episode processing
+        if success_count > 0:
+            print(f"\n{'='*60}")
+            print(f"TRIGGERING SEMANTIC CLUSTERING")
+            print(f"{'='*60}")
+            print(f"Processing {success_count} successfully loaded episodes...")
+            
+            try:
+                # Load clustering configuration
+                clustering_config_path = Path(__file__).parent / 'config' / 'clustering_config.yaml'
+                if clustering_config_path.exists():
+                    with open(clustering_config_path, 'r') as f:
+                        clustering_config = yaml.safe_load(f)
+                else:
+                    # Default configuration if file doesn't exist
+                    clustering_config = {
+                        'clustering': {
+                            'min_cluster_size_formula': 'sqrt',
+                            'min_samples': 3,
+                            'epsilon': 0.3
+                        }
+                    }
+                
+                # Initialize clustering system using same Neo4j connection details
+                # Get Neo4j connection details for this podcast
+                neo4j_uri = args.neo4j_uri
+                if not neo4j_uri:
+                    # Look up from podcast configuration (same logic as process_vtt_file)
+                    try:
+                        with open(Path(__file__).parent / 'config/podcasts.yaml', 'r') as f:
+                            podcasts_config = yaml.safe_load(f)
+                        
+                        for podcast in podcasts_config.get('podcasts', []):
+                            if podcast.get('rss_title') == args.podcast or podcast.get('name') == args.podcast:
+                                db_config = podcast.get('database', {})
+                                port = db_config.get('neo4j_port', 7687)
+                                neo4j_uri = f'neo4j://localhost:{port}'
+                                break
+                        else:
+                            neo4j_uri = os.getenv('NEO4J_URI', 'neo4j://localhost:7687')
+                    except Exception:
+                        neo4j_uri = os.getenv('NEO4J_URI', 'neo4j://localhost:7687')
+                
+                # Create GraphStorageService for clustering (reuse connection pattern)
+                neo4j_user = args.neo4j_user or os.getenv('NEO4J_USER', 'neo4j')
+                neo4j_password = args.neo4j_password or os.getenv('NEO4J_PASSWORD', 'password')
+                
+                graph_storage = GraphStorageService(
+                    uri=neo4j_uri,
+                    username=neo4j_user,
+                    password=neo4j_password
+                )
+                
+                # Initialize clustering system - need LLM service for label generation
+                # Get API key and setup LLM service
+                gemini_api_key = args.gemini_api_key or os.getenv('GEMINI_API_KEY') or os.getenv('GOOGLE_API_KEY')
+                if not gemini_api_key:
+                    print("✗ Clustering requires GEMINI_API_KEY for label generation")
+                    raise ValueError("Missing GEMINI_API_KEY for clustering")
+                
+                from src.core.config import EnvironmentConfig
+                llm_service = LLMService(
+                    api_key=gemini_api_key,
+                    model_name=EnvironmentConfig.get_pro_model(), 
+                    max_tokens=65000,
+                    temperature=0.3  # Higher temperature for creative labeling
+                )
+                
+                clustering_system = SemanticClusteringSystem(graph_storage, llm_service, clustering_config)
+                
+                # Check for edge cases before running clustering
+                should_run_clustering = True
+                try:
+                    # Check if units with embeddings exist
+                    count_query = """
+                    MATCH (m:MeaningfulUnit)
+                    WHERE m.embedding IS NOT NULL
+                    RETURN count(m) as units_with_embeddings
+                    """
+                    count_result = graph_storage.query(count_query)
+                    units_with_embeddings = count_result[0]['units_with_embeddings'] if count_result else 0
+                    
+                    if units_with_embeddings == 0:
+                        print("⚠ Skipping clustering: No units with embeddings found")
+                        print("  Ensure episode processing completed successfully and embeddings were generated")
+                        should_run_clustering = False
+                    
+                    # Check minimum cluster size requirements
+                    elif units_with_embeddings > 0:
+                        min_cluster_size = clustering_config.get('clustering', {}).get('min_cluster_size_fixed', 5)
+                        if clustering_config.get('clustering', {}).get('min_cluster_size_formula') == 'sqrt':
+                            import math
+                            min_cluster_size = max(3, int(math.sqrt(units_with_embeddings) / 2))
+                        
+                        if units_with_embeddings < min_cluster_size * 2:  # Need at least 2 clusters worth
+                            print(f"⚠ Skipping clustering: Insufficient units for clustering")
+                            print(f"  Found {units_with_embeddings} units, need at least {min_cluster_size * 2} for meaningful clusters")
+                            should_run_clustering = False
+                        else:
+                            print(f"  Found {units_with_embeddings} units with embeddings, proceeding with clustering...")
+                    
+                except Exception as e:
+                    print(f"⚠ Skipping clustering: Failed to check data availability - {e}")
+                    should_run_clustering = False
+                
+                # Run clustering if conditions are met
+                if should_run_clustering:
+                    cluster_start_time = datetime.now()
+                    result = clustering_system.run_clustering()
+                    cluster_duration = (datetime.now() - cluster_start_time).total_seconds()
+                    
+                    if result['status'] == 'success':
+                        print("✓ Clustering completed successfully")
+                        print(f"  Duration: {cluster_duration:.1f}s")
+                        if 'stats' in result:
+                            stats = result['stats']
+                            print(f"  Clusters created: {stats.get('clusters_created', 'N/A')}")
+                            print(f"  Units clustered: {stats.get('units_clustered', 'N/A')}")
+                            print(f"  Outliers: {stats.get('outliers', 'N/A')}")
+                    else:
+                        print(f"⚠ Clustering completed with warnings: {result.get('message', 'Unknown issue')}")
+                
+                # Close clustering connection
+                graph_storage.close()
+                
+            except Exception as e:
+                print(f"✗ Clustering failed: {e}")
+                logger.error(f"Clustering failed: {e}", exc_info=True)
+                # Don't fail the entire pipeline if clustering fails
         
         sys.exit(1 if failed_files else 0)
     
