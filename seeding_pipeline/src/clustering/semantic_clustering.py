@@ -69,6 +69,28 @@ def get_quarter(date_str: str) -> str:
         raise ValueError(f"Invalid date string: {date_str}")
 
 
+def get_previous_quarter(quarter: str) -> str:
+    """Get the previous quarter string.
+    
+    Args:
+        quarter: Quarter string (e.g., "2023Q2")
+        
+    Returns:
+        Previous quarter string (e.g., "2023Q1")
+    """
+    try:
+        year = int(quarter[:4])
+        q_num = int(quarter[5])
+        
+        if q_num == 1:
+            return f"{year-1}Q4"
+        else:
+            return f"{year}Q{q_num-1}"
+    except (ValueError, IndexError) as e:
+        logger.error(f"Invalid quarter format: {quarter}")
+        raise ValueError(f"Invalid quarter: {quarter}")
+
+
 class SemanticClusteringSystem:
     """
     Main orchestrator for semantic clustering pipeline.
@@ -468,6 +490,39 @@ class SemanticClusteringSystem:
             
             logger.info(f"Successfully created snapshot for quarter {quarter}")
             
+            # Check for evolution from previous quarter
+            evolution_events = []
+            try:
+                previous_quarter = get_previous_quarter(quarter)
+                
+                # Check if previous quarter snapshot exists
+                check_query = """
+                MATCH (cs:ClusteringState {type: 'snapshot', period: $period})
+                RETURN count(cs) > 0 as exists
+                """
+                result = self.neo4j.query(check_query, {'period': previous_quarter})
+                
+                if result and result[0]['exists']:
+                    logger.info(f"Detecting evolution from {previous_quarter} to {quarter}")
+                    
+                    # Detect evolution between quarters
+                    evolution_events = self.evolution_tracker.detect_snapshot_evolution(
+                        previous_quarter, quarter
+                    )
+                    
+                    if evolution_events:
+                        # Store evolution events
+                        evolution_stats = self.evolution_tracker.store_evolution_events(evolution_events)
+                        logger.info(f"Stored {len(evolution_events)} evolution events: "
+                                  f"{evolution_stats['splits_stored']} splits, "
+                                  f"{evolution_stats['merges_stored']} merges, "
+                                  f"{evolution_stats['continuations_stored']} continuations")
+                else:
+                    logger.info(f"No previous quarter snapshot found for {previous_quarter}")
+                    
+            except Exception as e:
+                logger.error(f"Failed to detect evolution for {quarter}: {e}")
+            
             return {
                 'status': 'success',
                 'quarter': quarter,
@@ -477,7 +532,8 @@ class SemanticClusteringSystem:
                     'n_outliers': cluster_results['n_outliers'],
                     'clusters_created': update_stats['clusters_created'],
                     'relationships_created': update_stats['relationships_created'],
-                    'state_id': state_id
+                    'state_id': state_id,
+                    'evolution_events': len(evolution_events)
                 }
             }
             

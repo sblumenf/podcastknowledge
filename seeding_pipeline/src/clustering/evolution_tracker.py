@@ -89,6 +89,103 @@ class EvolutionTracker:
         
         return evolution_events
     
+    def detect_snapshot_evolution(self, from_period: str, to_period: str) -> List[Dict[str, Any]]:
+        """
+        Detect evolution between quarterly snapshot clusters.
+        
+        Compares clusters from two adjacent quarters to track how topics
+        evolved over time based on episode dates rather than processing dates.
+        
+        Args:
+            from_period: Source quarter (e.g., "2023Q1")
+            to_period: Target quarter (e.g., "2023Q2")
+            
+        Returns:
+            List of evolution events with types and metadata
+        """
+        logger.info(f"Detecting evolution from {from_period} to {to_period}")
+        
+        # Load clusters from both periods
+        from_clusters = self._load_snapshot_clusters(from_period)
+        to_clusters = self._load_snapshot_clusters(to_period)
+        
+        if not from_clusters or not to_clusters:
+            logger.info(f"Missing snapshot data: from={len(from_clusters)} clusters, to={len(to_clusters)} clusters")
+            return []
+        
+        # Build assignments dictionaries
+        from_assignments = {}
+        for cluster_id, unit_ids in from_clusters.items():
+            for unit_id in unit_ids:
+                from_assignments[unit_id] = cluster_id
+        
+        to_assignments = {}
+        for cluster_id, unit_ids in to_clusters.items():
+            for unit_id in unit_ids:
+                to_assignments[unit_id] = cluster_id
+        
+        # Build transition matrix
+        transition_matrix = defaultdict(lambda: defaultdict(int))
+        
+        for unit_id, from_cluster in from_assignments.items():
+            # Unit might exist in to_period (same unit can be in multiple snapshots)
+            to_cluster = to_assignments.get(unit_id, 'outlier')
+            transition_matrix[from_cluster][to_cluster] += 1
+        
+        # Convert to regular dict
+        transition_matrix = dict(transition_matrix)
+        
+        evolution_events = []
+        
+        # Detect different types of evolution
+        evolution_events.extend(self._detect_splits(transition_matrix))
+        evolution_events.extend(self._detect_merges(transition_matrix))
+        evolution_events.extend(self._detect_continuations(transition_matrix))
+        
+        # Add period information to events
+        for event in evolution_events:
+            event['from_period'] = from_period
+            event['to_period'] = to_period
+        
+        logger.info(f"Detected {len(evolution_events)} evolution events between {from_period} and {to_period}")
+        for event in evolution_events:
+            logger.info(f"  {event['type']}: {event}")
+        
+        return evolution_events
+    
+    def _load_snapshot_clusters(self, period: str) -> Dict[str, List[str]]:
+        """
+        Load cluster assignments for a specific snapshot period.
+        
+        Args:
+            period: Quarter period (e.g., "2023Q1")
+            
+        Returns:
+            Dictionary mapping cluster_id -> list of unit_ids
+        """
+        query = """
+        MATCH (c:Cluster {type: 'snapshot', period: $period})
+        MATCH (c)<-[:IN_CLUSTER {is_primary: false}]-(m:MeaningfulUnit)
+        RETURN c.id as cluster_id, collect(m.id) as unit_ids
+        """
+        
+        try:
+            results = self.neo4j.query(query, {'period': period})
+            clusters = {}
+            
+            for record in results:
+                cluster_id = record['cluster_id']
+                unit_ids = record['unit_ids']
+                if cluster_id and unit_ids:
+                    clusters[cluster_id] = unit_ids
+            
+            logger.info(f"Loaded {len(clusters)} clusters for period {period}")
+            return clusters
+            
+        except Exception as e:
+            logger.error(f"Failed to load snapshot clusters for {period}: {e}")
+            return {}
+    
     def _load_previous_state(self) -> Optional[Dict[str, Any]]:
         """
         Load the most recent clustering state from Neo4j.
@@ -422,22 +519,29 @@ class EvolutionTracker:
             to_cluster_id = f"cluster_{to_cluster}"
             proportion = event['proportions'].get(to_cluster, 0.0)
             
+            # Build properties including period information if available
+            relationship_props = {
+                'type': 'split',
+                'proportion': proportion,
+                'total_units': event['total_units'],
+                'created_at': datetime.now()
+            }
+            
+            # Add period information if this is a snapshot evolution
+            if 'from_period' in event:
+                relationship_props['from_period'] = event['from_period']
+                relationship_props['to_period'] = event['to_period']
+            
             query = """
             MATCH (from_cluster:Cluster {id: $from_cluster_id})
             MATCH (to_cluster:Cluster {id: $to_cluster_id})
-            CREATE (from_cluster)-[:EVOLVED_INTO {
-                type: 'split',
-                proportion: $proportion,
-                total_units: $total_units,
-                created_at: datetime()
-            }]->(to_cluster)
+            CREATE (from_cluster)-[:EVOLVED_INTO $props]->(to_cluster)
             """
             
             self.neo4j.query(query, {
                 'from_cluster_id': from_cluster_id,
                 'to_cluster_id': to_cluster_id,
-                'proportion': proportion,
-                'total_units': event['total_units']
+                'props': relationship_props
             })
             
             logger.debug(f"Stored split relationship: {from_cluster_id} -> {to_cluster_id}")
@@ -451,22 +555,29 @@ class EvolutionTracker:
             from_cluster_id = from_cluster
             proportion = event['proportions'].get(from_cluster, 0.0)
             
+            # Build properties including period information if available
+            relationship_props = {
+                'type': 'merge',
+                'proportion': proportion,
+                'total_units': event['total_units'],
+                'created_at': datetime.now()
+            }
+            
+            # Add period information if this is a snapshot evolution
+            if 'from_period' in event:
+                relationship_props['from_period'] = event['from_period']
+                relationship_props['to_period'] = event['to_period']
+            
             query = """
             MATCH (from_cluster:Cluster {id: $from_cluster_id})
             MATCH (to_cluster:Cluster {id: $to_cluster_id})
-            CREATE (from_cluster)-[:EVOLVED_INTO {
-                type: 'merge',
-                proportion: $proportion,
-                total_units: $total_units,
-                created_at: datetime()
-            }]->(to_cluster)
+            CREATE (from_cluster)-[:EVOLVED_INTO $props]->(to_cluster)
             """
             
             self.neo4j.query(query, {
                 'from_cluster_id': from_cluster_id,
                 'to_cluster_id': to_cluster_id,
-                'proportion': proportion,
-                'total_units': event['total_units']
+                'props': relationship_props
             })
             
             logger.debug(f"Stored merge relationship: {from_cluster_id} -> {to_cluster_id}")
@@ -477,22 +588,29 @@ class EvolutionTracker:
         from_cluster_id = event['from_cluster']
         to_cluster_id = f"cluster_{event['to_cluster']}"
         
+        # Build properties including period information if available
+        relationship_props = {
+            'type': 'continuation',
+            'proportion': event['proportion'],
+            'total_units': event['total_units'],
+            'created_at': datetime.now()
+        }
+        
+        # Add period information if this is a snapshot evolution
+        if 'from_period' in event:
+            relationship_props['from_period'] = event['from_period']
+            relationship_props['to_period'] = event['to_period']
+        
         query = """
         MATCH (from_cluster:Cluster {id: $from_cluster_id})
         MATCH (to_cluster:Cluster {id: $to_cluster_id})
-        CREATE (from_cluster)-[:EVOLVED_INTO {
-            type: 'continuation',
-            proportion: $proportion,
-            total_units: $total_units,
-            created_at: datetime()
-        }]->(to_cluster)
+        CREATE (from_cluster)-[:EVOLVED_INTO $props]->(to_cluster)
         """
         
         self.neo4j.query(query, {
             'from_cluster_id': from_cluster_id,
             'to_cluster_id': to_cluster_id,
-            'proportion': event['proportion'],
-            'total_units': event['total_units']
+            'props': relationship_props
         })
         
         logger.debug(f"Stored continuation relationship: {from_cluster_id} -> {to_cluster_id}")
