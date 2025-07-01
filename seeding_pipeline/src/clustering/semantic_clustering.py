@@ -12,7 +12,7 @@ Follows KISS principle - no caching, no optimization unless needed.
 
 import time
 from datetime import datetime
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List
 import numpy as np
 from src.utils.logging import get_logger
 from .embeddings_extractor import EmbeddingsExtractor
@@ -318,5 +318,262 @@ class SemanticClusteringSystem:
         if min_size < 3 and n_clusters > 0:
             logger.warning(f"⚠️  VERY SMALL CLUSTER: Cluster with {min_size} units detected")
             logger.warning("   Consider increasing min_cluster_size parameter")
+    
+    def detect_quarter_boundaries(self) -> List[str]:
+        """
+        Detect which quarters need snapshots created.
+        
+        Analyzes all episodes in the database to find quarters that have
+        episodes but no corresponding snapshot yet.
+        
+        Returns:
+            List of quarter strings (e.g., ["2023Q1", "2023Q2"]) that need snapshots
+        """
+        logger.info("Detecting quarter boundaries for snapshot creation")
+        
+        try:
+            # Query all episodes with their published dates
+            episodes_query = """
+            MATCH (e:Episode)
+            WHERE e.published_date IS NOT NULL
+            RETURN e.published_date as date
+            ORDER BY e.published_date
+            """
+            
+            episodes = self.neo4j.query(episodes_query)
+            if not episodes:
+                logger.info("No episodes with published dates found")
+                return []
+            
+            # Extract unique quarters from episode dates
+            episode_quarters = set()
+            for episode in episodes:
+                date_str = episode['date']
+                if date_str:
+                    try:
+                        quarter = get_quarter(date_str)
+                        episode_quarters.add(quarter)
+                    except ValueError as e:
+                        logger.warning(f"Invalid date format in episode: {date_str}")
+            
+            logger.info(f"Found episodes spanning {len(episode_quarters)} quarters: {sorted(episode_quarters)}")
+            
+            # Query existing snapshot clustering states
+            snapshots_query = """
+            MATCH (cs:ClusteringState {type: 'snapshot'})
+            WHERE cs.period IS NOT NULL
+            RETURN DISTINCT cs.period as period
+            """
+            
+            snapshots = self.neo4j.query(snapshots_query)
+            existing_snapshots = {s['period'] for s in snapshots if s['period']}
+            
+            logger.info(f"Found {len(existing_snapshots)} existing snapshots: {sorted(existing_snapshots)}")
+            
+            # Find quarters that need snapshots
+            missing_quarters = episode_quarters - existing_snapshots
+            missing_quarters = sorted(missing_quarters)
+            
+            if missing_quarters:
+                logger.info(f"Quarters needing snapshots: {missing_quarters}")
+            else:
+                logger.info("All quarters have snapshots")
+            
+            return missing_quarters
+            
+        except Exception as e:
+            logger.error(f"Failed to detect quarter boundaries: {e}")
+            return []
+    
+    def process_quarter_snapshot(self, quarter: str) -> Dict[str, Any]:
+        """
+        Create a clustering snapshot for a specific quarter.
+        
+        Processes only episodes published up through the end of the quarter
+        to create a point-in-time snapshot of clusters.
+        
+        Args:
+            quarter: Quarter string (e.g., "2023Q1")
+            
+        Returns:
+            Dictionary with clustering results
+        """
+        logger.info(f"Processing snapshot for quarter {quarter}")
+        
+        try:
+            # Calculate quarter end date
+            year = int(quarter[:4])
+            quarter_num = int(quarter[5])
+            
+            # Determine last month of quarter
+            if quarter_num == 1:
+                end_month = 3
+            elif quarter_num == 2:
+                end_month = 6
+            elif quarter_num == 3:
+                end_month = 9
+            else:  # Q4
+                end_month = 12
+            
+            # Last day of the quarter (simplified - doesn't handle leap years perfectly)
+            if end_month in [1, 3, 5, 7, 8, 10, 12]:
+                end_day = 31
+            elif end_month in [4, 6, 9, 11]:
+                end_day = 30
+            else:  # February
+                end_day = 29 if year % 4 == 0 else 28
+            
+            end_date = f"{year}-{end_month:02d}-{end_day:02d}"
+            logger.info(f"Filtering episodes up to {end_date}")
+            
+            # Extract embeddings with date filter
+            embeddings_data = self._extract_embeddings_by_date(end_date)
+            
+            if not embeddings_data['unit_ids']:
+                logger.warning(f"No units found for quarter {quarter}")
+                return {
+                    'status': 'skipped',
+                    'message': f'No meaningful units found for quarter {quarter}',
+                    'quarter': quarter
+                }
+            
+            logger.info(f"Found {len(embeddings_data['unit_ids'])} units for quarter {quarter}")
+            
+            # Run clustering in snapshot mode
+            # Create a temporary clusterer and labeler for this snapshot
+            temp_clusterer = SimpleHDBSCANClusterer(self.config)
+            
+            # Perform clustering
+            cluster_results = temp_clusterer.cluster(
+                embeddings_data['embeddings'],
+                embeddings_data['unit_ids']
+            )
+            
+            # Generate labels
+            labeled_clusters = self.labeler.generate_labels(
+                cluster_results,
+                embeddings_data
+            )
+            
+            # Update Neo4j with snapshot clusters
+            update_stats = self.neo4j_updater.update_graph(
+                cluster_results,
+                labeled_clusters=labeled_clusters,
+                mode="snapshot",
+                snapshot_period=quarter
+            )
+            
+            # Save clustering state for snapshot
+            state_id = self.evolution_tracker.save_state(cluster_results)
+            
+            logger.info(f"Successfully created snapshot for quarter {quarter}")
+            
+            return {
+                'status': 'success',
+                'quarter': quarter,
+                'stats': {
+                    'total_units': cluster_results['total_units'],
+                    'n_clusters': cluster_results['n_clusters'],
+                    'n_outliers': cluster_results['n_outliers'],
+                    'clusters_created': update_stats['clusters_created'],
+                    'relationships_created': update_stats['relationships_created'],
+                    'state_id': state_id
+                }
+            }
+            
+        except Exception as e:
+            logger.error(f"Failed to process quarter snapshot {quarter}: {e}")
+            return {
+                'status': 'error',
+                'quarter': quarter,
+                'message': str(e),
+                'errors': [str(e)]
+            }
+    
+    def _extract_embeddings_by_date(self, end_date: str) -> Dict[str, Any]:
+        """
+        Extract embeddings for episodes published up to a specific date.
+        
+        Args:
+            end_date: Date string in YYYY-MM-DD format
+            
+        Returns:
+            Same format as embeddings_extractor.extract_all_embeddings()
+        """
+        logger.info(f"Extracting embeddings for episodes up to {end_date}")
+        
+        try:
+            # Query to get MeaningfulUnits from episodes up to end_date
+            query = """
+            MATCH (e:Episode)-[:CONTAINS]->(m:MeaningfulUnit)
+            WHERE m.embedding IS NOT NULL 
+              AND e.published_date IS NOT NULL
+              AND e.published_date <= $end_date
+            RETURN 
+                m.id as unit_id,
+                m.embedding as embedding,
+                m.summary as summary,
+                e.id as episode_id,
+                e.title as episode_title,
+                e.published_date as published_date,
+                m.themes as themes,
+                m.start_time as start_time,
+                m.end_time as end_time,
+                m.speaker_distribution as speaker_distribution
+            ORDER BY e.published_date, m.id
+            """
+            
+            results = self.neo4j.query(query, {'end_date': end_date})
+            
+            if not results:
+                logger.warning(f"No MeaningfulUnits found for episodes up to {end_date}")
+                return {
+                    'embeddings': np.array([]),
+                    'unit_ids': [],
+                    'metadata': []
+                }
+            
+            # Process results (similar to embeddings_extractor)
+            embeddings = []
+            unit_ids = []
+            metadata = []
+            
+            for record in results:
+                # Validate embedding
+                embedding = record['embedding']
+                if not isinstance(embedding, list) or len(embedding) != 768:
+                    logger.warning(f"Invalid embedding for unit {record['unit_id']}")
+                    continue
+                
+                embeddings.append(embedding)
+                unit_ids.append(record['unit_id'])
+                
+                # Collect metadata
+                metadata.append({
+                    'unit_id': record['unit_id'],
+                    'summary': record['summary'] or '',
+                    'episode_id': record['episode_id'],
+                    'episode_title': record['episode_title'] or '',
+                    'published_date': record['published_date'],
+                    'themes': record['themes'] or [],
+                    'start_time': record['start_time'],
+                    'end_time': record['end_time'],
+                    'speaker_distribution': record['speaker_distribution'] or {}
+                })
+            
+            # Convert to numpy array
+            embeddings_array = np.array(embeddings, dtype=np.float32)
+            
+            logger.info(f"Extracted {len(unit_ids)} embeddings from episodes up to {end_date}")
+            
+            return {
+                'embeddings': embeddings_array,
+                'unit_ids': unit_ids,
+                'metadata': metadata
+            }
+            
+        except Exception as e:
+            logger.error(f"Failed to extract embeddings by date: {e}")
+            raise
     
     
