@@ -81,7 +81,6 @@ class SimpleHDBSCANClusterer:
             - 'n_outliers': Number of outlier points
             - 'total_units': Total number of units processed
             - 'outlier_ratio': Fraction of points that are outliers
-            - 'quality_score': Simple quality metric (0-1)
             - 'clusterer': HDBSCAN clusterer object for advanced use
         """
         n_samples = len(embeddings)
