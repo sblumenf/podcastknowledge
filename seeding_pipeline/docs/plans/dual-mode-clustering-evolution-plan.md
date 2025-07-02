@@ -24,7 +24,7 @@ This plan implements a dual-mode clustering system that maintains current cluste
 **Phase Overview**: Before starting any task in this phase, review the entire dual-mode clustering plan to understand how removing week-based evolution fits into the larger goal of implementing episode-date-based evolution tracking. This phase lays the groundwork by cleaning out the old system to make room for the new quarter-based approach.
 
 ### Task 1.1: Remove week-based code from semantic_clustering.py
-- [ ] **Remove the current_week parameter from run_clustering() method and all references to week-based dating throughout the clustering system. This involves deleting the default week calculation using datetime.now().strftime("%Y-W%W") and removing week from all cluster IDs and storage. The purpose is to completely eliminate the misleading week-based system that tracks when clustering runs rather than when episodes were published. Remember: Follow KISS principles - no over-engineering, no stub code, just remove what needs to be removed.**
+- [x] **Remove the current_week parameter from run_clustering() method and all references to week-based dating throughout the clustering system. This involves deleting the default week calculation using datetime.now().strftime("%Y-W%W") and removing week from all cluster IDs and storage. The purpose is to completely eliminate the misleading week-based system that tracks when clustering runs rather than when episodes were published. Remember: Follow KISS principles - no over-engineering, no stub code, just remove what needs to be removed.**
 - Purpose: Eliminate week-based evolution tracking
 - Steps:
   1. Open src/clustering/semantic_clustering.py
@@ -37,7 +37,7 @@ This plan implements a dual-mode clustering system that maintains current cluste
 - Validation: run_clustering() method has no week parameters or week-based logic
 
 ### Task 1.2: Update evolution_tracker.py to remove week dependencies
-- [ ] **Remove all week-based comparison logic from evolution_tracker.py including the current_week parameters and week-based state lookups. This involves modifying detect_evolution, save_state, and store_evolution_events methods to work without week identifiers. The goal is to prepare the evolution tracker for date-based comparisons instead of clustering-run-based comparisons. Remember: Follow KISS principles - no over-engineering, no stub code, just clean removal of week logic.**
+- [x] **Remove all week-based comparison logic from evolution_tracker.py including the current_week parameters and week-based state lookups. This involves modifying detect_evolution, save_state, and store_evolution_events methods to work without week identifiers. The goal is to prepare the evolution tracker for date-based comparisons instead of clustering-run-based comparisons. Remember: Follow KISS principles - no over-engineering, no stub code, just clean removal of week logic.**
 - Purpose: Prepare evolution tracker for date-based tracking
 - Steps:
   1. Open src/clustering/evolution_tracker.py
@@ -50,7 +50,7 @@ This plan implements a dual-mode clustering system that maintains current cluste
 - Validation: No week parameters or week logic remains in evolution tracker
 
 ### Task 1.3: Clean up Neo4j schema references
-- [ ] **Update neo4j_updater.py to remove all week-based properties from cluster and state nodes including created_week and week fields. This involves modifying create_cluster_node and create_clustering_state methods to use date-based identifiers instead. The purpose is to ensure the database schema aligns with episode-date-based tracking rather than clustering-run dates. Remember: Follow KISS principles - no over-engineering, no stub code, simple property removal only.**
+- [x] **Update neo4j_updater.py to remove all week-based properties from cluster and state nodes including created_week and week fields. This involves modifying create_cluster_node and create_clustering_state methods to use date-based identifiers instead. The purpose is to ensure the database schema aligns with episode-date-based tracking rather than clustering-run dates. Remember: Follow KISS principles - no over-engineering, no stub code, simple property removal only.**
 - Purpose: Remove week properties from database nodes
 - Steps:
   1. Open src/clustering/neo4j_updater.py
@@ -67,7 +67,7 @@ This plan implements a dual-mode clustering system that maintains current cluste
 **Phase Overview**: Before starting any task in this phase, review the entire dual-mode clustering plan to understand how date extraction enables the quarter-based snapshot system. This phase adds the foundation for tracking evolution by episode dates rather than processing dates.
 
 ### Task 2.1: Enhance filename parsing to extract dates
-- [ ] **Create a new function extract_episode_date() in main.py that extracts the YYYY-MM-DD date from VTT filenames using regex pattern matching for robustness. This function will parse filenames like "2023-04-15_Episode_Title.vtt" and return the date string. The purpose is to establish a consistent way to get episode dates from filenames since the current code discards this information. Remember: Follow KISS principles - no over-engineering, no stub code, simple regex extraction only.**
+- [x] **Create a new function extract_episode_date() in main.py that extracts the YYYY-MM-DD date from VTT filenames using regex pattern matching for robustness. This function will parse filenames like "2023-04-15_Episode_Title.vtt" and return the date string. The purpose is to establish a consistent way to get episode dates from filenames since the current code discards this information. Remember: Follow KISS principles - no over-engineering, no stub code, simple regex extraction only.**
 - Purpose: Extract episode dates from VTT filenames
 - Steps:
   1. Open main.py
@@ -81,7 +81,7 @@ This plan implements a dual-mode clustering system that maintains current cluste
 - Validation: Function correctly extracts dates from standard VTT filenames
 
 ### Task 2.2: Update episode processing to store dates
-- [ ] **Modify the process_vtt_file() function in main.py to extract and pass episode dates to the pipeline so they are stored in Episode nodes. This involves calling extract_episode_date() and including the date in episode metadata. The goal is to ensure every Episode node has a published_date populated from the filename when VTT metadata doesn't provide it. Remember: Follow KISS principles - no over-engineering, no stub code, minimal changes to existing flow.**
+- [x] **Modify the process_vtt_file() function in main.py to extract and pass episode dates to the pipeline so they are stored in Episode nodes. This involves calling extract_episode_date() and including the date in episode metadata. The goal is to ensure every Episode node has a published_date populated from the filename when VTT metadata doesn't provide it. Remember: Follow KISS principles - no over-engineering, no stub code, minimal changes to existing flow.**
 - Purpose: Ensure all episodes have dates in database
 - Steps:
   1. In process_vtt_file(), call extract_episode_date() on VTT filename
@@ -94,7 +94,7 @@ This plan implements a dual-mode clustering system that maintains current cluste
 - Validation: All processed episodes have published_date in Neo4j
 
 ### Task 2.3: Create quarter calculation utility
-- [ ] **Create a simple get_quarter(date_str: str) -> str function that converts dates to quarter strings like "2023Q1". This function will parse the date and return the appropriate quarter based on month ranges (Q1: Jan-Mar, Q2: Apr-Jun, Q3: Jul-Sep, Q4: Oct-Dec). The purpose is to have a consistent way to determine which quarter an episode belongs to for snapshot creation. Remember: Follow KISS principles - no over-engineering, no stub code, straightforward date to quarter conversion.**
+- [x] **Create a simple get_quarter(date_str: str) -> str function that converts dates to quarter strings like "2023Q1". This function will parse the date and return the appropriate quarter based on month ranges (Q1: Jan-Mar, Q2: Apr-Jun, Q3: Jul-Sep, Q4: Oct-Dec). The purpose is to have a consistent way to determine which quarter an episode belongs to for snapshot creation. Remember: Follow KISS principles - no over-engineering, no stub code, straightforward date to quarter conversion.**
 - Purpose: Standardize quarter determination from dates
 - Steps:
   1. Create get_quarter() function in semantic_clustering.py
@@ -111,7 +111,7 @@ This plan implements a dual-mode clustering system that maintains current cluste
 **Phase Overview**: Before starting any task in this phase, review the entire dual-mode clustering plan to understand how the two modes (current and snapshot) work together. This phase implements the core functionality where current clusters serve users and snapshots track evolution.
 
 ### Task 3.1: Add clustering mode parameter
-- [ ] **Add a mode parameter to run_clustering() that accepts "current" or "snapshot" to control clustering behavior. This parameter will determine whether the clustering creates/updates the current user-facing clusters or creates a historical snapshot. The purpose is to enable the dual-mode system where current clusters serve users and snapshots track evolution. Remember: Follow KISS principles - no over-engineering, no stub code, simple parameter addition only.**
+- [x] **Add a mode parameter to run_clustering() that accepts "current" or "snapshot" to control clustering behavior. This parameter will determine whether the clustering creates/updates the current user-facing clusters or creates a historical snapshot. The purpose is to enable the dual-mode system where current clusters serve users and snapshots track evolution. Remember: Follow KISS principles - no over-engineering, no stub code, simple parameter addition only.**
 - Purpose: Enable dual-mode clustering operation
 - Steps:
   1. Add mode: str = "current" parameter to run_clustering()
@@ -124,7 +124,7 @@ This plan implements a dual-mode clustering system that maintains current cluste
 - Validation: run_clustering() accepts and processes mode parameter
 
 ### Task 3.2: Implement current mode clustering
-- [ ] **Implement the "current" mode logic that updates user-facing clusters by replacing any existing current clusters with new ones. This involves marking clusters with type="current" and ensuring only one set of current clusters exists at a time. The purpose is to maintain an always-up-to-date view of all episodes clustered together for the application UI. Remember: Follow KISS principles - no over-engineering, no stub code, reuse existing clustering logic.**
+- [x] **Implement the "current" mode logic that updates user-facing clusters by replacing any existing current clusters with new ones. This involves marking clusters with type="current" and ensuring only one set of current clusters exists at a time. The purpose is to maintain an always-up-to-date view of all episodes clustered together for the application UI. Remember: Follow KISS principles - no over-engineering, no stub code, reuse existing clustering logic.**
 - Purpose: Maintain up-to-date clusters for users
 - Steps:
   1. In run_clustering(), check if mode == "current"
@@ -137,7 +137,7 @@ This plan implements a dual-mode clustering system that maintains current cluste
 - Validation: Current clusters update correctly and old ones are archived
 
 ### Task 3.3: Implement snapshot mode clustering
-- [ ] **Implement the "snapshot" mode logic that creates historical cluster snapshots tagged with specific quarters. This involves creating clusters with IDs like "snapshot_2023Q1_cluster_5" and marking them with type="snapshot" and period="2023Q1". The purpose is to preserve cluster state at quarter boundaries for evolution tracking. Remember: Follow KISS principles - no over-engineering, no stub code, straightforward snapshot creation.**
+- [x] **Implement the "snapshot" mode logic that creates historical cluster snapshots tagged with specific quarters. This involves creating clusters with IDs like "snapshot_2023Q1_cluster_5" and marking them with type="snapshot" and period="2023Q1". The purpose is to preserve cluster state at quarter boundaries for evolution tracking. Remember: Follow KISS principles - no over-engineering, no stub code, straightforward snapshot creation.**
 - Purpose: Create historical snapshots for evolution tracking
 - Steps:
   1. In run_clustering(), check if mode == "snapshot"
@@ -154,7 +154,7 @@ This plan implements a dual-mode clustering system that maintains current cluste
 **Phase Overview**: Before starting any task in this phase, review the entire dual-mode clustering plan to understand how automatic quarter boundary detection triggers snapshot creation. This phase makes the system intelligent about when to create historical snapshots.
 
 ### Task 4.1: Create quarter boundary detection logic
-- [ ] **Create detect_quarter_boundaries() function that analyzes episodes in the database to find which quarters need snapshots created. This function queries all episodes, extracts their quarters, compares to existing snapshots, and returns a list of quarters that need processing. The purpose is to automatically identify when the system has crossed quarter boundaries during episode processing. Remember: Follow KISS principles - no over-engineering, no stub code, simple set comparison logic.**
+- [x] **Create detect_quarter_boundaries() function that analyzes episodes in the database to find which quarters need snapshots created. This function queries all episodes, extracts their quarters, compares to existing snapshots, and returns a list of quarters that need processing. The purpose is to automatically identify when the system has crossed quarter boundaries during episode processing. Remember: Follow KISS principles - no over-engineering, no stub code, simple set comparison logic.**
 - Purpose: Automatically detect when to create snapshots
 - Steps:
   1. Create detect_quarter_boundaries() in semantic_clustering.py
@@ -168,7 +168,7 @@ This plan implements a dual-mode clustering system that maintains current cluste
 - Validation: Function correctly identifies missing quarter snapshots
 
 ### Task 4.2: Implement snapshot creation for quarters
-- [ ] **Create process_quarter_snapshot(quarter: str) function that creates a snapshot for a specific quarter by filtering episodes and running clustering. This function queries only episodes up through the quarter end date, extracts their embeddings, runs clustering, and saves as a snapshot. The purpose is to create point-in-time snapshots that represent cluster state at each quarter boundary. Remember: Follow KISS principles - no over-engineering, no stub code, reuse existing clustering with date filter.**
+- [x] **Create process_quarter_snapshot(quarter: str) function that creates a snapshot for a specific quarter by filtering episodes and running clustering. This function queries only episodes up through the quarter end date, extracts their embeddings, runs clustering, and saves as a snapshot. The purpose is to create point-in-time snapshots that represent cluster state at each quarter boundary. Remember: Follow KISS principles - no over-engineering, no stub code, reuse existing clustering with date filter.**
 - Purpose: Create snapshots for specific quarters
 - Steps:
   1. Create process_quarter_snapshot() function
@@ -181,7 +181,7 @@ This plan implements a dual-mode clustering system that maintains current cluste
 - Validation: Snapshots contain only episodes up through quarter end
 
 ### Task 4.3: Integrate boundary detection into main flow
-- [ ] **Modify the main clustering trigger in main.py to detect and process quarter boundaries after episode processing completes. This involves calling detect_quarter_boundaries() and creating snapshots for any newly completed quarters before updating current clusters. The purpose is to automatically maintain historical snapshots as episodes are processed in any order. Remember: Follow KISS principles - no over-engineering, no stub code, minimal changes to existing flow.**
+- [x] **Modify the main clustering trigger in main.py to detect and process quarter boundaries after episode processing completes. This involves calling detect_quarter_boundaries() and creating snapshots for any newly completed quarters before updating current clusters. The purpose is to automatically maintain historical snapshots as episodes are processed in any order. Remember: Follow KISS principles - no over-engineering, no stub code, minimal changes to existing flow.**
 - Purpose: Automatically create snapshots during processing
 - Steps:
   1. In main.py after episode processing succeeds
@@ -215,7 +215,7 @@ The system tracks three types of evolution:
 - The same meaningful units exist in multiple snapshots (they don't move, just cluster differently)
 
 ### Task 5.1: Modify evolution detection for snapshots
-- [ ] **Update detect_evolution() to compare snapshot clusters between adjacent quarters instead of clustering runs. This involves loading the previous quarter's snapshot, building transition matrices based on meaningful unit membership changes, and detecting splits/merges/continuations between quarters. The purpose is to track real temporal evolution of topics based on episode dates rather than processing dates. Remember: Follow KISS principles - no over-engineering, no stub code, reuse existing evolution logic.**
+- [x] **Update detect_evolution() to compare snapshot clusters between adjacent quarters instead of clustering runs. This involves loading the previous quarter's snapshot, building transition matrices based on meaningful unit membership changes, and detecting splits/merges/continuations between quarters. The purpose is to track real temporal evolution of topics based on episode dates rather than processing dates. Remember: Follow KISS principles - no over-engineering, no stub code, reuse existing evolution logic.**
 - Purpose: Track evolution between quarterly snapshots
 - Steps:
   1. Modify detect_evolution() signature to accept from_period: str and to_period: str (e.g., "2023Q1", "2023Q2")
@@ -239,7 +239,7 @@ The system tracks three types of evolution:
 - Validation: Evolution correctly detected between quarter snapshots with proper proportions
 
 ### Task 5.2: Create evolution comparison trigger
-- [ ] **Add logic to automatically compare adjacent quarter snapshots after creating a new snapshot. This involves checking if a previous quarter snapshot exists and calling evolution detection to compare them. The purpose is to build evolution history automatically as snapshots are created, showing how clusters changed quarter by quarter. Remember: Follow KISS principles - no over-engineering, no stub code, simple quarter sequence logic.**
+- [x] **Add logic to automatically compare adjacent quarter snapshots after creating a new snapshot. This involves checking if a previous quarter snapshot exists and calling evolution detection to compare them. The purpose is to build evolution history automatically as snapshots are created, showing how clusters changed quarter by quarter. Remember: Follow KISS principles - no over-engineering, no stub code, simple quarter sequence logic.**
 - Purpose: Automatically track evolution between quarters
 - Steps:
   1. In process_quarter_snapshot(), after successfully creating snapshot for quarter (e.g., "2023Q2")
@@ -269,7 +269,7 @@ The system tracks three types of evolution:
 - Validation: Evolution relationships created between adjacent quarters only
 
 ### Task 5.3: Update evolution storage
-- [ ] **Modify store_evolution_events() to use quarter periods instead of weeks in evolution relationships. This involves updating EVOLVED_INTO relationship properties to include from_period and to_period quarter identifiers. The purpose is to make evolution relationships clearly indicate which time periods they connect rather than arbitrary clustering run weeks. Remember: Follow KISS principles - no over-engineering, no stub code, minimal property changes.**
+- [x] **Modify store_evolution_events() to use quarter periods instead of weeks in evolution relationships. This involves updating EVOLVED_INTO relationship properties to include from_period and to_period quarter identifiers. The purpose is to make evolution relationships clearly indicate which time periods they connect rather than arbitrary clustering run weeks. Remember: Follow KISS principles - no over-engineering, no stub code, minimal property changes.**
 - Purpose: Store evolution with quarter-based metadata
 - Steps:
   1. Update store_evolution_events() parameters
