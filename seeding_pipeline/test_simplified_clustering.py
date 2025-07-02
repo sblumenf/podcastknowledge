@@ -5,11 +5,17 @@ Run this after completing the evolution removal.
 """
 
 import sys
+from pathlib import Path
 from datetime import datetime
-from src.services.graph_storage import GraphStorageService
-from src.services.llm_service import LLMService
+
+# Add project to path
+sys.path.insert(0, str(Path(__file__).parent))
+
+from src.storage.graph_storage import GraphStorageService
+from src.services.llm import LLMService
 from src.clustering import SemanticClusteringSystem
-from src.utils.config import Config
+from src.core.config import SeedingConfig
+from src.core.env_config import EnvironmentConfig
 
 def test_simplified_clustering():
     """Test the simplified clustering system."""
@@ -21,11 +27,26 @@ def test_simplified_clustering():
     try:
         # Initialize services
         print("\n1. Initializing services...")
-        config = Config()
-        graph_storage = GraphStorageService(config.get_neo4j_config())
+        import os
+        neo4j_uri = os.getenv("NEO4J_URI", "bolt://localhost:7687")
+        neo4j_user = os.getenv("NEO4J_USERNAME", "neo4j")
+        neo4j_password = os.getenv("NEO4J_PASSWORD", "your_password")
+        
+        # Load configuration
+        config = SeedingConfig()
+        
+        # Graph storage
+        graph_storage = GraphStorageService(
+            uri=neo4j_uri,
+            username=neo4j_user,
+            password=neo4j_password
+        )
+        graph_storage.connect()
+        
+        # LLM service
         llm_service = LLMService(
-            api_key=config.gemini_api_key,
-            model_name=config.gemini_model
+            model_name=EnvironmentConfig.get_pro_model(),
+            api_key=os.getenv("GEMINI_API_KEY")
         )
         
         # Create clustering system

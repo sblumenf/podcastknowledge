@@ -4,8 +4,13 @@ Script to verify that no evolution artifacts remain in Neo4j database.
 Run this to confirm the evolution removal was successful.
 """
 
-from src.services.graph_storage import GraphStorageService
-from src.utils.config import Config
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).parent))
+
+from src.storage.graph_storage import GraphStorageService
+from src.core.config import SeedingConfig
+from src.core.env_config import EnvironmentConfig
 
 def verify_evolution_cleanup():
     """Check Neo4j for any remaining evolution artifacts."""
@@ -13,8 +18,21 @@ def verify_evolution_cleanup():
     print("Verifying evolution cleanup in Neo4j...")
     
     # Initialize Neo4j connection
-    config = Config()
-    graph_storage = GraphStorageService(config.get_neo4j_config())
+    import os
+    neo4j_uri = os.getenv("NEO4J_URI", "bolt://localhost:7687")
+    neo4j_user = os.getenv("NEO4J_USERNAME", "neo4j")
+    neo4j_password = os.getenv("NEO4J_PASSWORD", "your_password")
+    
+    # Load configuration
+    config = SeedingConfig()
+    
+    # Graph storage
+    graph_storage = GraphStorageService(
+        uri=neo4j_uri,
+        username=neo4j_user,
+        password=neo4j_password
+    )
+    graph_storage.connect()
     
     checks = []
     
