@@ -99,25 +99,30 @@ class SimpleHDBSCANClusterer:
             f"epsilon={self.epsilon}"
         )
         
+        # Normalize embeddings for cosine similarity
+        # When using euclidean distance on normalized vectors, it's equivalent to cosine distance
+        from sklearn.preprocessing import normalize
+        embeddings_normalized = normalize(embeddings, norm='l2', axis=1)
+        
         # Configure HDBSCAN
         clusterer = hdbscan.HDBSCAN(
             min_cluster_size=min_cluster_size,
             min_samples=self.min_samples,
-            metric='cosine',  # Best for text embeddings
+            metric='euclidean',  # Use euclidean on normalized vectors (equivalent to cosine)
             cluster_selection_epsilon=self.epsilon,
             cluster_selection_method='eom',  # Excess of Mass
             prediction_data=True,  # Enable soft clustering
             core_dist_n_jobs=-1  # Use all CPU cores
         )
         
-        # Perform clustering
-        cluster_labels = clusterer.fit_predict(embeddings)
+        # Perform clustering on normalized embeddings
+        cluster_labels = clusterer.fit_predict(embeddings_normalized)
         
-        # Process results
+        # Process results (pass normalized embeddings for consistent centroid calculation)
         results = self._process_clustering_results(
             cluster_labels,
             clusterer.probabilities_,
-            embeddings,
+            embeddings_normalized,
             unit_ids,
             clusterer
         )

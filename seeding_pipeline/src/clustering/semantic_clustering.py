@@ -147,7 +147,10 @@ class SemanticClusteringSystem:
                 'relationships_created': update_stats['relationships_created'],
                 'label_validation': self.labeler.get_validation_stats(),
                 'execution_time_seconds': round(execution_time, 2),
-                'units_per_second': round(cluster_results['total_units'] / execution_time, 1) if execution_time > 0 else 0
+                'units_per_second': round(cluster_results['total_units'] / execution_time, 1) if execution_time > 0 else 0,
+                # Add fields expected by cluster_existing.py
+                'units_clustered': cluster_results['total_units'] - cluster_results['n_outliers'],
+                'outliers': cluster_results['n_outliers']  # Alias for backward compatibility
             }
             
             result['message'] = (

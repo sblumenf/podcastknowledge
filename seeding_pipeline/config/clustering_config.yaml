@@ -9,23 +9,23 @@
 clustering:
   # Minimum cluster size calculation method
   # Options: 'sqrt' (dynamic based on data size) or 'fixed' (use fixed value)
-  min_cluster_size_formula: 'sqrt'
+  min_cluster_size_formula: 'fixed'
   
   # If min_cluster_size_formula is 'fixed', use this value
   # Typical range: 5-50 depending on dataset size
-  min_cluster_size_fixed: 10
+  min_cluster_size_fixed: 5
   
   # Minimum number of samples in neighborhood for point to be core point
   # Lower values = more granular clusters
   # Typical range: 2-10
-  min_samples: 3
+  min_samples: 1
   
   # Cluster selection epsilon for HDBSCAN
   # Controls how close points must be to merge into same cluster
   # Lower values = tighter, more numerous clusters
   # Higher values = looser, fewer clusters
   # Typical range: 0.1-0.5 for cosine distance on embeddings
-  epsilon: 0.3
+  epsilon: 0.5
 
 # Quality Warning Thresholds
 quality:

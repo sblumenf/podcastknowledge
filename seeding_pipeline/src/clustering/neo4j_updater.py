@@ -21,6 +21,7 @@ class Neo4jClusterUpdater:
     - Cluster nodes with labels and metadata
     - IN_CLUSTER relationships from MeaningfulUnits to Clusters
     
+    Deletes old clusters before creating new ones for a clean slate.
     Stores everything in Neo4j - no external files.
     """
     
@@ -41,6 +42,8 @@ class Neo4jClusterUpdater:
         """
         Update Neo4j with new cluster assignments.
         
+        Deletes all existing clusters and creates new ones from scratch.
+        
         Args:
             cluster_results: Results from HDBSCAN clusterer
             labeled_clusters: Optional dict with cluster labels (from Phase 5)
@@ -58,10 +61,9 @@ class Neo4jClusterUpdater:
         
         def _execute_update():
             # Start transaction
-            with self.neo4j.driver.session() as session:
-                # Step 1: Archive old cluster assignments
-                self._archive_old_clusters(session)
-                self._archive_old_assignments(session)
+            with self.neo4j.session() as session:
+                # Step 1: Delete old clusters and their relationships
+                self._delete_old_clusters(session)
                 
                 # Step 2: Create new clusters
                 
@@ -72,7 +74,7 @@ class Neo4jClusterUpdater:
                     
                     # Get label if available, otherwise use generic label
                     if labeled_clusters and cluster_id in labeled_clusters:
-                        label = labeled_clusters[cluster_id].get('label', f'Cluster {cluster_id}')
+                        label = labeled_clusters[cluster_id]
                     else:
                         label = f'Cluster {cluster_id}'
                     
@@ -124,30 +126,31 @@ class Neo4jClusterUpdater:
         
         return stats
     
-    def _archive_old_clusters(self, session):
-        """Archive existing clusters."""
+    def _delete_old_clusters(self, session):
+        """Delete all existing clusters and their relationships.
         
-        query = """
+        Uses DETACH DELETE to remove both the Cluster nodes and all
+        IN_CLUSTER relationships in a single operation.
+        """
+        
+        # Count existing clusters for logging
+        count_query = """
         MATCH (c:Cluster)
-        SET c.status = 'archived',
-            c.archived_at = datetime()
+        RETURN count(c) as cluster_count
         """
+        result = session.run(count_query)
+        count = result.single()["cluster_count"]
         
-        session.run(query)
-        logger.info("Archived existing clusters")
-    
-    def _archive_old_assignments(self, session):
-        """Mark old cluster assignments as non-primary."""
-        
-        query = """
-        MATCH (m:MeaningfulUnit)-[r:IN_CLUSTER]->(c:Cluster)
-        WHERE r.is_primary = true
-        SET r.is_primary = false,
-            r.archived_at = datetime()
-        """
-        
-        session.run(query)
-        logger.info("Archived old cluster assignments")
+        if count > 0:
+            # Delete all clusters and their relationships
+            delete_query = """
+            MATCH (c:Cluster)
+            DETACH DELETE c
+            """
+            session.run(delete_query)
+            logger.info(f"Deleted {count} existing clusters and their relationships")
+        else:
+            logger.info("No existing clusters to delete")
     
     def _create_cluster_node(
         self,

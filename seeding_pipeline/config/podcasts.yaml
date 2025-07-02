@@ -25,6 +25,11 @@ podcasts:
     - personal-development
     host: Mel Robbins
     website: https://melrobbins.com
+  clustering:
+    min_cluster_size_fixed: 5
+    min_samples: 1
+    epsilon: 0.5
+    max_outlier_ratio: 0.4
   persona:
     podcast_name: The Mel Robbins Podcast
     host_style_summary: Mel Robbins' hosting style is energetic, relatable, and 
@@ -83,6 +88,11 @@ podcasts:
     - technology
     host: Sam Parr and Shaan Puri
     website: https://thehustle.co/my-first-million-podcast
+  clustering:
+    min_cluster_size_fixed: 5
+    min_samples: 1
+    epsilon: 0.5
+    max_outlier_ratio: 0.4
   persona:
     podcast_name: My First Million
     host_style_summary: The hosts of My First Million adopt a conversational, 

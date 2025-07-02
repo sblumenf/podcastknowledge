@@ -279,6 +279,12 @@ try:
             'enable_graph_enhancement': True,
             'use_large_context': True
         },
+        'clustering': {
+            'min_cluster_size_fixed': 5,
+            'min_samples': 1,
+            'epsilon': 0.5,
+            'max_outlier_ratio': 0.4
+        },
         'metadata': {
             'language': 'en'
         }
