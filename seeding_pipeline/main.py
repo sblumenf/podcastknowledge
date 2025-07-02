@@ -699,45 +699,13 @@ Environment Variables:
                 
                 # Run clustering if conditions are met
                 if should_run_clustering:
-                    # STEP 1: Detect and process quarter boundaries for snapshots
+                    # Run clustering
                     print(f"\n{'='*60}")
-                    print("DETECTING QUARTER BOUNDARIES")
-                    print(f"{'='*60}")
-                    
-                    missing_quarters = clustering_system.detect_quarter_boundaries()
-                    
-                    if missing_quarters:
-                        print(f"Found {len(missing_quarters)} quarters needing snapshots: {missing_quarters}")
-                        
-                        for quarter in missing_quarters:
-                            print(f"\nCreating snapshot for quarter {quarter}...")
-                            snapshot_start = datetime.now()
-                            
-                            snapshot_result = clustering_system.process_quarter_snapshot(quarter)
-                            snapshot_duration = (datetime.now() - snapshot_start).total_seconds()
-                            
-                            if snapshot_result['status'] == 'success':
-                                print(f"✓ Snapshot created for {quarter}")
-                                print(f"  Duration: {snapshot_duration:.1f}s")
-                                if 'stats' in snapshot_result:
-                                    stats = snapshot_result['stats']
-                                    print(f"  Clusters: {stats.get('n_clusters', 'N/A')}")
-                                    print(f"  Units: {stats.get('total_units', 'N/A')}")
-                                    print(f"  Outliers: {stats.get('n_outliers', 'N/A')}")
-                            elif snapshot_result['status'] == 'skipped':
-                                print(f"⏭ Skipped {quarter}: {snapshot_result.get('message', 'No data')}")
-                            else:
-                                print(f"✗ Failed to create snapshot for {quarter}: {snapshot_result.get('message', 'Unknown error')}")
-                    else:
-                        print("All quarters already have snapshots")
-                    
-                    # STEP 2: Run current clustering for user-facing clusters
-                    print(f"\n{'='*60}")
-                    print("UPDATING CURRENT CLUSTERS")
+                    print("CLUSTERING")
                     print(f"{'='*60}")
                     
                     cluster_start_time = datetime.now()
-                    result = clustering_system.run_clustering(mode="current")
+                    result = clustering_system.run_clustering()
                     cluster_duration = (datetime.now() - cluster_start_time).total_seconds()
                     
                     if result['status'] == 'success':

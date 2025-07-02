@@ -49,7 +49,7 @@ class EmbeddingsExtractor:
         try:
             # Query to get all MeaningfulUnits with embeddings
             query = """
-            MATCH (m:MeaningfulUnit)<-[:CONTAINS]-(e:Episode)
+            MATCH (m:MeaningfulUnit)-[:PART_OF]->(e:Episode)
             WHERE m.embedding IS NOT NULL
             RETURN 
                 m.id as unit_id,
@@ -135,7 +135,7 @@ class EmbeddingsExtractor:
         logger.info(f"Extracting embeddings for episode: {episode_id}")
         
         query = """
-        MATCH (e:Episode {id: $episode_id})-[:CONTAINS]->(m:MeaningfulUnit)
+        MATCH (m:MeaningfulUnit)-[:PART_OF]->(e:Episode {id: $episode_id})
         WHERE m.embedding IS NOT NULL
         RETURN 
             m.id as unit_id,

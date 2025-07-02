@@ -282,14 +282,14 @@ class EndToEndTestSuite:
             # Run clustering again to trigger evolution tracking
             clustering_result = self.clustering_system.run_clustering()
             
-            # Check for evolution relationships
-            evolution_count = self._count_evolution_relationships()
+            # Check clustering results
+            # evolution_count = self._count_evolution_relationships()  # Evolution removed
             final_clusters = self._get_cluster_snapshot()
             
-            # Verify evolution tracking worked
+            # Verify clustering worked
             success = (
                 clustering_result['status'] == 'success' and
-                evolution_count > 0 and
+                # evolution_count > 0 and  # Evolution removed
                 len(final_clusters) >= len(initial_clusters)
             )
             
@@ -621,21 +621,22 @@ Renewable energy technologies are becoming more cost-effective.
         # Episodes are already created with units in _create_additional_test_episodes
         pass
     
-    def _count_evolution_relationships(self) -> int:
-        """Count evolution relationships in the database."""
-        query = """
-        MATCH ()-[r:EVOLVED_INTO]->()
-        RETURN count(r) as evolution_count
-        """
-        
-        try:
-            result = self.neo4j_service.query(query)
-            if result:
-                return result[0]['evolution_count']
-        except Exception as e:
-            logger.error(f"Failed to count evolution relationships: {e}")
-        
-        return 0
+    # Evolution tracking removed - method no longer needed
+    # def _count_evolution_relationships(self) -> int:
+    #     """Count evolution relationships in the database."""
+    #     query = """
+    #     MATCH ()-[r:EVOLVED_INTO]->()
+    #     RETURN count(r) as evolution_count
+    #     """
+    #     
+    #     try:
+    #         result = self.neo4j_service.query(query)
+    #         if result:
+    #             return result[0]['evolution_count']
+    #     except Exception as e:
+    #         logger.error(f"Failed to count evolution relationships: {e}")
+    #     
+    #     return 0
     
     def _test_empty_episode(self) -> bool:
         """Test handling of empty episode."""
