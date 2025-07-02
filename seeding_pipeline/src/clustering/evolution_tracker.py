@@ -28,18 +28,23 @@ class EvolutionTracker:
     All evolution events are stored as relationships in Neo4j.
     """
     
-    def __init__(self, neo4j_service):
+    def __init__(self, neo4j_service, config: Optional[Dict[str, Any]] = None):
         """
         Initialize evolution tracker.
         
         Args:
             neo4j_service: GraphStorageService instance for Neo4j operations
+            config: Optional configuration dictionary
         """
         self.neo4j = neo4j_service
-        self.split_threshold = 0.2  # 20% minimum for significant split destination
-        self.continuation_threshold = 0.8  # 80% minimum for continuation
         
-        logger.info("Initialized EvolutionTracker")
+        # Load thresholds from config or use defaults
+        evolution_config = config.get('evolution', {}) if config else {}
+        self.split_threshold = evolution_config.get('split_threshold', 0.2)
+        self.continuation_threshold = evolution_config.get('continuation_threshold', 0.8)
+        
+        logger.info(f"Initialized EvolutionTracker with split_threshold={self.split_threshold}, "
+                   f"continuation_threshold={self.continuation_threshold}")
     
     def detect_evolution(self, current_clusters: Dict[str, Any]) -> List[Dict[str, Any]]:
         """

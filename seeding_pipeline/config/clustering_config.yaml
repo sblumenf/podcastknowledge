@@ -27,3 +27,39 @@ clustering:
   # Typical range: 0.1-0.5 for cosine distance on embeddings
   epsilon: 0.3
 
+# Evolution Detection Configuration
+evolution:
+  # Minimum proportion of units that must move to a new cluster for a split
+  # Range: 0.0-1.0 (0.2 = 20%)
+  split_threshold: 0.2
+  
+  # Minimum proportion of units that must stay in same cluster for continuation
+  # Range: 0.0-1.0 (0.8 = 80%)
+  continuation_threshold: 0.8
+
+# Quality Warning Thresholds
+quality:
+  # Maximum allowed ratio of outliers before warning
+  # Range: 0.0-1.0 (0.3 = 30%)
+  max_outlier_ratio: 0.3
+  
+  # Minimum number of clusters expected
+  min_clusters: 3
+  
+  # Maximum size for a single cluster before warning
+  max_cluster_size: 100
+
+# Embedding Configuration
+embeddings:
+  # Expected dimension of embeddings from Gemini
+  expected_dimensions: 768
+
+# Label Generation Configuration
+label_generation:
+  # Temperature for LLM label generation (controls creativity)
+  # Range: 0.0-1.0 (0.3 = somewhat creative)
+  temperature: 0.3
+  
+  # Maximum number of words in generated labels
+  max_label_words: 3
+

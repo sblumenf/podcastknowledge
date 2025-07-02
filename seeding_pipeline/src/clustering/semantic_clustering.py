@@ -324,17 +324,22 @@ class SemanticClusteringSystem:
         logger.info(f"   Outliers: {n_outliers} ({outlier_ratio:.1%})")
         logger.info(f"   Cluster sizes: min={min_size}, max={max_size}, avg={avg_size:.1f}, median={median_size}")
         
-        # Quality warnings
-        if outlier_ratio > 0.3:
-            logger.warning(f"⚠️  HIGH OUTLIER RATIO: {outlier_ratio:.1%} exceeds 30% threshold")
+        # Quality warnings using configured thresholds
+        quality_config = self.config.get('quality', {})
+        max_outlier_ratio = quality_config.get('max_outlier_ratio', 0.3)
+        min_clusters = quality_config.get('min_clusters', 3)
+        max_cluster_size = quality_config.get('max_cluster_size', 100)
+        
+        if outlier_ratio > max_outlier_ratio:
+            logger.warning(f"⚠️  HIGH OUTLIER RATIO: {outlier_ratio:.1%} exceeds {max_outlier_ratio:.0%} threshold")
             logger.warning("   Consider reducing min_cluster_size parameter")
             
-        if n_clusters < 3:
-            logger.warning(f"⚠️  VERY FEW CLUSTERS: Only {n_clusters} clusters created")
+        if n_clusters < min_clusters:
+            logger.warning(f"⚠️  VERY FEW CLUSTERS: Only {n_clusters} clusters created (expected at least {min_clusters})")
             logger.warning("   Consider reducing cluster_selection_epsilon parameter")
             
-        if max_size > 100:
-            logger.warning(f"⚠️  VERY LARGE CLUSTER: Cluster with {max_size} units detected")
+        if max_size > max_cluster_size:
+            logger.warning(f"⚠️  VERY LARGE CLUSTER: Cluster with {max_size} units detected (exceeds {max_cluster_size})")
             logger.warning("   Large clusters may need further subdivision")
             
         if min_size < 3 and n_clusters > 0:
@@ -437,13 +442,15 @@ class SemanticClusteringSystem:
             else:  # Q4
                 end_month = 12
             
-            # Last day of the quarter (simplified - doesn't handle leap years perfectly)
+            # Get last day of the quarter using calendar module
+            import calendar
+            
             if end_month in [1, 3, 5, 7, 8, 10, 12]:
                 end_day = 31
             elif end_month in [4, 6, 9, 11]:
                 end_day = 30
-            else:  # February
-                end_day = 29 if year % 4 == 0 else 28
+            else:  # February - use calendar module for proper leap year handling
+                end_day = 29 if calendar.isleap(year) else 28
             
             end_date = f"{year}-{end_month:02d}-{end_day:02d}"
             logger.info(f"Filtering episodes up to {end_date}")

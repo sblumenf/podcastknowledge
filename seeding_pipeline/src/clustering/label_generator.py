@@ -207,17 +207,30 @@ Bad examples: "Discussion", "Topics", "General", "Content"
 
 Label:"""
         
-        try:
-            # Generate label with low temperature for consistency
-            response = self.llm_service.generate(prompt, temperature=0.3)
-            label = response.strip().strip('"').strip("'")
-            
-            logger.debug(f"LLM generated label: '{label}'")
-            return label
-            
-        except Exception as e:
-            logger.error(f"LLM label generation failed: {e}")
-            raise
+        # Retry logic for LLM calls
+        max_retries = 3
+        retry_delay = 1  # seconds
+        
+        for attempt in range(max_retries):
+            try:
+                # Generate label with configured temperature
+                label_config = self.llm_service.config.get('label_generation', {}) if hasattr(self.llm_service, 'config') else {}
+                temperature = label_config.get('temperature', 0.3)
+                
+                response = self.llm_service.generate(prompt, temperature=temperature)
+                label = response.strip().strip('"').strip("'")
+                
+                logger.debug(f"LLM generated label: '{label}'")
+                return label
+                
+            except Exception as e:
+                if attempt < max_retries - 1:
+                    logger.warning(f"LLM label generation attempt {attempt + 1} failed: {e}. Retrying in {retry_delay}s...")
+                    import time
+                    time.sleep(retry_delay * (attempt + 1))  # Exponential backoff
+                else:
+                    logger.error(f"LLM label generation failed after {max_retries} attempts: {e}")
+                    raise
     
     def _validate_and_clean_label(self, label: str, cluster_id: int) -> str:
         """
