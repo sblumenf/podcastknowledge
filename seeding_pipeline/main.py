@@ -653,7 +653,6 @@ Environment Variables:
                     print("✗ Clustering requires GEMINI_API_KEY for label generation")
                     raise ValueError("Missing GEMINI_API_KEY for clustering")
                 
-                from src.core.config import EnvironmentConfig
                 llm_service = LLMService(
                     api_key=gemini_api_key,
                     model_name=EnvironmentConfig.get_pro_model(), 
