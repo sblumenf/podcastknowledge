@@ -585,20 +585,28 @@ Environment Variables:
             for filename, error in failed_files:
                 print(f"  - {filename}: {error}")
         
+        # Load clustering configuration to check if automatic clustering is enabled
+        clustering_config_path = Path(__file__).parent / 'config' / 'clustering_config.yaml'
+        clustering_config = {}
+        if clustering_config_path.exists():
+            with open(clustering_config_path, 'r') as f:
+                clustering_config = yaml.safe_load(f)
+        
+        # Check pipeline configuration for automatic clustering
+        pipeline_config = clustering_config.get('pipeline', {})
+        auto_clustering_enabled = pipeline_config.get('auto_clustering_enabled', True)
+        min_episodes_for_clustering = pipeline_config.get('min_episodes_for_clustering', 1)
+        
         # AUTOMATIC CLUSTERING TRIGGER - Runs after successful episode processing
-        if success_count > 0:
+        if auto_clustering_enabled and success_count >= min_episodes_for_clustering:
             print(f"\n{'='*60}")
             print(f"TRIGGERING SEMANTIC CLUSTERING")
             print(f"{'='*60}")
             print(f"Processing {success_count} successfully loaded episodes...")
             
             try:
-                # Load clustering configuration
-                clustering_config_path = Path(__file__).parent / 'config' / 'clustering_config.yaml'
-                if clustering_config_path.exists():
-                    with open(clustering_config_path, 'r') as f:
-                        clustering_config = yaml.safe_load(f)
-                else:
+                # Configuration already loaded above
+                if not clustering_config:
                     # Default configuration if file doesn't exist
                     clustering_config = {
                         'clustering': {
@@ -751,6 +759,20 @@ Environment Variables:
                 print(f"✗ Clustering failed: {e}")
                 logger.error(f"Clustering failed: {e}", exc_info=True)
                 # Don't fail the entire pipeline if clustering fails
+        
+        elif success_count > 0 and not auto_clustering_enabled:
+            print(f"\n{'='*60}")
+            print(f"AUTOMATIC CLUSTERING DISABLED")
+            print(f"{'='*60}")
+            print(f"Automatic clustering is disabled in configuration.")
+            print(f"To enable, set 'auto_clustering_enabled: true' in clustering_config.yaml")
+        
+        elif success_count > 0 and success_count < min_episodes_for_clustering:
+            print(f"\n{'='*60}")
+            print(f"CLUSTERING THRESHOLD NOT MET")
+            print(f"{'='*60}")
+            print(f"Only {success_count} episodes processed, need at least {min_episodes_for_clustering}.")
+            print(f"To change threshold, update 'min_episodes_for_clustering' in clustering_config.yaml")
         
         sys.exit(1 if failed_files else 0)
     

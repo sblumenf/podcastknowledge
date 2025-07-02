@@ -8,6 +8,7 @@ Follows KISS principle - no caching, no optimization unless needed.
 import numpy as np
 from typing import Dict, List, Any, Optional
 from src.utils.logging import get_logger
+from .retry_utils import RetryableNeo4j
 
 logger = get_logger(__name__)
 
@@ -27,7 +28,8 @@ class EmbeddingsExtractor:
         Args:
             neo4j_service: GraphStorageService instance
         """
-        self.neo4j = neo4j_service
+        # Wrap Neo4j service with retry logic
+        self.neo4j = RetryableNeo4j(neo4j_service)
         
     def extract_all_embeddings(self) -> Dict[str, Any]:
         """

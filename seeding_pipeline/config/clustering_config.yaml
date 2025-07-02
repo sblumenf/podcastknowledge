@@ -63,3 +63,13 @@ label_generation:
   # Maximum number of words in generated labels
   max_label_words: 3
 
+# Pipeline Integration Configuration
+pipeline:
+  # Whether to automatically trigger clustering after episode processing
+  # Set to false to disable automatic clustering
+  auto_clustering_enabled: true
+  
+  # Minimum number of successfully processed episodes to trigger clustering
+  # Only applies when auto_clustering_enabled is true
+  min_episodes_for_clustering: 1
+

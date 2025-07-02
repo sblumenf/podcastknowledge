@@ -12,6 +12,7 @@ from datetime import datetime
 from typing import Dict, List, Any, Optional, Tuple
 from collections import defaultdict
 from src.utils.logging import get_logger
+from .retry_utils import RetryableNeo4j
 
 logger = get_logger(__name__)
 
@@ -36,7 +37,8 @@ class EvolutionTracker:
             neo4j_service: GraphStorageService instance for Neo4j operations
             config: Optional configuration dictionary
         """
-        self.neo4j = neo4j_service
+        # Wrap Neo4j service with retry logic
+        self.neo4j = RetryableNeo4j(neo4j_service)
         
         # Load thresholds from config or use defaults
         evolution_config = config.get('evolution', {}) if config else {}

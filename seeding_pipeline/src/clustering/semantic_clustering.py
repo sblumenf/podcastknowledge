@@ -20,6 +20,7 @@ from .hdbscan_clusterer import SimpleHDBSCANClusterer
 from .neo4j_updater import Neo4jClusterUpdater
 from .label_generator import ClusterLabeler
 from .evolution_tracker import EvolutionTracker
+from .retry_utils import RetryableNeo4j
 
 logger = get_logger(__name__)
 
@@ -114,7 +115,8 @@ class SemanticClusteringSystem:
             llm_service: LLMService instance for label generation
             config: Optional configuration dictionary. If None, loads from YAML.
         """
-        self.neo4j = neo4j_service
+        # Wrap Neo4j service with retry logic for direct queries
+        self.neo4j = RetryableNeo4j(neo4j_service)
         self.llm_service = llm_service
         
         # Pass config to clusterer

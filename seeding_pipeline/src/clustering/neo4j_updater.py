@@ -8,6 +8,7 @@ All clustering data stored in Neo4j as single source of truth.
 from datetime import datetime
 from typing import Dict, List, Any, Optional
 from src.utils.logging import get_logger
+from .retry_utils import retry_with_backoff
 
 logger = get_logger(__name__)
 
@@ -62,7 +63,7 @@ class Neo4jClusterUpdater:
             'errors': []
         }
         
-        try:
+        def _execute_update():
             # Start transaction
             with self.neo4j.driver.session() as session:
                 # Step 1: Create ClusteringState node
@@ -119,14 +120,26 @@ class Neo4jClusterUpdater:
                 
                 # Step 5: Link ClusteringState to created clusters
                 self._link_state_to_clusters(session, state_id)
-                
+        
+        try:
+            # Execute update with retry logic
+            retry_with_backoff(
+                _execute_update,
+                max_retries=3,
+                initial_delay=2.0,
+                backoff_factor=2.0,
+                on_retry=lambda e, attempt: logger.warning(
+                    f"Neo4j cluster update retry {attempt}/3 after error: {type(e).__name__}"
+                )
+            )
+            
             logger.info(
                 f"Neo4j update complete: {stats['clusters_created']} clusters, "
                 f"{stats['relationships_created']} relationships"
             )
             
         except Exception as e:
-            logger.error(f"Failed to update Neo4j: {str(e)}", exc_info=True)
+            logger.error(f"Failed to update Neo4j after retries: {str(e)}", exc_info=True)
             stats['errors'].append(str(e))
             raise
         
