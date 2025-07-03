@@ -27,7 +27,7 @@ export function EpisodePanel({ podcastId }: EpisodePanelProps) {
     setError(null)
     
     try {
-      const response = await fetch(`http://localhost:8001/api/podcasts/${podcastId}/episodes`)
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8002'}/api/podcasts/${podcastId}/episodes`)
       
       if (!response.ok) {
         throw new Error(`Unable to load episodes (${response.status})`)

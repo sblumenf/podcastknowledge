@@ -187,7 +187,7 @@ export function ThreePanelLayout() {
             <h2>Knowledge Graph</h2>
           </div>
           <div className={styles.panelContent}>
-            <GraphPanel />
+            <GraphPanel podcastId={id || ''} />
           </div>
         </section>
         

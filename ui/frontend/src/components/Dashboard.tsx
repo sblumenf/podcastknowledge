@@ -18,18 +18,24 @@ export function Dashboard() {
     
     // Fetch podcasts from API
     // Source of truth: seeding_pipeline/config/podcasts.yaml
-    fetch('http://localhost:8001/api/podcasts')
+    const apiUrl = `${import.meta.env.VITE_API_URL || 'http://localhost:8002'}/api/podcasts`
+    console.log('Fetching from:', apiUrl)
+    
+    fetch(apiUrl)
       .then(response => {
+        console.log('Response status:', response.status)
         if (!response.ok) {
           throw new Error(`Unable to load podcasts (${response.status})`)
         }
         return response.json()
       })
       .then(data => {
+        console.log('Podcasts received:', data)
         setPodcasts(data)
         setLoading(false)
       })
       .catch(err => {
+        console.error('Fetch error:', err)
         setError(err.message || 'Failed to load podcasts')
         setLoading(false)
       })

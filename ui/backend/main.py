@@ -14,6 +14,8 @@ from routes.dashboard import router as dashboard_router
 from routes.chat import router as chat_router
 from routes.admin import router as admin_router
 from routes.episodes import router as episodes_router
+from routes.knowledge_graph import router as knowledge_graph_router
+from routes.knowledge_graph_enhanced import router as knowledge_graph_enhanced_router
 
 # Create FastAPI app instance
 app = FastAPI(
@@ -49,6 +51,8 @@ app.include_router(dashboard_router, prefix="/api")
 app.include_router(chat_router, prefix="/api")
 app.include_router(admin_router, prefix="/api")
 app.include_router(episodes_router, prefix="/api")
+app.include_router(knowledge_graph_router, prefix="/api")
+app.include_router(knowledge_graph_enhanced_router, prefix="/api")
 
 # Run with uvicorn when executed directly
 if __name__ == "__main__":

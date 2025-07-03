@@ -45,6 +45,27 @@ interface RAGSearchResponse {
   details?: unknown
 }
 
+// Knowledge Graph types
+export interface ClusterNode {
+  id: string
+  label: string
+  size: number
+  connections: number
+}
+
+export interface ClusterEdge {
+  source: string
+  target: string
+  weight: number
+  type?: string
+}
+
+export interface KnowledgeGraphData {
+  clusters: ClusterNode[]
+  edges: ClusterEdge[]
+  connection_type?: string
+}
+
 // Generic error handler
 async function handleResponse<T>(response: Response): Promise<T> {
   if (!response.ok) {
@@ -88,6 +109,18 @@ export async function searchKnowledge(request: RAGSearchRequest): Promise<RAGSea
     return handleResponse<RAGSearchResponse>(response)
   } catch (error) {
     console.error('Failed to search knowledge:', error)
+    throw error
+  }
+}
+
+// Knowledge Graph API function
+export async function getKnowledgeGraph(podcastId: string, connectionType: string = 'hybrid'): Promise<KnowledgeGraphData> {
+  try {
+    // Use regular endpoint for now since enhanced may have issues
+    const response = await fetch(`${API_URL}/api/podcasts/${podcastId}/knowledge-graph`)
+    return handleResponse<KnowledgeGraphData>(response)
+  } catch (error) {
+    console.error('Failed to fetch knowledge graph:', error)
     throw error
   }
 }
