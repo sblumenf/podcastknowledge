@@ -18,8 +18,11 @@ interface NodeData {
   color: string
   x: number
   y: number
-  type?: 'cluster' | 'meaningfulUnit'
+  isCluster?: boolean
+  isMeaningfulUnit?: boolean
   clusterId?: string
+  centroid?: number[]
+  meaningfulUnit?: MeaningfulUnit
 }
 
 // Component to handle graph events and spoke visualization
@@ -55,7 +58,7 @@ function GraphEvents({
     // Collect all meaningful unit nodes to remove
     const nodesToRemove: string[] = []
     graph.forEachNode((node, attributes) => {
-      if (attributes.type === 'meaningfulUnit') {
+      if ((attributes as NodeData).isMeaningfulUnit) {
         nodesToRemove.push(node)
       }
     })
@@ -70,12 +73,12 @@ function GraphEvents({
     const nodeAttributes = graph.getNodeAttributes(nodeId) as NodeData
     
     // Only handle clicks on cluster nodes
-    if (nodeAttributes.type !== 'cluster' && !nodeAttributes.type) {
-      // If no type, assume it's a cluster (for backward compatibility)
-      nodeAttributes.type = 'cluster'
+    if (!nodeAttributes.isCluster && !nodeAttributes.isMeaningfulUnit) {
+      // If no attributes, assume it's a cluster (for backward compatibility)
+      nodeAttributes.isCluster = true
     }
     
-    if (nodeAttributes.type !== 'cluster') return
+    if (!nodeAttributes.isCluster) return
 
     // Toggle selection
     if (selectedClusterId === nodeId) {
@@ -160,7 +163,7 @@ function GraphEvents({
               color: getSentimentColor(unit.sentiment),
               x: position.x,
               y: position.y,
-              type: 'meaningfulUnit' as const,
+              isMeaningfulUnit: true,
               clusterId: nodeId,
               meaningfulUnit: unit
             }
@@ -224,7 +227,7 @@ function LoadGraph({ data, onGraphLoaded }: LoadGraphProps) {
         color,
         x: Math.random() * 100,
         y: Math.random() * 100,
-        type: 'cluster' as const,
+        isCluster: true, // Use a custom attribute instead of type
         centroid: cluster.centroid
       })
     })
