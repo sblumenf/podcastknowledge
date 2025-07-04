@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import Graph from 'graphology'
 import { SigmaContainer, useLoadGraph, useRegisterEvents, useSigma } from '@react-sigma/core'
 import { LayoutForceAtlas2Control } from '@react-sigma/layout-forceatlas2'
@@ -30,6 +30,9 @@ interface GraphEventsProps {
   spokeUnits: MeaningfulUnit[]
   setSpokeUnits: (units: MeaningfulUnit[]) => void
   spokeConfig: SpokeConfig
+  spokeCache: React.MutableRefObject<Map<string, CacheEntry>>
+  loadingSpokes: boolean
+  setLoadingSpokes: (loading: boolean) => void
 }
 
 function GraphEvents({ 
@@ -38,21 +41,27 @@ function GraphEvents({
   setSelectedClusterId, 
   spokeUnits, 
   setSpokeUnits,
-  spokeConfig 
+  spokeConfig,
+  spokeCache,
+  loadingSpokes,
+  setLoadingSpokes
 }: GraphEventsProps) {
   const registerEvents = useRegisterEvents()
   const sigma = useSigma()
   const graph = sigma.getGraph()
-  const [loadingSpokes, setLoadingSpokes] = useState(false)
 
   // Function to clear previous spokes
   const clearSpokes = useCallback(() => {
-    // Remove all meaningful unit nodes
+    // Collect all meaningful unit nodes to remove
+    const nodesToRemove: string[] = []
     graph.forEachNode((node, attributes) => {
       if (attributes.type === 'meaningfulUnit') {
-        graph.dropNode(node)
+        nodesToRemove.push(node)
       }
     })
+    
+    // Batch remove nodes
+    nodesToRemove.forEach(node => graph.dropNode(node))
     setSpokeUnits([])
   }, [graph, setSpokeUnits])
 
@@ -79,28 +88,73 @@ function GraphEvents({
       clearSpokes()
       
       if (spokeConfig.showSpokes) {
-        setLoadingSpokes(true)
-        try {
-          const response = await getClusterMeaningfulUnits(podcastId, nodeId, spokeConfig.count)
-          setSpokeUnits(response.meaningful_units)
-          
-          // Add spoke nodes to graph
-          const clusterNode = graph.getNodeAttributes(nodeId) as NodeData
-          const radius = 60 // Fixed radius for spokes
-          const positions = calculateSpokePositions(
-            clusterNode.x,
-            clusterNode.y,
-            radius,
-            response.meaningful_units.length
-          )
-          
-          // Add meaningful unit nodes and edges
-          response.meaningful_units.forEach((unit, index) => {
-            const unitNodeId = `unit-${unit.id}`
-            const position = positions[index]
+        // Check cache first
+        const cacheKey = `${nodeId}-${spokeConfig.count}`
+        const cached = spokeCache.current.get(cacheKey)
+        const now = Date.now()
+        
+        // Clean up expired cache entries
+        spokeCache.current.forEach((entry, key) => {
+          if (now - entry.timestamp > CACHE_DURATION) {
+            spokeCache.current.delete(key)
+          }
+        })
+        
+        // Limit cache size to 50 entries
+        if (spokeCache.current.size > 50) {
+          const firstKey = spokeCache.current.keys().next().value
+          spokeCache.current.delete(firstKey)
+        }
+        
+        let units: MeaningfulUnit[]
+        
+        if (cached && now - cached.timestamp < CACHE_DURATION) {
+          // Use cached data
+          units = cached.units
+          setSpokeUnits(units)
+        } else {
+          // Fetch new data
+          setLoadingSpokes(true)
+          try {
+            const response = await getClusterMeaningfulUnits(podcastId, nodeId, spokeConfig.count)
+            units = response.meaningful_units
+            setSpokeUnits(units)
             
-            // Add spoke node
-            graph.addNode(unitNodeId, {
+            // Cache the response
+            spokeCache.current.set(cacheKey, {
+              units,
+              timestamp: now
+            })
+          } catch (error) {
+            console.error('Failed to fetch meaningful units:', error)
+            return
+          } finally {
+            setLoadingSpokes(false)
+          }
+        }
+        
+        // Add spoke nodes to graph (for both cached and fresh data)
+        const clusterNode = graph.getNodeAttributes(nodeId) as NodeData
+        const radius = 60 // Fixed radius for spokes
+        const positions = calculateSpokePositions(
+          clusterNode.x,
+          clusterNode.y,
+          radius,
+          units.length
+        )
+        
+        // Batch node and edge additions for better performance
+        const nodesToAdd: Array<{ id: string; attributes: any }> = []
+        const edgesToAdd: Array<{ source: string; target: string; attributes: any }> = []
+        
+        units.forEach((unit, index) => {
+          const unitNodeId = `unit-${unit.id}`
+          const position = positions[index]
+          
+          // Prepare spoke node
+          nodesToAdd.push({
+            id: unitNodeId,
+            attributes: {
               label: unit.summary.substring(0, 30) + '...',
               size: 5,
               color: getSentimentColor(unit.sentiment),
@@ -109,22 +163,26 @@ function GraphEvents({
               type: 'meaningfulUnit' as const,
               clusterId: nodeId,
               meaningfulUnit: unit
-            })
-            
-            // Add edge from cluster to spoke
-            graph.addEdge(nodeId, unitNodeId, {
+            }
+          })
+          
+          // Prepare edge
+          edgesToAdd.push({
+            source: nodeId,
+            target: unitNodeId,
+            attributes: {
               size: 0.5,
               color: 'rgba(150, 150, 150, 0.3)'
-            })
+            }
           })
-        } catch (error) {
-          console.error('Failed to fetch meaningful units:', error)
-        } finally {
-          setLoadingSpokes(false)
-        }
+        })
+        
+        // Batch add all nodes and edges
+        nodesToAdd.forEach(({ id, attributes }) => graph.addNode(id, attributes))
+        edgesToAdd.forEach(({ source, target, attributes }) => graph.addEdge(source, target, attributes))
       }
     }
-  }, [podcastId, selectedClusterId, setSelectedClusterId, spokeConfig, graph, clearSpokes, setSpokeUnits])
+  }, [podcastId, selectedClusterId, setSelectedClusterId, spokeConfig, graph, clearSpokes, setSpokeUnits, spokeCache])
 
   useEffect(() => {
     // Register click event
@@ -248,6 +306,15 @@ interface SpokeConfig {
   showSpokes: boolean
 }
 
+// Cache entry for meaningful units
+interface CacheEntry {
+  units: MeaningfulUnit[]
+  timestamp: number
+}
+
+// Cache duration - 15 minutes
+const CACHE_DURATION = 15 * 60 * 1000
+
 // Color legend component
 function ColorLegend({ visible }: { visible: boolean }) {
   if (!visible) return null
@@ -271,6 +338,18 @@ function ColorLegend({ visible }: { visible: boolean }) {
   )
 }
 
+// Loading indicator component
+function LoadingIndicator({ visible, clusterId }: { visible: boolean; clusterId: string | null }) {
+  if (!visible || !clusterId) return null
+  
+  return (
+    <div className={styles.loadingIndicator}>
+      <div className={styles.spinner} />
+      <span>Loading spokes...</span>
+    </div>
+  )
+}
+
 export function GraphPanel({ podcastId }: GraphPanelProps) {
   const [graphData, setGraphData] = useState<KnowledgeGraphData | null>(null)
   const [loading, setLoading] = useState(true)
@@ -280,6 +359,7 @@ export function GraphPanel({ podcastId }: GraphPanelProps) {
   // Spoke visualization state
   const [selectedClusterId, setSelectedClusterId] = useState<string | null>(null)
   const [spokeUnits, setSpokeUnits] = useState<MeaningfulUnit[]>([])
+  const [loadingSpokes, setLoadingSpokes] = useState(false)
   const [spokeConfig, setSpokeConfig] = useState<SpokeConfig>(() => {
     // Load saved preference from localStorage
     const savedCount = localStorage.getItem('spokeCount')
@@ -288,6 +368,9 @@ export function GraphPanel({ podcastId }: GraphPanelProps) {
       showSpokes: true
     }
   })
+  
+  // Cache for meaningful units
+  const spokeCache = useRef<Map<string, CacheEntry>>(new Map())
   
   // Handle spoke count change - refetch if cluster is selected
   const handleSpokeCountChange = useCallback((newCount: number) => {
@@ -427,6 +510,9 @@ export function GraphPanel({ podcastId }: GraphPanelProps) {
           spokeUnits={spokeUnits}
           setSpokeUnits={setSpokeUnits}
           spokeConfig={spokeConfig}
+          spokeCache={spokeCache}
+          loadingSpokes={loadingSpokes}
+          setLoadingSpokes={setLoadingSpokes}
         />
         <LayoutForceAtlas2Control 
           settings={{
@@ -441,6 +527,7 @@ export function GraphPanel({ podcastId }: GraphPanelProps) {
         />
       </SigmaContainer>
       <ColorLegend visible={spokeConfig.showSpokes && spokeUnits.length > 0} />
+      <LoadingIndicator visible={loadingSpokes} clusterId={selectedClusterId} />
     </div>
   )
 }

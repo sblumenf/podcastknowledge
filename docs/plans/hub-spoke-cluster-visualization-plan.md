@@ -156,7 +156,7 @@ This plan transforms the existing Sigma.js cluster network visualization in Grap
 ## Phase 4: Performance Optimization
 
 ### Task 4.1: Implement Spoke Data Caching
-- [ ] Add client-side caching for MeaningfulUnit data to avoid repeated API calls when re-selecting clusters. The cache should store fetched units per cluster ID, invalidate after a reasonable timeout (15 minutes), and handle cache size limits to prevent memory issues. This significantly improves interaction responsiveness for frequently selected clusters.
+- [x] Add client-side caching for MeaningfulUnit data to avoid repeated API calls when re-selecting clusters. The cache should store fetched units per cluster ID, invalidate after a reasonable timeout (15 minutes), and handle cache size limits to prevent memory issues. This significantly improves interaction responsiveness for frequently selected clusters.
   - Purpose: Reduces API calls and improves interaction speed
   - Steps:
     1. Create Map-based cache with cluster ID keys
@@ -168,7 +168,7 @@ This plan transforms the existing Sigma.js cluster network visualization in Grap
   - Validation: Repeated cluster clicks don't trigger API calls
 
 ### Task 4.2: Optimize Node Addition/Removal
-- [ ] Batch Sigma.js graph updates when adding or removing spoke nodes to improve rendering performance. Instead of adding nodes one by one, collect all changes and apply them in a single graph update. This includes using Sigma.js batch update methods, disabling rendering during updates, and re-enabling with a single refresh call.
+- [x] Batch Sigma.js graph updates when adding or removing spoke nodes to improve rendering performance. Instead of adding nodes one by one, collect all changes and apply them in a single graph update. This includes using Sigma.js batch update methods, disabling rendering during updates, and re-enabling with a single refresh call.
   - Purpose: Prevents multiple re-renders during spoke updates
   - Steps:
     1. Use graph.import() for batch additions
@@ -180,7 +180,7 @@ This plan transforms the existing Sigma.js cluster network visualization in Grap
   - Validation: Spoke transitions appear smooth without flicker
 
 ### Task 4.3: Add Loading States
-- [ ] Implement loading indicators when fetching MeaningfulUnit data from the API to provide user feedback. This includes showing a spinner or skeleton on the selected cluster while loading, handling error states gracefully with user-friendly messages, and ensuring loading states don't disrupt the visualization layout. The implementation should prevent multiple simultaneous requests to the same endpoint.
+- [x] Implement loading indicators when fetching MeaningfulUnit data from the API to provide user feedback. This includes showing a spinner or skeleton on the selected cluster while loading, handling error states gracefully with user-friendly messages, and ensuring loading states don't disrupt the visualization layout. The implementation should prevent multiple simultaneous requests to the same endpoint.
   - Purpose: Provides feedback during asynchronous operations
   - Steps:
     1. Add loading state to component state
