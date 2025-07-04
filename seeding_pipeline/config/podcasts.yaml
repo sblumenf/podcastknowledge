@@ -89,9 +89,9 @@ podcasts:
     host: Sam Parr and Shaan Puri
     website: https://thehustle.co/my-first-million-podcast
   clustering:
-    min_cluster_size_fixed: 5
+    min_cluster_size_fixed: 4
     min_samples: 1
-    epsilon: 0.5
+    epsilon: 0.7
     max_outlier_ratio: 0.4
   persona:
     podcast_name: My First Million

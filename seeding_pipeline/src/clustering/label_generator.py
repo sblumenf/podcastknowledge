@@ -17,6 +17,44 @@ from src.services.llm import LLMService
 logger = get_logger(__name__)
 
 
+def smart_title_case(text: str) -> str:
+    """
+    Apply title case while preserving apostrophe patterns.
+    
+    Unlike Python's .title() method, this function doesn't capitalize
+    letters after apostrophes, preserving words like "Women's" and "CEO's".
+    
+    Args:
+        text: The text to convert to title case
+        
+    Returns:
+        Title-cased text with preserved apostrophe patterns
+    """
+    words = []
+    for word in text.split():
+        if not word:
+            continue
+        
+        # Check if the entire word is uppercase (likely an acronym or shouting)
+        if word.isupper() and len(word) > 3:
+            # Convert to title case for all-caps words longer than 3 chars
+            word = word.capitalize()
+        # Check if word contains an apostrophe
+        elif "'" in word:
+            # Only capitalize the first letter if it's lowercase
+            if word[0].islower():
+                word = word[0].upper() + word[1:]
+        else:
+            # For non-apostrophe words, only capitalize first letter
+            # This preserves any existing uppercase letters (like in "PhD" or "CEO")
+            if word[0].islower():
+                word = word[0].upper() + word[1:]
+        
+        words.append(word)
+    
+    return ' '.join(words)
+
+
 class ClusterLabeler:
     """
     Generates human-readable labels for clusters using LLM analysis.
@@ -37,7 +75,17 @@ class ClusterLabeler:
         """
         self.llm_service = llm_service
         self.used_labels = set()  # Track used labels to avoid duplicates
-        self.banned_terms = ["Topics", "Discussion", "General", "Conversation", "Content", "Units"]
+        self.banned_terms = [
+            # Original generic terms
+            "Topics", "Discussion", "General", "Conversation", "Content", "Units",
+            # Podcast-specific jargon
+            "Podcast Outros", "Podcast Intros", "Episode Endings", "Show Openings",
+            "Podcast Segments", "Show Segments", "Episode Openings", "Episode Closings",
+            "Introduction Segments", "Closing Segments", "Outro Segments", "Intro Segments",
+            "Podcast Transitions", "Episode Transitions", "Show Transitions",
+            "Sponsor Messages", "Ad Breaks", "Commercial Breaks",
+            "Podcast Metadata", "Episode Information", "Show Information"
+        ]
         
         # Validation statistics
         self.validation_stats = {
@@ -88,7 +136,7 @@ class ClusterLabeler:
                 label = self._generate_single_label(representative_units)
                 
                 # Validate and clean label
-                label = self._validate_and_clean_label(label, cluster_id)
+                label = self._validate_and_clean_label(label, cluster_id, representative_units)
                 
                 labeled_clusters[cluster_id] = label
                 self.used_labels.add(label)
@@ -165,12 +213,13 @@ class ClusterLabeler:
         
         return selected_units
     
-    def _generate_single_label(self, representative_units: List[Dict[str, Any]]) -> str:
+    def _generate_single_label(self, representative_units: List[Dict[str, Any]], max_words: int = 3) -> str:
         """
         Use LLM to generate a concise cluster label from representative units.
         
         Args:
             representative_units: List of representative units with summaries
+            max_words: Maximum number of words allowed in the label
             
         Returns:
             Generated label string
@@ -197,7 +246,7 @@ Summaries:
 {context}
 
 Requirements:
-- Maximum 3 words
+- Maximum {max_words} words
 - Specific and descriptive  
 - Title case
 - Capture the common theme
@@ -232,13 +281,15 @@ Label:"""
                     logger.error(f"LLM label generation failed after {max_retries} attempts: {e}")
                     raise
     
-    def _validate_and_clean_label(self, label: str, cluster_id: int) -> str:
+    def _validate_and_clean_label(self, label: str, cluster_id: int, 
+                                   representative_units: List[Dict[str, Any]] = None) -> str:
         """
         Validate and clean generated label according to quality standards.
         
         Args:
             label: Raw label from LLM
             cluster_id: Cluster ID for fallback naming
+            representative_units: Representative units for this cluster (used for duplicate resolution)
             
         Returns:
             Validated and cleaned label
@@ -253,8 +304,8 @@ Label:"""
         label = label.strip()
         original_raw_label = label
         
-        # Ensure title case
-        label = label.title()
+        # Ensure title case (using smart function to preserve apostrophes)
+        label = smart_title_case(label)
         
         # Limit to 3 words
         words = label.split()
@@ -293,22 +344,38 @@ Label:"""
             logger.debug(f"Label '{label}' is numbers-only, using fallback")
             return f"Cluster_{cluster_id}"
         
-        # Handle duplicates
+        # Handle duplicates with 5-word regeneration
         original_label = label
-        counter = 2
-        while label in self.used_labels:
-            label = f"{original_label} {counter}"
-            counter += 1
-            if counter > 10:  # Prevent infinite loop
-                self.validation_stats['fallback_used'] += 1
-                label = f"Cluster_{cluster_id}"
-                break
-        
-        if label != original_label:
-            self.validation_stats['duplicates_resolved'] += 1
-            logger.debug(f"Avoided duplicate: '{original_label}' -> '{label}'")
+        if label in self.used_labels and representative_units:
+            # Regenerate with more words allowed
+            label = self._generate_single_label(representative_units, max_words=5)
+            label = smart_title_case(label.strip())
+            
+            # Limit to 5 words if LLM returned more
+            words = label.split()
+            if len(words) > 5:
+                label = " ".join(words[:5])
+            
+            if label not in self.used_labels:
+                self.validation_stats['duplicates_resolved'] += 1
+                logger.debug(f"Resolved duplicate with 5-word label: '{original_label}' -> '{label}'")
+            else:
+                # Still a duplicate? Add number
+                counter = 2
+                while label in self.used_labels:
+                    label = f"{original_label} {counter}"
+                    counter += 1
+                    if counter > 10:  # Prevent infinite loop
+                        self.validation_stats['fallback_used'] += 1
+                        label = f"Cluster_{cluster_id}"
+                        break
+                
+                if label != original_label:
+                    self.validation_stats['duplicates_resolved'] += 1
+                    logger.debug(f"Resolved duplicate with number: '{original_label}' -> '{label}'")
         
         return label
+    
     
     def _log_validation_summary(self):
         """Log validation statistics summary."""
