@@ -105,3 +105,130 @@
   background: #000011;
   color: #FFFFFF;
 }
+
+/* Spoke controls */
+.spokeControls {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-left: 1rem;
+  padding-left: 1rem;
+  border-left: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.spokeControls label {
+  font-size: 0.875rem;
+  white-space: nowrap;
+}
+
+.spokeSlider {
+  width: 120px;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 2px;
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.spokeSlider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  background: #00FFFF;
+  cursor: pointer;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+}
+
+.spokeSlider::-webkit-slider-thumb:hover {
+  background: #33FFFF;
+  transform: scale(1.2);
+}
+
+.spokeSlider::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  background: #00FFFF;
+  cursor: pointer;
+  border-radius: 50%;
+  border: none;
+  transition: all 0.2s ease;
+}
+
+.spokeSlider::-moz-range-thumb:hover {
+  background: #33FFFF;
+  transform: scale(1.2);
+}
+
+/* Toggle control */
+.toggleLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  user-select: none;
+  margin-left: 1rem;
+}
+
+.toggleLabel span {
+  font-size: 0.875rem;
+}
+
+.spokeToggle {
+  width: 1rem;
+  height: 1rem;
+  cursor: pointer;
+  accent-color: #00FFFF;
+}
+
+.spokeToggle:focus {
+  outline: 2px solid rgba(0, 255, 255, 0.5);
+  outline-offset: 2px;
+}
+
+/* Color legend */
+.colorLegend {
+  position: absolute;
+  bottom: 1rem;
+  left: 1rem;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+  color: #FFFFFF;
+  font-size: 0.875rem;
+  z-index: 10;
+}
+
+.colorLegend h4 {
+  margin: 0 0 0.5rem 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.legendItem {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.legendItem:last-child {
+  margin-bottom: 0;
+}
+
+.legendColor {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.legendItem span {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.9);
+}

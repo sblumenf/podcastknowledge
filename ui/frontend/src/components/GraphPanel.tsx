@@ -134,6 +134,13 @@ function GraphEvents({
       }
     })
   }, [registerEvents, handleClusterClick])
+  
+  // Clear spokes when showSpokes is toggled off
+  useEffect(() => {
+    if (!spokeConfig.showSpokes && selectedClusterId) {
+      clearSpokes()
+    }
+  }, [spokeConfig.showSpokes, selectedClusterId, clearSpokes])
 
   return null
 }
@@ -241,6 +248,29 @@ interface SpokeConfig {
   showSpokes: boolean
 }
 
+// Color legend component
+function ColorLegend({ visible }: { visible: boolean }) {
+  if (!visible) return null
+  
+  return (
+    <div className={styles.colorLegend}>
+      <h4>Sentiment</h4>
+      <div className={styles.legendItem}>
+        <div className={styles.legendColor} style={{ backgroundColor: '#27ae60' }} />
+        <span>Positive</span>
+      </div>
+      <div className={styles.legendItem}>
+        <div className={styles.legendColor} style={{ backgroundColor: '#95a5a6' }} />
+        <span>Neutral</span>
+      </div>
+      <div className={styles.legendItem}>
+        <div className={styles.legendColor} style={{ backgroundColor: '#e74c3c' }} />
+        <span>Negative</span>
+      </div>
+    </div>
+  )
+}
+
 export function GraphPanel({ podcastId }: GraphPanelProps) {
   const [graphData, setGraphData] = useState<KnowledgeGraphData | null>(null)
   const [loading, setLoading] = useState(true)
@@ -250,10 +280,27 @@ export function GraphPanel({ podcastId }: GraphPanelProps) {
   // Spoke visualization state
   const [selectedClusterId, setSelectedClusterId] = useState<string | null>(null)
   const [spokeUnits, setSpokeUnits] = useState<MeaningfulUnit[]>([])
-  const [spokeConfig, setSpokeConfig] = useState<SpokeConfig>({
-    count: 10,
-    showSpokes: true
+  const [spokeConfig, setSpokeConfig] = useState<SpokeConfig>(() => {
+    // Load saved preference from localStorage
+    const savedCount = localStorage.getItem('spokeCount')
+    return {
+      count: savedCount ? parseInt(savedCount, 10) : 10,
+      showSpokes: true
+    }
   })
+  
+  // Handle spoke count change - refetch if cluster is selected
+  const handleSpokeCountChange = useCallback((newCount: number) => {
+    setSpokeConfig(prev => ({ ...prev, count: newCount }))
+    localStorage.setItem('spokeCount', newCount.toString())
+    
+    // If a cluster is selected and count increased beyond cached amount, refetch
+    if (selectedClusterId && newCount > spokeUnits.length) {
+      // Force a re-click on the selected cluster to fetch new spokes
+      setSelectedClusterId(null)
+      setTimeout(() => setSelectedClusterId(selectedClusterId), 0)
+    }
+  }, [selectedClusterId, spokeUnits.length])
   
   useEffect(() => {
     let mounted = true
@@ -321,6 +368,40 @@ export function GraphPanel({ podcastId }: GraphPanelProps) {
           <option value="semantic">Semantic Similarity</option>
           <option value="hybrid">All Connections</option>
         </select>
+        
+        <div className={styles.spokeControls}>
+          <label htmlFor="spokeCount">Spokes per cluster: {spokeConfig.count}</label>
+          <input
+            type="range"
+            id="spokeCount"
+            min="3"
+            max="20"
+            value={spokeConfig.count}
+            onChange={(e) => handleSpokeCountChange(parseInt(e.target.value, 10))}
+            className={styles.spokeSlider}
+          />
+          
+          <label className={styles.toggleLabel}>
+            <input
+              type="checkbox"
+              checked={spokeConfig.showSpokes}
+              onChange={(e) => {
+                const showSpokes = e.target.checked
+                setSpokeConfig(prev => ({ ...prev, showSpokes }))
+                
+                // If toggling on with a selected cluster, refetch spokes
+                if (showSpokes && selectedClusterId) {
+                  // Force re-selection to show spokes
+                  const currentSelection = selectedClusterId
+                  setSelectedClusterId(null)
+                  setTimeout(() => setSelectedClusterId(currentSelection), 0)
+                }
+              }}
+              className={styles.spokeToggle}
+            />
+            <span>Show spokes</span>
+          </label>
+        </div>
       </div>
       <SigmaContainer 
         style={{ width: '100%', height: '100%' }}
@@ -359,6 +440,7 @@ export function GraphPanel({ podcastId }: GraphPanelProps) {
           }}
         />
       </SigmaContainer>
+      <ColorLegend visible={spokeConfig.showSpokes && spokeUnits.length > 0} />
     </div>
   )
 }

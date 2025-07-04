@@ -118,7 +118,7 @@ This plan transforms the existing Sigma.js cluster network visualization in Grap
 ## Phase 3: User Interface Controls
 
 ### Task 3.1: Add Spoke Count Configuration Control
-- [ ] Create a UI control (slider or input) that allows users to adjust the number of spokes displayed per cluster. This control should update the spokeConfig state, trigger re-fetching of data if count increases beyond cached amount, and update the visualization immediately. The control should have reasonable limits (3-20 spokes) and persist user preference in local storage.
+- [x] Create a UI control (slider or input) that allows users to adjust the number of spokes displayed per cluster. This control should update the spokeConfig state, trigger re-fetching of data if count increases beyond cached amount, and update the visualization immediately. The control should have reasonable limits (3-20 spokes) and persist user preference in local storage.
   - Purpose: Gives users control over visualization density
   - Steps:
     1. Add slider component to GraphPanel controls section
@@ -130,7 +130,7 @@ This plan transforms the existing Sigma.js cluster network visualization in Grap
   - Validation: Slider changes immediately update spoke count
 
 ### Task 3.2: Implement Show/Hide All Spokes Toggle
-- [ ] Add a toggle control that shows or hides all spokes globally, allowing users to switch between network-only and detailed views. When toggled on with no cluster selected, it should prompt to select a cluster first. When toggled off, all spokes should be removed but the selected cluster state preserved. This provides quick way to declutter the visualization.
+- [x] Add a toggle control that shows or hides all spokes globally, allowing users to switch between network-only and detailed views. When toggled on with no cluster selected, it should prompt to select a cluster first. When toggled off, all spokes should be removed but the selected cluster state preserved. This provides quick way to declutter the visualization.
   - Purpose: Enables quick visualization mode switching
   - Steps:
     1. Add toggle switch to control panel
@@ -142,7 +142,7 @@ This plan transforms the existing Sigma.js cluster network visualization in Grap
   - Validation: Toggle instantly hides/shows all spoke nodes
 
 ### Task 3.3: Add Sentiment Color Legend
-- [ ] Create a color legend component that explains the sentiment color mapping for spoke nodes. The legend should show three color swatches for positive (green), neutral (gray), and negative (red) with clear labels. It should be positioned unobtrusively but remain visible when spokes are displayed. The legend helps users interpret the sentiment visualization correctly.
+- [x] Create a color legend component that explains the sentiment color mapping for spoke nodes. The legend should show three color swatches for positive (green), neutral (gray), and negative (red) with clear labels. It should be positioned unobtrusively but remain visible when spokes are displayed. The legend helps users interpret the sentiment visualization correctly.
   - Purpose: Helps users understand sentiment color coding
   - Steps:
     1. Create ColorLegend React component
