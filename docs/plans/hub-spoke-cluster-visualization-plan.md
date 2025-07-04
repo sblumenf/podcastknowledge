@@ -43,7 +43,7 @@ This plan transforms the existing Sigma.js cluster network visualization in Grap
 ## Phase 2: Frontend Visualization Updates
 
 ### Task 2.1: Add MeaningfulUnit Data Types
-- [ ] Create TypeScript interfaces for MeaningfulUnit data structures including sentiment properties in the frontend codebase. This involves defining interfaces for MeaningfulUnit with properties like id, text, summary, embedding, sentiment (with polarity, score, energy_level), and any other fields returned by the API. These types ensure type safety throughout the frontend implementation.
+- [x] Create TypeScript interfaces for MeaningfulUnit data structures including sentiment properties in the frontend codebase. This involves defining interfaces for MeaningfulUnit with properties like id, text, summary, embedding, sentiment (with polarity, score, energy_level), and any other fields returned by the API. These types ensure type safety throughout the frontend implementation.
   - Purpose: Provides type-safe data structures for spoke visualization
   - Steps:
     1. Create new file `ui/frontend/src/types/meaningfulUnit.ts`
@@ -55,7 +55,7 @@ This plan transforms the existing Sigma.js cluster network visualization in Grap
   - Validation: TypeScript compilation succeeds with new types
 
 ### Task 2.2: Implement Spoke Visualization State Management
-- [ ] Add React state management to GraphPanel.tsx for tracking selected cluster and its spoke nodes. This includes state for the currently selected cluster ID, the list of MeaningfulUnits to display as spokes, and UI configuration like number of spokes to show. The state should integrate cleanly with existing Sigma.js instance and graph state.
+- [x] Add React state management to GraphPanel.tsx for tracking selected cluster and its spoke nodes. This includes state for the currently selected cluster ID, the list of MeaningfulUnits to display as spokes, and UI configuration like number of spokes to show. The state should integrate cleanly with existing Sigma.js instance and graph state.
   - Purpose: Manages hub-and-spoke interaction state
   - Steps:
     1. Add useState hooks for selectedClusterId and spokeUnits
@@ -67,7 +67,7 @@ This plan transforms the existing Sigma.js cluster network visualization in Grap
   - Validation: State updates correctly trigger visual changes
 
 ### Task 2.3: Create Click Handler for Cluster Selection
-- [ ] Implement cluster click event handler that fetches and displays MeaningfulUnit spokes. When a user clicks a cluster node, the handler should check if it's already selected (toggle off if so), fetch the top K MeaningfulUnits from the API if newly selected, and update the graph to show spoke nodes arranged in a circle around the cluster. The handler must also manage clearing previous spokes when selecting a new cluster.
+- [x] Implement cluster click event handler that fetches and displays MeaningfulUnit spokes. When a user clicks a cluster node, the handler should check if it's already selected (toggle off if so), fetch the top K MeaningfulUnits from the API if newly selected, and update the graph to show spoke nodes arranged in a circle around the cluster. The handler must also manage clearing previous spokes when selecting a new cluster.
   - Purpose: Enables primary user interaction for hub-and-spoke pattern
   - Steps:
     1. Add clickNode event listener to Sigma instance
@@ -80,7 +80,7 @@ This plan transforms the existing Sigma.js cluster network visualization in Grap
   - Validation: Clicking cluster shows/hides spokes correctly
 
 ### Task 2.4: Implement Sentiment-Based Color Mapping
-- [ ] Create color calculation functions for MeaningfulUnit nodes based on sentiment polarity. The function should map positive polarity (>0.3) to green (#27ae60), negative polarity (<-0.3) to red (#e74c3c), and neutral values to gray (#95a5a6). The implementation should be configurable to allow users to adjust thresholds and colors if needed later.
+- [x] Create color calculation functions for MeaningfulUnit nodes based on sentiment polarity. The function should map positive polarity (>0.3) to green (#27ae60), negative polarity (<-0.3) to red (#e74c3c), and neutral values to gray (#95a5a6). The implementation should be configurable to allow users to adjust thresholds and colors if needed later.
   - Purpose: Provides visual sentiment analysis through color coding
   - Steps:
     1. Create getSentimentColor function in GraphPanel.tsx
@@ -92,7 +92,7 @@ This plan transforms the existing Sigma.js cluster network visualization in Grap
   - Validation: Spoke nodes display appropriate colors based on sentiment
 
 ### Task 2.5: Add Spoke Layout Calculation
-- [ ] Implement circular layout algorithm for positioning spoke nodes around selected cluster. The algorithm should evenly distribute K spokes in a circle at a fixed radius from the cluster center, avoiding overlap with other clusters, and maintaining consistent spoke distance regardless of cluster size. The positions must update correctly when the graph layout changes.
+- [x] Implement circular layout algorithm for positioning spoke nodes around selected cluster. The algorithm should evenly distribute K spokes in a circle at a fixed radius from the cluster center, avoiding overlap with other clusters, and maintaining consistent spoke distance regardless of cluster size. The positions must update correctly when the graph layout changes.
   - Purpose: Creates clean visual arrangement of cluster spokes
   - Steps:
     1. Create calculateSpokePositions function
@@ -104,7 +104,7 @@ This plan transforms the existing Sigma.js cluster network visualization in Grap
   - Validation: Spokes appear in even circle around cluster
 
 ### Task 2.6: Update Edge Rendering for Logarithmic Scaling
-- [ ] Modify edge thickness calculation to use logarithmic scaling based on connection strength. This involves updating the edge rendering logic to apply log10 scaling to connection weights, mapping the result to a reasonable pixel range (0.5-5px), and ensuring visual consistency across different connection strengths. The implementation should handle edge cases like zero connections gracefully.
+- [x] Modify edge thickness calculation to use logarithmic scaling based on connection strength. This involves updating the edge rendering logic to apply log10 scaling to connection weights, mapping the result to a reasonable pixel range (0.5-5px), and ensuring visual consistency across different connection strengths. The implementation should handle edge cases like zero connections gracefully.
   - Purpose: Prevents extreme edge thickness variations with large connection counts
   - Steps:
     1. Update edge size calculation in graph initialization

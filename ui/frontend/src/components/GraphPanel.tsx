@@ -1,17 +1,150 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import Graph from 'graphology'
-import { SigmaContainer, useLoadGraph } from '@react-sigma/core'
+import { SigmaContainer, useLoadGraph, useRegisterEvents, useSigma } from '@react-sigma/core'
 import { LayoutForceAtlas2Control } from '@react-sigma/layout-forceatlas2'
 import '@react-sigma/core/lib/style.css'
-import { getKnowledgeGraph, type KnowledgeGraphData } from '../services/api'
+import { getKnowledgeGraph, getClusterMeaningfulUnits, type KnowledgeGraphData } from '../services/api'
+import type { MeaningfulUnit } from '../types/meaningfulUnit'
 import styles from './GraphPanel.module.css'
 
 interface GraphPanelProps {
   podcastId: string
 }
 
+// Type for nodes with metadata
+interface NodeData {
+  label: string
+  size: number
+  color: string
+  x: number
+  y: number
+  type?: 'cluster' | 'meaningfulUnit'
+  clusterId?: string
+}
+
+// Component to handle graph events and spoke visualization
+interface GraphEventsProps {
+  podcastId: string
+  selectedClusterId: string | null
+  setSelectedClusterId: (id: string | null) => void
+  spokeUnits: MeaningfulUnit[]
+  setSpokeUnits: (units: MeaningfulUnit[]) => void
+  spokeConfig: SpokeConfig
+}
+
+function GraphEvents({ 
+  podcastId, 
+  selectedClusterId, 
+  setSelectedClusterId, 
+  spokeUnits, 
+  setSpokeUnits,
+  spokeConfig 
+}: GraphEventsProps) {
+  const registerEvents = useRegisterEvents()
+  const sigma = useSigma()
+  const graph = sigma.getGraph()
+  const [loadingSpokes, setLoadingSpokes] = useState(false)
+
+  // Function to clear previous spokes
+  const clearSpokes = useCallback(() => {
+    // Remove all meaningful unit nodes
+    graph.forEachNode((node, attributes) => {
+      if (attributes.type === 'meaningfulUnit') {
+        graph.dropNode(node)
+      }
+    })
+    setSpokeUnits([])
+  }, [graph, setSpokeUnits])
+
+  // Function to handle cluster click
+  const handleClusterClick = useCallback(async (nodeId: string) => {
+    const nodeAttributes = graph.getNodeAttributes(nodeId) as NodeData
+    
+    // Only handle clicks on cluster nodes
+    if (nodeAttributes.type !== 'cluster' && !nodeAttributes.type) {
+      // If no type, assume it's a cluster (for backward compatibility)
+      nodeAttributes.type = 'cluster'
+    }
+    
+    if (nodeAttributes.type !== 'cluster') return
+
+    // Toggle selection
+    if (selectedClusterId === nodeId) {
+      // Deselect and clear spokes
+      setSelectedClusterId(null)
+      clearSpokes()
+    } else {
+      // Select new cluster and fetch spokes
+      setSelectedClusterId(nodeId)
+      clearSpokes()
+      
+      if (spokeConfig.showSpokes) {
+        setLoadingSpokes(true)
+        try {
+          const response = await getClusterMeaningfulUnits(podcastId, nodeId, spokeConfig.count)
+          setSpokeUnits(response.meaningful_units)
+          
+          // Add spoke nodes to graph
+          const clusterNode = graph.getNodeAttributes(nodeId) as NodeData
+          const radius = 60 // Fixed radius for spokes
+          const positions = calculateSpokePositions(
+            clusterNode.x,
+            clusterNode.y,
+            radius,
+            response.meaningful_units.length
+          )
+          
+          // Add meaningful unit nodes and edges
+          response.meaningful_units.forEach((unit, index) => {
+            const unitNodeId = `unit-${unit.id}`
+            const position = positions[index]
+            
+            // Add spoke node
+            graph.addNode(unitNodeId, {
+              label: unit.summary.substring(0, 30) + '...',
+              size: 5,
+              color: getSentimentColor(unit.sentiment),
+              x: position.x,
+              y: position.y,
+              type: 'meaningfulUnit' as const,
+              clusterId: nodeId,
+              meaningfulUnit: unit
+            })
+            
+            // Add edge from cluster to spoke
+            graph.addEdge(nodeId, unitNodeId, {
+              size: 0.5,
+              color: 'rgba(150, 150, 150, 0.3)'
+            })
+          })
+        } catch (error) {
+          console.error('Failed to fetch meaningful units:', error)
+        } finally {
+          setLoadingSpokes(false)
+        }
+      }
+    }
+  }, [podcastId, selectedClusterId, setSelectedClusterId, spokeConfig, graph, clearSpokes, setSpokeUnits])
+
+  useEffect(() => {
+    // Register click event
+    registerEvents({
+      clickNode: (event) => {
+        handleClusterClick(event.node)
+      }
+    })
+  }, [registerEvents, handleClusterClick])
+
+  return null
+}
+
 // Component to load graph data
-function LoadGraph({ data }: { data: KnowledgeGraphData }) {
+interface LoadGraphProps {
+  data: KnowledgeGraphData
+  onGraphLoaded?: () => void
+}
+
+function LoadGraph({ data, onGraphLoaded }: LoadGraphProps) {
   const loadGraph = useLoadGraph()
 
   useEffect(() => {
@@ -25,20 +158,23 @@ function LoadGraph({ data }: { data: KnowledgeGraphData }) {
         size: Math.sqrt(cluster.size) * 5, // Scale based on member count
         color,
         x: Math.random() * 100,
-        y: Math.random() * 100
+        y: Math.random() * 100,
+        type: 'cluster' as const,
+        centroid: cluster.centroid
       })
     })
     
-    // Add edges
+    // Add edges with logarithmic scaling already applied from backend
     data.edges.forEach(edge => {
       graph.addEdge(edge.source, edge.target, {
         weight: edge.weight,
-        size: Math.log(edge.weight + 1) // Logarithmic scale for edge thickness
+        size: 0.5 + edge.weight * 4.5 // Map normalized weight to 0.5-5px
       })
     })
     
     loadGraph(graph)
-  }, [data, loadGraph])
+    onGraphLoaded?.()
+  }, [data, loadGraph, onGraphLoaded])
   
   return null
 }
@@ -50,11 +186,74 @@ function getNodeColor(connections: number): string {
   return '#0000FF' // Deep blue - isolated
 }
 
+// Get color based on sentiment polarity
+function getSentimentColor(sentiment: { polarity: number }): string {
+  const { polarity } = sentiment
+  
+  // Positive sentiment (polarity > 0.3)
+  if (polarity > 0.3) return '#27ae60' // Green
+  
+  // Negative sentiment (polarity < -0.3)
+  if (polarity < -0.3) return '#e74c3c' // Red
+  
+  // Neutral sentiment (-0.3 <= polarity <= 0.3)
+  return '#95a5a6' // Gray
+}
+
+// Optional: Get color with intensity based on score
+function getSentimentColorWithIntensity(sentiment: { polarity: number; score: number }): string {
+  const baseColor = getSentimentColor(sentiment)
+  const intensity = Math.abs(sentiment.score)
+  
+  // Apply opacity based on score intensity (0.5 to 1.0)
+  const opacity = 0.5 + intensity * 0.5
+  
+  // Convert hex to rgba with opacity
+  const r = parseInt(baseColor.slice(1, 3), 16)
+  const g = parseInt(baseColor.slice(3, 5), 16)
+  const b = parseInt(baseColor.slice(5, 7), 16)
+  
+  return `rgba(${r}, ${g}, ${b}, ${opacity})`
+}
+
+// Calculate spoke positions in a circle around cluster
+function calculateSpokePositions(
+  centerX: number,
+  centerY: number,
+  radius: number,
+  count: number
+): Array<{ x: number; y: number }> {
+  const positions: Array<{ x: number; y: number }> = []
+  
+  for (let i = 0; i < count; i++) {
+    const angle = (2 * Math.PI * i) / count
+    const x = centerX + radius * Math.cos(angle)
+    const y = centerY + radius * Math.sin(angle)
+    positions.push({ x, y })
+  }
+  
+  return positions
+}
+
+// Configuration for spoke visualization
+interface SpokeConfig {
+  count: number
+  showSpokes: boolean
+}
+
 export function GraphPanel({ podcastId }: GraphPanelProps) {
   const [graphData, setGraphData] = useState<KnowledgeGraphData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [connectionType, setConnectionType] = useState<string>('hybrid')
+  
+  // Spoke visualization state
+  const [selectedClusterId, setSelectedClusterId] = useState<string | null>(null)
+  const [spokeUnits, setSpokeUnits] = useState<MeaningfulUnit[]>([])
+  const [spokeConfig, setSpokeConfig] = useState<SpokeConfig>({
+    count: 10,
+    showSpokes: true
+  })
   
   useEffect(() => {
     let mounted = true
@@ -140,6 +339,14 @@ export function GraphPanel({ podcastId }: GraphPanelProps) {
         }}
       >
         <LoadGraph data={graphData} />
+        <GraphEvents
+          podcastId={podcastId}
+          selectedClusterId={selectedClusterId}
+          setSelectedClusterId={setSelectedClusterId}
+          spokeUnits={spokeUnits}
+          setSpokeUnits={setSpokeUnits}
+          spokeConfig={spokeConfig}
+        />
         <LayoutForceAtlas2Control 
           settings={{
             settings: {

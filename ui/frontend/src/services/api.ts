@@ -2,6 +2,9 @@
  * API service for communicating with the backend
  */
 
+// Import types from meaningfulUnit file
+import type { MeaningfulUnitsResponse } from '../types/meaningfulUnit'
+
 // Get API URL from environment variable
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8001'
 
@@ -50,6 +53,7 @@ export interface ClusterNode {
   id: string
   label: string
   size: number
+  centroid: number[] | null
   connections: number
 }
 
@@ -57,6 +61,7 @@ export interface ClusterEdge {
   source: string
   target: string
   weight: number
+  shared_count?: number
   type?: string
 }
 
@@ -121,6 +126,23 @@ export async function getKnowledgeGraph(podcastId: string, connectionType: strin
     return handleResponse<KnowledgeGraphData>(response)
   } catch (error) {
     console.error('Failed to fetch knowledge graph:', error)
+    throw error
+  }
+}
+
+// Get top K meaningful units for a cluster
+export async function getClusterMeaningfulUnits(
+  podcastId: string, 
+  clusterId: string, 
+  k: number = 10
+): Promise<MeaningfulUnitsResponse> {
+  try {
+    const response = await fetch(
+      `${API_URL}/api/podcasts/${podcastId}/clusters/${clusterId}/meaningful-units?k=${k}`
+    )
+    return handleResponse<MeaningfulUnitsResponse>(response)
+  } catch (error) {
+    console.error('Failed to fetch meaningful units:', error)
     throw error
   }
 }
