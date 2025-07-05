@@ -32,7 +32,7 @@ usage() {
     echo "  -b, --both           Run both transcriber and seeding (default)"
     echo "  -p, --podcast NAME   Podcast name (uses RSS URL from config)"
     echo "  -f, --feed-url URL   RSS feed URL (overrides config)"
-    echo "  -e, --max-episodes N Maximum episodes to process (default: 1)"
+    echo "  -e, --max-episodes N Maximum episodes to process from feed (default: 1)"
     echo "  -d, --data-dir DIR   Set data directory (default: $DATA_DIR)"
     echo "  -v, --verbose        Enable verbose output"
     echo "  -h, --help           Show this help message"
@@ -211,25 +211,15 @@ run_transcriber() {
         fi
     fi
     
-    # Count existing VTT files and add to max episodes
-    # This ensures --max-episodes always means "X additional episodes"
-    if [ -n "$PODCAST_NAME" ]; then
-        # If podcast specified, count only that podcast's VTT files
-        PODCAST_DIR_NAME=$(echo "$PODCAST_NAME" | tr ' ' '_')
-        EXISTING_VTT_COUNT=$(find "$TRANSCRIPT_OUTPUT_DIR/$PODCAST_DIR_NAME" -name "*.vtt" -type f 2>/dev/null | wc -l)
-    else
-        # Otherwise count all VTT files
-        EXISTING_VTT_COUNT=$(find "$TRANSCRIPT_OUTPUT_DIR" -name "*.vtt" -type f 2>/dev/null | wc -l)
-    fi
-    ACTUAL_MAX_EPISODES=$((EXISTING_VTT_COUNT + MAX_EPISODES))
+    # Pass max episodes directly to transcriber
+    # --max-episodes specifies the total number of episodes to check from the feed
+    ACTUAL_MAX_EPISODES=$MAX_EPISODES
     
     if [ "$VERBOSE" = true ]; then
         echo "Output directory: $TRANSCRIPT_OUTPUT_DIR"
         echo "Pipeline mode: $PODCAST_PIPELINE_MODE"
         echo "Feed URL: $FEED_URL"
-        echo "Existing VTT files: $EXISTING_VTT_COUNT"
-        echo "Requested new episodes: $MAX_EPISODES"
-        echo "Total episodes to check: $ACTUAL_MAX_EPISODES"
+        echo "Max episodes to process: $ACTUAL_MAX_EPISODES"
         python3 -m src.cli -v transcribe --feed-url "$FEED_URL" --max-episodes "$ACTUAL_MAX_EPISODES"
     else
         python3 -m src.cli transcribe --feed-url "$FEED_URL" --max-episodes "$ACTUAL_MAX_EPISODES"

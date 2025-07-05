@@ -1,124 +1,72 @@
-# Scripts Directory
+# Seeding Pipeline Scripts
 
-This directory contains utility scripts for managing and maintaining the podcast knowledge extraction pipeline.
+This directory contains utility scripts for the seeding pipeline module, organized by purpose.
 
-## Embedding Recovery
+## Directory Structure
 
-### recover_missing_embeddings.py
+### setup/
+Environment setup and installation scripts:
+- `install.sh` - Install dependencies with venv check
+- `setup_venv.sh` - Create and setup virtual environment
+- `validate_environment.py` - Validate environment configuration
 
-Recovers missing embeddings for MeaningfulUnits that failed during pipeline processing.
+### database/
+Database management and operations:
+- `clear_database.py` - Clear Neo4j database
+- `inspect_db.py` - Inspect database contents
+- `reset_database.py` - Reset database to clean state
+- `check_database_contents.py` - Check database content integrity
+- `comprehensive_database_check.py` - Full database validation
+- Database maintenance and recovery scripts
 
-#### When to Use
+### analysis/
+Data analysis and diagnostic tools:
+- Episode analysis scripts
+- Speaker analysis and reporting
+- Meaningful unit diagnostics
+- Relationship discovery tools
+- Duplicate detection
 
-Run this script when:
-- Pipeline logs show embedding generation failures
-- You find `logs/embedding_failures/` contains failure JSON files
-- Query `MATCH (m:MeaningfulUnit) WHERE m.embedding IS NULL RETURN count(m)` returns > 0
-- After upgrading to Neo4j 5.11+ and creating vector indexes
+### testing/
+Test runners and test utilities:
+- `run_tests.py` - Main test runner
+- `run_minimal_tests.py` - Quick minimal test suite
+- `run_critical_tests.py` - Critical path tests
+- Performance and integration test scripts
+- Test validation and verification tools
 
-#### Usage
+### monitoring/
+Performance monitoring and metrics:
+- `metrics_dashboard.py` - Metrics visualization
+- Performance monitoring scripts
+- Cache monitoring
+- Benchmark utilities
 
+### maintenance/
+System maintenance and fixes:
+- Import fixes and cleanup
+- Component management
+- Known issue tracking
+- System reset utilities
+
+### validation/
+Deployment and system validation:
+- Pre-merge validation
+- Security audits
+- Provider validation
+- Extraction validation
+
+### benchmarks/
+Performance benchmarking tools:
+- Continuous benchmarking
+- Performance baseline tests
+
+## Usage
+
+Most scripts can be run directly from the seeding_pipeline directory:
 ```bash
-# Preview what would be processed (recommended first step)
-python scripts/recover_missing_embeddings.py --dry-run
-
-# Process all units with missing embeddings (default batch size: 100)
-python scripts/recover_missing_embeddings.py
-
-# Process with custom batch size for rate limit management
-python scripts/recover_missing_embeddings.py --batch-size 50
-
-# Show help
-python scripts/recover_missing_embeddings.py --help
+python scripts/analysis/analyze_episode_segments.py
+./scripts/setup/install.sh
 ```
 
-#### Options
-
-- `--dry-run`: Preview units that would be processed without making changes
-- `--batch-size N`: Process N units at a time (default: 100)
-  - Smaller batches reduce memory usage and API rate limit risk
-  - Larger batches improve throughput
-
-#### Output
-
-The script provides progress updates and a final summary:
-```
-Recovery complete!
-  Successfully recovered: 450
-  Failed: 3
-  Success rate: 99.3%
-```
-
-Failed embeddings are logged to `logs/embedding_recovery/recovery_failures_{timestamp}.json`
-
-#### Performance Considerations
-
-- Batch processing with configurable size
-- 100ms delay between batches to respect API rate limits
-- Efficient UNWIND operations for database updates
-- Progress tracking for long-running recoveries
-
-#### Error Handling
-
-The script handles various failure scenarios:
-- API rate limits: Logged, continues with next batch
-- Database connection issues: Logged with full context
-- Embedding service failures: Individual units tracked
-- All failures saved to recovery log for analysis
-
-## Database Management
-
-### clear_database.py
-Clears all data from the Neo4j database. Use with caution!
-
-### reset_database.py
-Resets the database schema and indexes.
-
-### inspect_db.py
-Provides database statistics and health information.
-
-## Testing and Validation
-
-### run_tests.py
-Runs the complete test suite.
-
-### validate_vtt_processing.py
-Validates VTT file processing functionality.
-
-### stress_test.py
-Performs stress testing on the pipeline.
-
-## Performance Monitoring
-
-### measure_performance.py
-Measures pipeline performance metrics.
-
-### verify_performance_optimizations.py
-Verifies that performance optimizations are working correctly.
-
-### benchmark_caching.py
-Tests caching performance.
-
-## Speaker Analysis
-
-### speaker_summary_report.py
-Generates speaker identification summary reports.
-
-### speaker_table_report.py
-Creates detailed speaker distribution tables.
-
-## Dependency Management
-
-### analyze_dependencies.py
-Analyzes project dependencies.
-
-### fix_imports.py
-Fixes import issues in the codebase.
-
-## Environment Setup
-
-### setup_venv.sh / setup_venv.bat
-Sets up Python virtual environment.
-
-### validate_environment.py
-Validates that the environment is correctly configured.
+For scripts requiring environment activation, ensure your virtual environment is active first.
