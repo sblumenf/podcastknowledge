@@ -12,6 +12,7 @@ This document provides a comprehensive inventory of all scripts in the podcast k
 - `add_podcast.sh` - Add a new podcast to the system
 - `list_podcasts.sh` - List all configured podcasts
 - `update_youtube_url.sh` - Update YouTube URLs for episodes
+- `analyze_podcast_nodes.sh` - Analyze Neo4j node types for any podcast
 
 ## Seeding Pipeline Scripts
 
@@ -40,6 +41,7 @@ Located in `seeding_pipeline/scripts/database/`:
 Located in `seeding_pipeline/scripts/analysis/`:
 - `analyze_episode_segments.py` - Analyze episode segmentation
 - `analyze_episode_units.py` - Analyze meaningful units
+- `analyze_neo4j_nodes.py` - Analyze Neo4j node types and properties for any podcast
 - `count_knowledge_units.py` - Count knowledge units
 - `diagnose_meaningful_units.py` - Diagnose unit extraction
 - `explore_cluster_connections.py` - Explore cluster relationships

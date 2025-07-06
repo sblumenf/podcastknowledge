@@ -185,6 +185,41 @@ The script connects to the specified podcast's Neo4j database and locates the ep
 # episode_id_2,https://youtube.com/watch?v=video2
 ```
 
+### analyze_podcast_nodes.sh
+
+**Purpose:**
+The analyze_podcast_nodes.sh script provides a convenient wrapper for analyzing Neo4j node types across any configured podcast database. It serves as a root-level entry point that forwards commands to the underlying Python analysis script while providing consistent command-line interface conventions. The script helps developers and data scientists quickly explore the structure of podcast knowledge graphs, understand node types and their properties, and identify patterns in the data model. It's particularly useful for database schema documentation, debugging data issues, and planning new features that require understanding existing graph structures.
+
+**Process:**
+The script validates command-line arguments and ensures the required podcast parameter is provided. It then changes to the seeding_pipeline directory where the Python analysis script resides and forwards all arguments to it. The underlying Python script connects to the specified podcast's Neo4j database, discovers all node types, analyzes their properties and relationships, and generates either a detailed JSON report or a human-readable summary. The wrapper script maintains consistent error handling and provides helpful usage information when called incorrectly.
+
+**Usage:**
+```bash
+# Run from project root directory
+./analyze_podcast_nodes.sh --podcast PODCAST_NAME [OPTIONS]
+
+# Parameters:
+-p, --podcast NAME    # Name or ID of the podcast to analyze (required)
+-o, --output FILE     # Output file path (default: neo4j_node_analysis_<podcast>.json)
+-f, --format FORMAT   # Output format: json or summary (default: json)
+-v, --verbose         # Verbose output during analysis
+-h, --help            # Show help message
+
+# Examples:
+./analyze_podcast_nodes.sh --podcast "The Mel Robbins Podcast"
+./analyze_podcast_nodes.sh -p mel_robbins_podcast -v
+./analyze_podcast_nodes.sh --podcast "My First Million" --format summary
+./analyze_podcast_nodes.sh -p "Tech Talk" -o tech_talk_analysis.json -v
+
+# The script provides:
+# - Complete inventory of node types
+# - Property analysis per node type
+# - Categorical value extraction
+# - Relationship mapping
+# - Sample data examination
+# - Summary statistics
+```
+
 ---
 
 ## Seeding Pipeline Scripts
@@ -398,6 +433,43 @@ python scripts/analysis/analyze_episode_units.py --verbose          # Full stati
 # - Unit type breakdowns
 # - Temporal patterns
 # - Outlier identification
+```
+
+#### seeding_pipeline/scripts/analysis/analyze_neo4j_nodes.py
+
+**Purpose:**
+The analyze_neo4j_nodes.py script performs comprehensive analysis of Neo4j node types and their properties for any configured podcast database. It discovers all node labels in the graph, analyzes their properties, extracts categorical values, and maps relationship patterns between different node types. The script is essential for understanding the knowledge graph structure, validating data integrity, and documenting the database schema. It helps developers and data scientists explore the graph model, identify data patterns, and discover opportunities for new queries or visualizations. The script can analyze any podcast database configured in the system, making it a versatile tool for multi-podcast deployments.
+
+**Process:**
+The script begins by loading the podcast configuration from the podcasts.yaml file to determine the correct database connection parameters for the specified podcast. It establishes a connection to the appropriate Neo4j database instance using the podcast-specific URI and credentials. The script then discovers all node labels present in the database using the db.labels() procedure. For each node type, it performs a comprehensive analysis including counting total nodes, identifying all properties used across nodes of that type, and retrieving sample nodes to understand typical data patterns. The script analyzes each property to determine if it contains categorical data by counting distinct values - properties with 20 or fewer distinct values are classified as categorical and all values are extracted with their frequencies. It maps all relationships connected to each node type, both incoming and outgoing, including the labels of connected nodes. The analysis results can be output in JSON format for programmatic use or as a summary for human reading. The script handles large databases efficiently by using sampling techniques and limiting expensive queries.
+
+**Usage:**
+```bash
+# Run from seeding_pipeline directory
+cd seeding_pipeline
+python scripts/analysis/analyze_neo4j_nodes.py --podcast "PODCAST_NAME" [OPTIONS]
+
+# Parameters:
+--podcast NAME, -p NAME    # Podcast name or ID (required)
+--output FILE, -o FILE     # Output file path (default: neo4j_node_analysis_<podcast>.json)
+--verbose, -v              # Verbose output during analysis
+--format FORMAT            # Output format: json or summary (default: json)
+
+# Examples:
+python scripts/analysis/analyze_neo4j_nodes.py --podcast "The Mel Robbins Podcast"
+python scripts/analysis/analyze_neo4j_nodes.py -p mel_robbins_podcast -v
+python scripts/analysis/analyze_neo4j_nodes.py --podcast "My First Million" --output mfm_analysis.json
+python scripts/analysis/analyze_neo4j_nodes.py --podcast "Tech Talk" --format summary
+python scripts/analysis/analyze_neo4j_nodes.py -p "Interview Show" -o analysis.json -v
+
+# Output includes:
+# - Complete list of node types
+# - Node counts for each type
+# - Property schemas per node type
+# - Sample data from each node type
+# - Categorical property values
+# - Relationship mappings
+# - Summary statistics
 ```
 
 #### seeding_pipeline/scripts/analysis/speaker_summary_report.py
