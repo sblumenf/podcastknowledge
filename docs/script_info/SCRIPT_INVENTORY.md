@@ -42,7 +42,9 @@ Located in `seeding_pipeline/scripts/analysis/`:
 - `analyze_episode_segments.py` - Analyze episode segmentation
 - `analyze_episode_units.py` - Analyze meaningful units
 - `analyze_neo4j_nodes.py` - Analyze Neo4j node types and properties for any podcast
+- `cluster_existing.py` - Run clustering on existing data
 - `count_knowledge_units.py` - Count knowledge units
+- `detect_semantic_gaps.py` - Detect semantic gaps between knowledge clusters
 - `diagnose_meaningful_units.py` - Diagnose unit extraction
 - `explore_cluster_connections.py` - Explore cluster relationships
 - `find_313_segment_episode.py` - Find specific episode patterns
@@ -113,6 +115,12 @@ Located in `transcriber/scripts/utilities/`:
 Located in `transcriber/examples/`:
 - `file_organizer_with_config.py` - File organization demo
 - `youtube_search_demo.py` - YouTube API demo
+
+## UI Scripts
+
+### Setup Scripts
+Located in `ui/scripts/setup/`:
+- `manage_ui_servers.sh` - Manage frontend and backend UI servers (restart/start)
 
 ## Shared Scripts
 

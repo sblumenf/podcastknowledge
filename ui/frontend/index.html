@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#f0ecec" />
+    <title>Podcast Knowledge Graph</title>
+    <!-- Preload critical icons -->
+    <link rel="preload" as="image" href="/icons/light/menu.svg">
+    <link rel="preload" as="image" href="/icons/dark/menu.svg">
+    <link rel="preload" as="image" href="/icons/light/close.svg">
+    <link rel="preload" as="image" href="/icons/dark/close.svg">
+    <link rel="preload" as="image" href="/icons/light/settings.svg">
+    <link rel="preload" as="image" href="/icons/dark/settings.svg">
+    <script>
+      // Prevent FOUC by setting initial theme
+      (function() {
+        try {
+          const hasChosen = localStorage.getItem('podcast-theme-chosen') === 'true';
+          const stored = localStorage.getItem('podcast-theme');
+          
+          let theme = 'light';
+          
+          if (hasChosen && stored) {
+            theme = stored;
+          } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            theme = 'dark';
+          }
+          
+          document.documentElement.classList.add(theme);
+          document.documentElement.setAttribute('data-theme', theme);
+        } catch (e) {}
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>

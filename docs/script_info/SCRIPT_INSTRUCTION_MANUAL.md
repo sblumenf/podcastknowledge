@@ -25,7 +25,10 @@ This comprehensive manual documents all scripts in the Podcast Knowledge project
    - [Maintenance Scripts](#transcriber-maintenance-scripts)
    - [Utility Scripts](#transcriber-utility-scripts)
 
-4. [Shared Scripts](#shared-scripts)
+4. [UI Scripts](#ui-scripts)
+   - [Setup Scripts](#ui-setup-scripts)
+
+5. [Shared Scripts](#shared-scripts)
 
 ---
 
@@ -470,6 +473,91 @@ python scripts/analysis/analyze_neo4j_nodes.py -p "Interview Show" -o analysis.j
 # - Categorical property values
 # - Relationship mappings
 # - Summary statistics
+```
+
+#### seeding_pipeline/scripts/analysis/cluster_existing.py
+
+**Purpose:**
+The cluster_existing.py script allows manual triggering of the semantic clustering process for existing meaningful units in a podcast's Neo4j database. It provides a way to run or re-run clustering on already processed episodes without needing to reprocess the entire pipeline. The script uses the same HDBSCAN clustering algorithm as the main pipeline but can be executed independently. This is particularly useful after adjusting clustering parameters, when new episodes have been added, or when initial clustering needs to be refined. The script includes validation checks to ensure sufficient data exists for meaningful clustering results.
+
+**Process:**
+The script loads the podcast-specific configuration including database connection details and clustering parameters from the podcasts.yaml file. It connects to the specified podcast's Neo4j database and validates that sufficient meaningful units with embeddings exist for clustering. The script then initializes the SemanticClusteringSystem with the appropriate language model service for generating cluster labels. During execution, it retrieves all meaningful units with their 768-dimensional embeddings from the database and runs HDBSCAN clustering with the configured parameters (minimum cluster size, epsilon distance threshold). The clustering process groups semantically similar units together, calculates cluster centroids, and generates human-readable labels for each cluster using the language model. Results are written back to Neo4j, creating Cluster nodes with labels and relationships linking meaningful units to their assigned clusters. The script provides detailed statistics about clustering results including number of clusters created, outlier ratio, and cluster size distribution.
+
+**Usage:**
+```bash
+# Run from seeding_pipeline directory
+cd seeding_pipeline
+python scripts/analysis/cluster_existing.py --podcast "PODCAST_NAME" [OPTIONS]
+
+# Parameters:
+--podcast NAME, -p NAME    # Podcast name (required, must match name in podcasts.yaml)
+--verbose, -v              # Enable verbose output
+--force, -f                # Force clustering even with insufficient data
+
+# Examples:
+python scripts/analysis/cluster_existing.py --podcast "The Mel Robbins Podcast"
+python scripts/analysis/cluster_existing.py -p "Tech Talk" --verbose
+python scripts/analysis/cluster_existing.py --podcast "My First Million" --force
+python scripts/analysis/cluster_existing.py -p "Interview Show" -v
+
+# Output includes:
+# - Validation results (units found, existing clusters)
+# - Clustering progress updates
+# - Results summary:
+#   - Clusters created
+#   - Units clustered
+#   - Outliers identified
+#   - Execution time
+#   - Cluster details (if verbose)
+```
+
+#### seeding_pipeline/scripts/analysis/detect_semantic_gaps.py
+
+**Purpose:**
+The detect_semantic_gaps.py script analyzes existing clusters in a podcast's knowledge graph to identify semantic gaps - pairs of clusters that are moderately distant and could benefit from exploration of connecting concepts. Based on the InfraNodus gap detection concept but using semantic embeddings, this script helps discover unexplored connections between topics, identify knowledge silos, and suggest areas for future content exploration. It's particularly valuable for content creators looking to find novel connections between existing topics or researchers identifying underexplored areas in their podcast domain.
+
+**Process:**
+The script begins by loading the podcast configuration and connecting to the appropriate Neo4j database instance. It validates that sufficient clusters with centroid embeddings exist for meaningful gap analysis (requiring at least 2 clusters). The gap detection algorithm retrieves all active clusters with their 768-dimensional centroid embeddings and calculates pairwise cosine similarities between all cluster pairs. It identifies gaps by finding cluster pairs with moderate semantic distance (default 0.3-0.7 range) - not too similar (would be redundant) and not too different (would be unrelated). For each identified gap, the script calculates a gap score based on how close the distance is to the optimal range center. It then searches for potential bridge concepts by finding meaningful units or entities that appear in episodes containing both clusters. The script creates SEMANTIC_GAP relationships in Neo4j between cluster pairs that meet the gap criteria, storing similarity scores, gap scores, and potential bridge concepts. Results are presented in a ranked list showing the most promising gaps for exploration.
+
+**Usage:**
+```bash
+# Run from seeding_pipeline directory
+cd seeding_pipeline
+python scripts/analysis/detect_semantic_gaps.py --podcast "PODCAST_NAME" [OPTIONS]
+
+# Parameters:
+--podcast NAME, -p NAME    # Podcast name (required, must match name in podcasts.yaml)
+--verbose, -v              # Enable verbose output
+
+# Examples:
+python scripts/analysis/detect_semantic_gaps.py --podcast "The Mel Robbins Podcast"
+python scripts/analysis/detect_semantic_gaps.py -p "Tech Talk" --verbose
+python scripts/analysis/detect_semantic_gaps.py --podcast "My First Million"
+python scripts/analysis/detect_semantic_gaps.py -p "Interview Show" -v
+
+# Output includes:
+# - Validation results (clusters found with centroids)
+# - Gap detection progress
+# - Results summary:
+#   - Clusters analyzed
+#   - Semantic gaps found
+#   - Gap relationships created
+#   - Execution time
+# - Top semantic gaps:
+#   - Cluster pairs
+#   - Similarity scores
+#   - Gap scores
+#   - Bridge concepts (if found)
+
+# Neo4j Queries to explore results:
+# Find all gaps:
+MATCH (c1:Cluster)-[gap:SEMANTIC_GAP]->(c2:Cluster)
+RETURN c1.label, c2.label, gap.similarity, gap.gap_score
+ORDER BY gap.gap_score DESC
+
+# Find gaps for specific cluster:
+MATCH (c:Cluster {label: "AI Technology"})-[gap:SEMANTIC_GAP]-(other:Cluster)
+RETURN other.label, gap.similarity, gap.potential_bridges
 ```
 
 #### seeding_pipeline/scripts/analysis/speaker_summary_report.py
@@ -1032,6 +1120,99 @@ python scripts/utilities/find_next_episodes.py --date-range "2024-01-01:2024-12-
 # - Transcription commands
 # - Coverage analysis
 # - Resource estimates
+```
+
+---
+
+## UI Scripts
+
+### UI Setup Scripts
+
+#### ui/scripts/setup/manage_ui_servers.sh
+
+**Purpose:**
+The manage_ui_servers.sh script provides automated management of the UI application's frontend and backend servers. It intelligently checks if servers are already running on their designated ports (frontend on 5173, backend on 8000) and either restarts them if running or starts them fresh if not running. The script handles all necessary setup including virtual environment activation for the backend, dependency installation, and proper server startup sequences. It provides comprehensive status reporting and error handling, making it the primary tool for UI development server management. The script is essential for developers working on the UI components as it eliminates the manual steps of checking server status, killing processes, and starting servers in the correct order.
+
+**Process:**
+The script begins by checking system prerequisites and creating necessary directories including a logs directory for server output. It uses multiple fallback methods (lsof, ss, netstat) to detect processes running on the target ports, ensuring compatibility across different systems. For each server that's already running, it identifies the process ID and gracefully terminates it before starting a new instance. For the backend, the script first checks if a Python virtual environment exists and creates one if needed, then activates it and ensures all dependencies from requirements.txt are installed. The frontend setup involves checking for node_modules and running npm install if needed. Both servers are started as background processes with output redirected to separate log files. The script monitors startup progress and validates that servers are accessible on their expected ports before declaring success. Throughout execution, it provides colored status messages and maintains comprehensive logging for troubleshooting.
+
+**Usage:**
+```bash
+# Run from ui directory
+cd ui
+./scripts/setup/manage_ui_servers.sh
+
+# Or run from project root
+./ui/scripts/setup/manage_ui_servers.sh
+
+# The script requires no parameters and performs these actions:
+# 1. Checks for existing servers on ports 5173 and 8000
+# 2. Stops any existing servers
+# 3. Starts backend server (FastAPI on port 8000)
+# 4. Starts frontend server (Vite on port 5173)
+# 5. Provides status and access URLs
+
+# Example output:
+# === UI Server Management Script ===
+# Checking for existing Frontend on port 5173...
+# No Frontend running on port 5173
+# Checking for existing Backend on port 8000...  
+# Found Backend running (PID: 12345). Stopping...
+# Backend stopped successfully
+#
+# Starting Backend Server...
+# Starting FastAPI server on port 8000...
+# Backend server started successfully (PID: 54321)
+# Backend URL: http://localhost:8000
+#
+# Starting Frontend Server...
+# Starting Vite dev server on port 5173...
+# Frontend server started successfully (PID: 65432)
+# Frontend URL: http://localhost:5173
+#
+# ✓ Both servers are now running!
+# 
+# Server Status:
+# - Frontend: http://localhost:5173
+# - Backend:  http://localhost:8000
+# - API Docs: http://localhost:8000/docs
+#
+# Logs:
+# - Frontend: ui/logs/frontend.log
+# - Backend:  ui/logs/backend.log
+```
+
+**Features:**
+- **Automatic Process Detection**: Uses multiple methods to detect running servers
+- **Graceful Restart**: Properly stops existing servers before starting new ones
+- **Environment Management**: Handles Python virtual environment creation and activation
+- **Dependency Management**: Automatically installs missing dependencies
+- **Background Execution**: Starts servers as background processes for continued development
+- **Comprehensive Logging**: Separate log files for frontend and backend with timestamps
+- **Status Validation**: Confirms servers are responding before declaring success
+- **Cross-Platform Compatibility**: Works on Linux, macOS, and Windows (with WSL)
+- **Error Handling**: Provides clear error messages and troubleshooting guidance
+- **Resource Information**: Shows URLs, PIDs, and log file locations
+
+**Troubleshooting:**
+```bash
+# If servers fail to start, check the logs:
+cat ui/logs/backend.log
+cat ui/logs/frontend.log
+
+# To manually stop servers:
+kill -9 $(lsof -ti:5173)  # Frontend
+kill -9 $(lsof -ti:8000)  # Backend
+
+# To check server status manually:
+curl http://localhost:8000/docs  # Backend health
+curl http://localhost:5173       # Frontend health
+
+# Common issues:
+# - Port already in use: Script will handle this automatically
+# - Missing dependencies: Script installs them automatically  
+# - Python version issues: Ensure Python 3.8+ is available
+# - Node.js not installed: Install Node.js 16+ for frontend
 ```
 
 ---
