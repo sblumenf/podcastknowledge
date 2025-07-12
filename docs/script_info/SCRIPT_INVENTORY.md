@@ -116,6 +116,11 @@ Located in `transcriber/examples/`:
 - `file_organizer_with_config.py` - File organization demo
 - `youtube_search_demo.py` - YouTube API demo
 
+## UI Scripts
+
+Located in `ui/`:
+- `run_servers.sh` - Start both frontend and backend servers for the UI dashboard
+
 ## Shared Scripts
 
 Located in `shared/scripts/`:

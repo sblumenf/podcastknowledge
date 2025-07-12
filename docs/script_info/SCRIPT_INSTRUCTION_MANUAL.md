@@ -25,7 +25,10 @@ This comprehensive manual documents all scripts in the Podcast Knowledge project
    - [Maintenance Scripts](#transcriber-maintenance-scripts)
    - [Utility Scripts](#transcriber-utility-scripts)
 
-4. [Shared Scripts](#shared-scripts)
+4. [UI Scripts](#ui-scripts)
+   - [run_servers.sh](#uirun_serverssh)
+
+5. [Shared Scripts](#shared-scripts)
 
 ---
 
@@ -1117,6 +1120,42 @@ python scripts/utilities/find_next_episodes.py --date-range "2024-01-01:2024-12-
 # - Transcription commands
 # - Coverage analysis
 # - Resource estimates
+```
+
+---
+
+## UI Scripts
+
+### ui/run_servers.sh
+
+**Purpose:**
+The run_servers.sh script provides a convenient way to start both the frontend and backend servers for the podcast knowledge UI dashboard. It manages the lifecycle of both servers, ensuring they start in the correct order and providing a unified interface for stopping them. The script handles dependency installation for the frontend, sets up proper port configurations, and provides clear feedback about server status. It's designed to simplify the development workflow by eliminating the need to manage multiple terminal sessions for the UI components.
+
+**Process:**
+The script begins by setting up signal handlers to ensure clean shutdown of both servers when interrupted. It first starts the backend FastAPI server using uvicorn, which provides the REST API for podcast data. The backend server runs on port 8000 and connects to the configured Neo4j databases to retrieve podcast information. After giving the backend time to initialize, the script moves to the frontend directory and runs npm install to ensure all dependencies are available. It then starts the Vite development server on port 3000, which serves the React application. The frontend is configured to proxy API requests to the backend, allowing seamless communication between the UI and the data layer. Throughout execution, the script provides clear console output showing the URLs for accessing both servers. It maintains process IDs for both servers and ensures they are properly terminated when the script exits.
+
+**Usage:**
+```bash
+# Run from ui directory
+cd ui
+./run_servers.sh
+
+# The script will:
+# 1. Start backend API at http://localhost:8000
+# 2. Install frontend dependencies (if needed)
+# 3. Start frontend UI at http://localhost:3000
+# 4. Show status messages for both servers
+# 5. Handle Ctrl+C to stop both servers cleanly
+
+# No parameters required - the script handles everything automatically
+
+# After starting, you can:
+# - Access the dashboard at http://localhost:3000
+# - View API documentation at http://localhost:8000/docs
+# - Check API health at http://localhost:8000/health
+
+# To stop the servers:
+# Press Ctrl+C in the terminal where run_servers.sh is running
 ```
 
 ---

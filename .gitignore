@@ -146,8 +146,12 @@ node_modules/
 package-lock.json
 package.json
 
-# UI directory (removed from project)
-ui/
+# UI specific ignores
+ui/frontend/node_modules/
+ui/frontend/dist/
+ui/frontend/.vite/
+ui/backend/__pycache__/
+ui/backend/*.pyc
 
 # MCP config
 .mcp.json
