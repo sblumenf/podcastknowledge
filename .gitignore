@@ -119,3 +119,46 @@ ui/backend/*.md
 *_ANALYSIS.md
 *-report.md
 *-tracking.md
+
+# InfraNodus (third-party tool)
+infranodus/
+
+# Debug and test files
+debug*.js
+test*.js
+check*.js
+monitor*.js
+find*.js
+puppeteer*.js
+test_*.py
+ui/backend/test_*.py
+ui/frontend/test*.html
+ui/frontend/src/test*.html
+ui/frontend/**/test*.html
+
+# Screenshots and images
+*.png
+dashboard-screenshot.png
+podcast-screenshot.png
+
+# Node.js
+node_modules/
+package-lock.json
+package.json
+
+# UI directory (removed from project)
+ui/
+
+# MCP config
+.mcp.json
+
+# Temporary markdown files
+graph_issue_analysis.md
+docs/infranodus-*.md
+docs/search-filter-implementation-plan.md
+seeding_pipeline/docs/semantic_gap_detection.md
+ui/frontend/docs/session-*.md
+
+# Data folder screenshots
+data/*.png
+"data/Screenshot*"

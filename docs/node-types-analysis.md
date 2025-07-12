@@ -55,7 +55,7 @@ The Podcast node serves as the root node for the entire knowledge graph, contain
 - `name`: ["The Mel Robbins Podcast"]
 - `host`: ["SiriusXM Podcasts"]
 
-**Knowledge Exploration Usefulness:** **MODERATELY USEFUL** - Provides essential context but limited exploration value in single-podcast database.
+**Knowledge Exploration Usefulness:** **NOT USEFUL** - Provides essential context but limited exploration value in single-podcast database.
 
 ### 4. Topic (84 nodes)
 

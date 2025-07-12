@@ -18,6 +18,9 @@ google-api-python-client==2.108.0
 # API
 fastapi==0.104.1
 uvicorn[standard]==0.24.0
+# API
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
 pydantic==2.5.0
 
 ruamel.yaml==0.18.6

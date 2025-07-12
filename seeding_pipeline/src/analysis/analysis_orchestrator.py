@@ -10,6 +10,7 @@ from typing import Dict, Any, Optional
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from .gap_detection import run_gap_detection
+from .semantic_gap_detection import run_semantic_gap_detection
 from .missing_links import run_missing_link_analysis
 from .diversity_metrics import run_diversity_analysis
 
@@ -37,6 +38,7 @@ def run_knowledge_discovery(episode_id: str, session) -> Dict[str, Any]:
         "analyses_failed": [],
         "total_time": 0.0,
         "gap_detection": {},
+        "semantic_gap_detection": {},
         "missing_links": {},
         "diversity_metrics": {},
         "summary": {}
@@ -74,6 +76,7 @@ def run_knowledge_discovery(episode_id: str, session) -> Dict[str, Any]:
         
         if has_clusters:
             analyses_to_run.append(("gap_detection", run_gap_detection))
+            analyses_to_run.append(("semantic_gap_detection", run_semantic_gap_detection))
             analyses_to_run.append(("diversity_metrics", run_diversity_analysis))
         else:
             logger.warning(f"No clusters found for episode {episode_id}, skipping related analyses")
@@ -152,6 +155,21 @@ def generate_summary(results: Dict[str, Any]) -> Dict[str, Any]:
         summary["recommendations"].append(
             f"Explore connection between {top_gap['cluster1'][0]} and {top_gap['cluster2'][0]} topics"
         )
+    
+    # Summarize semantic gap detection
+    semantic_gap_results = results.get("semantic_gap_detection", {})
+    if semantic_gap_results.get("top_gaps"):
+        gap_count = semantic_gap_results.get("gaps_detected", 0)
+        summary["key_findings"].append(
+            f"Found {gap_count} semantic gaps between knowledge clusters"
+        )
+        
+        # Add top semantic gap as recommendation
+        if semantic_gap_results["top_gaps"]:
+            top_gap = semantic_gap_results["top_gaps"][0]
+            summary["recommendations"].append(
+                f"Bridge semantic gap between '{top_gap['cluster1']}' and '{top_gap['cluster2']}' (similarity: {top_gap['similarity']:.2f})"
+            )
     
     # Summarize missing links
     link_results = results.get("missing_links", {})

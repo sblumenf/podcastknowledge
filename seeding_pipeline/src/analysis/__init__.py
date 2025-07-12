@@ -20,7 +20,10 @@ from .diversity_metrics import (
 )
 
 from .analysis_orchestrator import (
-    run_knowledge_discovery,
-    run_knowledge_discovery_batch,
-    get_analysis_configuration
+    run_knowledge_discovery
+)
+
+from .semantic_gap_detection import (
+    detect_semantic_gaps,
+    run_semantic_gap_detection
 )
