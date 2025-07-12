@@ -5,6 +5,7 @@ from pathlib import Path
 from datetime import datetime
 from neo4j import GraphDatabase
 import os
+from api.routes import meaningful_units
 
 app = FastAPI()
 
@@ -17,9 +18,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Register routers
+app.include_router(meaningful_units.router, prefix="/api/v1")
+
 # Load podcast configuration
 def load_podcast_config():
-    config_path = Path(__file__).parent.parent.parent / "seeding_pipeline" / "config" / "podcasts.yaml"
+    config_path = os.environ.get('PODCASTS_CONFIG_PATH', 
+        '/home/sergeblumenfeld/podcastknowledge/seeding_pipeline/config/podcasts.yaml')
     with open(config_path, 'r') as f:
         return yaml.safe_load(f)
 

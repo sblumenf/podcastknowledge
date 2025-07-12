@@ -1,18 +1,13 @@
 import React from 'react'
-import { useParams, Link } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
+import GraphVisualization from '../components/GraphVisualization'
 
 function PodcastView() {
   const { podcastId } = useParams()
 
   return (
-    <div className="container">
-      <Link to="/" style={{ color: '#a0a0a0', textDecoration: 'none', marginBottom: '1rem', display: 'inline-block' }}>
-        ← Back to Dashboard
-      </Link>
-      <h1>Podcast: {podcastId}</h1>
-      <p style={{ marginTop: '2rem', color: '#a0a0a0' }}>
-        Graph visualization for podcast "{podcastId}" will be displayed here.
-      </p>
+    <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}>
+      <GraphVisualization podcastId={podcastId} />
     </div>
   )
 }
